@@ -50,22 +50,17 @@ object AppFilterChipDefaults {
 
     @Composable
     fun colors() = FilterChipDefaults.filterChipColors(
-        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+        selectedContainerColor = MaterialTheme.colorScheme.primary,
+        selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
         containerColor = MaterialTheme.colorScheme.surface,
-        labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-        iconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-        selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
-        selectedTrailingIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
+        labelColor = MaterialTheme.colorScheme.onSurface,
+        iconColor = MaterialTheme.colorScheme.onSurface,
+        selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimary,
+        selectedTrailingIconColor = MaterialTheme.colorScheme.onPrimary,
     )
 
     @Composable
-    fun stateColors() = FilterChipDefaults.filterChipColors(
-        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
-        containerColor = MaterialTheme.colorScheme.surfaceVariant,
-        labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-    )
+    fun stateColors() = colors()
 }
 
 object AppSwitchDefaults {

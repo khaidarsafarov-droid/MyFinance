@@ -52,7 +52,7 @@ data class LoadAlarmPromptState(
 )
 
 data class AddLoadUiState(
-    val mode: AddLoadInputMode = AddLoadInputMode.PASTE,
+    val mode: AddLoadInputMode = AddLoadInputMode.MANUAL,
     val rawText: String = "",
     val manual: ManualLoadFields = ManualLoadFields(),
     val documentName: String? = null,
@@ -100,11 +100,10 @@ class AddLoadViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(
         AddLoadUiState(
             rawText = savedStateHandle[KEY_RAW] ?: "",
-            mode = if ((savedStateHandle[KEY_RAW] ?: "").isNotBlank()) {
-                AddLoadInputMode.PASTE
-            } else {
-                AddLoadInputMode.MANUAL
-            },
+            // Always open on the manual form. A restored paste stays in rawText
+            // until the driver chooses Paste; inferring Paste from leftover text
+            // was opening this screen on the paste field.
+            mode = AddLoadInputMode.MANUAL,
             manual = ManualLoadFields(date = todayIso()),
         ),
     )

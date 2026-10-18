@@ -13,6 +13,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -21,8 +22,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.R
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.StopType
-import com.truckerload.domain.model.formatDurationDays
-import com.truckerload.domain.model.formatPacePerDay
 import com.truckerload.presentation.components.LoadRouteBlock
 import com.truckerload.presentation.components.RpmValueBadge
 import com.truckerload.presentation.components.formatJournalDate
@@ -33,6 +32,7 @@ import com.truckerload.presentation.screens.add.labelRes
 import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.loadSharedBounds
 import com.truckerload.presentation.utils.MoneyFormat
+import kotlin.math.ceil
 
 @Composable
 internal fun LoadDetailSummary(load: Load) {
@@ -89,12 +89,24 @@ internal fun LoadDetailSummary(load: Load) {
         )
         MetricTile(
             label = stringResource(R.string.load_detail_stat_duration),
-            value = if (load.durationDays > 0) formatDurationDays(load.durationDays) else "—",
+            value = if (load.durationDays > 0) {
+                val days = ceil(load.durationDays).toInt().coerceAtLeast(1)
+                pluralStringResource(R.plurals.load_card_duration_days, days, days)
+            } else {
+                "—"
+            },
             modifier = Modifier.weight(1f),
         )
         MetricTile(
             label = stringResource(R.string.load_detail_stat_pace),
-            value = if (load.pace.isPositive()) formatPacePerDay(load.pace) else "—",
+            value = if (load.pace.isPositive()) {
+                stringResource(
+                    R.string.load_card_per_day,
+                    MoneyFormat.formatCurrency(load.pace, decimals = 2),
+                )
+            } else {
+                "—"
+            },
             modifier = Modifier.weight(1f),
         )
     }

@@ -672,15 +672,15 @@
     <string name="add_load_save_offline">Guardar en la app (sin conexión)</string>
     <string name="add_load_hint_online">Pega un mensaje y toca Guardar: los datos van directo a la base local.</string>
     <string name="add_load_mode_title">Cómo agregar una carga</string>
-    <string name="add_load_mode_subtitle">Elige la opción que te convenga: bot, pegar, formulario o una foto.</string>
+    <string name="add_load_mode_subtitle">Pegue el texto, complete el formulario o añada una foto.</string>
     <string name="add_load_mode_paste">Pegar</string>
     <string name="add_load_mode_manual">Manual</string>
     <string name="add_load_mode_document">Foto / PDF</string>
-    <string name="add_load_hint_paste">Copia un rate confirmation de Telegram, WhatsApp, el correo o cualquier otra app y pégalo aquí. La app lee la tarifa, las millas y las direcciones.</string>
-    <string name="add_load_history_tip_title">Cualquier rate confirmation</string>
-    <string name="add_load_history_tip_body">Pega el texto copiado de Telegram, WhatsApp, el correo u otra app. También sirven una foto o un PDF. La app busca el rate confirmation, no un solo mensajero.</string>
-    <string name="add_load_hint_manual">Ingresa la tarifa y al menos una dirección. Trip ID puede quedar vacío: la app creará uno.</string>
-    <string name="add_load_hint_document">Fotografía un documento o elige cualquier archivo (PDF, foto, TXT, JSON, CSV, DOCX): los campos se llenan solos. Revísalos, edita si hace falta y guarda.</string>
+    <string name="add_load_hint_paste">Copie el texto del correo o de un mensaje: completaremos los campos. También puede subir una foto o un PDF.</string>
+    <string name="add_load_history_tip_title">Pegue el rate confirmation</string>
+    <string name="add_load_history_tip_body">Copie el texto del correo o de un mensaje: completaremos los campos. También puede subir una foto o un PDF.</string>
+    <string name="add_load_hint_manual">Indique la tarifa y al menos una dirección. El número de viaje es opcional.</string>
+    <string name="add_load_hint_document">Revise los campos, complete lo que falte y guarde.</string>
     <string name="add_load_manual_hint">Escribe los datos de la carga. Se requieren tarifa y un punto de pickup o entrega.</string>
     <string name="add_load_document_fields_hint">Revisa los campos reconocidos. Completa lo que falte y guarda.</string>
     <string name="add_load_trip_optional">Opcional</string>
@@ -736,7 +736,6 @@
     <string name="edit_load_added_at">Agregada: %1$s</string>
     <string name="edit_load_trip_id">Trip ID</string>
     <string name="edit_load_date_label">Fecha de la carga (YYYY-MM-DD)</string>
-    <string name="edit_load_date_help">load_date — para el informe semanal</string>
     <string name="edit_load_finish_label">Fin (YYYY-MM-DD HH:mm)</string>
     <string name="edit_load_finish_help">El valor predeterminado es el último DEL. Define fecha y hora para recalcular duración, ritmo y la ruta del mapa.</string>
     <string name="edit_load_finish_help_with_del">Último DEL: %1$s. Cambia la fecha y hora para recalcular duración, ritmo y la ruta del mapa.</string>
@@ -809,6 +808,19 @@
     <string name="dispute_amount_not_added">No agregado a la carga: %1$s</string>
     <string name="load_card_summary_line">%1$d paradas • %2$s mi • %3$s</string>
     <string name="load_card_pace_line">%1$s • %2$s</string>
+    <string name="load_card_per_day">%1$s/día</string>
+    <string name="load_card_miles">%1$s mi</string>
+    <string name="load_source_relay">RELAY</string>
+    <string name="load_source_manual">MANUAL</string>
+    <string name="load_source_broker">BROKER</string>
+    <plurals name="load_card_duration_days">
+        <item quantity="one">%d día</item>
+        <item quantity="other">%d días</item>
+    </plurals>
+    <plurals name="load_card_stops">
+        <item quantity="one">%d parada</item>
+        <item quantity="other">%d paradas</item>
+    </plurals>
     <string name="load_card_attach_photo">Tomar foto de la carga</string>
     <string name="load_card_attach_scan">Escanear documento de la carga</string>
     <string name="load_detail_stops">Paradas</string>
@@ -1659,7 +1671,7 @@
     <string name="add_load_preview_title">Vista previa de la carga</string>
     <string name="add_load_preview_gift">Ruta, tarifa y RPM: listo para guardar</string>
     <string name="add_load_preview_parsing">Leyendo mensaje…</string>
-    <string name="add_load_preview_incomplete">El texto está, pero la carga no se armó. Revisa la tarifa y la dirección de pickup.</string>
+    <string name="add_load_preview_incomplete">No se pudo armar la carga. Revise la tarifa y la dirección de recogida.</string>
     <string name="add_load_preview_missing_rate">Aún no hay tarifa. Agrega una línea Total Rate.</string>
     <string name="add_load_preview_missing_address">Aún no hay dirección. Se necesita una línea propia de Pu-address o Del-address.</string>
     <string name="add_load_preview_missing_both">Se necesitan Total Rate y una dirección de pickup o entrega, cada una en su propia línea.</string>
@@ -1687,10 +1699,8 @@
     <string name="nav_home">Inicio</string>
     <string name="nav_stats">Estadísticas</string>
     <string name="home_week_chip">Semana %1$d · %2$s</string>
-    <string name="home_week_of_goal">bruto de la meta %1$s</string>
+    <string name="home_week_of_goal">de la meta %1$s</string>
     <string name="home_goal_of_percent">%1$d%% de la meta</string>
-    <string name="home_pace_need_line">Necesitas %1$s/día · quedan %2$d días · %3$s para la meta</string>
-    <string name="home_pace_met_line">Meta alcanzada · %1$s esta semana</string>
     <string name="home_stat_rate_per_mile">Tarifa por milla</string>
     <string name="home_stat_miles">Millas</string>
     <string name="home_stat_loads">Cargas</string>
@@ -1714,7 +1724,7 @@
     <string name="add_load_route_label">Ruta</string>
     <string name="add_load_pay_label">Pago</string>
     <string name="add_load_rate_per_mile">Tarifa por milla</string>
-    <string name="empty_diesel_detail">Un repostaje aparece aquí después de registrarlo. Fotografía el recibo o la bomba: los galones y el precio se completan solos.</string>
+    <string name="empty_diesel_detail">El repostaje aparece aquí después de registrarlo. Fotografíe el recibo o la bomba: los galones y el precio se completan solos.</string>
     <string name="empty_scan_receipt">Escanear recibo</string>
     <string name="empty_take_photo">Tomar foto</string>
     <string name="load_detail_edit_load">Editar carga</string>

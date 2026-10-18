@@ -21,11 +21,11 @@ object SoftUiColors {
     val ForestSoft = Color(0xFFD4D0FF)
     val Sage = Color(0xFFEEEDFF)
     val SageHover = Color(0xFFE0DEFF)
-    val SageBorder = Color(0xFFD4D2E8)
-    val SageBorderStrong = Color(0xFFC4C1E0)
-    val CardBorder = Color(0xFFE8E7F4)
-    val ContentBg = Color(0xFFF4F5FB)
-    val ShellBg = Color(0xFFF0F1FA)
+    val SageBorder = Color(0xFFE3E2F0)
+    val SageBorderStrong = Color(0xFFC4C1E4)
+    val CardBorder = Color(0xFFE3E2F0)
+    val ContentBg = Color(0xFFF1F1FA)
+    val ShellBg = Color(0xFFF1F1FA)
     val OuterBg = Color(0xFFE4E4F0)
 
     /** Legacy names kept as aliases so existing call sites pick up the kit theme. */
@@ -40,12 +40,16 @@ object SoftUiColors {
     val SurfaceMuted = ShellBg
 
     /** Dedicated dark cabin tokens (indigo, not inverted light). */
-    val BackgroundDark = Color(0xFF0E0D1F)
-    val SurfaceDark = Color(0xFF1A1930)
-    val SurfaceMutedDark = Color(0xFF24233C)
-    /** Lightened primary on the dark cabin; on-primary stays dark for AA. */
+    val BackgroundDark = Color(0xFF0B0B22)
+    val SurfaceDark = Color(0xFF17173A)
+    val SurfaceMutedDark = Color(0xFF2E2A66)
+    val CardBorderDark = Color(0xFF2C2B5A)
+    val BorderStrongDark = Color(0xFF3A3870)
+    /** Lightened primary on the dark cabin. on-primary stays dark so it clears AA on #8F89FF. */
     val ForestAccentDark = Color(0xFF8F89FF)
-    val OnForestAccentDark = Color(0xFF1A1628)
+    val OnForestAccentDark = Color(0xFF14123A)
+    val OnContainerLight = Color(0xFF2B2580)
+    val OnContainerDark = Color(0xFFDCDAFF)
 
     /** True-black OLED tokens — saves power on AMOLED and reduces night glare. */
     val BackgroundOled = Color(0xFF000000)
@@ -55,10 +59,18 @@ object SoftUiColors {
     val VoiceSuccess = Color(0xFF34C759)
     val VoiceDanger = Color(0xFFFF3B30)
 
-    val TextPrimaryLight = Color(0xFF1A1A1A)
-    val TextSecondaryLight = Color(0xFF5C5C5C)
-    val TextPrimaryDark = Color(0xFFF4F3FA)
-    val TextSecondaryDark = Color(0xFFC8C6D8)
+    val TextPrimaryLight = Color(0xFF16152B)
+    val TextSecondaryLight = Color(0xFF57557A)
+    val TextTertiaryLight = Color(0xFF6B6990)
+    val TextPrimaryDark = Color(0xFFF2F1FF)
+    val TextSecondaryDark = Color(0xFFB4B2D1)
+    val TextTertiaryDark = Color(0xFF8E8CB0)
+    val OrangeLight = Color(0xFFDF7B14)
+    val OrangeDark = Color(0xFFF0A151)
+    val HeroStartLight = Color(0xFF2B25A1)
+    val HeroEndLight = Color(0xFF0C0F6C)
+    val HeroStartDark = Color(0xFF3A33C9)
+    val HeroEndDark = Color(0xFF19189A)
 
     val ShadowTint = Color(0x145B54E6)
     val ShadowNeutral = Color(0x0D000000)

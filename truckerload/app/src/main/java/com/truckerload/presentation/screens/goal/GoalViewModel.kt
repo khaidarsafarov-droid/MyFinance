@@ -16,11 +16,13 @@ import com.truckerload.domain.ux.UxMotivation
 import com.truckerload.utils.getPreviousWeekNumberAndYear
 import com.truckerload.utils.isLoadInWeek
 import com.truckerload.widget.WidgetDataUpdater
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -47,8 +49,9 @@ class GoalViewModel @Inject constructor(
     @ApplicationContext private val appContext: Context
 ) : ViewModel() {
 
+    // Cold flow. Do not stateIn the full load list on Main — the first visit
+    // was scanning every load on the UI thread during the tab transition.
     private val loadsFlow = loadRepository.watchLoads()
-        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     /** Цель на неделю (DataStore, сохраняется между сессиями). */
     val weeklyGoal: StateFlow<Double> = goalStore.goalAmount
@@ -59,7 +62,8 @@ class GoalViewModel @Inject constructor(
         loadRepository.watchCurrentWeekYieldSnapshot()
     ) { loads, goal, sqlYield ->
         WeeklyGoalCalculator.calculateCurrentWeek(Money.fromDollars(goal), loads, sqlYield)
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
+    }.flowOn(Dispatchers.Default)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     /** Текущий гросс за неделю из Room. */
     val currentGross: StateFlow<Double> = progressFlow
@@ -93,12 +97,12 @@ class GoalViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             combine(progressFlow, loadsFlow) { progress, loads ->
-                progress to loads
-            }.collect { (progress, loads) ->
                 val (closedWeek, closedYear) = getPreviousWeekNumberAndYear()
                 val closedGross = loads
                     .filter { isLoadInWeek(it, closedWeek, closedYear) }
                     .map { it.totalRate }.sum().cents / 100.0
+                progress to closedGross
+            }.flowOn(Dispatchers.Default).collect { (progress, closedGross) ->
                 _uiState.update {
                     it.copy(
                         progress = progress,

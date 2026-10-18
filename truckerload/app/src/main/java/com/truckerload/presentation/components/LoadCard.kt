@@ -1,56 +1,44 @@
 package com.truckerload.presentation.components
 
-import com.truckerload.presentation.icons.AppIcons
-
 import androidx.compose.foundation.background
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Icon
-import androidx.compose.material3.minimumInteractiveComponentSize
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.R
 import com.truckerload.data.preferences.RpmThresholds
 import com.truckerload.domain.model.Load
-import com.truckerload.domain.model.effectiveFinishDate
-import com.truckerload.domain.model.formatDurationDays
-import com.truckerload.domain.model.formatPacePerDay
 import com.truckerload.presentation.di.LocalRpmThresholdsStore
-import com.truckerload.presentation.utils.MoneyFormat
 import com.truckerload.presentation.theme.AppTypography
-import com.truckerload.presentation.theme.BentoGlassClickableCard
-import com.truckerload.presentation.theme.UiDimens
+import com.truckerload.presentation.theme.LocalBrandPalette
 import com.truckerload.presentation.theme.LocalTruckColors
+import com.truckerload.presentation.theme.UiDimens
 import com.truckerload.presentation.theme.loadSharedBounds
+import com.truckerload.presentation.theme.pressScale
 import java.util.Locale
 
 @Composable
@@ -96,22 +84,18 @@ private fun LoadCardContent(
     load: Load,
     onClick: () -> Unit,
     modifier: Modifier,
-    solidBackground: Boolean,
+    @Suppress("UNUSED_PARAMETER") solidBackground: Boolean,
     wrapInCard: Boolean,
     rpmThresholds: RpmThresholds,
     onCameraClick: (() -> Unit)?,
     onScanClick: (() -> Unit)?,
 ) {
     val tc = LocalTruckColors.current
-    val cs = MaterialTheme.colorScheme
-    val stopLabel = load.stopCount.takeIf { it > 0 } ?: (load.puCount + load.delCount)
-    val rpm = computeRpm(load.totalRate, load.drivenMiles)
-
     val disputeStain = if (load.isDispute) tc.Danger else null
     val disputeWash = if (load.isActiveDispute) 0.16f else 0.10f
 
     val cardContent: @Composable () -> Unit = {
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .then(
@@ -126,77 +110,13 @@ private fun LoadCardContent(
                     } else {
                         Modifier
                     },
-                )
-                .padding(16.dp),
-        ) {
-            val tier = rpmTier(rpm, rpmThresholds.minProfit, rpmThresholds.targetProfit)
-            val rpmText = formatRpm(
-                load.totalRate,
-                load.drivenMiles,
-                stringResource(R.string.rpm_per_mile_format),
-            )
-            if (load.isDispute) {
-                DisputeCardChip(load = load, modifier = Modifier.padding(bottom = 8.dp))
-            }
-            LoadRouteBlock(
-                dateLabel = formatJournalDate(load.effectiveFinishDate() ?: load.date),
-                tripLabel = load.tripId.let { id ->
-                    when {
-                        id.isBlank() -> ""
-                        id.startsWith("#") -> id
-                        else -> "#$id"
-                    }
-                },
-                origin = load.firstPuCityState.ifBlank { load.pointA },
-                destination = load.lastDelCityState.ifBlank { load.pointB },
-                rate = MoneyFormat.formatCurrency(load.totalRate, decimals = 0),
-                meta = stringResource(
-                    R.string.load_card_meta_line,
-                    String.format(Locale.US, "%,.0f", load.drivenMiles),
-                    stopLabel,
                 ),
-                trailing = {
-                    if (tier != null && rpm != null) {
-                        RpmValueBadge(rpmText = rpmText, tier = tier)
-                    }
-                },
-                belowRate = {
-                    if (load.durationDays > 0.0) {
-                        Text(
-                            text = stringResource(
-                                R.string.load_card_pace_line,
-                                formatDurationDays(load.durationDays),
-                                formatPacePerDay(load.pace),
-                            ),
-                            style = AppTypography.Subtitle.copy(color = cs.onSurfaceVariant),
-                            modifier = Modifier.padding(top = 6.dp),
-                        )
-                    }
-                    if (onCameraClick != null || onScanClick != null) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(top = 8.dp),
-                            horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.End),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            if (onCameraClick != null) {
-                                LoadCardActionChip(
-                                    onClick = onCameraClick,
-                                    contentDescription = stringResource(R.string.load_card_attach_photo),
-                                    imageVector = AppIcons.CameraAlt,
-                                )
-                            }
-                            if (onScanClick != null) {
-                                LoadCardActionChip(
-                                    onClick = onScanClick,
-                                    contentDescription = stringResource(R.string.load_card_attach_scan),
-                                    imageVector = AppIcons.DocumentScanner,
-                                )
-                            }
-                        }
-                    }
-                },
+        ) {
+            LoadCardOptionC(
+                load = load,
+                rpmThresholds = rpmThresholds,
+                onCameraClick = onCameraClick,
+                onScanClick = onScanClick,
             )
         }
     }
@@ -210,13 +130,11 @@ private fun LoadCardContent(
     }
 
     if (wrapInCard) {
-        BentoGlassClickableCard(
+        LoadCardSurface(
             onClick = onClick,
             modifier = cardModifier
                 .fillMaxWidth()
                 .heightIn(min = UiDimens.LoadCardMinHeight),
-            solidBackground = solidBackground,
-            highlight = false,
             content = { cardContent() },
         )
     } else {
@@ -244,39 +162,6 @@ fun computeRpm(totalRate: Double, totalMiles: Double): Double? =
 fun computeRpm(totalRate: com.truckerload.domain.money.Money, totalMiles: Double): Double? =
     computeRpm(totalRate.cents / 100.0, totalMiles)
 
-/**
- * Camera / scan chip on a load card. Fixed visual size (not Material IconButton's
- * 48dp min target) so [Arrangement.spacedBy] actually separates the green pills.
- */
-@Composable
-private fun LoadCardActionChip(
-    onClick: () -> Unit,
-    contentDescription: String,
-    imageVector: ImageVector,
-) {
-    val cs = MaterialTheme.colorScheme
-    Box(
-        modifier = Modifier
-            .size(48.dp)
-            .clip(RoundedCornerShape(14.dp))
-            .background(cs.primaryContainer)
-            .clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null,
-                onClick = onClick,
-            )
-            .semantics { this.contentDescription = contentDescription },
-        contentAlignment = Alignment.Center,
-    ) {
-        Icon(
-            imageVector = imageVector,
-            contentDescription = null,
-            tint = cs.onPrimaryContainer,
-            modifier = Modifier.size(20.dp),
-        )
-    }
-}
-
 /** RPM = Total Amount / Total Miles. */
 fun formatRpm(totalRate: com.truckerload.domain.money.Money, totalMiles: Double, unitFormat: String): String =
     formatRpm(totalRate.cents / 100.0, totalMiles, unitFormat)
@@ -290,7 +175,34 @@ fun formatRpm(totalRate: Double, totalMiles: Double, unitFormat: String): String
 }
 
 @Composable
-private fun DisputeCardChip(
+internal fun LoadCardSurface(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit,
+) {
+    val brand = LocalBrandPalette.current
+    val shape = RoundedCornerShape(22.dp)
+    Surface(
+        onClick = onClick,
+        modifier = modifier
+            .pressScale()
+            .shadow(
+                elevation = 4.dp,
+                shape = shape,
+                ambientColor = brand.shadow,
+                spotColor = brand.shadow,
+            ),
+        shape = shape,
+        color = brand.card,
+        border = BorderStroke(1.dp, brand.cardBorder),
+        shadowElevation = 0.dp,
+    ) {
+        content()
+    }
+}
+
+@Composable
+internal fun DisputeCardChip(
     load: Load,
     modifier: Modifier = Modifier,
 ) {

@@ -212,7 +212,6 @@ fun EditLoadScreen(
                             singleLine = true,
                             keyboardOptions = formKeyboard(KeyboardType.Text),
                             keyboardActions = formKeyboardActions(),
-                            supportingText = { Text(stringResource(R.string.edit_load_date_help)) },
                             shape = RoundedCornerShape(BentoGlassTheme.CellRadius),
                             colors = fieldColors,
                         )

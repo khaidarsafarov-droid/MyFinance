@@ -9,8 +9,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.FilterChip
+import com.truckerload.presentation.theme.AppChipLabel
+import com.truckerload.presentation.theme.AppFilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -47,7 +49,6 @@ import com.truckerload.R
 import com.truckerload.domain.model.EquipmentType
 import com.truckerload.presentation.components.TlOutlinedButton as OutlinedButton
 import com.truckerload.presentation.di.LocalRpmThresholdsStore
-import com.truckerload.presentation.theme.AppFilterChipDefaults
 import com.truckerload.presentation.theme.AppTextFieldDefaults
 import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.BentoGlassTheme
@@ -223,26 +224,45 @@ fun AddLoadManualForm(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            FilterChip(
+            AppFilterChip(
                 selected = fields.date.take(10) == today,
                 onClick = { onDate(today) },
-                label = { Text(stringResource(R.string.filter_today)) },
-                colors = AppFilterChipDefaults.colors(),
+                label = { AppChipLabel(stringResource(R.string.filter_today)) },
             )
-            FilterChip(
+            AppFilterChip(
                 selected = fields.date.take(10) == yesterday,
                 onClick = { onDate(yesterday) },
-                label = { Text(stringResource(R.string.add_load_date_yesterday)) },
-                colors = AppFilterChipDefaults.colors(),
+                label = { AppChipLabel(stringResource(R.string.add_load_date_yesterday)) },
+                leadingIcon = {
+                    Icon(
+                        AppIcons.History,
+                        contentDescription = null,
+                        tint = com.truckerload.presentation.theme.LocalBrandPalette.current.iconBlue,
+                        modifier = Modifier.size(18.dp),
+                    )
+                },
             )
-            FilterChip(
+            AppFilterChip(
                 selected = fields.date.isNotBlank() &&
                     fields.date.take(10) != today &&
                     fields.date.take(10) != yesterday,
                 onClick = { showDatePicker = true },
-                label = { Text(stringResource(R.string.add_load_date_pick)) },
-                leadingIcon = { Icon(AppIcons.DateRange, contentDescription = null) },
-                colors = AppFilterChipDefaults.colors(),
+                label = { AppChipLabel(stringResource(R.string.add_load_date_pick)) },
+                leadingIcon = {
+                    Icon(
+                        AppIcons.DateRange,
+                        contentDescription = null,
+                        tint = com.truckerload.presentation.theme.LocalBrandPalette.current.iconBlue,
+                        modifier = Modifier.size(18.dp),
+                    )
+                },
+                trailingIcon = {
+                    Icon(
+                        AppIcons.ExpandMore,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp),
+                    )
+                },
             )
         }
         BentoGlassCard(modifier = Modifier.fillMaxWidth()) {
@@ -291,29 +311,16 @@ fun AddLoadManualForm(
                         shape = RoundedCornerShape(BentoGlassTheme.CellRadius),
                         colors = colors,
                     )
-                    OutlinedTextField(
-                        value = fields.date,
-                        onValueChange = onDate,
-                        label = { Text(stringResource(R.string.edit_load_date_label)) },
-                        supportingText = { Text(stringResource(R.string.edit_load_date_help)) },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true,
-                        keyboardOptions = formKeyboard(KeyboardType.Text),
-                        keyboardActions = formKeyboardActions(),
-                        shape = RoundedCornerShape(BentoGlassTheme.CellRadius),
-                        colors = colors,
-                    )
                     EquipmentTypeChipRow(
                         selected = equipment,
                         onSelect = onEquipment,
                         title = null,
                     )
                     if (onOpenDocuments != null) {
-                        FilterChip(
+                        AppFilterChip(
                             selected = false,
                             onClick = onOpenDocuments,
-                            label = { Text(stringResource(R.string.add_load_mode_document)) },
-                            colors = AppFilterChipDefaults.colors(),
+                            label = { AppChipLabel(stringResource(R.string.add_load_mode_document)) },
                         )
                     }
                 }

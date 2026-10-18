@@ -97,8 +97,11 @@ fun NavGraphBuilder.toolsNavGraph(
             )
         },
     ) {
+        // Defer the goal ring, focus, and celebration until this fade-through
+        // has settled. They were starting on the first frame, on top of Home's exit.
+        val motionSettled = reduceMotion || transition.currentState == transition.targetState
         PremiumGate(PremiumFeature.WEEKLY_GOAL, onBack = { navController.popBackStack() }) {
-            WeeklyGoalScreen()
+            WeeklyGoalScreen(motionSettled = motionSettled)
         }
     }
     composable(

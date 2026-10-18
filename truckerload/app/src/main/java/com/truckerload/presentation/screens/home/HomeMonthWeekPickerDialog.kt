@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -27,7 +26,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
 import com.truckerload.presentation.icons.AppIcons
-import com.truckerload.presentation.theme.AppFilterChipDefaults
+import com.truckerload.presentation.theme.AppFilterChip
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.utils.getWeekLabelShort
 import com.truckerload.utils.getWeeksInMonth
@@ -127,11 +126,10 @@ internal fun HomeMonthWeekPickerDialog(
                     verticalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
                     months.forEach { m ->
-                        FilterChip(
+                        AppFilterChip(
                             selected = month == m,
                             onClick = { month = m },
                             label = { Text(monthShortLabel(m)) },
-                            colors = AppFilterChipDefaults.colors(),
                         )
                     }
                 }
@@ -142,14 +140,13 @@ internal fun HomeMonthWeekPickerDialog(
                     color = tc.TextSecondary,
                     modifier = Modifier.padding(top = 4.dp),
                 )
-                FilterChip(
+                AppFilterChip(
                     selected = selectedWeekStart.isNullOrBlank(),
                     onClick = {
                         onSelectMonth(year, month)
                         onDismiss()
                     },
                     label = { Text(stringResource(R.string.home_month_whole)) },
-                    colors = AppFilterChipDefaults.colors(),
                 )
                 FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -161,14 +158,13 @@ internal fun HomeMonthWeekPickerDialog(
                             index + 1,
                             getWeekLabelShort(weekNumber, weekYear),
                         )
-                        FilterChip(
+                        AppFilterChip(
                             selected = false,
                             onClick = {
                                 onSelectWeek(year, month, weekNumber, weekYear)
                                 onDismiss()
                             },
                             label = { Text(label) },
-                            colors = AppFilterChipDefaults.colors(),
                         )
                     }
                 }

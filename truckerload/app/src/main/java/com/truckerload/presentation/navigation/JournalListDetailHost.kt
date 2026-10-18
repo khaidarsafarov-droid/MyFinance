@@ -14,6 +14,13 @@ import com.truckerload.presentation.components.ListDetailEmptyPane
 import com.truckerload.presentation.components.ListDetailLayout
 import com.truckerload.presentation.screens.detail.LoadDetailScreen
 import com.truckerload.presentation.screens.home.HomeScreen
+import com.truckerload.presentation.theme.navForwardEnter
+import com.truckerload.presentation.theme.navForwardExit
+import com.truckerload.presentation.theme.navPopEnter
+import com.truckerload.presentation.theme.navPopExit
+import com.truckerload.presentation.theme.navSharedElementEnter
+import com.truckerload.presentation.theme.navSharedElementExit
+import com.truckerload.presentation.theme.rememberReduceMotion
 
 private const val PANE_EMPTY = "pane_empty"
 
@@ -26,6 +33,7 @@ fun JournalListDetailHost(
     navController: NavHostController,
 ) {
     val detailNavController = rememberNavController()
+    val reduceMotion = rememberReduceMotion()
 
     ListDetailLayout(
         listContent = {
@@ -60,6 +68,10 @@ fun JournalListDetailHost(
                 navController = detailNavController,
                 startDestination = PANE_EMPTY,
                 modifier = Modifier.fillMaxSize(),
+                enterTransition = { navForwardEnter(reduceMotion) },
+                exitTransition = { navForwardExit(reduceMotion) },
+                popEnterTransition = { navPopEnter(reduceMotion) },
+                popExitTransition = { navPopExit(reduceMotion) },
             ) {
                 composable(PANE_EMPTY) {
                     ListDetailEmptyPane()
@@ -67,6 +79,10 @@ fun JournalListDetailHost(
                 composable(
                     route = Routes.LOAD_DETAIL,
                     arguments = listOf(navArgument("loadId") { type = NavType.StringType }),
+                    enterTransition = { navSharedElementEnter(reduceMotion) },
+                    exitTransition = { navSharedElementExit(reduceMotion) },
+                    popEnterTransition = { navSharedElementEnter(reduceMotion) },
+                    popExitTransition = { navSharedElementExit(reduceMotion) },
                 ) { entry ->
                     val loadId = Uri.decode(entry.arguments?.getString("loadId").orEmpty())
                     LoadDetailScreen(

@@ -672,22 +672,22 @@
     <string name="add_load_save_offline">Save in app (offline)</string>
     <string name="add_load_hint_online">Paste a message and tap Save — data goes straight to the local database.</string>
     <string name="add_load_mode_title">How to add a load</string>
-    <string name="add_load_mode_subtitle">Pick the option that fits — bot, paste, form, or a photo.</string>
+    <string name="add_load_mode_subtitle">Paste text, fill in the form, or add a photo.</string>
     <string name="add_load_mode_paste">Paste</string>
     <string name="add_load_mode_manual">Manual</string>
     <string name="add_load_mode_document">Photo / PDF</string>
-    <string name="add_load_hint_paste">Copy a rate confirmation from Telegram, WhatsApp, email, or any other app and paste it here. The app reads the rate, miles, and addresses.</string>
-    <string name="add_load_history_tip_title">Any rate confirmation</string>
-    <string name="add_load_history_tip_body">Paste text you copied from Telegram, WhatsApp, email, or another app. A photo or PDF works too. The app is looking for the rate confirmation, not for one messenger.</string>
-    <string name="add_load_hint_manual">Enter the rate and at least one address. Trip ID can stay empty — the app will create one.</string>
-    <string name="add_load_hint_document">Photograph a document or pick any file (PDF, photo, TXT, JSON, CSV, DOCX) — the fields fill in automatically. Check them, edit if needed, and save.</string>
+    <string name="add_load_hint_paste">Copy the text from an email or message — we’ll fill in the fields. You can also upload a photo or PDF.</string>
+    <string name="add_load_history_tip_title">Paste the rate confirmation</string>
+    <string name="add_load_history_tip_body">Copy the text from an email or message — we’ll fill in the fields. You can also upload a photo or PDF.</string>
+    <string name="add_load_hint_manual">Enter the rate and at least one address. Trip ID is optional.</string>
+    <string name="add_load_hint_document">Check the fields, fill in anything missing, then save.</string>
     <string name="add_load_manual_hint">Type the load details. Rate and a pickup or delivery point are required.</string>
     <string name="add_load_document_fields_hint">Check the recognized fields. Fill in anything missing, then save.</string>
     <string name="add_load_trip_optional">Optional</string>
     <string name="add_load_point_a_placeholder">Pickup city, state</string>
     <string name="add_load_point_b_placeholder">Delivery city, state</string>
     <string name="add_load_point_more_placeholder">Stop city, state</string>
-    <string name="add_load_point_n">Point %1$s</string>
+    <string name="add_load_point_n">Stop %1$s</string>
     <string name="add_load_add_point">Add point %1$s</string>
     <string name="add_load_remove_point">Remove point %1$s</string>
     <string name="add_load_manual_rate_required">Enter a rate greater than zero</string>
@@ -736,7 +736,6 @@
     <string name="edit_load_added_at">Added: %1$s</string>
     <string name="edit_load_trip_id">Trip ID</string>
     <string name="edit_load_date_label">Load date (YYYY-MM-DD)</string>
-    <string name="edit_load_date_help">load_date — for weekly reporting</string>
     <string name="edit_load_finish_label">Finish (YYYY-MM-DD HH:mm)</string>
     <string name="edit_load_finish_help">Default is the last DEL. Set date and time to recalculate duration, pace, and the map route.</string>
     <string name="edit_load_finish_help_with_del">Last DEL: %1$s. Change the date and time to recalculate duration, pace, and the map route.</string>
@@ -809,6 +808,19 @@
     <string name="dispute_amount_not_added">Not added to load: %1$s</string>
     <string name="load_card_summary_line">%1$d stops • %2$s mi • %3$s</string>
     <string name="load_card_pace_line">%1$s • %2$s</string>
+    <string name="load_card_per_day">%1$s/day</string>
+    <string name="load_card_miles">%1$s mi</string>
+    <string name="load_source_relay">RELAY</string>
+    <string name="load_source_manual">MANUAL</string>
+    <string name="load_source_broker">BROKER</string>
+    <plurals name="load_card_duration_days">
+        <item quantity="one">%d day</item>
+        <item quantity="other">%d days</item>
+    </plurals>
+    <plurals name="load_card_stops">
+        <item quantity="one">%d stop</item>
+        <item quantity="other">%d stops</item>
+    </plurals>
     <string name="load_card_attach_photo">Take photo for load</string>
     <string name="load_card_attach_scan">Scan document for load</string>
     <string name="load_detail_stops">Stops</string>
@@ -1659,7 +1671,7 @@
     <string name="add_load_preview_title">Load preview</string>
     <string name="add_load_preview_gift">Route, rate, and RPM — ready to save</string>
     <string name="add_load_preview_parsing">Reading message…</string>
-    <string name="add_load_preview_incomplete">The text is there, but the load didn’t assemble. Check rate and pickup address.</string>
+    <string name="add_load_preview_incomplete">Couldn’t read a complete load. Check the rate and the pickup address.</string>
     <string name="add_load_preview_missing_rate">No rate yet. Add a Total Rate line.</string>
     <string name="add_load_preview_missing_address">No address yet. Need a Pu-address or Del-address line of its own.</string>
     <string name="add_load_preview_missing_both">Need Total Rate and a pickup or delivery address — each on its own line.</string>
@@ -1687,10 +1699,8 @@
     <string name="nav_home">Home</string>
     <string name="nav_stats">Stats</string>
     <string name="home_week_chip">Week %1$d · %2$s</string>
-    <string name="home_week_of_goal">gross of %1$s goal</string>
+    <string name="home_week_of_goal">of %1$s goal</string>
     <string name="home_goal_of_percent">%1$d%% of goal</string>
-    <string name="home_pace_need_line">Need %1$s/day · %2$d days left · %3$s to goal</string>
-    <string name="home_pace_met_line">Goal reached · %1$s this week</string>
     <string name="home_stat_rate_per_mile">Rate per mile</string>
     <string name="home_stat_miles">Miles</string>
     <string name="home_stat_loads">Loads</string>
@@ -1714,7 +1724,7 @@
     <string name="add_load_route_label">Route</string>
     <string name="add_load_pay_label">Pay</string>
     <string name="add_load_rate_per_mile">Rate per mile</string>
-    <string name="empty_diesel_detail">A fill shows up here after you log it. Snap the receipt or pump — gallons and price fill in automatically.</string>
+    <string name="empty_diesel_detail">A fill shows up here after you log it. Photograph the receipt or the pump — gallons and price fill in.</string>
     <string name="empty_scan_receipt">Scan receipt</string>
     <string name="empty_take_photo">Take photo</string>
     <string name="load_detail_edit_load">Edit load</string>

@@ -1,6 +1,7 @@
 package com.truckerload.presentation.components
 
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
@@ -43,15 +44,16 @@ fun GoalProgressRing(
     val cs = MaterialTheme.colorScheme
     val reduceMotion = LocalReduceMotion.current
     val motionMs = motionDurationMs(reduceMotion, 900)
+    val ringSpec = if (animate && !reduceMotion) tween<Float>(durationMillis = motionMs) else snap()
     val animatedProgress by animateFloatAsState(
-        targetValue = if (animate) progressPercent.coerceIn(0f, 100f) else progressPercent,
-        animationSpec = tween(durationMillis = motionMs),
-        label = "goalProgress"
+        targetValue = progressPercent.coerceIn(0f, 100f),
+        animationSpec = ringSpec,
+        label = "goalProgress",
     )
     val animatedExpected by animateFloatAsState(
-        targetValue = if (animate) expectedProgressPercent.coerceIn(0f, 100f) else expectedProgressPercent,
-        animationSpec = tween(durationMillis = motionMs),
-        label = "expectedProgress"
+        targetValue = expectedProgressPercent.coerceIn(0f, 100f),
+        animationSpec = ringSpec,
+        label = "expectedProgress",
     )
 
     val trackColor = if (onDarkBackground) cs.onPrimary.copy(alpha = 0.2f) else tc.ProgressTrack

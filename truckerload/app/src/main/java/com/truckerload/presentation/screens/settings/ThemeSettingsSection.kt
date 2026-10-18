@@ -8,8 +8,7 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
+import com.truckerload.presentation.theme.AppFilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
@@ -24,7 +23,6 @@ import androidx.compose.ui.unit.dp
 import com.truckerload.R
 import com.truckerload.data.preferences.AppThemeMode
 import com.truckerload.presentation.di.LocalSettingsDataStore
-import com.truckerload.presentation.theme.AppFilterChipDefaults
 import com.truckerload.presentation.theme.AppSwitchDefaults
 import com.truckerload.presentation.theme.BentoGlassSection
 import com.truckerload.presentation.theme.LocalTruckColors
@@ -56,7 +54,7 @@ fun ThemeSettingsSection(
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             AppThemeMode.entries.forEach { mode ->
-                FilterChip(
+                AppFilterChip(
                     selected = selected == mode,
                     onClick = {
                         scope.launch {
@@ -65,7 +63,6 @@ fun ThemeSettingsSection(
                             WidgetRefresh.refreshAndUpdateAsync(context)
                         }
                     },
-                    modifier = AppFilterChipDefaults.target(),
                     leadingIcon = {
                         Icon(
                             imageVector = when (mode) {
@@ -84,15 +81,10 @@ fun ThemeSettingsSection(
                                 AppThemeMode.LIGHT -> stringResource(R.string.settings_theme_light)
                                 AppThemeMode.DARK -> stringResource(R.string.settings_theme_dark)
                             },
-                            style = MaterialTheme.typography.bodyMedium,
+                            maxLines = 1,
+                            softWrap = false,
                         )
                     },
-                    colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = tc.AccentPrimary.copy(alpha = 0.22f),
-                        selectedLabelColor = tc.AccentPrimary,
-                        containerColor = tc.SurfaceSecondary,
-                        labelColor = tc.TextSecondary,
-                    ),
                 )
             }
         }

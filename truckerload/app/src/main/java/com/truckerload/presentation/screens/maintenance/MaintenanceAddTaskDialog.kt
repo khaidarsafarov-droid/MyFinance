@@ -1,5 +1,6 @@
 package com.truckerload.presentation.screens.maintenance
 
+import com.truckerload.presentation.theme.AppFilterChip
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -7,7 +8,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -81,12 +81,12 @@ internal fun AddTaskDialog(
                     }
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FilterChip(
+                    AppFilterChip(
                         selected = draft.reminderType == MaintenanceReminderType.MILES,
                         onClick = { onChange { it.copy(reminderType = MaintenanceReminderType.MILES) } },
                         label = { Text(stringResource(R.string.maintenance_by_miles)) },
                     )
-                    FilterChip(
+                    AppFilterChip(
                         selected = draft.reminderType == MaintenanceReminderType.DATE,
                         onClick = { onChange { it.copy(reminderType = MaintenanceReminderType.DATE) } },
                         label = { Text(stringResource(R.string.maintenance_by_date)) },

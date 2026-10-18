@@ -24,7 +24,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -55,7 +54,7 @@ import com.google.maps.android.data.geojson.GeoJsonPolygonStyle
 import com.truckerload.R
 import com.truckerload.presentation.components.StateRating
 import com.truckerload.presentation.components.getStateDisplayName
-import com.truckerload.presentation.theme.AppFilterChipDefaults
+import com.truckerload.presentation.theme.AppFilterChip
 import com.truckerload.presentation.theme.LocalSemantics
 import com.truckerload.presentation.theme.AppTypography
 import org.json.JSONObject
@@ -304,18 +303,16 @@ fun GoogleMapsHeatmapCard(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                FilterChip(
+                AppFilterChip(
                     selected = selectedCode.isBlank(),
                     onClick = { onStateSelected("") },
                     label = { Text(stringResource(R.string.stats_reset_filters)) },
-                    colors = AppFilterChipDefaults.colors(),
                 )
                 metrics.sortedByDescending { it.revenue }.take(6).map { it.code }.forEach { code ->
-                    FilterChip(
+                    AppFilterChip(
                         selected = code == selectedCode,
                         onClick = { onStateSelected(code) },
                         label = { Text(code) },
-                        colors = AppFilterChipDefaults.stateColors(),
                     )
                 }
             }

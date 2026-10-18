@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -13,7 +12,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
 import com.truckerload.domain.model.ScanDocumentCategory
-import com.truckerload.presentation.theme.AppFilterChipDefaults
+import com.truckerload.presentation.theme.AppFilterChip
 
 fun ScanDocumentCategory.labelRes(): Int = when (this) {
     ScanDocumentCategory.LOAD -> R.string.scan_category_load
@@ -37,19 +36,17 @@ fun ScanCategoryFilterChips(
         horizontalArrangement = Arrangement.spacedBy(6.dp),
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        FilterChip(
+        AppFilterChip(
             selected = selected == null,
             onClick = { onSelect(null) },
             label = { Text(stringResource(R.string.scan_category_all, totalCount)) },
-            colors = AppFilterChipDefaults.colors(),
         )
         ScanDocumentCategory.entries.forEach { category ->
             val count = counts[category] ?: 0
-            FilterChip(
+            AppFilterChip(
                 selected = selected == category,
                 onClick = { onSelect(category) },
                 label = { Text("${stringResource(category.labelRes())} $count") },
-                colors = AppFilterChipDefaults.colors(),
             )
         }
     }
@@ -69,12 +66,11 @@ fun ScanCategoryPickerChips(
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         ScanDocumentCategory.entries.forEach { category ->
-            FilterChip(
+            AppFilterChip(
                 selected = selected == category,
                 onClick = { onSelect(category) },
                 enabled = enabled,
                 label = { Text(stringResource(category.labelRes())) },
-                colors = AppFilterChipDefaults.colors(),
             )
         }
     }

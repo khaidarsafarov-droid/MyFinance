@@ -19,7 +19,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -42,7 +41,7 @@ import com.truckerload.domain.crowd.CrowdRateReport
 import com.truckerload.presentation.components.GoogleMapsHeatmapCard
 import com.truckerload.presentation.components.SoftAppPageScaffold
 import com.truckerload.presentation.components.getStateDisplayName
-import com.truckerload.presentation.theme.AppFilterChipDefaults
+import com.truckerload.presentation.theme.AppFilterChip
 import com.truckerload.presentation.theme.LocalTruckColors
 import java.util.Locale
 import java.util.concurrent.TimeUnit
@@ -232,7 +231,8 @@ private fun MapPeriodSelector(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .horizontalScroll(rememberScrollState()),
+            .horizontalScroll(rememberScrollState())
+            .padding(horizontal = 4.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -242,7 +242,7 @@ private fun MapPeriodSelector(
                 MapPeriod.MONTH -> AppIcons.DateRange to R.string.map_period_month
                 MapPeriod.YEAR -> AppIcons.CalendarMonth to R.string.map_period_year
             }
-            FilterChip(
+            AppFilterChip(
                 selected = period == selected,
                 onClick = { onSelect(period) },
                 label = {
@@ -259,7 +259,6 @@ private fun MapPeriodSelector(
                         modifier = Modifier.size(18.dp),
                     )
                 },
-                colors = AppFilterChipDefaults.colors(),
             )
         }
     }

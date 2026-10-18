@@ -293,21 +293,27 @@ fun AddLoadScreen(
                     parseHint = uiState.previewHint,
                 )
             }
-            if (shouldShowAddLoadHistoryTip(uiState.mode, uiState.rawText, uiState.isExtractingDocument)) {
-                AddLoadHistoryTip()
-            }
-            Text(
-                stringResource(
-                    when (uiState.mode) {
-                        AddLoadInputMode.PASTE -> R.string.add_load_hint_paste
-                        AddLoadInputMode.MANUAL -> R.string.add_load_hint_manual
-                        AddLoadInputMode.DOCUMENT -> R.string.add_load_hint_document
-                    },
-                ),
-                style = MaterialTheme.typography.bodySmall,
-                color = tc.TextSecondary,
-                modifier = Modifier.padding(top = 8.dp),
+            val showHistoryTip = shouldShowAddLoadHistoryTip(
+                uiState.mode,
+                uiState.rawText,
+                uiState.isExtractingDocument,
             )
+            if (showHistoryTip) {
+                AddLoadHistoryTip()
+            } else if (uiState.mode != AddLoadInputMode.PASTE) {
+                Text(
+                    stringResource(
+                        when (uiState.mode) {
+                            AddLoadInputMode.MANUAL -> R.string.add_load_hint_manual
+                            AddLoadInputMode.DOCUMENT -> R.string.add_load_hint_document
+                            AddLoadInputMode.PASTE -> R.string.add_load_hint_paste
+                        },
+                    ),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = tc.TextSecondary,
+                    modifier = Modifier.padding(top = 8.dp),
+                )
+            }
             uiState.error?.let {
                 Text(it, color = tc.AccentExpense, modifier = Modifier.padding(top = 8.dp))
             }

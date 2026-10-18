@@ -53,6 +53,7 @@ internal fun GoalHeroCard(
     onSaveGoal: () -> Unit,
     onCancelEdit: () -> Unit,
     onSuggestedGoal: (Double) -> Unit = {},
+    animateRing: Boolean = true,
 ) {
     val cs = MaterialTheme.colorScheme
     BentoGlassCard(
@@ -185,6 +186,7 @@ internal fun GoalHeroCard(
                 centerLabel = "${progress.progressPercent.toInt()}%",
                 centerSubLabel = MoneyFormat.formatCurrency(progress.currentGross),
                 onDarkBackground = true,
+                animate = animateRing,
                 modifier = Modifier.padding(vertical = 8.dp),
             )
             Text(

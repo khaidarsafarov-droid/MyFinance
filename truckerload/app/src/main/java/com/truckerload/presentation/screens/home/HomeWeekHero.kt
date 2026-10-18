@@ -42,7 +42,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
 import com.truckerload.domain.filter.LoadFilter
-import com.truckerload.domain.goal.GoalMoneyMath
 import com.truckerload.domain.money.Money
 import com.truckerload.presentation.theme.AppTypography
 import com.truckerload.presentation.theme.LocalReduceMotion
@@ -53,7 +52,6 @@ import com.truckerload.presentation.utils.adaptiveHorizontalPadding
 import com.truckerload.utils.GoalCelebrationStore
 import com.truckerload.utils.getCurrentWeekNumberAndYear
 import com.truckerload.utils.getDaysElapsedInCurrentWeek
-import com.truckerload.utils.getDaysRemainingForWeek
 import com.truckerload.utils.getWeekRange
 import androidx.compose.ui.platform.LocalConfiguration
 import java.time.LocalDate
@@ -91,10 +89,6 @@ internal fun HomeWeekHero(
     } else {
         0f
     }
-    val daysLeft = getDaysRemainingForWeek(week, year)
-    val daily = if (showGoal) GoalMoneyMath.dailyTarget(goalMoney, gross, daysLeft) else Money.ZERO
-    val remaining = if (showGoal) (goalMoney - gross).coerceAtLeast(Money.ZERO) else Money.ZERO
-    val goalMet = showGoal && gross >= goalMoney
     val rpmText = if (miles > 0) MoneyFormat.formatRpm(avgRpm) else "—"
 
     if (showGoal) {
@@ -171,30 +165,6 @@ internal fun HomeWeekHero(
                 elapsed = getDaysElapsedInCurrentWeek(),
                 onHero = onHero,
                 modifier = Modifier.padding(top = 14.dp),
-            )
-        }
-        if (showGoal) {
-            val pace = if (goalMet) {
-                stringResource(R.string.home_pace_met_line, grossText)
-            } else {
-                stringResource(
-                    R.string.home_pace_need_line,
-                    MoneyFormat.formatCurrency(daily, decimals = 0),
-                    daysLeft,
-                    MoneyFormat.formatCurrency(remaining, decimals = 0),
-                )
-            }
-            Text(
-                text = pace,
-                style = MaterialTheme.typography.bodyMedium,
-                color = onHero,
-                modifier = Modifier
-                    .padding(top = 14.dp)
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(14.dp))
-                    .background(onHero.copy(alpha = 0.16f))
-                    .clickable(onClick = onOpenWeeklyGoal)
-                    .padding(horizontal = 14.dp, vertical = 10.dp),
             )
         }
         Row(

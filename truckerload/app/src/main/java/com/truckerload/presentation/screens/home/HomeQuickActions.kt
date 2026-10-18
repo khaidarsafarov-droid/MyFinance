@@ -38,7 +38,7 @@ internal fun HomeQuickActionRow(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = adaptiveHorizontalPadding(), vertical = 4.dp),
+            .padding(horizontal = adaptiveHorizontalPadding(), vertical = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         QuickTile(AppIcons.LocalGasStation, stringResource(R.string.home_quick_diesel), onDiesel, Modifier.weight(1f))
