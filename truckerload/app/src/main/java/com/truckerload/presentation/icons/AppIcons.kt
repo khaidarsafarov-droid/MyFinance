@@ -11,7 +11,13 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.automirrored.filled.OpenInNew
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.Cloud
+import androidx.compose.material.icons.filled.Palette
+import androidx.compose.material.icons.filled.Speed
+import androidx.compose.material.icons.filled.Vibration
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
@@ -78,6 +84,8 @@ object AppIcons {
     val CheckCircle = Icons.Filled.CheckCircle
     val ChevronLeft = Icons.AutoMirrored.Filled.KeyboardArrowLeft
     val ChevronRight = Icons.AutoMirrored.Filled.KeyboardArrowRight
+    val CloudStorage = Icons.Filled.Cloud
+    val Gauge = Icons.Filled.Speed
     val Close = Icons.Filled.Close
     val Cloud = Icons.Filled.Share
     val CloudUpload = Icons.Filled.Share
@@ -118,6 +126,9 @@ object AppIcons {
     val Menu = Icons.Filled.Menu
     val Mic = Icons.Filled.Phone
     val Notifications = Icons.Filled.Notifications
+    val OpenInNew = Icons.AutoMirrored.Filled.OpenInNew
+    val Palette = Icons.Filled.Palette
+    val PhoneVibrate = Icons.Filled.Vibration
     val Payments = Icons.Filled.ShoppingCart
     val Person = Icons.Filled.Person
     val PersonOutlined = Icons.Outlined.PersonOutlinedIcon
@@ -134,6 +145,7 @@ object AppIcons {
     val Schedule = Icons.Filled.DateRange
     val Search = Icons.Filled.Search
     val Send = Icons.AutoMirrored.Filled.Send
+    val Speaker = Icons.AutoMirrored.Filled.VolumeUp
     val Settings = Icons.Filled.Settings
     val Share = Icons.Filled.Share
     val Speed = Icons.Filled.ArrowForward

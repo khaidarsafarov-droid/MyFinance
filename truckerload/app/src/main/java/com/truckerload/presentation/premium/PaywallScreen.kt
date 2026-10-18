@@ -142,26 +142,32 @@ fun PremiumLockedCard(feature: PremiumFeature) {
         }
     }
     if (open) {
-        AlertDialog(
-            onDismissRequest = { open = false },
-            title = { Text(stringResource(R.string.premium_title)) },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(stringResource(R.string.premium_body))
-                    Text(stringResource(R.string.premium_terms))
-                }
-            },
-            confirmButton = {
-                PremiumPurchaseButton(
-                    filled = false,
-                    onFinished = { error -> if (error == null) open = false },
-                )
-            },
-            dismissButton = {
-                TextButton(onClick = { open = false }) { Text(stringResource(R.string.common_cancel)) }
-            },
-        )
+        PremiumPaywallDialog(onDismiss = { open = false })
     }
+}
+
+/** Same purchase dialog the locked-feature card uses. */
+@Composable
+fun PremiumPaywallDialog(onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.premium_title)) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(stringResource(R.string.premium_body))
+                Text(stringResource(R.string.premium_terms))
+            }
+        },
+        confirmButton = {
+            PremiumPurchaseButton(
+                filled = false,
+                onFinished = { error -> if (error == null) onDismiss() },
+            )
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_cancel)) }
+        },
+    )
 }
 
 @Composable
