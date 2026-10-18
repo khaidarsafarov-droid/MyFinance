@@ -1,7 +1,10 @@
 package com.truckerload.presentation.screens.auth
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -29,7 +32,7 @@ import com.truckerload.presentation.components.AppBrandLogo
 import com.truckerload.presentation.components.FillViewportScrollColumn
 import com.truckerload.presentation.components.TlButton as Button
 import com.truckerload.presentation.theme.AppTextFieldDefaults
-import com.truckerload.presentation.theme.BentoGlassScreenBackground
+import com.truckerload.presentation.theme.LocalBrandPalette
 import com.truckerload.presentation.theme.LocalTruckColors
 
 @Composable
@@ -43,7 +46,11 @@ fun FirstRunNameScreen(
         uiState.familyName.isNotBlank() &&
         !uiState.isSaving
 
-    BentoGlassScreenBackground {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(LocalBrandPalette.current.page),
+    ) {
         FillViewportScrollColumn(
             contentPadding = PaddingValues(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -58,7 +65,7 @@ fun FirstRunNameScreen(
                 Text(
                     text = stringResource(R.string.first_run_title),
                     style = MaterialTheme.typography.headlineLarge,
-                    color = tc.TextPrimary,
+                    color = LocalBrandPalette.current.textPrimary,
                     textAlign = TextAlign.Center,
                 )
                 Spacer(modifier = Modifier.height(32.dp))

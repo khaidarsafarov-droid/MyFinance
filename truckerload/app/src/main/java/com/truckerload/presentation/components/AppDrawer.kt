@@ -22,6 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
 import com.truckerload.presentation.theme.BentoGlassTheme
+import com.truckerload.presentation.theme.LocalBrandPalette
 import com.truckerload.presentation.theme.LocalTruckColors
 
 enum class DrawerDestination {
@@ -47,11 +48,11 @@ fun AppDrawerContent(
     modifier: Modifier = Modifier,
     currentRoute: String? = null,
 ) {
-    val tc = LocalTruckColors.current
+    val brand = LocalBrandPalette.current
 
     ModalDrawerSheet(
         modifier = modifier,
-        drawerContainerColor = BentoGlassTheme.CardFill,
+        drawerContainerColor = brand.page,
     ) {
         Column(
             modifier = Modifier
@@ -66,7 +67,7 @@ fun AppDrawerContent(
             Text(
                 text = stringResource(R.string.home_brand_title),
                 style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                color = tc.AccentPrimary,
+                color = brand.primary,
                 modifier = Modifier.padding(horizontal = 28.dp, vertical = 8.dp),
             )
             Spacer(Modifier.height(8.dp))
@@ -139,15 +140,19 @@ private fun drawerItem(
     trailingIcon: androidx.compose.ui.graphics.vector.ImageVector? = null,
     indented: Boolean = false,
 ) {
-    val tc = LocalTruckColors.current
+    val brand = LocalBrandPalette.current
     NavigationDrawerItem(
-        icon = { Icon(icon, contentDescription = label, tint = tc.TextSecondary) },
-        label = { Text(label, color = tc.TextPrimary) },
+        icon = { Icon(icon, contentDescription = label, tint = if (selected) brand.primary else brand.textSecondary) },
+        label = { Text(label, color = brand.textPrimary) },
         selected = selected,
         onClick = onClick,
+        colors = NavigationDrawerItemDefaults.colors(
+            selectedContainerColor = brand.container,
+            unselectedContainerColor = androidx.compose.ui.graphics.Color.Transparent,
+        ),
         badge = trailingIcon?.let {
             {
-                Icon(it, contentDescription = null, tint = tc.TextSecondary)
+                Icon(it, contentDescription = null, tint = brand.textSecondary)
             }
         },
         modifier = Modifier
