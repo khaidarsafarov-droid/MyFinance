@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -18,23 +19,26 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TimePicker
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
+import com.truckerload.presentation.components.DashboardHero
 import com.truckerload.presentation.components.OneUiBottomActionBar
 import com.truckerload.presentation.components.dialogBodyScroll
 import com.truckerload.presentation.components.verticalContentScroll
 import com.truckerload.presentation.components.TlButton as Button
 import com.truckerload.presentation.components.TlTextButton as TextButton
 import com.truckerload.presentation.icons.AppIcons
+import com.truckerload.presentation.theme.LocalBrandPalette
+import com.truckerload.presentation.theme.LocalOledDarkEnabled
 import com.truckerload.presentation.theme.LocalTruckColors
+import com.truckerload.presentation.theme.SoftUiColors
 import com.truckerload.presentation.utils.buttonTap
 import java.util.Calendar
 
@@ -50,35 +54,26 @@ fun JournalEntryScaffold(
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val tc = LocalTruckColors.current
+    val page = if (LocalOledDarkEnabled.current) SoftUiColors.BackgroundOled else LocalBrandPalette.current.page
     Scaffold(
-        containerColor = tc.Background,
+        containerColor = page,
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
-            TopAppBar(
-                title = { Text(title, color = tc.TextPrimary) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            AppIcons.ArrowBack,
-                            contentDescription = stringResource(R.string.common_back),
-                            tint = tc.TextPrimary,
-                        )
-                    }
-                },
+            DashboardHero(
+                title = title,
+                showBack = true,
+                onBack = onBack,
                 actions = {
                     if (onDelete != null) {
                         IconButton(onClick = onDelete, enabled = saveEnabled) {
                             Icon(
                                 AppIcons.Delete,
                                 contentDescription = stringResource(R.string.common_delete),
-                                tint = tc.Danger,
+                                tint = Color.White,
                             )
                         }
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = tc.Background,
-                    titleContentColor = tc.TextPrimary,
-                ),
             )
         },
         bottomBar = {
