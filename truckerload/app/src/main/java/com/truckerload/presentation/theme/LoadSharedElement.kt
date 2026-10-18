@@ -3,7 +3,6 @@ package com.truckerload.presentation.theme
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
-import androidx.compose.animation.core.EaseOutCubic
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
@@ -16,6 +15,9 @@ import androidx.compose.ui.layout.ContentScale
 
 /** Shared-bounds key for load list card ↔ detail route header. */
 fun loadSharedBoundsKey(loadId: String): String = "load-bounds-$loadId"
+
+/** Shared-bounds key for the home add-load FAB ↔ add form container transform. */
+const val ADD_LOAD_SHARED_KEY = "add-load-container"
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 val LocalSharedTransitionScope = compositionLocalOf<SharedTransitionScope?> { null }
@@ -44,19 +46,26 @@ fun ProvideLoadSharedElementScopes(
  * No-op when scopes are missing, [loadId] is blank, or reduce-motion is on.
  */
 @OptIn(ExperimentalSharedTransitionApi::class)
-fun Modifier.loadSharedBounds(loadId: String): Modifier = composed {
+fun Modifier.loadSharedBounds(loadId: String): Modifier =
+    sharedBoundsModifier(loadSharedBoundsKey(loadId), enabled = loadId.isNotBlank())
+
+fun Modifier.addLoadSharedBounds(): Modifier =
+    sharedBoundsModifier(ADD_LOAD_SHARED_KEY, enabled = true)
+
+@OptIn(ExperimentalSharedTransitionApi::class)
+private fun Modifier.sharedBoundsModifier(key: String, enabled: Boolean): Modifier = composed {
     val sharedScope = LocalSharedTransitionScope.current
     val animatedScope = LocalNavAnimatedVisibilityScope.current
     val reduceMotion = LocalReduceMotion.current
-    if (sharedScope == null || animatedScope == null || reduceMotion || loadId.isBlank()) {
+    if (sharedScope == null || animatedScope == null || reduceMotion || !enabled) {
         this
     } else {
         with(sharedScope) {
             sharedBounds(
-                sharedContentState = rememberSharedContentState(key = loadSharedBoundsKey(loadId)),
+                sharedContentState = rememberSharedContentState(key = key),
                 animatedVisibilityScope = animatedScope,
                 boundsTransform = { _, _ ->
-                    tween(durationMillis = 320, easing = EaseOutCubic)
+                    tween(durationMillis = 450, easing = MotionEasingEmphasizedDecelerate)
                 },
                 resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds(
                     contentScale = ContentScale.FillWidth,

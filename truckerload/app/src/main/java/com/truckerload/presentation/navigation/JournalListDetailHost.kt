@@ -41,6 +41,11 @@ fun JournalListDetailHost(
                 onWeeklyGoal = { navController.navigate(Routes.STATS) },
                 onSettings = { navController.navigate(Routes.SETTINGS) },
                 onAddDiesel = { navController.navigate(Routes.ADD_DIESEL) { launchSingleTop = true } },
+                onOpenDiesel = { navController.navigate(Routes.DIESEL) },
+                onOpenPaycheck = { navController.navigate(Routes.PAYCHECK) },
+                onOpenExpense = { navController.navigate(Routes.MISC_EXPENSES) },
+                onOpenScanner = { navController.navigate(Routes.SCANNER) },
+                onAvatar = { navController.navigate(Routes.PROFILE) },
                 onLoadCamera = { loadId, tripId, loadDate ->
                     navController.navigate(Routes.cameraForLoad(loadId, tripId, loadDate))
                 },
@@ -77,6 +82,9 @@ fun JournalListDetailHost(
                             detailNavController.popBackStack(PANE_EMPTY, inclusive = false)
                         },
                         onPhotoClick = { navController.navigate(Routes.photoDetail(it)) },
+                        onCamera = { id, tripId, loadDate ->
+                            navController.navigate(Routes.cameraForLoad(id, tripId, loadDate))
+                        },
                         onOpenPrivacy = { navController.navigate(Routes.PRIVACY_SETTINGS) },
                     )
                 }

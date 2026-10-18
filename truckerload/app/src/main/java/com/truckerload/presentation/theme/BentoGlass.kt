@@ -108,6 +108,7 @@ fun BentoGlassClickableCard(
 ) {
     BentoGlassCard(
         modifier = modifier
+            .pressScale()
             .minimumInteractiveComponentSize()
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },

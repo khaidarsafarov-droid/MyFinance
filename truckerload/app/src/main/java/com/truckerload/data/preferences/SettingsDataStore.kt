@@ -107,9 +107,9 @@ class SettingsDataStore(context: Context) {
         prefs[KEY_OLED_DARK] ?: false
     }
 
-    /** Material You / Samsung dynamic color. Default on so One UI accents follow the system. */
+    /** Material You dynamic color. Off by default so the brand palette stays consistent. */
     val dynamicColor: Flow<Boolean> = appContext.settingsDataStore.data.map { prefs ->
-        prefs[KEY_DYNAMIC_COLOR] ?: true
+        prefs[KEY_DYNAMIC_COLOR] ?: false
     }
 
     // FIX Stage3: account-scoped parser / quiet hours / notify / share-path

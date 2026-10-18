@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import com.truckerload.presentation.theme.SoftUiColors
 import com.truckerload.presentation.theme.SoftUiElevation
 import com.truckerload.presentation.theme.SoftUiShapes
+import com.truckerload.presentation.theme.pressScale
 
 private val PrimaryGradient: Brush
     @Composable get() {
@@ -53,7 +54,7 @@ fun TlButton(
     if (colors != null) {
         androidx.compose.material3.Button(
             onClick = onClick,
-            modifier = modifier.defaultMinSize(minHeight = 48.dp),
+            modifier = modifier.pressScale().defaultMinSize(minHeight = 48.dp),
             enabled = enabled,
             shape = shape,
             colors = colors,
@@ -66,6 +67,7 @@ fun TlButton(
     androidx.compose.material3.Button(
         onClick = onClick,
         modifier = modifier
+            .pressScale()
             .defaultMinSize(minHeight = 48.dp)
             .then(
                 if (enabled) {
@@ -105,7 +107,7 @@ fun TlTextButton(
 ) {
     TextButton(
         onClick = onClick,
-        modifier = modifier.defaultMinSize(minHeight = 48.dp),
+        modifier = modifier.pressScale().defaultMinSize(minHeight = 48.dp),
         enabled = enabled,
         shape = SoftUiShapes.Chip,
         colors = ButtonDefaults.textButtonColors(
@@ -135,6 +137,7 @@ fun TlOutlinedButton(
     androidx.compose.material3.OutlinedButton(
         onClick = onClick,
         modifier = modifier
+            .pressScale()
             .defaultMinSize(minHeight = 48.dp)
             .shadow(
                 elevation = if (enabled) 2.dp else 0.dp,

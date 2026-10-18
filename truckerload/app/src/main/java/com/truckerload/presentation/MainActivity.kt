@@ -181,7 +181,7 @@ class MainActivity : AppCompatActivity() {
                 initialValue = false,
             )
             val dynamicColor by settingsDataStore.dynamicColor.collectAsStateWithLifecycle(
-                initialValue = true,
+                initialValue = false,
             )
             val reduceMotionPref by settingsDataStore.reduceMotion.collectAsStateWithLifecycle(
                 initialValue = false,

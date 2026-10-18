@@ -39,7 +39,6 @@ import com.truckerload.presentation.components.computeRpm
 import com.truckerload.presentation.theme.AppTypography
 import com.truckerload.presentation.theme.LocalSemantics
 import com.truckerload.presentation.theme.LocalTruckColors
-import com.truckerload.presentation.theme.SoftUiColors
 import com.truckerload.presentation.theme.SoftUiElevation
 import com.truckerload.presentation.theme.SoftUiShapes
 import com.truckerload.presentation.utils.MoneyFormat
@@ -58,7 +57,7 @@ internal fun SoftHeroCard(
         modifier = Modifier
             .fillMaxWidth()
             .clip(SoftUiShapes.Card)
-            .background(SoftUiColors.ForestPrimary),
+            .background(MaterialTheme.colorScheme.primary),
     ) {
         Icon(
             imageVector = AppIcons.LocalShipping,
@@ -98,11 +97,11 @@ internal fun SoftAddLoadButton(onAddLoad: () -> Unit) {
             .shadow(
                 elevation = SoftUiElevation.Button,
                 shape = SoftUiShapes.Button,
-                ambientColor = SoftUiColors.ShadowTint,
-                spotColor = SoftUiColors.ShadowTint,
+                ambientColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
+                spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
             )
             .clip(SoftUiShapes.Button)
-            .background(SoftUiColors.ForestPrimary)
+            .background(MaterialTheme.colorScheme.primary)
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
@@ -134,8 +133,8 @@ internal fun SoftStatCard(
             .shadow(
                 elevation = SoftUiElevation.Card,
                 shape = SoftUiShapes.Card,
-                ambientColor = SoftUiColors.ShadowTint,
-                spotColor = SoftUiColors.ShadowNeutral,
+                ambientColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
+                spotColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
             )
             .clip(SoftUiShapes.Card)
             .background(MaterialTheme.colorScheme.surface)
@@ -149,7 +148,7 @@ internal fun SoftStatCard(
                 .background(tint),
             contentAlignment = Alignment.Center,
         ) {
-            Icon(icon, contentDescription = null, tint = SoftUiColors.ForestPrimary)
+            Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
         }
         Text(
             text = value,
@@ -177,11 +176,11 @@ internal fun SoftRecentCard(
             .shadow(
                 elevation = SoftUiElevation.Card,
                 shape = SoftUiShapes.Card,
-                ambientColor = SoftUiColors.ShadowTint,
-                spotColor = SoftUiColors.ShadowNeutral,
+                ambientColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
+                spotColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
             )
             .clip(SoftUiShapes.Card)
-            .background(SoftUiColors.Sage.copy(alpha = 0.45f))
+            .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f))
             .padding(18.dp)
             .heightIn(min = 280.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
@@ -224,8 +223,8 @@ internal fun SoftLoadRow(load: Load, onClick: () -> Unit) {
             .shadow(
                 elevation = SoftUiElevation.Card,
                 shape = SoftUiShapes.Card,
-                ambientColor = SoftUiColors.ShadowTint,
-                spotColor = SoftUiColors.ShadowNeutral,
+                ambientColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
+                spotColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
             )
             .clip(SoftUiShapes.Card)
             .background(cs.surface)
@@ -280,10 +279,10 @@ internal fun SoftLoadRow(load: Load, onClick: () -> Unit) {
             Text(
                 text = MoneyFormat.formatRpm(rpm),
                 style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
-                color = SoftUiColors.ForestPrimary,
+                color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier
                     .clip(SoftUiShapes.Chip)
-                    .background(SoftUiColors.Sage)
+                    .background(MaterialTheme.colorScheme.primaryContainer)
                     .padding(horizontal = 12.dp, vertical = 6.dp),
             )
         }
@@ -304,8 +303,8 @@ internal fun SoftGoalCard(
             .shadow(
                 elevation = SoftUiElevation.Card,
                 shape = SoftUiShapes.Card,
-                ambientColor = SoftUiColors.ShadowTint,
-                spotColor = SoftUiColors.ShadowNeutral,
+                ambientColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
+                spotColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
             )
             .clip(SoftUiShapes.Card)
             .background(MaterialTheme.colorScheme.surface)
@@ -323,7 +322,7 @@ internal fun SoftGoalCard(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Icon(AppIcons.Flag, contentDescription = null, tint = SoftUiColors.ForestAccent)
+            Icon(AppIcons.Flag, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
             Text(
                 text = stringResource(R.string.nav_weekly_goal),
                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
@@ -349,13 +348,13 @@ internal fun SoftGoalCard(
                     .fillMaxWidth()
                     .height(10.dp)
                     .clip(SoftUiShapes.Chip)
-                    .background(SoftUiColors.Sage),
+                    .background(MaterialTheme.colorScheme.primaryContainer),
             ) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth(progress.coerceIn(0f, 1f))
                         .height(10.dp)
-                        .background(SoftUiColors.ForestPrimary),
+                        .background(MaterialTheme.colorScheme.primary),
                 )
             }
         } else {
@@ -367,7 +366,7 @@ internal fun SoftGoalCard(
             Text(
                 text = stringResource(R.string.ux_next_set_goal),
                 style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
-                color = SoftUiColors.ForestAccent,
+                color = MaterialTheme.colorScheme.primary,
             )
         }
     }
@@ -398,7 +397,7 @@ internal fun TabletStatsGrid(
                 SoftStatCard(
                     modifier = Modifier.weight(1f),
                     icon = AppIcons.LocalShipping,
-                    tint = SoftUiColors.Sage,
+                    tint = MaterialTheme.colorScheme.primaryContainer,
                     label = stringResource(R.string.tablet_stat_loads),
                     value = loadCount,
                 )
@@ -422,7 +421,7 @@ internal fun TabletStatsGrid(
                 SoftStatCard(
                     modifier = Modifier.weight(1f),
                     icon = AppIcons.LocalGasStation,
-                    tint = SoftUiColors.Sage,
+                    tint = MaterialTheme.colorScheme.primaryContainer,
                     label = stringResource(R.string.tablet_stat_gross),
                     value = gross,
                     hero = true,
@@ -434,7 +433,7 @@ internal fun TabletStatsGrid(
             SoftStatCard(
                 modifier = Modifier.weight(1f),
                 icon = AppIcons.LocalShipping,
-                tint = SoftUiColors.Sage,
+                tint = MaterialTheme.colorScheme.primaryContainer,
                 label = stringResource(R.string.tablet_stat_loads),
                 value = loadCount,
             )
@@ -456,7 +455,7 @@ internal fun TabletStatsGrid(
             SoftStatCard(
                 modifier = Modifier.weight(1f),
                 icon = AppIcons.LocalGasStation,
-                tint = SoftUiColors.Sage,
+                tint = MaterialTheme.colorScheme.primaryContainer,
                 label = stringResource(R.string.tablet_stat_gross),
                 value = gross,
                 hero = true,

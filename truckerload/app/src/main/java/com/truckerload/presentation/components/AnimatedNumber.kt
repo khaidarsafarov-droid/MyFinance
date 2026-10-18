@@ -42,9 +42,12 @@ fun AnimatedNumber(
         Text(
             text = formatted,
             modifier = modifier,
-            fontSize = fontSize,
-            fontWeight = FontWeight.ExtraBold,
-            color = color
+            style = MaterialTheme.typography.headlineMedium.copy(
+                fontFeatureSettings = "tnum",
+                fontWeight = FontWeight.ExtraBold,
+                fontSize = fontSize,
+                color = color,
+            ),
         )
     }
 }

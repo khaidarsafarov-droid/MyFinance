@@ -16,8 +16,10 @@ import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DocumentScanner
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material.icons.filled.Face
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.FlashAuto
 import androidx.compose.material.icons.filled.FlashOff
 import androidx.compose.material.icons.filled.FlashOn
@@ -45,7 +47,9 @@ import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.outlined.BarChart as BarChartOutlinedIcon
 import androidx.compose.material.icons.outlined.Flag as FlagOutlinedIcon
+import androidx.compose.material.icons.outlined.Home as HomeOutlinedIcon
 import androidx.compose.material.icons.outlined.LocalShipping as LocalShippingOutlinedIcon
 import androidx.compose.material.icons.outlined.Person as PersonOutlinedIcon
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -92,6 +96,10 @@ object AppIcons {
     val FlashOn = Icons.Filled.FlashOn
     val Fullscreen = Icons.Filled.ArrowForward
     val Handyman = Icons.Filled.Build
+    val Home = Icons.Filled.Home
+    val HomeOutlined = Icons.Outlined.HomeOutlinedIcon
+    val Insights = Icons.Filled.BarChart
+    val InsightsOutlined = Icons.Outlined.BarChartOutlinedIcon
     val Info = Icons.Filled.Info
     val LightMode = Icons.Filled.Settings
     val LocalGasStation = Icons.Filled.Place

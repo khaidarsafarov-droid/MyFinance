@@ -7,6 +7,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.ui.Alignment
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Snackbar
@@ -36,8 +40,12 @@ import com.truckerload.presentation.connectivity.ConnectivityStatus
 import com.truckerload.presentation.di.LocalRpmThresholdsStore
 import com.truckerload.presentation.di.LocalProfileRepository
 import com.truckerload.presentation.di.LocalUserProfileStore
+import com.truckerload.presentation.icons.AppIcons
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.LocalTruckColors
+import com.truckerload.presentation.theme.addLoadSharedBounds
+import com.truckerload.presentation.theme.pressScale
+import com.truckerload.presentation.theme.rememberMinVisible
 import com.truckerload.utils.getPreviousWeekNumberAndYear
 import com.truckerload.utils.getWeekRange
 import com.truckerload.widget.WidgetDeepLink
@@ -50,6 +58,11 @@ fun HomeScreen(
     onWeeklyGoal: () -> Unit = onStats,
     onSettings: () -> Unit = {},
     onAddDiesel: () -> Unit = {},
+    onOpenDiesel: () -> Unit = onAddDiesel,
+    onOpenPaycheck: () -> Unit = {},
+    onOpenExpense: () -> Unit = {},
+    onOpenScanner: () -> Unit = {},
+    onAvatar: () -> Unit = {},
     onLoadCamera: (loadId: String, tripId: String, loadDate: String) -> Unit = { _, _, _ -> },
     onLoadScan: (loadId: String, tripId: String, loadDate: String) -> Unit = { _, _, _ -> },
     onOpenPrivacy: () -> Unit = {},
@@ -196,6 +209,7 @@ fun HomeScreen(
                     openDrawer = openDrawer,
                     onSearchToggle = { viewModel.setSearchExpanded(!uiState.isSearchExpanded) },
                     onOpenPrivacy = onOpenPrivacy,
+                    onAvatar = onAvatar,
                 )
             }
         },
@@ -243,14 +257,39 @@ fun HomeScreen(
                         onAddLoad = onAddLoad,
                         onOpenWeeklyGoal = onWeeklyGoal,
                         onAddDiesel = onAddDiesel,
+                        onOpenDiesel = onOpenDiesel,
+                        onOpenPaycheck = onOpenPaycheck,
+                        onOpenExpense = onOpenExpense,
+                        onOpenScanner = onOpenScanner,
                         onOpenProfile = onSettings,
                         periodTotals = totals,
                         onOpenPrivacy = onOpenPrivacy,
                         modifier = Modifier.weight(1f),
                     )
                 }
-                if (HomeRefreshPolicy.shouldShowInitialOverlay(isInitialLoading, isRefreshing)) {
+                val showSkeleton = rememberMinVisible(
+                    HomeRefreshPolicy.shouldShowInitialOverlay(isInitialLoading, isRefreshing),
+                )
+                if (showSkeleton) {
                     HomeInitialLoadingOverlay()
+                }
+                if (!tabletChrome) {
+                    ExtendedFloatingActionButton(
+                        onClick = onAddLoad,
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .padding(
+                                end = 16.dp,
+                                bottom = paddingValues.calculateBottomPadding() + 16.dp,
+                            )
+                            .addLoadSharedBounds()
+                            .pressScale(),
+                        shape = RoundedCornerShape(28.dp),
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary,
+                        icon = { Icon(AppIcons.Add, contentDescription = null) },
+                        text = { Text(stringResource(R.string.home_add_load_button)) },
+                    )
                 }
             }
         }

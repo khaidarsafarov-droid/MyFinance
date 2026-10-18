@@ -56,7 +56,7 @@ fun SettingsScreen(
     val settingsDataStore = LocalSettingsDataStore.current
     val themeMode by settingsDataStore.themeMode.collectAsStateWithLifecycle(initialValue = AppThemeMode.SYSTEM)
     val oledDark by settingsDataStore.oledDark.collectAsStateWithLifecycle(initialValue = false)
-    val dynamicColor by settingsDataStore.dynamicColor.collectAsStateWithLifecycle(initialValue = true)
+    val dynamicColor by settingsDataStore.dynamicColor.collectAsStateWithLifecycle(initialValue = false)
     val reduceMotion by settingsDataStore.reduceMotion.collectAsStateWithLifecycle(initialValue = false)
     val quietHoursEnabled by settingsDataStore.quietHoursEnabled.collectAsStateWithLifecycle(initialValue = false)
     val quietHoursStart by settingsDataStore.quietHoursStart.collectAsStateWithLifecycle(initialValue = 22)

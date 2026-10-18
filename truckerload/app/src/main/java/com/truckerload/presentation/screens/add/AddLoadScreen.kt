@@ -1,5 +1,7 @@
 package com.truckerload.presentation.screens.add
 
+import android.content.ClipboardManager
+import android.content.Context
 import android.widget.Toast
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.snap
@@ -18,23 +20,25 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.R
-import com.truckerload.presentation.components.OneUiBackButton
 import com.truckerload.presentation.components.formKeyboard
 import com.truckerload.presentation.components.formKeyboardActions
 import com.truckerload.presentation.components.rememberFormBack
@@ -48,7 +52,9 @@ import com.truckerload.presentation.motion.rememberMotionEnabled
 import com.truckerload.presentation.theme.AppTextFieldDefaults
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.LocalTruckColors
-import com.truckerload.presentation.utils.MoneyFormat
+import com.truckerload.presentation.theme.addLoadSharedBounds
+import com.truckerload.utils.getCurrentWeekNumberAndYear
+import com.truckerload.utils.getWeekRange
 import kotlinx.coroutines.delay
 
 @Composable
@@ -60,6 +66,7 @@ fun AddLoadScreen(
 ) {
     val tc = LocalTruckColors.current
     val context = LocalContext.current
+    val resources = LocalResources.current
     val viewModel: AddLoadViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val requestBack = rememberFormBack(isDirty = uiState.isDirty, onBack = onBack)
@@ -70,7 +77,7 @@ fun AddLoadScreen(
         viewModel.save(
             parseFailedFallback = parseFailed,
             saveErrorFormatter = { msg ->
-                context.getString(R.string.common_save_error, msg)
+                resources.getString(R.string.common_save_error, msg)
             },
             onOptimisticInsert = onOptimisticInsert,
         )
@@ -78,6 +85,29 @@ fun AddLoadScreen(
 
     val motion = rememberMotionEnabled()
     var sawAlarm by remember { mutableStateOf(false) }
+    var pasteToken by remember { mutableIntStateOf(0) }
+    val pasteEmpty = stringResource(R.string.add_load_paste_empty)
+    val weekChip = run {
+        val (week, year) = getCurrentWeekNumberAndYear()
+        val (_, _, label) = getWeekRange(week, year)
+        resources.getString(R.string.home_week_chip, week, label.substringBefore(",").trim())
+    }
+    fun pasteFromClipboard() {
+        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager
+        val text = clipboard?.primaryClip?.getItemAt(0)?.coerceToText(context)?.toString().orEmpty()
+        if (text.isBlank()) {
+            Toast.makeText(context, pasteEmpty, Toast.LENGTH_SHORT).show()
+        } else {
+            viewModel.setMode(AddLoadInputMode.MANUAL)
+            viewModel.setRawText(text)
+            pasteToken += 1
+        }
+    }
+    LaunchedEffect(uiState.previewLoad?.id, pasteToken) {
+        val preview = uiState.previewLoad ?: return@LaunchedEffect
+        if (pasteToken == 0) return@LaunchedEffect
+        applyPastedPreview(viewModel, preview)
+    }
     LaunchedEffect(uiState.savedLoad?.id, uiState.alarmPrompt != null) {
         if (uiState.savedLoad == null) return@LaunchedEffect
         if (uiState.alarmPrompt != null) {
@@ -122,7 +152,7 @@ fun AddLoadScreen(
             completeness = pending,
             onConfirm = {
                 viewModel.confirmIncompleteSave(
-                    saveErrorFormatter = { msg -> context.getString(R.string.common_save_error, msg) },
+                    saveErrorFormatter = { msg -> resources.getString(R.string.common_save_error, msg) },
                     onOptimisticInsert = onOptimisticInsert,
                 )
             },
@@ -131,16 +161,40 @@ fun AddLoadScreen(
     }
 
     Scaffold(
+        modifier = Modifier.addLoadSharedBounds(),
         containerColor = BentoGlassTheme.ScreenBackground,
         topBar = {
             OneUiLargeTitleHeader(
                 title = stringResource(R.string.add_load_title),
-                navigationIcon = { OneUiBackButton(onBack = requestBack) },
+                navigationIcon = {
+                    androidx.compose.material3.IconButton(
+                        onClick = requestBack,
+                        modifier = Modifier.size(48.dp),
+                    ) {
+                        Icon(
+                            AppIcons.Close,
+                            contentDescription = stringResource(R.string.common_close),
+                            tint = MaterialTheme.colorScheme.onBackground,
+                        )
+                    }
+                },
+                actions = {
+                    Surface(
+                        shape = RoundedCornerShape(20.dp),
+                        color = MaterialTheme.colorScheme.primaryContainer,
+                    ) {
+                        Text(
+                            text = weekChip,
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        )
+                    }
+                },
             )
         },
         bottomBar = {
             OneUiBottomActionBar {
-                val preview = uiState.previewLoad
                 val saveEnabled = !uiState.isSaving && !uiState.isExtractingDocument && when (uiState.mode) {
                     AddLoadInputMode.MANUAL, AddLoadInputMode.DOCUMENT -> true
                     AddLoadInputMode.PASTE -> uiState.rawText.isNotBlank()
@@ -148,17 +202,17 @@ fun AddLoadScreen(
                 val confirmed = uiState.savedLoad != null
                 Button(
                     onClick = { if (!confirmed) saveCurrent() },
-                    modifier = Modifier.fillMaxWidth().height(52.dp),
+                    modifier = Modifier.fillMaxWidth().height(56.dp),
                     enabled = saveEnabled || confirmed,
                 ) {
                     SaveConfirmLabel(
                         confirmed = confirmed,
                         motion = motion,
-                        label = saveButtonLabel(
-                            isSaving = uiState.isSaving,
-                            preview = preview,
-                            manual = uiState.manual.takeIf { uiState.mode != AddLoadInputMode.PASTE },
-                        ),
+                        label = if (uiState.isSaving) {
+                            stringResource(R.string.add_load_saving)
+                        } else {
+                            stringResource(R.string.add_load_save_load)
+                        },
                     )
                 }
             }
@@ -197,6 +251,11 @@ fun AddLoadScreen(
                         showFieldErrors = uiState.showFieldErrors,
                         fieldErrorNonce = uiState.fieldErrorNonce,
                         onSubmit = saveCurrent,
+                        equipment = uiState.equipmentType,
+                        onEquipment = viewModel::setEquipmentType,
+                        showPasteBanner = true,
+                        onPaste = { pasteFromClipboard() },
+                        onOpenDocuments = { viewModel.setMode(AddLoadInputMode.DOCUMENT) },
                     )
                 }
                 AddLoadInputMode.DOCUMENT -> {
@@ -221,6 +280,8 @@ fun AddLoadScreen(
                             showFieldErrors = uiState.showFieldErrors,
                             fieldErrorNonce = uiState.fieldErrorNonce,
                             onSubmit = saveCurrent,
+                            equipment = uiState.equipmentType,
+                            onEquipment = viewModel::setEquipmentType,
                         )
                     }
                 }
@@ -293,26 +354,5 @@ private fun SaveConfirmLabel(confirmed: Boolean, motion: Boolean, label: String)
                 Text(label)
             }
         }
-    }
-}
-
-@Composable
-private fun saveButtonLabel(
-    isSaving: Boolean,
-    preview: com.truckerload.domain.model.Load?,
-    manual: ManualLoadFields?,
-): String {
-    if (isSaving) return stringResource(R.string.add_load_saving)
-    val rate = preview?.totalRate?.takeIf { it.isPositive() }
-        ?: manual?.parsedRate()?.takeIf { it > 0.0 }?.let(com.truckerload.domain.money.Money::fromDollars)
-    val miles = preview?.totalMiles ?: manual?.parsedMiles() ?: 0.0
-    return if (rate != null) {
-        stringResource(
-            R.string.add_load_save_with_preview,
-            MoneyFormat.formatCurrency(rate),
-            MoneyFormat.formatNumber(miles),
-        )
-    } else {
-        stringResource(R.string.add_load_save_offline)
     }
 }

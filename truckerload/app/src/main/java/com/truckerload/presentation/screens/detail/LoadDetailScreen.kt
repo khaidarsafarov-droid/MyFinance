@@ -90,6 +90,7 @@ fun LoadDetailScreen(
     onEditFinish: () -> Unit,
     onDelete: () -> Unit,
     onPhotoClick: (String) -> Unit = {},
+    onCamera: (loadId: String, tripId: String, loadDate: String) -> Unit = { _, _, _ -> },
     onOpenPrivacy: () -> Unit = {},
 ) {
     val tc = LocalTruckColors.current
@@ -132,13 +133,20 @@ fun LoadDetailScreen(
                 title = {
                     Column {
                         Text(
-                            uiState.load?.tripId ?: stringResource(R.string.load_detail_title),
+                            stringResource(R.string.load_detail_title),
                             modifier = Modifier.focusAfterNavigate(
                                 key = loadId,
                                 enabled = !uiState.isLoading && uiState.load != null,
                             ),
                             color = tc.TextPrimary,
                         )
+                        uiState.load?.tripId?.takeIf { it.isNotBlank() }?.let { trip ->
+                            Text(
+                                stringResource(R.string.load_detail_trip_line, trip),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = tc.TextSecondary,
+                            )
+                        }
                         PrivacyTrustBadge(onClick = onOpenPrivacy)
                     }
                 },
@@ -152,6 +160,18 @@ fun LoadDetailScreen(
                     }
                 },
                 actions = {
+                    if (uiState.load != null) {
+                        IconButton(
+                            onClick = onEdit,
+                            modifier = Modifier.size(UiDimens.ToolbarTouchTarget),
+                        ) {
+                            Icon(
+                                AppIcons.Edit,
+                                contentDescription = stringResource(R.string.load_detail_cd_edit),
+                                tint = tc.TextPrimary,
+                            )
+                        }
+                    }
                     IconButton(
                         onClick = { showDeleteConfirm = true },
                         modifier = Modifier.size(UiDimens.ToolbarTouchTarget),
@@ -170,12 +190,35 @@ fun LoadDetailScreen(
             )
         },
         bottomBar = {
-            OneUiBottomActionBar {
-                Button(
-                    onClick = onEdit,
-                    modifier = Modifier.fillMaxWidth().height(52.dp),
-                ) {
-                    Text(stringResource(R.string.common_edit))
+            val current = uiState.load
+            if (current != null && uiState.loadError == null) {
+                OneUiBottomActionBar {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        IconButton(
+                            onClick = { onCamera(current.id, current.tripId, current.date) },
+                            modifier = Modifier.size(56.dp),
+                        ) {
+                            Icon(
+                                AppIcons.PhotoCamera,
+                                contentDescription = stringResource(R.string.take_photo),
+                                tint = MaterialTheme.colorScheme.primary,
+                            )
+                        }
+                        Button(
+                            onClick = onEdit,
+                            modifier = Modifier.weight(1f).height(56.dp),
+                        ) {
+                            Icon(AppIcons.Edit, contentDescription = null)
+                            Text(
+                                stringResource(R.string.load_detail_edit_load),
+                                modifier = Modifier.padding(start = 8.dp),
+                            )
+                        }
+                    }
                 }
             }
         },
@@ -204,91 +247,7 @@ fun LoadDetailScreen(
                         .padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    BentoGlassCard(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .loadSharedBounds(l.id),
-                    ) {
-                        Column(modifier = Modifier.padding(20.dp)) {
-                            Text(
-                                formatLoadRoute(l),
-                                style = MaterialTheme.typography.titleMedium,
-                                color = tc.TextPrimary,
-                            )
-                            Text(
-                                stringResource(
-                                    R.string.load_detail_miles_stops,
-                                    l.drivenMiles,
-                                    l.stopCount.takeIf { it > 0 } ?: (l.puCount + l.delCount),
-                                ),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = tc.TextSecondary,
-                                modifier = Modifier.padding(top = 8.dp),
-                            )
-                        }
-                    }
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(IntrinsicSize.Min),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        StatBox(
-                            title = stringResource(R.string.load_detail_stat_total_rate),
-                            value = "$${l.totalRate.formatPlain()}",
-                            modifier = Modifier.weight(1f).fillMaxHeight(),
-                            hero = true,
-                        )
-                        StatBox(
-                            title = stringResource(R.string.load_detail_stat_miles),
-                            value = String.format(Locale.US, "%.2f", l.drivenMiles),
-                            modifier = Modifier.weight(1f).fillMaxHeight(),
-                        )
-                        StatBox(
-                            title = stringResource(R.string.load_detail_stat_rpm),
-                            value = formatRpm(
-                                l.totalRate,
-                                l.drivenMiles,
-                                stringResource(R.string.rpm_per_mile_format),
-                            ),
-                            modifier = Modifier.weight(1f).fillMaxHeight(),
-                            hero = true,
-                        )
-                    }
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(IntrinsicSize.Min),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        StatBox(
-                            title = stringResource(R.string.load_detail_stat_duration),
-                            value = if (l.durationDays > 0) formatDurationDays(l.durationDays) else "—",
-                            modifier = Modifier.weight(1f).fillMaxHeight(),
-                        )
-                        StatBox(
-                            title = stringResource(R.string.load_detail_stat_pace),
-                            value = if (l.pace.isPositive()) formatPacePerDay(l.pace) else "—",
-                            modifier = Modifier.weight(1f).fillMaxHeight(),
-                        )
-                    }
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(IntrinsicSize.Min),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        StatBox(
-                            title = stringResource(R.string.load_detail_stat_pu),
-                            value = "${l.puCount}",
-                            modifier = Modifier.weight(1f).fillMaxHeight(),
-                        )
-                        StatBox(
-                            title = stringResource(R.string.load_detail_stat_del),
-                            value = "${l.delCount}",
-                            modifier = Modifier.weight(1f).fillMaxHeight(),
-                        )
-                    }
+                    LoadDetailSummary(load = l)
                     DeadheadSection(
                         load = l,
                         onSave = { miles ->
@@ -359,12 +318,28 @@ fun LoadDetailScreen(
                     if (l.stops.isNotEmpty()) {
                         BentoGlassCard(modifier = Modifier.fillMaxWidth()) {
                             Column(modifier = Modifier.padding(20.dp)) {
-                                Text(
-                                    stringResource(R.string.load_detail_stops),
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = tc.TextPrimary,
-                                    modifier = Modifier.padding(bottom = 8.dp),
-                                )
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(bottom = 8.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    Text(
+                                        stringResource(R.string.load_detail_stops),
+                                        style = MaterialTheme.typography.titleMedium,
+                                        color = tc.TextPrimary,
+                                    )
+                                    Text(
+                                        stringResource(
+                                            R.string.load_card_meta_line,
+                                            com.truckerload.presentation.utils.MoneyFormat.formatNumber(l.drivenMiles),
+                                            l.stopCount.takeIf { it > 0 } ?: (l.puCount + l.delCount),
+                                        ),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = tc.TextSecondary,
+                                    )
+                                }
                                 StopTimeline(stops = l.stops)
                             }
                         }

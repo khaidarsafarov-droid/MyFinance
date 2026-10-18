@@ -26,6 +26,8 @@ import com.truckerload.utils.FeedbackManager
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.truckerload.data.preferences.RpmThresholds
@@ -91,10 +93,12 @@ fun SwipeableLoadCard(
         dismissState.snapTo(SwipeToDismissBoxValue.Settled)
     }
     var swipeHapticFired by remember(load.id, settleKey) { mutableStateOf(false) }
+    val haptic = LocalHapticFeedback.current
     LaunchedEffect(dismissState.progress) {
         if (dismissState.progress > 0.35f && !swipeHapticFired) {
             swipeHapticFired = true
             FeedbackManager.onSwipeAction()
+            haptic.performHapticFeedback(HapticFeedbackType.GestureThresholdActivate)
         }
         if (dismissState.progress < 0.05f) {
             swipeHapticFired = false

@@ -103,7 +103,7 @@ internal fun SectionHeader(
         IconButton(
             onClick = onAdd,
             modifier = Modifier
-                .size(44.dp)
+                .size(48.dp)
                 .clip(CircleShape),
         ) {
             Icon(addIcon, contentDescription = title, tint = tc.AccentPrimary, modifier = Modifier.size(28.dp))

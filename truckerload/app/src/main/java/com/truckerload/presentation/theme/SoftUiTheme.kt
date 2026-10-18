@@ -24,7 +24,7 @@ object SoftUiColors {
     val SageBorder = Color(0xFFD4D2E8)
     val SageBorderStrong = Color(0xFFC4C1E0)
     val CardBorder = Color(0xFFE8E7F4)
-    val ContentBg = Color(0xFFF8F9FE)
+    val ContentBg = Color(0xFFF4F5FB)
     val ShellBg = Color(0xFFF0F1FA)
     val OuterBg = Color(0xFFE4E4F0)
 
@@ -40,11 +40,11 @@ object SoftUiColors {
     val SurfaceMuted = ShellBg
 
     /** Dedicated dark cabin tokens (indigo, not inverted light). */
-    val BackgroundDark = Color(0xFF16141F)
-    val SurfaceDark = Color(0xFF1E1B2C)
-    val SurfaceMutedDark = Color(0xFF2A2640)
-    /** Bright enough for primary actions on dark backgrounds (AA). */
-    val ForestAccentDark = Color(0xFFB4AFFF)
+    val BackgroundDark = Color(0xFF0E0D1F)
+    val SurfaceDark = Color(0xFF1A1930)
+    val SurfaceMutedDark = Color(0xFF24233C)
+    /** Lightened primary on the dark cabin; on-primary stays dark for AA. */
+    val ForestAccentDark = Color(0xFF8F89FF)
     val OnForestAccentDark = Color(0xFF1A1628)
 
     /** True-black OLED tokens — saves power on AMOLED and reduces night glare. */

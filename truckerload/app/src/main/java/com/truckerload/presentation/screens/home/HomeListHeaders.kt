@@ -35,94 +35,36 @@ import java.util.Locale
 internal fun PeriodSummarySection(
     header: HomeListItem.FilteredSectionHeader,
     currentFilter: LoadFilter,
-    selectedYear: Int?,
-    selectedDateLabel: String,
-    selectedWeekLabel: String,
-    selectedMonthLabel: String = "",
-    onFilterSelected: (LoadFilter) -> Unit,
-    onOpenCalendar: () -> Unit,
-    onOpenMonthPicker: () -> Unit,
     weeklyGoal: Double = 0.0,
     onOpenWeeklyGoal: () -> Unit = {},
 ) {
     val totals = header.totals
-    val gross = MoneyFormat.formatCurrency(totals.totalRate)
+    val grossLabel = MoneyFormat.formatCurrency(totals.totalRate, decimals = 0)
     val miles = "${MoneyFormat.formatNumber(totals.totalMiles)} mi"
     val rpmValue = if (totals.totalMiles > 0) {
         String.format(Locale.US, "$%.2f", totals.avgRpm)
     } else {
         "—"
     }
-    val rpmLabel = stringResource(R.string.home_period_avg_rpm_label)
     val rpmCd = stringResource(R.string.home_period_avg_rpm, rpmValue)
     val summaryCd = stringResource(
         R.string.home_period_summary_cd,
         header.label,
-        gross,
+        grossLabel,
         miles,
         rpmCd,
     )
-    val onPrimary = MaterialTheme.colorScheme.onPrimary
-    val onPrimaryMuted = onPrimary.copy(alpha = 0.88f)
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = adaptiveHorizontalPadding(), vertical = 4.dp)
-            .clip(SoftUiShapes.Card)
-            .background(MaterialTheme.colorScheme.primary)
-            .semantics(mergeDescendants = true) { contentDescription = summaryCd },
-    ) {
-        Icon(
-            imageVector = AppIcons.LocalShipping,
-            contentDescription = null,
-            tint = onPrimary.copy(alpha = 0.10f),
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .padding(top = 4.dp, end = 4.dp)
-                .size(112.dp),
-        )
-        Column(modifier = Modifier.padding(20.dp)) {
-            Text(
-                text = header.label.uppercase(),
-                style = AppTypography.CaptionMuted.copy(color = onPrimaryMuted),
-            )
-            // Gross stays fully readable on one line; miles and RPM sit beside it
-            // when they fit, otherwise under the amount.
-            HeroPeriodFigures(
-                gross = gross,
-                miles = miles,
-                rpmValue = rpmValue,
-                rpmLabel = rpmLabel,
-                onPrimary = onPrimary,
-                onPrimaryMuted = onPrimaryMuted,
-                modifier = Modifier.padding(top = 6.dp, bottom = 4.dp),
-            )
-            // Goal progress lives on the Goal tab only (audit Stage 8).
-            if (weeklyGoal <= 0 && totals.totalRate.isPositive()) {
-                Text(
-                    text = stringResource(R.string.ux_next_set_goal),
-                    style = AppTypography.CaptionMuted.copy(color = onPrimaryMuted),
-                    modifier = Modifier
-                        .padding(top = 4.dp)
-                        .clip(SoftUiShapes.Chip)
-                        .clickable(onClick = onOpenWeeklyGoal)
-                        .padding(vertical = 2.dp),
-                )
-            }
-            HomePeriodFilterDropdown(
-                currentFilter = currentFilter,
-                selectedYear = selectedYear,
-                selectedDateLabel = selectedDateLabel,
-                selectedWeekLabel = selectedWeekLabel,
-                selectedMonthLabel = selectedMonthLabel,
-                onFilterSelected = onFilterSelected,
-                onOpenCalendar = onOpenCalendar,
-                onOpenMonthPicker = onOpenMonthPicker,
-                style = PeriodFilterStyle.HeroPill,
-                modifier = Modifier.padding(top = 8.dp),
-            )
-        }
-    }
+    HomeWeekHero(
+        periodLabel = header.label,
+        filter = currentFilter,
+        gross = totals.totalRate,
+        miles = totals.totalMiles,
+        loadCount = totals.loadCount,
+        avgRpm = totals.avgRpm,
+        weeklyGoal = weeklyGoal,
+        summaryContentDescription = summaryCd,
+        onOpenWeeklyGoal = onOpenWeeklyGoal,
+    )
 }
 
 @Composable
