@@ -12,6 +12,8 @@ import com.truckerload.utils.formatIsoDate
 import com.truckerload.utils.getWeekNumberAndYearFromDate
 import com.truckerload.utils.getWeekNumberAndYearFromTimestamp
 import com.truckerload.utils.getWeekRange
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /**
  * Rewrites persisted weekNumber/year (and diesel/paycheck week labels) after the
@@ -22,8 +24,10 @@ object WeekStartRebinder {
 
     suspend fun rebindIfPossible(context: Context) {
         val app = context.applicationContext
-        val db = AppDatabase.getInstanceForActiveUser(app) ?: return
-        rebind(LoadRepository(db), DieselRepository(db), PaycheckRepository(db))
+        withContext(Dispatchers.IO) {
+            val db = AppDatabase.getInstanceForActiveUser(app) ?: return@withContext
+            rebind(LoadRepository(db), DieselRepository(db), PaycheckRepository(db))
+        }
     }
 
     suspend fun rebind(

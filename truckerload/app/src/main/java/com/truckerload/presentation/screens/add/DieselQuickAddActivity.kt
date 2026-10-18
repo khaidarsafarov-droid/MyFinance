@@ -55,6 +55,7 @@ class DieselQuickAddActivity : AppCompatActivity() {
             }
         }
         lifecycleScope.launch {
+            authStore.awaitReady()
             val userId = resolveUserId()
             if (userId == null) {
                 startActivity(

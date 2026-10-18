@@ -10,7 +10,7 @@ import com.truckerload.data.preferences.SettingsDataStore
 import com.truckerload.data.preferences.TelegramTokenStore
 import java.io.File
 import java.util.concurrent.atomic.AtomicBoolean
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.runBlocking
 import net.zetetic.database.sqlcipher.SQLiteDatabase as CipherDatabase
 
@@ -26,16 +26,34 @@ object InstalledJournalRecovery {
     private val started = AtomicBoolean(false)
     private val sidecars = listOf("-wal", "-shm", "-journal")
 
-    fun recoverIfNeeded(context: Context, authStore: AuthStore) {
+    /**
+     * Schedules recovery on [kotlinx.coroutines.Dispatchers.IO].
+     * [JournalRecoveryGate] stays closed until the scan finishes, so Room cannot
+     * open a profile that recovery is about to replace.
+     */
+    fun start(scope: CoroutineScope, context: Context, authStore: AuthStore) {
         if (!started.compareAndSet(false, true)) return
-        runCatching { recover(context.applicationContext, authStore) }
-            .onFailure { error -> Log.e(TAG, "Installed journal recovery failed", error) }
+        val appContext = context.applicationContext
+        JournalRecoveryGate.start(scope) {
+            try {
+                authStore.awaitDiskSnapshot()
+                runCatching { recover(appContext, authStore) }
+                    .onFailure { error -> Log.e(TAG, "Installed journal recovery failed", error) }
+            } finally {
+                authStore.publishColdStart()
+            }
+        }
     }
 
-    internal fun recover(context: Context, authStore: AuthStore) {
+    /** Robolectric cold start: recovery finishes before the test body, same as before. */
+    internal fun recoverBlocking(context: Context, authStore: AuthStore) {
+        runBlocking { recover(context.applicationContext, authStore) }
+    }
+
+    internal suspend fun recover(context: Context, authStore: AuthStore) {
         val journals = scan(context)
         val populated = journals.filter { it.rowCount != 0 }
-        val activeId = authStore.currentUserIdOrNull()
+        val activeId = authStore.peekedUserIdOrNull()
         if (activeId == null) {
             val only = populated.singleOrNull() ?: return
             if (only.userId == null) {
@@ -67,7 +85,7 @@ object InstalledJournalRecovery {
         return file.length() > 100L
     }
 
-    private fun adoptInto(context: Context, targetUserId: String, source: JournalFile) {
+    private suspend fun adoptInto(context: Context, targetUserId: String, source: JournalFile) {
         copyDatabase(context, source, targetUserId)
         copyToken(context, source.userId, targetUserId)
         copyLink(context, source.userId, targetUserId)
@@ -200,15 +218,13 @@ object InstalledJournalRecovery {
         }
     }
 
-    private fun copyLink(context: Context, sourceUserId: String?, targetUserId: String) {
+    private suspend fun copyLink(context: Context, sourceUserId: String?, targetUserId: String) {
         JournalAccountCopy.copyScopedState(context, sourceUserId, targetUserId)
         runCatching {
-            runBlocking(Dispatchers.IO) {
-                val settings = SettingsDataStore(context)
-                settings.copyTelegramLinkIfTargetEmpty(sourceUserId, targetUserId)
-                if (sourceUserId != null) {
-                    settings.copyAccountPreferencesIfTargetEmpty(sourceUserId, targetUserId)
-                }
+            val settings = SettingsDataStore(context)
+            settings.copyTelegramLinkIfTargetEmpty(sourceUserId, targetUserId)
+            if (sourceUserId != null) {
+                settings.copyAccountPreferencesIfTargetEmpty(sourceUserId, targetUserId)
             }
         }.onFailure { error -> Log.w(TAG, "telegram link copy skipped", error) }
     }

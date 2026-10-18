@@ -115,10 +115,15 @@ class MainActivity : AppCompatActivity() {
         setContent {
             var session by remember { mutableStateOf<UserComponent?>(null) }
             var sessionReady by remember { mutableStateOf(false) }
+            val sessionKnown by authStore.sessionKnown.collectAsStateWithLifecycle()
             val isLoggedIn by authStore.isLoggedIn.collectAsStateWithLifecycle()
             val userId by authStore.userId.collectAsStateWithLifecycle()
 
-            LaunchedEffect(isLoggedIn, userId) {
+            LaunchedEffect(sessionKnown, isLoggedIn, userId) {
+                if (!sessionKnown) {
+                    sessionReady = false
+                    return@LaunchedEffect
+                }
                 if (isLoggedIn && !userId.isNullOrBlank()) {
                     val activeUserId = userId as String
                     val needsRebuild = session == null || session?.userId != activeUserId

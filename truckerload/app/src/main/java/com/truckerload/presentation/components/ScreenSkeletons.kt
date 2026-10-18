@@ -92,6 +92,7 @@ fun AnalyticsSkeleton(
     modifier: Modifier = Modifier,
     contentDescription: String? = null,
 ) {
+    ProvideShimmerPulse {
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -131,8 +132,11 @@ fun AnalyticsSkeleton(
                 )
             }
         }
-        StatsCardSkeleton(modifier = Modifier.fillMaxWidth())
-        StatsCardSkeleton(modifier = Modifier.fillMaxWidth())
+        ShimmerAlreadyApplied {
+            StatsCardSkeleton(modifier = Modifier.fillMaxWidth())
+            StatsCardSkeleton(modifier = Modifier.fillMaxWidth())
+        }
+    }
     }
 }
 
@@ -202,6 +206,7 @@ fun WeeklyGoalSkeleton(
     modifier: Modifier = Modifier,
     contentDescription: String? = null,
 ) {
+    ProvideShimmerPulse {
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -237,7 +242,10 @@ fun WeeklyGoalSkeleton(
             }
         }
         StatRowSkeleton(columns = 2)
-        StatsCardSkeleton(modifier = Modifier.fillMaxWidth())
+        ShimmerAlreadyApplied {
+            StatsCardSkeleton(modifier = Modifier.fillMaxWidth())
+        }
+    }
     }
 }
 
@@ -249,6 +257,7 @@ fun MapSkeleton(
     modifier: Modifier = Modifier,
     contentDescription: String? = null,
 ) {
+    ProvideShimmerPulse {
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -277,7 +286,10 @@ fun MapSkeleton(
             height = 280.dp,
             cornerRadius = 16.dp,
         )
-        StatsCardSkeleton(modifier = Modifier.fillMaxWidth())
+        ShimmerAlreadyApplied {
+            StatsCardSkeleton(modifier = Modifier.fillMaxWidth())
+        }
+    }
     }
 }
 

@@ -111,7 +111,9 @@ abstract class AppDatabase : RoomDatabase() {
             require(id.isNotBlank()) { "userId required for database" }
             appContext = context.applicationContext
             val existing = INSTANCE
-            if (existing != null && currentUserId == id) return existing
+            if (existing != null && existing.isOpen && currentUserId == id) return existing
+            // Recovery copies a journal before the first SQLCipher open. Never block main.
+            JournalRecoveryGate.awaitBeforeOpen()
             synchronized(this) {
                 if (INSTANCE != null && currentUserId == id) return INSTANCE as AppDatabase
                 INSTANCE?.close()
@@ -150,6 +152,7 @@ abstract class AppDatabase : RoomDatabase() {
          * or null when logged out.
          */
         fun getInstanceForActiveUser(context: Context): AppDatabase? {
+            JournalRecoveryGate.awaitBeforeOpen()
             val userId = com.truckerload.data.preferences.AuthStore(context).currentUserIdOrNull()
                 ?: return null
             return getInstance(context, userId)
@@ -160,6 +163,7 @@ abstract class AppDatabase : RoomDatabase() {
          * Prefer [getInstanceForActiveUser] in background jobs — returns null when logged out.
          */
         fun getInstance(context: Context): AppDatabase {
+            JournalRecoveryGate.awaitBeforeOpen()
             val userId = com.truckerload.data.preferences.AuthStore(context).currentUserIdOrNull()
             if (userId != null) return getInstance(context, userId)
             if (com.truckerload.BuildConfig.LOCAL_ONLY_MODE) {

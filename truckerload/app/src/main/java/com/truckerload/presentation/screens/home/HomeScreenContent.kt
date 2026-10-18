@@ -58,6 +58,7 @@ import com.truckerload.domain.filter.LoadFilter
 import com.truckerload.domain.model.Load
 import com.truckerload.presentation.components.OneUiLargeTitleHeader
 import com.truckerload.presentation.components.HomePeriodFilterDropdown
+import com.truckerload.presentation.components.ProvideShimmerPulse
 import com.truckerload.presentation.components.StatsCardSkeleton
 import com.truckerload.presentation.components.TlTextButton as TextButton
 import com.truckerload.presentation.di.LocalWeeklyProfitGoalStore
@@ -535,6 +536,7 @@ private fun HomeAvatarButton(name: String, onClick: () -> Unit) {
 @Composable
 internal fun HomeInitialLoadingOverlay() {
     val tc = LocalTruckColors.current
+    ProvideShimmerPulse {
     Box(
         modifier = Modifier.fillMaxSize().background(tc.Background.copy(alpha = 0.7f)),
         contentAlignment = Alignment.Center,
@@ -553,5 +555,6 @@ internal fun HomeInitialLoadingOverlay() {
             }
             Spacer(modifier = Modifier.height(8.dp))
         }
+    }
     }
 }
