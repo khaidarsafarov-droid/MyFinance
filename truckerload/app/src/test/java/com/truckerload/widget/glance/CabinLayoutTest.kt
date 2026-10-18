@@ -11,51 +11,75 @@ import org.junit.Test
 class CabinLayoutTest {
 
     @Test
-    fun labelsStayAtLeast12spAndLargerCellsAddWeekNumbers() {
-        listOf(CabinSize2x2, CabinSize4x2, CabinSize4x3, CabinSize4x4).forEach { size ->
-            val layout = cabinLayoutFor(size)
-            assertTrue("$size header ${layout.headerSp}", layout.headerSp.value >= 12f)
-            assertTrue("$size date ${layout.dateSp}", layout.dateSp.value >= 12f)
-            assertTrue("$size label ${layout.revenueLabelSp}", layout.revenueLabelSp.value >= 12f)
-            assertTrue("$size amount ${layout.amountSp}", layout.amountSp.value >= 16f)
-            assertTrue(layout.metricSp.value >= 12f)
-            assertFits(size, layout)
-        }
-        assertFalse(cabinLayoutFor(CabinSize4x2).showRpm)
-        assertTrue(cabinLayoutFor(CabinSize4x4).showRpm)
-    }
-
-    @Test
-    fun fullHeight_matchesMockupTokens() {
-        val layout = cabinLayoutFor(CabinSize4x4)
-        assertEquals(CabinBucket.FULL, layout.bucket)
-        assertEquals(16.dp, layout.paddingH)
-        assertEquals(12.dp, layout.progressBarDp)
-        assertTrue(layout.progressBarHeadroomDp >= 14.dp)
-        assertEquals(28.dp, layout.dayChipDp)
-        assertEquals(42.dp, layout.actionBtnDp)
-        assertTrue(layout.showWeekRow)
-        assertTrue(layout.showDayCaptions)
-        assertFits(CabinSize4x4, layout)
-    }
-
-    @Test
-    fun threeRowMinimum_dropsCaptionsSoActionsFit() {
+    fun fourByThree_isFullWithDayAmountsAndThreeActions() {
         val layout = cabinLayoutFor(CabinSize4x3)
-        assertFalse(layout.showDayCaptions)
+        assertEquals(CabinBucket.FULL, layout.bucket)
+        assertTrue(layout.showRpm)
         assertTrue(layout.showWeekRow)
+        assertTrue(layout.showDayAmounts)
+        assertTrue(layout.showDayLabels)
+        assertTrue(layout.showRemaining)
+        assertEquals(28.dp, layout.cornerDp)
+        assertEquals(3, layout.actionCount)
+        assertTrue(layout.actionBtnDp >= 48.dp)
         assertFits(CabinSize4x3, layout)
     }
 
     @Test
-    fun compactWide_hidesDayCaptions() {
+    fun fourByTwo_keepsDayBarsAndLabelsWithoutAmounts() {
         val layout = cabinLayoutFor(CabinSize4x2)
-        assertFalse(layout.showDayCaptions)
+        assertFalse(layout.showDayAmounts)
+        assertTrue(layout.showWeekRow)
+        assertTrue(layout.showDayLabels)
+        assertEquals(3, layout.actionCount)
+        assertTrue(layout.actionBtnDp >= 48.dp)
         assertFits(CabinSize4x2, layout)
     }
 
     @Test
-    fun squeezedFourByTwo_usesCompactProgressBar() {
+    fun narrowStrip_isMicroWithoutDayBars() {
+        val size = DpSize(360.dp, 120.dp)
+        val layout = cabinLayoutFor(size)
+        assertEquals(CabinBucket.MICRO, layout.bucket)
+        assertFalse(layout.showWeekRow)
+        assertTrue(layout.headerMetric)
+        assertEquals(3, layout.actionCount)
+        assertFits(size, layout)
+    }
+
+    @Test
+    fun square_showsProgressAndCameraThenScanner() {
+        val layout = cabinLayoutFor(CabinSize2x2)
+        assertEquals(CabinBucket.SQUARE, layout.bucket)
+        assertFalse(layout.showWeekRow)
+        assertTrue(layout.headerMetric)
+        assertEquals(24.dp, layout.cornerDp)
+        assertEquals(2, layout.actionCount)
+        assertEquals(
+            listOf(CabinQuickAction.CAMERA, CabinQuickAction.SCANNER),
+            CabinQuickAction.visible(layout.actionCount),
+        )
+        assertTrue(layout.actionBtnDp >= 48.dp)
+        assertFits(CabinSize2x2, layout)
+    }
+
+    @Test
+    fun oneSlot_keepsCameraOnly() {
+        assertEquals(1, CabinQuickAction.countFor(110.dp))
+        assertEquals(listOf(CabinQuickAction.CAMERA), CabinQuickAction.visible(1))
+    }
+
+    @Test
+    fun smallPref_staysCompactEvenWhenTall() {
+        val layout = cabinLayoutFor(CabinSize4x4, WidgetSizeMode.SMALL)
+        assertEquals(CabinBucket.COMPACT, layout.bucket)
+        assertFalse(layout.showDayAmounts)
+        assertTrue(layout.showDayLabels)
+        assertFits(CabinSize4x4, layout)
+    }
+
+    @Test
+    fun squeezedWide_hidesDayLabels() {
         listOf(
             DpSize(250.dp, 110.dp),
             DpSize(250.dp, 140.dp),
@@ -64,25 +88,9 @@ class CabinLayoutTest {
         ).forEach { size ->
             val layout = cabinLayoutFor(size)
             assertTrue("$size progress ${layout.progressBarDp}", layout.progressBarDp <= 10.dp)
-            assertFalse(layout.showDayCaptions)
+            assertFalse(layout.showDayLabels)
             assertFits(size, layout)
         }
-    }
-
-    @Test
-    fun smallPref_staysCompactEvenWhenTall() {
-        val layout = cabinLayoutFor(CabinSize4x4, WidgetSizeMode.SMALL)
-        assertFalse(layout.showDayCaptions)
-        assertEquals(CabinBucket.COMPACT, cabinBucket(CabinSize4x4, WidgetSizeMode.SMALL))
-        assertFits(CabinSize4x4, layout)
-    }
-
-    @Test
-    fun square_hidesDayRowChrome() {
-        val layout = cabinLayoutFor(CabinSize2x2)
-        assertFalse(layout.showDayCaptions)
-        assertFalse(layout.showWeekRow)
-        assertFits(CabinSize2x2, layout)
     }
 
     @Test
@@ -91,31 +99,34 @@ class CabinLayoutTest {
             val size = DpSize(320.dp, height.dp)
             val layout = cabinLayoutFor(size)
             assertFits(size, layout)
-            assertTrue(layout.actionBtnDp >= 24.dp)
+            assertTrue(layout.actionBtnDp >= 48.dp)
+            assertTrue(layout.actionCount >= 1)
         }
     }
 
     @Test
     fun oversizedWidget_growsInsteadOfLeavingABottomHole() {
-        val layout = cabinLayoutFor(DpSize(340.dp, 460.dp))
+        val size = DpSize(340.dp, 460.dp)
+        val layout = cabinLayoutFor(size)
         assertEquals(CabinBucket.FULL, layout.bucket)
-        assertTrue(layout.actionBtnDp > 42.dp)
-        assertTrue(layout.dayChipDp > 28.dp)
-        assertFits(DpSize(340.dp, 460.dp), layout)
+        assertTrue(layout.actionBtnDp >= 48.dp)
+        assertTrue(layout.dayBarDp > 28.dp)
+        assertFits(size, layout)
     }
 
     @Test
-    fun mediumHeight_showsCaptionsOnlyWhenTheyFit() {
+    fun mediumHeight_addsPerDayAmountsOnlyWhenTheyFit() {
         val tight = cabinLayoutFor(DpSize(320.dp, 210.dp))
         val roomy = cabinLayoutFor(DpSize(320.dp, 280.dp))
-        assertFalse(tight.showDayCaptions)
-        assertTrue(roomy.showDayCaptions)
+        assertFalse(tight.showDayAmounts)
+        assertTrue(tight.showDayLabels)
+        assertTrue(roomy.showDayAmounts)
         assertFits(DpSize(320.dp, 210.dp), tight)
         assertFits(DpSize(320.dp, 280.dp), roomy)
     }
 
     private fun assertFits(size: DpSize, layout: CabinLayout) {
-        val wide = size.width >= CabinSize4x2.width
+        val wide = size.width >= CabinWideMinWidth
         val fixed = cabinFixedHeight(layout, wide)
         assertTrue(
             "$size bucket=${layout.bucket} fixed=$fixed",

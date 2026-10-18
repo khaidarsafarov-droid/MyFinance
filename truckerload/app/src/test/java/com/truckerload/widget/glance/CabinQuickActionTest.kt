@@ -1,5 +1,6 @@
 package com.truckerload.widget.glance
 
+import androidx.compose.ui.unit.dp
 import com.truckerload.presentation.MainActivity
 import com.truckerload.presentation.screens.add.DieselQuickAddActivity
 import com.truckerload.widget.WidgetDeepLink
@@ -15,15 +16,28 @@ import org.robolectric.annotation.Config
 class CabinQuickActionTest {
 
     @Test
-    fun row_isScannerThenCameraThenDiesel() {
+    fun priority_isCameraThenScannerThenDiesel() {
         assertEquals(
             listOf(
-                CabinQuickAction.SCANNER,
                 CabinQuickAction.CAMERA,
+                CabinQuickAction.SCANNER,
                 CabinQuickAction.DIESEL,
             ),
-            CabinQuickAction.entries,
+            CabinQuickAction.priority,
         )
+    }
+
+    @Test
+    fun visible_dropsFromTheEnd() {
+        assertEquals(listOf(CabinQuickAction.CAMERA), CabinQuickAction.visible(1))
+        assertEquals(
+            listOf(CabinQuickAction.CAMERA, CabinQuickAction.SCANNER),
+            CabinQuickAction.visible(2),
+        )
+        assertEquals(CabinQuickAction.priority, CabinQuickAction.visible(3))
+        assertEquals(1, CabinQuickAction.countFor(110.dp))
+        assertEquals(2, CabinQuickAction.countFor(170.dp))
+        assertEquals(3, CabinQuickAction.countFor(360.dp))
     }
 
     @Test

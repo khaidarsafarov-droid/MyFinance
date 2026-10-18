@@ -2,19 +2,18 @@ package com.truckerload.widget
 
 import android.content.Context
 import android.content.res.Configuration
-import android.os.Build
 import androidx.compose.material3.ColorScheme
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
-import androidx.compose.material3.lightColorScheme
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import com.truckerload.presentation.theme.BrandPalette
+import com.truckerload.presentation.theme.BrandPalettes
+import com.truckerload.presentation.theme.forestDarkColorScheme
+import com.truckerload.presentation.theme.forestLightColorScheme
 import com.truckerload.data.preferences.AppThemeMode
 import com.truckerload.data.preferences.SettingsDataStore
 
 /**
- * Widget paint. Android 12+ follows the wallpaper Material You scheme.
- * Older devices use the neutral Material surface. Light and dark still follow the widget theme.
+ * Widget paint from [BrandPalettes]. Dynamic color does not recolor the plate.
  */
 data class WidgetCabinColors(
     val bg: Int,
@@ -38,57 +37,47 @@ data class WidgetCabinColors(
     val dayEmptyCaption: Int,
     val onFilled: Int,
     val dynamic: Boolean = false,
+    val headerStart: Int = progressStart,
+    val headerEnd: Int = progressEnd,
+    val rpmFg: Int = 0xFF0B7A3E.toInt(),
+    val rpmBg: Int = 0xFFDDF5E8.toInt(),
+    val onHeader: Int = Color.White.toArgb(),
 ) {
     companion object {
-        val ForestLight = WidgetCabinColors(
-            bg = WidgetCabinPalette.BG,
-            text = WidgetCabinPalette.TEXT,
-            muted = WidgetCabinPalette.MUTED,
-            accent = WidgetCabinPalette.ACCENT,
-            brand = WidgetCabinPalette.BRAND,
-            ring = WidgetCabinPalette.RING,
-            ringTrack = WidgetCabinPalette.RING_TRACK,
-            progressStart = WidgetCabinPalette.PROGRESS_START,
-            progressEnd = WidgetCabinPalette.PROGRESS_END,
-            progressLabel = WidgetCabinPalette.PROGRESS_LABEL,
-            actionBg = WidgetCabinPalette.ACTION_BG,
-            actionChip = WidgetCabinPalette.ACTION_CHIP,
-            actionStroke = WidgetCabinPalette.ACTION_STROKE,
-            divider = WidgetCabinPalette.DIVIDER,
-            dayFilled = WidgetCabinPalette.DAY_FILLED,
-            dayToday = WidgetCabinPalette.DAY_TODAY,
-            dayOutline = WidgetCabinPalette.DAY_OUTLINE,
-            dayFutureLetter = WidgetCabinPalette.DAY_FUTURE_LETTER,
-            dayEmptyCaption = WidgetCabinPalette.DAY_EMPTY_CAPTION,
-            onFilled = WidgetCabinPalette.ON_FILLED,
+        fun fromBrand(brand: BrandPalette) = WidgetCabinColors(
+            bg = brand.card.toArgb(),
+            text = brand.textPrimary.toArgb(),
+            muted = brand.textSecondary.toArgb(),
+            accent = brand.primary.toArgb(),
+            brand = brand.primary.toArgb(),
+            ring = brand.primary.toArgb(),
+            ringTrack = brand.container.toArgb(),
+            progressStart = brand.heroStart.toArgb(),
+            progressEnd = brand.heroEnd.toArgb(),
+            progressLabel = brand.onPrimary.toArgb(),
+            actionBg = brand.primary.toArgb(),
+            actionChip = brand.container.toArgb(),
+            actionStroke = brand.cardBorder.toArgb(),
+            divider = brand.cardBorder.toArgb(),
+            dayFilled = brand.container.toArgb(),
+            dayToday = brand.primary.toArgb(),
+            dayOutline = brand.container.toArgb(),
+            dayFutureLetter = brand.textSecondary.toArgb(),
+            dayEmptyCaption = brand.textTertiary.toArgb(),
+            onFilled = brand.onPrimary.toArgb(),
             dynamic = false,
+            headerStart = brand.heroStart.toArgb(),
+            headerEnd = brand.heroEnd.toArgb(),
+            rpmFg = 0xFF0B7A3E.toInt(),
+            rpmBg = 0xFFDDF5E8.toInt(),
+            onHeader = Color.White.toArgb(),
         )
 
-        val ForestDark = WidgetCabinColors(
-            bg = WidgetCabinPalette.Dark.BG,
-            text = WidgetCabinPalette.Dark.TEXT,
-            muted = WidgetCabinPalette.Dark.MUTED,
-            accent = WidgetCabinPalette.Dark.ACCENT,
-            brand = WidgetCabinPalette.Dark.BRAND,
-            ring = WidgetCabinPalette.Dark.RING,
-            ringTrack = WidgetCabinPalette.Dark.RING_TRACK,
-            progressStart = WidgetCabinPalette.Dark.PROGRESS_START,
-            progressEnd = WidgetCabinPalette.Dark.PROGRESS_END,
-            progressLabel = WidgetCabinPalette.Dark.PROGRESS_LABEL,
-            actionBg = WidgetCabinPalette.Dark.ACTION_BG,
-            actionChip = WidgetCabinPalette.Dark.ACTION_CHIP,
-            actionStroke = WidgetCabinPalette.Dark.ACTION_STROKE,
-            divider = WidgetCabinPalette.Dark.DIVIDER,
-            dayFilled = WidgetCabinPalette.Dark.DAY_FILLED,
-            dayToday = WidgetCabinPalette.Dark.DAY_TODAY,
-            dayOutline = WidgetCabinPalette.Dark.DAY_OUTLINE,
-            dayFutureLetter = WidgetCabinPalette.Dark.DAY_FUTURE_LETTER,
-            dayEmptyCaption = WidgetCabinPalette.Dark.DAY_EMPTY_CAPTION,
-            onFilled = WidgetCabinPalette.Dark.ON_FILLED,
-            dynamic = false,
-        )
+        val ForestLight = fromBrand(BrandPalettes.Light)
 
-        /** Default plate used by Glance previews — light kit. */
+        val ForestDark = fromBrand(BrandPalettes.Dark)
+
+        /** Default plate used by Glance previews — brand light, not dynamic color. */
         val Forest = ForestLight
 
         fun fromScheme(scheme: ColorScheme, dynamic: Boolean = true) = WidgetCabinColors(
@@ -126,24 +115,19 @@ data class WidgetCabinColors(
         }
 
         /**
-         * Home-screen plate follows the system, the way other Google widgets do.
-         * Android 12+ uses the wallpaper Material You scheme. Older devices use
-         * the neutral Material light or dark surface.
+         * Brand palette only. Wallpaper dynamic color does not recolor the widget.
          */
         suspend fun resolve(context: Context): Pair<ColorScheme, WidgetCabinColors> {
             return runCatching {
                 val app = context.applicationContext
                 val settings = SettingsDataStore(app)
                 val dark = isDarkTheme(app, settings.getThemeModeOnce())
-                val dynamic = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
-                val scheme = when {
-                    dynamic && dark -> dynamicDarkColorScheme(app)
-                    dynamic -> dynamicLightColorScheme(app)
-                    dark -> darkColorScheme()
-                    else -> lightColorScheme()
+                if (dark) {
+                    forestDarkColorScheme() to ForestDark
+                } else {
+                    forestLightColorScheme() to ForestLight
                 }
-                scheme to fromScheme(scheme, dynamic = dynamic)
-            }.getOrElse { lightColorScheme().let { it to fromScheme(it, dynamic = false) } }
+            }.getOrElse { forestLightColorScheme() to ForestLight }
         }
     }
 }

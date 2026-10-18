@@ -1,6 +1,5 @@
 package com.truckerload.widget.glance
 
-import android.os.Build
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
@@ -23,18 +22,9 @@ internal val LocalWidgetSizeMode = staticCompositionLocalOf { WidgetSizeMode.AUT
 @Composable
 internal fun cabinColor(argb: Int): ColorProvider = ColorProvider(Color(argb))
 
-/**
- * Surface fill plus the launcher's widget corner. Android 12+ uses
- * [android.R.dimen.system_app_widget_background_radius]; older launchers use 16 dp.
- */
-internal fun GlanceModifier.cabinPlate(colors: WidgetCabinColors): GlanceModifier {
-    val plate = background(ColorProvider(Color(colors.bg)))
-    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-        plate.cornerRadius(android.R.dimen.system_app_widget_background_radius)
-    } else {
-        plate.cornerRadius(16.dp)
-    }
-}
+/** Card surface. Wide widgets use 28dp; the 2×2 uses 24dp. */
+internal fun GlanceModifier.cabinPlate(colors: WidgetCabinColors, corner: Dp): GlanceModifier =
+    background(ColorProvider(Color(colors.bg))).cornerRadius(corner)
 
 /** Soft circular chip — enough to say “tap me”, not a brand-purple blob. */
 internal fun GlanceModifier.cabinActionChip(colors: WidgetCabinColors): GlanceModifier =

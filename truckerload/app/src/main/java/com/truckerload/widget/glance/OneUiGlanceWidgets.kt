@@ -10,59 +10,44 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
-import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.glance.GlanceId
-import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
-import androidx.glance.Image
-import androidx.glance.ImageProvider
 import androidx.glance.LocalSize
-import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
 import androidx.glance.appwidget.SizeMode
-import androidx.glance.appwidget.action.actionStartActivity
 import androidx.glance.appwidget.provideContent
 import androidx.glance.appwidget.state.getAppWidgetState
 import androidx.glance.appwidget.state.updateAppWidgetState
 import androidx.glance.appwidget.updateAll
 import androidx.glance.state.GlanceStateDefinition
 import androidx.glance.state.PreferencesGlanceStateDefinition
-import androidx.glance.layout.Alignment
-import androidx.glance.layout.Box
-import androidx.glance.layout.Column
-import androidx.glance.layout.fillMaxSize
-import androidx.glance.layout.fillMaxWidth
-import androidx.glance.layout.height
-import androidx.glance.layout.padding
-import androidx.glance.layout.size
 import androidx.glance.material3.ColorProviders
-import androidx.glance.text.FontWeight
-import androidx.glance.text.Text
-import androidx.glance.text.TextStyle
-import com.truckerload.R
 import com.truckerload.presentation.MainActivity
 import com.truckerload.widget.WidgetCabinColors
 import com.truckerload.widget.WidgetDataStore
 import com.truckerload.widget.WidgetDayProjection
 import com.truckerload.widget.WidgetDaySelectionStore
-import com.truckerload.widget.WidgetDeepLink
 import com.truckerload.widget.WidgetPrefs
 import com.truckerload.widget.WidgetPrefsStore
-import com.truckerload.widget.WidgetTruckProgressBitmap
 import com.truckerload.widget.WidgetStats
-import com.truckerload.widget.WidgetStatsFormatter
 
-internal val CabinSize2x2 = DpSize(110.dp, 110.dp)
-internal val CabinSize4x2 = DpSize(250.dp, 110.dp)
-internal val CabinSize4x3 = DpSize(250.dp, 180.dp)
-internal val CabinSize4x4 = DpSize(250.dp, 260.dp)
+internal val CabinSize2x2 = DpSize(170.dp, 170.dp)
+internal val CabinSize4x2 = DpSize(360.dp, 190.dp)
+internal val CabinSize4x3 = DpSize(360.dp, 300.dp)
+internal val CabinSize4x4 = DpSize(360.dp, 360.dp)
 
-private val CabinResponsiveSizes = setOf(CabinSize2x2, CabinSize4x2, CabinSize4x3, CabinSize4x4)
+private val CabinResponsiveSizes = setOf(
+    DpSize(110.dp, 110.dp),
+    CabinSize2x2,
+    DpSize(250.dp, 120.dp),
+    CabinSize4x2,
+    DpSize(360.dp, 236.dp),
+    CabinSize4x3,
+)
 
 private val cabinSizeMode: SizeMode
     get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -185,7 +170,7 @@ private fun CabinBudgetBySize(
     selectedOffset: Int,
 ) {
     val size = LocalSize.current
-    if (size.width >= CabinSize4x2.width) {
+    if (size.width >= CabinWideMinWidth) {
         WideBudgetContent(context, shown, week, selectedOffset)
     } else {
         SquareBudgetContent(context, shown)
@@ -205,151 +190,13 @@ private fun CabinGlanceTheme(scheme: ColorScheme, content: @Composable () -> Uni
 
 @Composable
 private fun SquareBudgetContent(context: Context, stats: WidgetStats) {
-    val layout = cabinLayoutFor(LocalSize.current, LocalWidgetSizeMode.current)
-    val progress = stats.goalProgressPercent.coerceIn(0f, 100f)
-    val goalSet = stats.weeklyProfitGoal > 0
-    val colors = LocalCabinColors.current
-
-    Column(
-        modifier = GlanceModifier
-            .fillMaxSize()
-            .cabinPlate(colors)
-            .padding(horizontal = layout.paddingH, vertical = layout.paddingV),
-    ) {
-        CabinHeaderSquare(
-            context,
-            stats.weekLabel,
-            layout.headerSp,
-            layout.dateSp,
-            modifier = GlanceModifier.sectionBelow(layout.sectionGap),
-        )
-        cabinSectionGap()
-        Box(modifier = GlanceModifier.fillMaxWidth().sectionBelow(layout.sectionGap)) {
-            TruckProgressBarSquare(
-                context = context,
-                progress = progress,
-                goalSet = goalSet,
-                barDp = layout.progressBarDp,
-                headroomDp = layout.progressBarHeadroomDp,
-            )
-        }
-        cabinSectionGap()
-        Column(modifier = GlanceModifier.fillMaxWidth().sectionBelow(layout.sectionGap)) {
-            Text(
-                text = WidgetStatsFormatter.formatGrossUsd(stats.totalLoadRate),
-                style = TextStyle(
-                    color = cabinColor(colors.text),
-                    fontSize = layout.amountSp,
-                    fontWeight = FontWeight.Bold,
-                ),
-                maxLines = 1,
-            )
-            Text(
-                text = context.getString(
-                    R.string.widget_metric_goal_value,
-                    if (stats.weeklyProfitGoal > 0) {
-                        WidgetStatsFormatter.formatGrossUsd(stats.weeklyProfitGoal)
-                    } else {
-                        context.getString(R.string.widget_goal_not_set)
-                    },
-                ),
-                style = TextStyle(
-                    color = cabinColor(colors.text),
-                    fontSize = layout.metricSp,
-                    fontWeight = FontWeight.Bold,
-                ),
-                maxLines = 1,
-            )
-        }
-        cabinSectionGap()
-        CabinActionRow(context, layout)
-    }
-}
-
-@Composable
-private fun CabinHeaderSquare(
-    context: Context,
-    weekLabel: String,
-    headerSp: TextUnit,
-    dateSp: TextUnit,
-    modifier: GlanceModifier = GlanceModifier,
-) {
-    val colors = LocalCabinColors.current
-    Text(
-        text = context.getString(R.string.widget_brand_title_plain),
-        style = TextStyle(
-            color = cabinColor(colors.brand),
-            fontSize = headerSp,
-            fontWeight = FontWeight.Bold,
-        ),
-        maxLines = 1,
-        modifier = modifier.clickable(
-            actionStartActivity(routeIntent(context, WidgetDeepLink.ROUTE_HOME)),
-        ),
+    SplitCabinBody(
+        context = context,
+        shown = stats,
+        week = stats,
+        selectedOffset = WidgetDayProjection.todayOffset(),
+        wide = false,
     )
-}
-
-@Composable
-private fun TruckProgressBarSquare(
-    context: Context,
-    progress: Float,
-    goalSet: Boolean,
-    barDp: Dp,
-    headroomDp: Dp,
-    modifier: GlanceModifier = GlanceModifier,
-) {
-    val colors = LocalCabinColors.current
-    val density = context.resources.displayMetrics.density
-    val widthPx = (LocalSize.current.width.value * density).toInt().coerceAtLeast(80)
-    val barHeightPx = (barDp.value * density).toInt().coerceAtLeast(6)
-    val headroomPx = (headroomDp.value * density).toInt().coerceAtLeast(barHeightPx)
-    val bitmap = runCatching {
-        WidgetTruckProgressBitmap.create(
-            context = context,
-            progressPercent = progress,
-            goalSet = goalSet,
-            widthPx = widthPx,
-            barHeightPx = barHeightPx,
-            headroomPx = headroomPx,
-            colors = colors,
-        )
-    }.getOrNull()
-    val totalHeight = barDp + headroomDp
-    if (bitmap != null) {
-        Image(
-            provider = ImageProvider(bitmap),
-            contentDescription = context.getString(R.string.widget_weekly_summary),
-            modifier = modifier.height(totalHeight),
-        )
-    }
-}
-
-@Composable
-internal fun QuickAction(
-    iconRes: Int,
-    label: String,
-    btnDp: Dp,
-    iconDp: Dp,
-    modifier: GlanceModifier = GlanceModifier,
-    launchIntent: Intent,
-) {
-    Column(
-        modifier = modifier.clickable(actionStartActivity(launchIntent)),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Box(
-            modifier = GlanceModifier
-                .size(btnDp)
-                .cabinActionChip(LocalCabinColors.current),
-            contentAlignment = Alignment.Center,
-        ) {
-            Image(
-                provider = ImageProvider(iconRes),
-                contentDescription = label,
-                modifier = GlanceModifier.size(iconDp),
-            )
-        }
-    }
 }
 
 internal fun routeIntent(context: Context, route: String): Intent =

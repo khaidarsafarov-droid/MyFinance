@@ -1,6 +1,8 @@
 package com.truckerload.widget
 
 import android.graphics.Color
+import androidx.compose.ui.graphics.toArgb
+import com.truckerload.presentation.theme.BrandPalettes
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -28,8 +30,8 @@ class WidgetTodayPointerTest {
     @Test
     fun pointer_usesAppPurple_notDarkBrandText() {
         assertEquals(0xFF5B54E6.toInt(), WidgetCabinPalette.RING)
-        assertEquals(WidgetCabinPalette.RING, WidgetCabinColors.ForestDark.ring)
-        assertEquals(WidgetCabinPalette.RING, WidgetCabinColors.ForestLight.ring)
+        assertEquals(BrandPalettes.Dark.primary.toArgb(), WidgetCabinColors.ForestDark.ring)
+        assertEquals(BrandPalettes.Light.primary.toArgb(), WidgetCabinColors.ForestLight.ring)
     }
 
     private fun assertBrand(px: Int, color: Int) {
