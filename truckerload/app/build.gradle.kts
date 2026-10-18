@@ -22,7 +22,7 @@ android {
         applicationId = "com.truckorig"
         minSdk = 24
         targetSdk = 36
-        versionCode = 16
+        versionCode = 17
         versionName = "1.5.11"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         val localProps = Properties()
