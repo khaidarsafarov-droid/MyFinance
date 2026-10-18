@@ -14,11 +14,13 @@ import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Cloud
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DocumentScanner
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material.icons.filled.Face
@@ -80,6 +82,7 @@ object AppIcons {
     val ChevronRight = Icons.AutoMirrored.Filled.KeyboardArrowRight
     val Close = Icons.Filled.Close
     val Cloud = Icons.Filled.Share
+    val CloudStorage = Icons.Filled.Cloud
     val CloudUpload = Icons.Filled.Share
     val ContentPaste = Icons.Filled.Add
     val DarkMode = Icons.Filled.Settings
@@ -89,6 +92,7 @@ object AppIcons {
     val Description = Icons.Filled.List
     val DocumentScanner = Icons.Filled.DocumentScanner
     val Edit = Icons.Filled.Edit
+    val Email = Icons.Filled.Email
     val EditNote = Icons.Filled.Edit
     val ExpandLess = Icons.Filled.KeyboardArrowUp
     val ExpandMore = Icons.Filled.KeyboardArrowDown

@@ -8,29 +8,34 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import com.truckerload.R
 import com.truckerload.presentation.icons.AppIcons
-import com.truckerload.presentation.theme.LocalTruckColors
+import com.truckerload.presentation.theme.LocalBrandPalette
 import com.truckerload.presentation.theme.UiDimens
 import java.io.File
 
 @Composable
 fun ProfileAvatar(
     avatarUrl: String?,
+    initials: String? = null,
+    onHero: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
-    val tc = LocalTruckColors.current
+    val brand = LocalBrandPalette.current
     val context = LocalContext.current
     val model = remember(avatarUrl) { resolveAvatarModel(avatarUrl) }
     val imageRequest = remember(model) {
@@ -41,12 +46,19 @@ fun ProfileAvatar(
                 .build()
         }
     }
+    val hasInitials = !initials.isNullOrBlank()
+    val disc = when {
+        hasInitials -> Color.White
+        onHero -> Color.White.copy(alpha = 0.16f)
+        else -> brand.container
+    }
+    val mark = brand.primary
 
     Box(
         modifier = modifier
             .size(UiDimens.AvatarProfile)
             .clip(CircleShape)
-            .background(tc.AccentPrimary.copy(alpha = 0.25f)),
+            .background(disc),
         contentAlignment = Alignment.Center,
     ) {
         if (imageRequest != null) {
@@ -54,31 +66,38 @@ fun ProfileAvatar(
                 model = imageRequest,
                 contentDescription = stringResource(R.string.profile_photo),
                 modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.FillBounds,
+                contentScale = ContentScale.Crop,
                 loading = {
                     CircularProgressIndicator(
                         modifier = Modifier.size(28.dp),
                         strokeWidth = 2.dp,
-                        color = tc.AccentPrimary,
+                        color = brand.primary,
                     )
                 },
-                error = {
-                    Icon(
-                        imageVector = AppIcons.Person,
-                        contentDescription = null,
-                        modifier = Modifier.size(32.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                },
+                error = { AvatarFallback(initials, mark, onHero) },
             )
         } else {
-            Icon(
-                imageVector = AppIcons.Person,
-                contentDescription = null,
-                modifier = Modifier.size(32.dp),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            AvatarFallback(initials, mark, onHero)
         }
+    }
+}
+
+@Composable
+private fun AvatarFallback(initials: String?, mark: Color, onHero: Boolean) {
+    if (!initials.isNullOrBlank()) {
+        Text(
+            text = initials,
+            color = mark,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+        )
+    } else {
+        Icon(
+            imageVector = AppIcons.Person,
+            contentDescription = null,
+            modifier = Modifier.size(32.dp),
+            tint = if (onHero) Color.White.copy(alpha = 0.9f) else mark,
+        )
     }
 }
 
