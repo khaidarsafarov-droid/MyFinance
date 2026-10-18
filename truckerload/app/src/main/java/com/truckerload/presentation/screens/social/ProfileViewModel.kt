@@ -5,7 +5,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.truckerload.R
 import com.truckerload.data.preferences.UserProfileStore
+import com.truckerload.data.premium.PremiumAccess
 import com.truckerload.data.repository.social.ProfileRepository
+import com.truckerload.domain.premium.PremiumOfferQuote
 import com.truckerload.domain.social.EnhancedDriverProfile
 import com.truckerload.utils.AnalyticsOwnerName
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -23,6 +25,9 @@ data class ProfileUiState(
     val familyName: String = "",
     val nameMessage: String? = null,
     val nameMessageIsError: Boolean = false,
+    val subscribed: Boolean = false,
+    val premiumPhase: ProfilePremiumPhase = ProfilePremiumPhase.UNKNOWN,
+    val premiumPrice: String? = null,
 )
 
 @HiltViewModel
@@ -33,25 +38,35 @@ class ProfileViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val nameFeedback = MutableStateFlow<Pair<String, Boolean>?>(null)
+    private val premium = PremiumAccess.get(app)
+    private val offerLoaded = MutableStateFlow(false)
+    private val offer = MutableStateFlow<PremiumOfferQuote?>(null)
 
     val uiState: StateFlow<ProfileUiState> =
         combine(
             profileRepository.watchMyEnhancedProfile(),
             userProfileStore.profile,
             nameFeedback,
-        ) { profile, user, feedback ->
+            premium.isSubscribed,
+            combine(offerLoaded, offer) { loaded, quote -> loaded to quote },
+        ) { profile, user, feedback, subscribed, offerState ->
             val (given, family) = AnalyticsOwnerName.fromProfile(
                 givenName = user?.givenName,
                 familyName = user?.familyName,
                 email = user?.email,
                 socialDisplayName = profile.displayName,
             )
+            val (loaded, quote) = offerState
+            val premiumModel = ProfileHeroState.premium(subscribed, loaded, quote)
             ProfileUiState(
                 profile = profile,
                 givenName = given,
                 familyName = family,
                 nameMessage = feedback?.first,
                 nameMessageIsError = feedback?.second == true,
+                subscribed = subscribed,
+                premiumPhase = premiumModel.phase,
+                premiumPrice = premiumModel.price,
             )
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ProfileUiState())
 
@@ -59,6 +74,11 @@ class ProfileViewModel @Inject constructor(
         viewModelScope.launch {
             profileRepository.syncIdentityFromUserProfile()
             profileRepository.maybeMarkSetupCompleteFromExistingProfile()
+        }
+        viewModelScope.launch {
+            val quote = runCatching { premium.loadOffer() }.getOrNull()
+            offer.value = quote
+            offerLoaded.value = true
         }
     }
 

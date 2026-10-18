@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -15,13 +16,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
 import com.truckerload.presentation.components.TlButton as Button
 import com.truckerload.presentation.theme.AppTextFieldDefaults
-import com.truckerload.presentation.theme.AppTypography
-import com.truckerload.presentation.theme.BentoGlassCard
-import com.truckerload.presentation.theme.LocalTruckColors
+import com.truckerload.presentation.theme.LocalBrandPalette
+import com.truckerload.presentation.theme.LocalSemanticColors
 
 @Composable
 internal fun ProfileNameSection(
@@ -31,7 +32,8 @@ internal fun ProfileNameSection(
     messageIsError: Boolean,
     onSave: (String, String) -> Unit,
 ) {
-    val tc = LocalTruckColors.current
+    val brand = LocalBrandPalette.current
+    val semantic = LocalSemanticColors.current
     var given by remember(givenName) { mutableStateOf(givenName) }
     var family by remember(familyName) { mutableStateOf(familyName) }
     // Baseline of last persisted values — updated from props and on successful save so
@@ -58,21 +60,17 @@ internal fun ProfileNameSection(
         else -> message
     }
 
-    BentoGlassCard(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp),
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+    Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp)) {
             Text(
                 text = stringResource(R.string.profile_name_section_title),
-                style = AppTypography.CardTitle,
-                color = tc.TextPrimary,
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold,
+                color = brand.textPrimary,
             )
             Text(
                 text = stringResource(R.string.profile_name_section_hint),
-                style = AppTypography.Subtitle,
-                color = tc.TextSecondary,
+                style = MaterialTheme.typography.bodySmall,
+                color = brand.textSecondary,
                 modifier = Modifier.padding(top = 6.dp, bottom = 12.dp),
             )
             OutlinedTextField(
@@ -95,8 +93,8 @@ internal fun ProfileNameSection(
             visibleMessage?.let { text ->
                 Text(
                     text = text,
-                    style = AppTypography.Caption,
-                    color = if (messageIsError) tc.AccentExpense else tc.Success,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = if (messageIsError) semantic.danger else semantic.success,
                     modifier = Modifier.padding(top = 8.dp),
                 )
             }
@@ -105,11 +103,11 @@ internal fun ProfileNameSection(
                     onClick = { onSave(given, family) },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 12.dp),
+                        .padding(top = 12.dp)
+                        .height(48.dp),
                 ) {
                     Text(stringResource(R.string.common_save))
                 }
             }
-        }
     }
 }

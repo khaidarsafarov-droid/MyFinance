@@ -37,9 +37,13 @@ fun NavGraphBuilder.profileNavGraph(navController: NavHostController, reduceMoti
             )
         },
     ) {
+        val motionSettled = reduceMotion || transition.currentState == transition.targetState
         ProfileScreen(
             onBack = { navigateToMainRoute(Routes.HOME, navController) },
             showBack = false,
+            onAddLoad = { navController.navigate(Routes.ADD_LOAD) { launchSingleTop = true } },
+            onOpenSettings = { navController.navigate(Routes.SETTINGS) { launchSingleTop = true } },
+            motionSettled = motionSettled,
         )
     }
 }

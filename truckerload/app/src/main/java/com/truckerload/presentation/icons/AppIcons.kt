@@ -25,6 +25,7 @@ import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DocumentScanner
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material.icons.filled.Face
@@ -97,6 +98,7 @@ object AppIcons {
     val Description = Icons.Filled.List
     val DocumentScanner = Icons.Filled.DocumentScanner
     val Edit = Icons.Filled.Edit
+    val Email = Icons.Filled.Email
     val EditNote = Icons.Filled.Edit
     val ExpandLess = Icons.Filled.KeyboardArrowUp
     val ExpandMore = Icons.Filled.KeyboardArrowDown
