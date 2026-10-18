@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -60,6 +61,7 @@ import com.truckerload.domain.model.formatDurationDays
 import com.truckerload.domain.model.formatLoadRoute
 import com.truckerload.domain.model.formatPacePerDay
 import com.truckerload.domain.model.withRouteMetrics
+import com.truckerload.presentation.components.DashboardHero
 import com.truckerload.presentation.components.DisputeSection
 import com.truckerload.presentation.components.OneUiBottomActionBar
 import com.truckerload.presentation.components.StatBox
@@ -128,37 +130,18 @@ fun LoadDetailScreen(
     Scaffold(
         containerColor = BentoGlassTheme.ScreenBackground,
         snackbarHost = { SnackbarHost(snackbarHostState) },
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
-            TopAppBar(
-                title = {
-                    Column {
-                        Text(
-                            stringResource(R.string.load_detail_title),
-                            modifier = Modifier.focusAfterNavigate(
-                                key = loadId,
-                                enabled = !uiState.isLoading && uiState.load != null,
-                            ),
-                            color = tc.TextPrimary,
-                        )
-                        uiState.load?.tripId?.takeIf { it.isNotBlank() }?.let { trip ->
-                            Text(
-                                stringResource(R.string.load_detail_trip_line, trip),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = tc.TextSecondary,
-                            )
-                        }
-                        PrivacyTrustBadge(onClick = onOpenPrivacy)
-                    }
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBack, modifier = Modifier.size(UiDimens.ToolbarTouchTarget)) {
-                        Icon(
-                            AppIcons.ArrowBack,
-                            contentDescription = stringResource(R.string.common_back),
-                            tint = tc.TextPrimary,
-                        )
-                    }
-                },
+            val trip = uiState.load?.tripId?.takeIf { it.isNotBlank() }
+            DashboardHero(
+                title = stringResource(R.string.load_detail_title),
+                subtitle = trip?.let { stringResource(R.string.load_detail_trip_line, it) },
+                showBack = true,
+                onBack = onBack,
+                modifier = Modifier.focusAfterNavigate(
+                    key = loadId,
+                    enabled = !uiState.isLoading && uiState.load != null,
+                ),
                 actions = {
                     if (uiState.load != null) {
                         IconButton(
@@ -168,7 +151,7 @@ fun LoadDetailScreen(
                             Icon(
                                 AppIcons.Edit,
                                 contentDescription = stringResource(R.string.load_detail_cd_edit),
-                                tint = tc.TextPrimary,
+                                tint = androidx.compose.ui.graphics.Color.White,
                             )
                         }
                     }
@@ -179,15 +162,16 @@ fun LoadDetailScreen(
                         Icon(
                             AppIcons.Delete,
                             contentDescription = stringResource(R.string.load_detail_cd_delete),
-                            tint = tc.AccentExpense,
+                            tint = androidx.compose.ui.graphics.Color.White,
                         )
                     }
                 },
-                colors = androidx.compose.material3.TopAppBarDefaults.topAppBarColors(
-                    containerColor = BentoGlassTheme.ScreenBackground,
-                    titleContentColor = tc.TextPrimary,
-                ),
-            )
+            ) {
+                PrivacyTrustBadge(
+                    onClick = onOpenPrivacy,
+                    modifier = Modifier.padding(start = 16.dp, top = 8.dp),
+                )
+            }
         },
         bottomBar = {
             val current = uiState.load

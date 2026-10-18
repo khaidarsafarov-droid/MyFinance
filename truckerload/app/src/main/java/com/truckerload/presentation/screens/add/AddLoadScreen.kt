@@ -10,6 +10,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -42,8 +43,8 @@ import com.truckerload.R
 import com.truckerload.presentation.components.formKeyboard
 import com.truckerload.presentation.components.formKeyboardActions
 import com.truckerload.presentation.components.rememberFormBack
+import com.truckerload.presentation.components.DashboardHero
 import com.truckerload.presentation.components.OneUiBottomActionBar
-import com.truckerload.presentation.components.OneUiLargeTitleHeader
 import com.truckerload.presentation.components.TlButton as Button
 import com.truckerload.presentation.components.verticalContentScroll
 import com.truckerload.presentation.icons.AppIcons
@@ -163,31 +164,22 @@ fun AddLoadScreen(
     Scaffold(
         modifier = Modifier.addLoadSharedBounds(),
         containerColor = BentoGlassTheme.ScreenBackground,
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
-            OneUiLargeTitleHeader(
+            DashboardHero(
                 title = stringResource(R.string.add_load_title),
-                navigationIcon = {
-                    androidx.compose.material3.IconButton(
-                        onClick = requestBack,
-                        modifier = Modifier.size(48.dp),
-                    ) {
-                        Icon(
-                            AppIcons.Close,
-                            contentDescription = stringResource(R.string.common_close),
-                            tint = MaterialTheme.colorScheme.onBackground,
-                        )
-                    }
-                },
+                showBack = true,
+                onBack = requestBack,
                 actions = {
                     Surface(
                         shape = RoundedCornerShape(20.dp),
-                        color = MaterialTheme.colorScheme.primaryContainer,
+                        color = androidx.compose.ui.graphics.Color.White,
                     ) {
                         Text(
                             text = weekChip,
                             modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            style = MaterialTheme.typography.labelMedium.copy(fontFeatureSettings = "tnum"),
+                            color = com.truckerload.presentation.theme.LocalBrandPalette.current.primary,
                         )
                     }
                 },
