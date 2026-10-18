@@ -118,6 +118,13 @@ class LoadRepository(
             .map { it.toSnapshot() }
             .flowOn(Dispatchers.IO)
 
+    /** SQLite weekday (Sunday = 0) → gross cents for loads whose date falls in the range. */
+    suspend fun dailyGrossCentsByWeekday(minDate: String, maxDate: String): Map<Int, Long> =
+        withContext(Dispatchers.IO) {
+            loadDao.getDailyDistribution(minDate, maxDate)
+                .associate { row -> row.dayOfWeek to row.gross }
+        }
+
     /**
      * Clears photo/scan rows whose loadId no longer exists (and deletes orphan files).
      * Safe to call periodically after imports/restores.

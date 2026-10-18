@@ -1,57 +1,53 @@
 package com.truckerload.presentation.screens.settings
 
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.text.KeyboardOptions
-import com.truckerload.presentation.components.TlButton as Button
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import com.truckerload.BuildConfig
-import com.truckerload.data.preferences.AppThemeMode
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.R
-import com.truckerload.presentation.di.LocalSettingsDataStore
-import com.truckerload.presentation.components.RpmColorLegend
-import com.truckerload.presentation.di.LocalRpmThresholdsStore
-import com.truckerload.presentation.theme.AppTextFieldDefaults
-import com.truckerload.presentation.components.SoftAppPageScaffold
-import com.truckerload.presentation.components.SoftTabletTwoPane
-import com.truckerload.presentation.components.verticalContentScroll
+import com.truckerload.data.backup.GoogleDriveBackupService
+import com.truckerload.data.preferences.AppThemeMode
 import com.truckerload.domain.premium.PremiumFeature
-import com.truckerload.presentation.premium.PremiumLockedCard
-import com.truckerload.presentation.premium.PremiumSettingsBanner
+import com.truckerload.domain.week.WeekStartDay
+import com.truckerload.presentation.components.verticalContentScroll
+import com.truckerload.presentation.di.LocalRpmThresholdsStore
+import com.truckerload.presentation.di.LocalSettingsDataStore
+import com.truckerload.presentation.premium.PremiumPaywallDialog
 import com.truckerload.presentation.premium.rememberPremiumAccess
-import com.truckerload.presentation.theme.BentoGlassSection
-import com.truckerload.presentation.theme.LocalTruckColors
-import com.truckerload.presentation.utils.adaptiveHorizontalPadding
+import com.truckerload.presentation.theme.LocalOledDarkEnabled
+import com.truckerload.presentation.theme.LocalReduceMotion
+import com.truckerload.presentation.theme.SoftUiColors
+import com.truckerload.presentation.theme.screenEnterAnimation
 import com.truckerload.presentation.utils.useNavigationRail
-import com.truckerload.domain.parser.DecimalInput
+import com.truckerload.utils.AppLanguageManager
+import java.text.DateFormatSymbols
+import java.time.ZoneId
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
     onBack: () -> Unit,
     showBack: Boolean = false,
     onOpenPrivacy: () -> Unit = {},
     onOpenLanguage: () -> Unit = {},
+    motionSettled: Boolean = true,
 ) {
     val settingsDataStore = LocalSettingsDataStore.current
     val themeMode by settingsDataStore.themeMode.collectAsStateWithLifecycle(initialValue = AppThemeMode.SYSTEM)
@@ -64,153 +60,135 @@ fun SettingsScreen(
     val notifyMissingWeek by settingsDataStore.notifyMissingWeek.collectAsStateWithLifecycle(initialValue = true)
     val notifyMaintenance by settingsDataStore.notifyMaintenance.collectAsStateWithLifecycle(initialValue = true)
     val loadWeekStartDay by settingsDataStore.loadWeekStartDay.collectAsStateWithLifecycle(
-        initialValue = com.truckerload.domain.week.WeekStartDay.DEFAULT,
+        initialValue = WeekStartDay.DEFAULT,
     )
     val dieselWeekStartDay by settingsDataStore.dieselWeekStartDay.collectAsStateWithLifecycle(
-        initialValue = com.truckerload.domain.week.WeekStartDay.DEFAULT,
+        initialValue = WeekStartDay.DEFAULT,
     )
-    val tc = LocalTruckColors.current
-    val store = LocalRpmThresholdsStore.current
-    val context = LocalContext.current
-    val settingsViewModel: SettingsViewModel = hiltViewModel()
-    val thresholds by store.thresholds.collectAsStateWithLifecycle()
+    val thresholds by LocalRpmThresholdsStore.current.thresholds.collectAsStateWithLifecycle()
     val premium by rememberPremiumAccess().status.collectAsStateWithLifecycle()
-    var minInput by remember(thresholds) { mutableStateOf(thresholds.minProfit.toString()) }
-    var targetInput by remember(thresholds) { mutableStateOf(thresholds.targetProfit.toString()) }
-    var error by remember { mutableStateOf<String?>(null) }
+    val settingsViewModel: SettingsViewModel = hiltViewModel()
+    val context = LocalContext.current
+    val locale = androidx.compose.ui.platform.LocalLocale.current.platformLocale
+    val tablet = useNavigationRail()
+    val motionReduced = LocalReduceMotion.current
+    val page = if (LocalOledDarkEnabled.current) SoftUiColors.BackgroundOled else com.truckerload.presentation.theme.LocalBrandPalette.current.page
 
-    val tabletChrome = useNavigationRail()
-    SoftAppPageScaffold(
-        title = stringResource(R.string.settings_title),
-        showBack = showBack && !tabletChrome,
-        onBack = onBack,
-        showPhoneMenu = false,
+    var detail by remember { mutableStateOf<SettingsDetail?>(null) }
+    var paywallOpen by remember { mutableStateOf(false) }
+    var syncToken by remember { mutableIntStateOf(0) }
+    var cardsShown by remember { mutableStateOf(motionSettled) }
+    LaunchedEffect(motionSettled) {
+        if (motionSettled) cardsShown = true
+    }
+
+    val lastSyncAt = remember(syncToken, context) {
+        GoogleDriveBackupService.prefs(context).lastSyncAt
+    }
+    val syncMoment = remember(lastSyncAt) {
+        SettingsPremiumState.syncMoment(lastSyncAt, System.currentTimeMillis(), ZoneId.systemDefault())
+    }
+    val driveSubtitle = when {
+        syncMoment == null -> stringResource(R.string.settings_row_drive_never)
+        syncMoment.isToday -> stringResource(R.string.settings_row_drive_today, syncMoment.clock)
+        else -> stringResource(R.string.settings_row_drive_at, syncMoment.dateTime)
+    }
+    val languageValue = AppLanguageManager.getSupportedLanguages()
+        .firstOrNull { it.code == AppLanguageManager.getCurrentLanguageCode() }
+        ?.nativeName
+        ?: stringResource(R.string.settings_language_en)
+    val weekValue = remember(locale, loadWeekStartDay) {
+        DateFormatSymbols(locale).shortWeekdays
+            .getOrNull(loadWeekStartDay.calendarDay)
+            .orEmpty()
+            .replace(".", "")
+            .replaceFirstChar { if (it.isLowerCase()) it.titlecase(locale) else it.toString() }
+    }
+    val quietValue = if (quietHoursEnabled) {
+        stringResource(
+            R.string.settings_quiet_range,
+            SettingsPremiumState.hourLabel(quietHoursStart),
+            SettingsPremiumState.hourLabel(quietHoursEnd),
+        )
+    } else {
+        stringResource(R.string.settings_quiet_off)
+    }
+    val rpmSubtitle = stringResource(
+        R.string.settings_row_rpm_value,
+        SettingsPremiumState.rpmAmount(thresholds.minProfit),
+        SettingsPremiumState.rpmAmount(thresholds.targetProfit),
+    )
+
+    fun openPremium(feature: PremiumFeature, detailWhenUnlocked: SettingsDetail) {
+        if (premium.allows(feature)) detail = detailWhenUnlocked else paywallOpen = true
+    }
+
+    Scaffold(
+        containerColor = page,
+        contentWindowInsets = if (tablet) WindowInsets.safeDrawing else WindowInsets(0),
     ) { padding ->
         Column(
             modifier = Modifier
-                .fillMaxWidth()
+                .fillMaxSize()
                 .padding(padding)
-                .verticalContentScroll()
-                .padding(horizontal = adaptiveHorizontalPadding(), vertical = 8.dp)
+                .verticalContentScroll(),
         ) {
-            BentoGlassSection(title = stringResource(R.string.premium_title)) {
-                PremiumSettingsBanner()
-            }
-
-            SoftTabletTwoPane(
-                start = {
-                    Column {
-                        ThemeSettingsSection(
-                            selected = themeMode,
-                            oledDark = oledDark,
-                            dynamicColor = dynamicColor,
-                        )
-                        AccessibilitySettingsSection(reduceMotion = reduceMotion)
-                        LanguageSettingsSection(onOpenLanguage = onOpenLanguage)
-                        WeekStartSettingsSection(
-                            loadsStart = loadWeekStartDay,
-                            dieselStart = dieselWeekStartDay,
-                        )
-                        FeedbackSettingsSection(settingsViewModel = settingsViewModel)
-                    }
-                },
-                end = {
-                    Column {
-                        BiometricSettingsSection()
-                        PrivacySettingsSection(onOpenPrivacy = onOpenPrivacy)
-                        NotificationSettingsSection(
-                            quietHoursEnabled = quietHoursEnabled,
-                            quietHoursStart = quietHoursStart,
-                            quietHoursEnd = quietHoursEnd,
-                            notifyMissingWeek = notifyMissingWeek,
-                            notifyMaintenance = notifyMaintenance,
-                        )
-                        if (premium.allows(PremiumFeature.TELEGRAM)) {
-                            TelegramSettingsSection()
-                        } else {
-                            PremiumLockedCard(PremiumFeature.TELEGRAM)
-                        }
-                    }
-                },
+            SettingsPremiumHeroHost(
+                showBack = showBack && !tablet,
+                onBack = onBack,
             )
-
-            BentoGlassSection(title = stringResource(R.string.settings_rpm_thresholds_title)) {
-                RpmColorLegend(compact = true)
-                val fieldColors = AppTextFieldDefaults.outlined()
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    OutlinedTextField(
-                        value = minInput,
-                        onValueChange = { minInput = it; error = null },
-                        label = { Text(stringResource(R.string.settings_red_threshold_short)) },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                        modifier = Modifier.weight(1f),
-                        singleLine = true,
-                        colors = fieldColors,
-                    )
-                    OutlinedTextField(
-                        value = targetInput,
-                        onValueChange = { targetInput = it; error = null },
-                        label = { Text(stringResource(R.string.settings_green_threshold_short)) },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                        modifier = Modifier.weight(1f),
-                        singleLine = true,
-                        colors = fieldColors,
-                    )
-                }
-                error?.let { err ->
-                    Text(
-                        text = err,
-                        color = tc.AccentExpense,
-                        style = MaterialTheme.typography.bodySmall,
-                    )
-                }
-                Button(
-                    onClick = {
-                        val min = DecimalInput.parse(minInput)
-                        val target = DecimalInput.parse(targetInput)
-                        when {
-                            min == null -> error = context.getString(R.string.settings_red_threshold_error)
-                            target == null -> error = context.getString(R.string.settings_green_threshold_error)
-                            else -> store.save(min, target)
-                                .onSuccess {
-                                    error = null
-                                    android.widget.Toast.makeText(context, context.getString(R.string.settings_saved_toast), android.widget.Toast.LENGTH_SHORT).show()
-                                }
-                                .onFailure { error = it.message }
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth().height(44.dp),
-                ) {
-                    Text(stringResource(R.string.settings_rpm_save))
-                }
+            AnimatedVisibility(
+                visible = cardsShown,
+                enter = screenEnterAnimation(motionReduced),
+            ) {
+                SettingsBody(
+                    driveSubtitle = driveSubtitle,
+                    driveMark = SettingsPremiumState.mark(true, premium.allows(PremiumFeature.DRIVE)),
+                    csvMark = SettingsPremiumState.mark(true, premium.allows(PremiumFeature.EXPORT)),
+                    telegramMark = SettingsPremiumState.mark(true, premium.allows(PremiumFeature.TELEGRAM)),
+                    languageValue = languageValue,
+                    weekValue = weekValue,
+                    rpmSubtitle = rpmSubtitle,
+                    quietValue = quietValue,
+                    themeMode = themeMode,
+                    oledDark = oledDark,
+                    dynamicColor = dynamicColor,
+                    reduceMotion = reduceMotion,
+                    notifyMissingWeek = notifyMissingWeek,
+                    notifyMaintenance = notifyMaintenance,
+                    settingsViewModel = settingsViewModel,
+                    onDrive = { openPremium(PremiumFeature.DRIVE, SettingsDetail.DRIVE) },
+                    onBackup = { detail = SettingsDetail.DATA },
+                    onCsv = { openPremium(PremiumFeature.EXPORT, SettingsDetail.DATA) },
+                    onLanguage = onOpenLanguage,
+                    onWeek = { detail = SettingsDetail.WEEK },
+                    onRpm = { detail = SettingsDetail.RPM },
+                    onTelegram = { openPremium(PremiumFeature.TELEGRAM, SettingsDetail.TELEGRAM) },
+                    onQuiet = { detail = SettingsDetail.QUIET },
+                    onPrivacy = { detail = SettingsDetail.PRIVACY },
+                )
             }
-
-            SettingsDataSection(settingsViewModel = settingsViewModel)
-
-            if (premium.allows(PremiumFeature.DRIVE)) {
-                GoogleDriveSyncSection(tc = tc)
-            } else {
-                BentoGlassSection(title = stringResource(R.string.premium_locked_drive)) {
-                    PremiumLockedCard(PremiumFeature.DRIVE)
-                }
-            }
-
-            SettingsShareAppSection()
-
-            DeleteAccountSection()
-
-            Text(
-                text = stringResource(R.string.settings_app_version, BuildConfig.VERSION_NAME),
-                style = MaterialTheme.typography.labelSmall,
-                color = tc.TextSecondary,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp, bottom = 24.dp)
-            )
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(Modifier.height(if (tablet) 24.dp else 16.dp))
         }
+    }
+
+    detail?.let { open ->
+        SettingsDetailSheet(
+            detail = open,
+            loadsStart = loadWeekStartDay,
+            dieselStart = dieselWeekStartDay,
+            quietHoursEnabled = quietHoursEnabled,
+            quietHoursStart = quietHoursStart,
+            quietHoursEnd = quietHoursEnd,
+            settingsViewModel = settingsViewModel,
+            onOpenPrivacy = onOpenPrivacy,
+            onDismiss = {
+                if (open == SettingsDetail.DRIVE) syncToken += 1
+                detail = null
+            },
+        )
+    }
+    if (paywallOpen) {
+        PremiumPaywallDialog(onDismiss = { paywallOpen = false })
     }
 }

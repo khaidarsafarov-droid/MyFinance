@@ -142,11 +142,13 @@ fun NavGraphBuilder.toolsNavGraph(
         popEnterTransition = { navPopEnter(reduceMotion) },
         popExitTransition = { navPopExit(reduceMotion) },
     ) {
+        val motionSettled = reduceMotion || transition.currentState == transition.targetState
         SettingsScreen(
             onBack = { navController.popBackStack() },
             showBack = !tablet,
             onOpenPrivacy = { navController.navigate(Routes.PRIVACY_SETTINGS) },
             onOpenLanguage = { navController.navigate(Routes.LANGUAGE_SETTINGS) },
+            motionSettled = motionSettled,
         )
     }
     composable(

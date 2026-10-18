@@ -33,7 +33,7 @@ data class BrandPalette(
     val tagBrokerFg: Color,
     val tagBrokerBg: Color,
     val shadow: Color,
-    /** Gold button gradient. Text on the button is [goldOnGold]. Same values as the Settings hero. */
+    /** Gold button gradient. Text on the button is [goldOnGold]. */
     val goldStart: Color,
     val goldEnd: Color,
     val goldOnGold: Color,

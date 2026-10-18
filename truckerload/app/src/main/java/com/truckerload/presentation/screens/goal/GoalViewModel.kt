@@ -8,12 +8,15 @@ import javax.inject.Inject
 import androidx.lifecycle.viewModelScope
 import com.truckerload.data.preferences.WeeklyProfitGoalStore
 import com.truckerload.data.repository.LoadRepository
+import com.truckerload.domain.goal.DayPlanRow
+import com.truckerload.domain.goal.WeeklyDayPlan
 import com.truckerload.domain.goal.WeeklyGoalCalculator
 import com.truckerload.domain.money.Money
 import com.truckerload.domain.money.sum
 import com.truckerload.domain.goal.WeeklyGoalProgress
 import com.truckerload.domain.ux.UxMotivation
 import com.truckerload.utils.getPreviousWeekNumberAndYear
+import com.truckerload.utils.getWeekRange
 import com.truckerload.utils.isLoadInWeek
 import com.truckerload.widget.WidgetDataUpdater
 import kotlinx.coroutines.Dispatchers
@@ -21,12 +24,16 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.time.LocalDate
 
 data class WeeklyGoalUiState(
     val progress: WeeklyGoalProgress? = null,
@@ -36,6 +43,8 @@ data class WeeklyGoalUiState(
     val goalError: String? = null,
     val isLoading: Boolean = true,
     val suggestedGoals: List<Double> = UxMotivation.suggestedWeeklyGoals(),
+    /** Null until the enter transition has settled and the day query returns. */
+    val dayPlan: List<DayPlanRow>? = null,
 )
 
 /**
@@ -94,6 +103,13 @@ class GoalViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(WeeklyGoalUiState())
     val uiState: StateFlow<WeeklyGoalUiState> = _uiState.asStateFlow()
 
+    /** Stays false during the tab transition so the day query does not start on the first frame. */
+    private val motionReady = MutableStateFlow(false)
+
+    fun onMotionSettled() {
+        motionReady.value = true
+    }
+
     init {
         viewModelScope.launch {
             combine(progressFlow, loadsFlow) { progress, loads ->
@@ -112,6 +128,35 @@ class GoalViewModel @Inject constructor(
                         suggestedGoals = UxMotivation.suggestedWeeklyGoals(closedGross),
                     )
                 }
+            }
+        }
+        viewModelScope.launch {
+            combine(motionReady, progressFlow) { ready, progress ->
+                if (!ready || progress == null) {
+                    null
+                } else {
+                    DayPlanRequest(
+                        weekNumber = progress.weekNumber,
+                        year = progress.year,
+                        grossCents = progress.currentGross.cents,
+                        dailyNeeded = progress.dailyTargetNeeded,
+                    )
+                }
+            }.distinctUntilChanged().collectLatest { request ->
+                if (request == null) return@collectLatest
+                val plan = withContext(Dispatchers.IO) {
+                    val (start, end, _) = getWeekRange(request.weekNumber, request.year)
+                    val grossByDay = runCatching {
+                        loadRepository.dailyGrossCentsByWeekday(start, end)
+                    }.getOrDefault(emptyMap())
+                    WeeklyDayPlan.rows(
+                        weekStart = LocalDate.parse(start),
+                        today = LocalDate.now(),
+                        grossCentsBySqliteDow = grossByDay,
+                        dailyNeeded = request.dailyNeeded,
+                    )
+                }
+                _uiState.update { it.copy(dayPlan = plan) }
             }
         }
     }
@@ -169,6 +214,13 @@ class GoalViewModel @Inject constructor(
             )
         }
     }
+
+    private data class DayPlanRequest(
+        val weekNumber: Int,
+        val year: Int,
+        val grossCents: Long,
+        val dailyNeeded: Money,
+    )
 
     private fun formatGoalInput(amount: Double): String =
         when {
