@@ -305,6 +305,21 @@
     <string name="goal_pace_ahead_short">Ritmo %1$s/día: por encima del plan (%2$s).</string>
     <string name="goal_pace_behind_short">Necesitas %1$s/día. %2$s para la meta.</string>
     <string name="goal_pace_met_short">Meta alcanzada: %1$s esta semana.</string>
+    <string name="goal_earned_label">Ganado esta semana · bruto</string>
+    <string name="goal_of_amount">de %1$s</string>
+    <string name="goal_percent_caption">%1$d%% de la meta</string>
+    <string name="goal_expected_caption">según el plan %1$s</string>
+    <string name="goal_tile_remaining">Restante</string>
+    <string name="goal_tile_per_day">Por día</string>
+    <string name="goal_day_plan_title">Plan por días</string>
+    <string name="goal_days_left_chip">Quedan %1$d d.</string>
+    <string name="goal_day_today">Hoy · %1$s</string>
+    <string name="goal_day_fact">real · %1$d%% del plan</string>
+    <string name="goal_day_needed">necesario</string>
+    <string name="goal_day_today_cd">Hoy</string>
+    <string name="goal_day_met_cd">Día cumplido</string>
+    <string name="goal_day_missed_cd">Día por debajo del plan</string>
+    <string name="goal_day_future_cd">Día por venir</string>
     <string name="nav_settings">Ajustes</string>
 
     <!-- Camera & scanner -->
