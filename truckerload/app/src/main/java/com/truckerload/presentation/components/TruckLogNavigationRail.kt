@@ -100,13 +100,13 @@ fun TruckLogNavigationRail(
     val overdue by remember(maintenance) {
         maintenance.watchActiveProgress().map { items -> items.count { it.isDue } }
     }.collectAsStateWithLifecycle(initialValue = 0)
-    val railColor = MaterialTheme.colorScheme.surface
+    val railColor = com.truckerload.presentation.theme.LocalBrandPalette.current.card
     Column(
         modifier = modifier
             .fillMaxHeight()
             .width(if (compact) UiDimens.CompactRailWidth else UiDimens.WideSidebarWidth)
             .background(railColor)
-            .border(width = 1.dp, color = MaterialTheme.colorScheme.outline)
+            .border(width = 1.dp, color = com.truckerload.presentation.theme.LocalBrandPalette.current.cardBorder)
             .padding(
                 horizontal = if (compact) 8.dp else 16.dp,
                 vertical = if (compact) 12.dp else 20.dp,

@@ -58,21 +58,40 @@ fun PaywallScreen(
 ) {
     val tc = LocalTruckColors.current
     val access = rememberPremiumAccess()
+    val page = if (com.truckerload.presentation.theme.LocalOledDarkEnabled.current) {
+        com.truckerload.presentation.theme.SoftUiColors.BackgroundOled
+    } else {
+        com.truckerload.presentation.theme.LocalBrandPalette.current.page
+    }
+    androidx.compose.material3.Scaffold(
+        containerColor = page,
+        contentWindowInsets = androidx.compose.foundation.layout.WindowInsets(0, 0, 0, 0),
+        topBar = {
+            com.truckerload.presentation.components.DashboardHero(
+                title = stringResource(R.string.premium_title),
+                showBack = true,
+                onBack = onBack,
+            ) {
+                com.truckerload.presentation.components.DashboardPremiumTag(
+                    locked = true,
+                    modifier = Modifier.padding(start = 20.dp, top = 8.dp),
+                )
+            }
+        },
+    ) { padding ->
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(24.dp),
+            .padding(padding)
+            .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Text(
-            stringResource(R.string.premium_title),
-            style = MaterialTheme.typography.headlineSmall,
-            color = tc.TextPrimary,
-        )
+        com.truckerload.presentation.components.DashboardCard {
+            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(
             stringResource(feature.lockedMessage()),
             style = MaterialTheme.typography.bodyLarge,
-            color = tc.TextPrimary,
+            color = com.truckerload.presentation.theme.LocalBrandPalette.current.textPrimary,
         )
         Text(
             stringResource(R.string.premium_body),
@@ -94,6 +113,9 @@ fun PaywallScreen(
         TextButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
             Text(stringResource(R.string.common_back))
         }
+            }
+        }
+    }
     }
 }
 
