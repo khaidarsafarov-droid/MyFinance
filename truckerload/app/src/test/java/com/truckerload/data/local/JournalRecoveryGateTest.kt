@@ -22,6 +22,8 @@ class JournalRecoveryGateTest {
     @After
     fun tearDown() {
         JournalRecoveryGate.resetForTests()
+        AppDatabase.closeCurrent()
+        AppDatabase.clearApplicationContextForTests()
     }
 
     @Test

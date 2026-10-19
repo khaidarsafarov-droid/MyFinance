@@ -2,6 +2,7 @@ package com.truckerload.data.repository
 
 import androidx.room.Room
 import com.truckerload.data.local.AppDatabase
+import com.truckerload.data.local.DeletedLoadLedger
 import com.truckerload.data.local.entities.PhotoEntity
 import com.truckerload.domain.model.Load
 import kotlinx.coroutines.runBlocking
@@ -39,6 +40,7 @@ class DeleteLoadClearsPhotosTest {
 
     @After
     fun tearDown() {
+        DeletedLoadLedger.clear(RuntimeEnvironment.getApplication())
         db.close()
         photoFile.delete()
     }

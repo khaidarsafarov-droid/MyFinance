@@ -2,6 +2,7 @@ package com.truckerload.data.repository
 
 import androidx.room.Room
 import com.truckerload.data.local.AppDatabase
+import com.truckerload.data.local.DeletedLoadLedger
 import com.truckerload.data.local.entities.LoadHistory
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.Stop
@@ -29,6 +30,8 @@ class LoadUpdatePersistsFieldsTest {
     @Before
     fun setUp() {
         val context = RuntimeEnvironment.getApplication()
+        // A singleton opened earlier in the suite can leave this id in the delete ledger.
+        DeletedLoadLedger.clear(context)
         db = Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java)
             .allowMainThreadQueries()
             .build()
@@ -64,6 +67,33 @@ class LoadUpdatePersistsFieldsTest {
         assertEquals(2, reloaded.delCount)
         assertEquals("updated raw", reloaded.rawMessage)
         assertEquals("T-NEW", repo.getByTripId("t-new")?.tripId)
+    }
+
+    @Test
+    fun singletonContext_doesNotBlockTheNextInMemoryStopUpdate() = runBlocking {
+        val context = RuntimeEnvironment.getApplication()
+        AppDatabase.getInstance(context, "ledger-leak-user")
+        AppDatabase.closeCurrent()
+        repo.insertLoad(sampleLoad("load-1", tripId = "T-OLD"), playFeedback = false)
+        repo.deleteLoad("load-1")
+        assertTrue(DeletedLoadLedger.isBlocked(context, "load-1", "T-OLD"))
+
+        AppDatabase.clearApplicationContextForTests()
+        DeletedLoadLedger.clear(context)
+        db.close()
+        db = Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java)
+            .allowMainThreadQueries()
+            .build()
+        repo = LoadRepository(db)
+        repo.insertLoad(sampleLoad("load-1", tripId = "T-OLD"), playFeedback = false)
+        repo.updateLoad(
+            sampleLoad("load-1", tripId = "T-NEW").copy(
+                stops = listOf(
+                    Stop(0, "load-1", 1, StopType.PU, null, null, "07/21 08:00 EDT", "EDT", null, "Austin, TX", "Austin", "TX", ""),
+                ),
+            ),
+        )
+        assertEquals("T-NEW", repo.getLoadById("load-1")?.tripId)
     }
 
     @Test

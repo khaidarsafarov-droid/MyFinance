@@ -198,6 +198,17 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /**
+         * Drops the process-wide context cached by [getInstance]. In-memory repository
+         * tests share one Robolectric process, and a leftover context makes later
+         * deletes land in [DeletedLoadLedger] and silently skip the next insert.
+         */
+        fun clearApplicationContextForTests() {
+            synchronized(this) {
+                appContext = null
+            }
+        }
+
         /** Closes the singleton only when it still belongs to [userId] (safe during account switch). */
         fun closeIfCurrentUser(userId: String) {
             val id = userId.trim()

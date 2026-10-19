@@ -38,8 +38,11 @@ class ReviveDeletedLoadTest {
 
     @After
     fun tearDown() {
+        val context = RuntimeEnvironment.getApplication()
+        DeletedLoadLedger.clear(context)
         db.close()
         AppDatabase.closeCurrent()
+        AppDatabase.clearApplicationContextForTests()
     }
 
     @Test

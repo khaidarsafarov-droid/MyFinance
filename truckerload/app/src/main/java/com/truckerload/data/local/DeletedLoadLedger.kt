@@ -92,6 +92,15 @@ object DeletedLoadLedger {
         }
     }
 
+    /** Clears both the legacy and the per-user preference files. */
+    fun clear(context: Context) {
+        val app = context.applicationContext
+        app.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit(commit = true) { clear() }
+        val userId = AuthStore(app).currentUserIdOrNull() ?: AccountIds.LOCAL_DEV
+        val scoped = "${PREFS}_${AccountIds.sanitizeFilePart(userId)}"
+        app.getSharedPreferences(scoped, Context.MODE_PRIVATE).edit(commit = true) { clear() }
+    }
+
     fun hasAny(context: Context): Boolean =
         loadIds(context).isNotEmpty() || tripIds(context).isNotEmpty() || pendingIds(context).isNotEmpty()
 
