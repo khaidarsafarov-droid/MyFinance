@@ -45,13 +45,21 @@ class AuthStore internal constructor(
     context: Context,
     coldStart: ColdStart,
 ) {
-    private val appContext = context.applicationContext
+    private val appContext: Context =
+        if (context is android.app.Application) context else context.applicationContext
 
     init {
-        when (coldStart) {
-            ColdStart.SYNC -> bootstrapSync(appContext)
-            ColdStart.ASYNC -> scheduleBootstrap(appContext)
-            ColdStart.SKIP -> lastBootstrapModeForTests = "skip"
+        // A leaked Robolectric application keeps calling AuthStore after the
+        // runner has moved on. Publishing that process's prefs (often local_dev)
+        // would replace the current application's signed-in session.
+        if (isStaleRobolectricApplication(appContext)) {
+            lastBootstrapModeForTests = "stale-context"
+        } else {
+            when (coldStart) {
+                ColdStart.SYNC -> bootstrapSync(appContext)
+                ColdStart.ASYNC -> scheduleBootstrap(appContext)
+                ColdStart.SKIP -> lastBootstrapModeForTests = "skip"
+            }
         }
     }
 
@@ -222,6 +230,7 @@ class AuthStore internal constructor(
             userId.trim()
         }
         require(requestedId.isNotBlank()) { "userId required" }
+        if (isStaleRobolectricApplication(appContext)) return
         val id = peekedUserIdOrNull() ?: requestedId
         val mail = email.trim()
         val resolvedProvider = when {
@@ -320,6 +329,7 @@ class AuthStore internal constructor(
     }
 
     fun logout() {
+        if (isStaleRobolectricApplication(appContext)) return
         synchronized(lock) {
             sessionMutated = true
             liveLoggedIn = false
@@ -458,8 +468,10 @@ class AuthStore internal constructor(
             val generation = bootstrapGeneration
             lastBootstrapModeForTests = "async"
             bootstrapJob = bootstrapScope.launch(bootstrapDispatcher()) {
+                if (isStaleRobolectricApplication(context)) return@launch
                 runCatching { AuthKeystoreOpen.openWithFallback(context) }
                     .onSuccess { prefs ->
+                        if (isStaleRobolectricApplication(context)) return@onSuccess
                         beforeApplyForTests?.invoke()
                         synchronized(lock) {
                             if (generation != bootstrapGeneration) return@onSuccess
@@ -467,6 +479,7 @@ class AuthStore internal constructor(
                         }
                     }
                     .onFailure { error -> Log.e(TAG, "Session bootstrap failed", error) }
+                if (isStaleRobolectricApplication(context)) return@launch
                 synchronized(lock) {
                     if (generation != bootstrapGeneration) return@launch
                     if (!diskReadyDeferred.isCompleted) diskReadyDeferred.complete(Unit)
@@ -567,4 +580,16 @@ class AuthStore internal constructor(
         private fun openPrefsOnce(context: Context): SharedPreferences =
             AuthKeystoreOpen.openOnce(context)
     }
+}
+
+/** Leaked Robolectric app, not the runner's current one. Always false in production. */
+internal fun isStaleRobolectricApplication(context: Context): Boolean {
+    if (!DatabasePassphraseStore.isRobolectric()) return false
+    val current = runCatching {
+        Class.forName("android.app.ActivityThread")
+            .getMethod("currentApplication")
+            .invoke(null) as? android.app.Application
+    }.getOrNull() ?: return false
+    val app = if (context is android.app.Application) context else context.applicationContext
+    return app !== current
 }
