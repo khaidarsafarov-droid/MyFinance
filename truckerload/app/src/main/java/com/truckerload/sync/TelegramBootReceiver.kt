@@ -10,12 +10,20 @@ import com.truckerload.data.preferences.TelegramTokenStore
 class TelegramBootReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent?) {
         if (intent?.action != Intent.ACTION_BOOT_COMPLETED) return
+        val pending = goAsync()
         val appContext = context.applicationContext
-        LoadAlarmScheduler.rescheduleAll(appContext)
-        val userId = AuthStore(appContext).currentUserIdOrNull() ?: return
-        val tokenStore = TelegramTokenStore(appContext, userId)
-        tokenStore.bootstrapFromBuildConfigIfEmpty()
-        if (!tokenStore.hasToken()) return
-        TelegramSyncWorker.enqueueEnsureService(appContext)
+        Thread {
+            try {
+                // currentUserIdOrNull waits off the main thread until cold start publishes.
+                LoadAlarmScheduler.rescheduleAll(appContext)
+                val userId = AuthStore(appContext).currentUserIdOrNull() ?: return@Thread
+                val tokenStore = TelegramTokenStore(appContext, userId)
+                tokenStore.bootstrapFromBuildConfigIfEmpty()
+                if (!tokenStore.hasToken()) return@Thread
+                TelegramSyncWorker.enqueueEnsureService(appContext)
+            } finally {
+                pending.finish()
+            }
+        }.start()
     }
 }

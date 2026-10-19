@@ -52,7 +52,7 @@ class InstalledJournalRecoveryTest {
     fun signedOut_oneJournal_logsBackIntoThatProfile() {
         writeLoads("truckerload_google_deadbeef", listOf("load-1"))
 
-        InstalledJournalRecovery.recover(context, AuthStore(context))
+        recoverNow()
 
         val auth = AuthStore(context)
         assertEquals("google_deadbeef", auth.currentUserIdOrNull())
@@ -66,7 +66,7 @@ class InstalledJournalRecoveryTest {
         writeLoads("truckerload_google_one", listOf("a"))
         writeLoads("truckerload_google_two", listOf("b"))
 
-        InstalledJournalRecovery.recover(context, AuthStore(context))
+        recoverNow()
 
         assertNull(AuthStore(context).currentUserIdOrNull())
         assertEquals(listOf("a"), loadIds("truckerload_google_one"))
@@ -77,7 +77,7 @@ class InstalledJournalRecoveryTest {
     fun signedOut_legacyFile_copiesIntoLocalProfile() {
         writeLoads(LegacyDatabaseAbsorb.LEGACY_SINGLE_FILE, listOf("old"))
 
-        InstalledJournalRecovery.recover(context, AuthStore(context))
+        recoverNow()
 
         assertEquals(AccountIds.LOCAL_DEV, AuthStore(context).currentUserIdOrNull())
         assertEquals(AuthProvider.LOCAL, AuthStore(context).authProvider())
@@ -110,7 +110,7 @@ class InstalledJournalRecoveryTest {
         AuthStore.resetForTests()
 
         AuthStore(context).login(targetId, "local@device", rememberMe = true, provider = AuthProvider.EMAIL)
-        InstalledJournalRecovery.recover(context, AuthStore(context))
+        recoverNow()
 
         assertEquals(targetId, AuthStore(context).currentUserIdOrNull())
         assertEquals(listOf("kept"), loadIds(AppDatabase.databaseNameFor(targetId)))
@@ -141,7 +141,7 @@ class InstalledJournalRecoveryTest {
         }
         AuthStore(context).login(targetId, "local@device", rememberMe = true, provider = AuthProvider.EMAIL)
 
-        InstalledJournalRecovery.recover(context, AuthStore(context))
+        recoverNow()
 
         val target = database(AppDatabase.databaseNameFor(targetId))
         SQLiteDatabase.openDatabase(target.path, null, SQLiteDatabase.OPEN_READONLY).use { db ->
@@ -162,7 +162,7 @@ class InstalledJournalRecoveryTest {
         writeLoads("truckerload_google_other", listOf("x"))
         AuthStore(context).login(targetId, "local@device", rememberMe = true, provider = AuthProvider.EMAIL)
 
-        InstalledJournalRecovery.recover(context, AuthStore(context))
+        recoverNow()
 
         assertArrayEquals(original, target.readBytes())
         assertEquals(listOf("x"), loadIds("truckerload_google_other"))
@@ -174,7 +174,7 @@ class InstalledJournalRecoveryTest {
         writeLoads("truckerload_google_two", listOf("b"))
         AuthStore(context).login(AccountIds.LOCAL_DEV, "local@device", rememberMe = true)
 
-        InstalledJournalRecovery.recover(context, AuthStore(context))
+        recoverNow()
 
         assertEquals(AccountIds.LOCAL_DEV, AuthStore(context).currentUserIdOrNull())
         assertFalse(database(AppDatabase.databaseNameFor(AccountIds.LOCAL_DEV)).exists())
@@ -188,7 +188,7 @@ class InstalledJournalRecoveryTest {
         writeLoads("truckerload_google_other", listOf("theirs"))
         AuthStore(context).login(AccountIds.LOCAL_DEV, "local@device", rememberMe = true)
 
-        InstalledJournalRecovery.recover(context, AuthStore(context))
+        recoverNow()
 
         assertEquals(listOf("mine"), loadIds(AppDatabase.databaseNameFor(AccountIds.LOCAL_DEV)))
         assertEquals(listOf("theirs"), loadIds("truckerload_google_other"))
@@ -202,6 +202,10 @@ class InstalledJournalRecoveryTest {
         assertTrue(InstalledJournalRecovery.isPresentDatabase(file))
         file.writeBytes(ByteArray(40) { 1 })
         assertFalse(InstalledJournalRecovery.isPresentDatabase(file))
+    }
+
+    private fun recoverNow() {
+        runBlocking { InstalledJournalRecovery.recover(context, AuthStore(context)) }
     }
 
     private fun writeLoads(name: String, ids: List<String>) {

@@ -15,7 +15,9 @@ import androidx.work.Configuration
 import androidx.hilt.work.HiltWorkerFactory
 import com.truckerload.BuildConfig
 import com.google.firebase.crashlytics.FirebaseCrashlytics
+import com.truckerload.data.local.DatabasePassphraseStore
 import com.truckerload.data.local.InstalledJournalRecovery
+import com.truckerload.data.local.JournalRecoveryGate
 import com.truckerload.data.preferences.AuthStore
 import com.truckerload.data.repository.LoadPendingDeleteApplier
 import com.truckerload.data.preferences.StartupRepairStore
@@ -69,17 +71,31 @@ class TruckerLoadApp : Application(), Configuration.Provider {
     private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
     override fun attachBaseContext(base: Context) {
+        // Arm before super so a content provider cannot open SQLCipher first.
+        // Robolectric tests open Room on the main test thread and skip the gate.
+        if (!DatabasePassphraseStore.isRobolectric()) {
+            JournalRecoveryGate.arm()
+        }
         super.attachBaseContext(AppLocale.wrap(base))
     }
 
     override fun onCreate() {
         super.onCreate()
         // Before Room opens: an update can leave the session on an empty profile
-        // while the previous journal is still on disk.
-        InstalledJournalRecovery.recoverIfNeeded(this, authStore)
+        // while the previous journal is still on disk. Production runs this on IO.
+        if (DatabasePassphraseStore.isRobolectric()) {
+            InstalledJournalRecovery.recoverBlocking(this, authStore)
+        } else {
+            InstalledJournalRecovery.start(appScope, this, authStore)
+            appScope.launch(Dispatchers.IO) {
+                authStore.awaitReady()
+                withContext(Dispatchers.Main) { startTelegramForActiveUser() }
+            }
+        }
         initializeCrashReporting()
         com.truckerload.data.premium.PremiumAccess.get(this).refresh()
         appScope.launch(Dispatchers.IO) {
+            authStore.awaitReady()
             WeekStartRuntime.install(
                 settingsDataStore.getLoadWeekStartDayOnce(),
                 settingsDataStore.getDieselWeekStartDayOnce(),
@@ -97,8 +113,8 @@ class TruckerLoadApp : Application(), Configuration.Provider {
         cancelRetiredCloudWork()
         // Do not force SYSTEM here — that races the saved Light/Dark preference and can
         // recreate MainActivity in a loop with Compose's themeMode initialValue.
-        authStore.currentUserIdOrNull()?.let { userId ->
-            TelegramTokenStore(this, userId).bootstrapFromBuildConfigIfEmpty()
+        if (DatabasePassphraseStore.isRobolectric()) {
+            startTelegramForActiveUser()
         }
         scheduleTelegramSync()
         scheduleTelegramWatchdog()
@@ -109,13 +125,8 @@ class TruckerLoadApp : Application(), Configuration.Provider {
         refreshLoadReportingWeeks()
         ProcessLifecycleOwner.get().lifecycle.addObserver(object : DefaultLifecycleObserver {
             override fun onStart(owner: LifecycleOwner) {
-                val userId = authStore.currentUserIdOrNull()
-                if (userId != null) {
-                    TelegramTokenStore(this@TruckerLoadApp, userId).bootstrapFromBuildConfigIfEmpty()
-                    // Ensure service once; start() is a no-op if already polling.
-                    if (TelegramTokenStore(this@TruckerLoadApp, userId).hasToken()) {
-                        TelegramBotPoller.start(this@TruckerLoadApp)
-                    }
+                if (authStore.sessionKnown.value) {
+                    startTelegramForActiveUser()
                 }
                 WidgetDataUpdater.updateWidgetData(this@TruckerLoadApp)
             }
@@ -127,6 +138,15 @@ class TruckerLoadApp : Application(), Configuration.Provider {
                 WidgetRefresh.flushForHomeScreen(this@TruckerLoadApp)
             }
         })
+    }
+
+    private fun startTelegramForActiveUser() {
+        val userId = authStore.currentUserIdOrNull() ?: return
+        val tokenStore = TelegramTokenStore(this, userId)
+        tokenStore.bootstrapFromBuildConfigIfEmpty()
+        if (tokenStore.hasToken()) {
+            TelegramBotPoller.start(this)
+        }
     }
 
     private fun initializeCrashReporting() {
@@ -195,6 +215,7 @@ class TruckerLoadApp : Application(), Configuration.Provider {
      */
     private fun refreshLoadReportingWeeks() {
         appScope.launch(Dispatchers.IO) {
+            authStore.awaitReady()
             WeekStartRuntime.install(
                 settingsDataStore.getLoadWeekStartDayOnce(),
                 settingsDataStore.getDieselWeekStartDayOnce(),

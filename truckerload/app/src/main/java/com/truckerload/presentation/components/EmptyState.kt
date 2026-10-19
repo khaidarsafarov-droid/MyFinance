@@ -105,7 +105,6 @@ private fun EmptyStateIllustration(icon: ImageVector) {
             floatAnim.animateTo(-6f, tween(durationMillis = 1800, easing = LinearEasing))
         }
     }
-    val drift = floatAnim.value
     Box(
         modifier = Modifier.size(180.dp),
         contentAlignment = Alignment.Center,
@@ -142,7 +141,7 @@ private fun EmptyStateIllustration(icon: ImageVector) {
         )
         Box(
             modifier = Modifier
-                .graphicsLayer { translationY = drift }
+                .graphicsLayer { translationY = floatAnim.value }
                 .size(96.dp)
                 .clip(RoundedCornerShape(28.dp))
                 .background(cs.surface),
