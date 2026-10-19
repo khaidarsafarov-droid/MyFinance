@@ -22,6 +22,8 @@ data class BrandPalette(
     val textTertiary: Color,
     val heroStart: Color,
     val heroEnd: Color,
+    val heroText: Color,
+    val heroTextMuted: Color,
     val orange: Color,
     val iconBlue: Color,
     val iconViolet: Color,
@@ -42,7 +44,14 @@ data class BrandPalette(
     val goldTagBg: Color,
     /** Gold mark that sits on the indigo hero. */
     val goldOnHero: Color,
-)
+) {
+    /**
+     * Label for a white chip or button. Light primary is indigo and clears AA on
+     * white. Dark primary is champagne, which does not, so the label uses onPrimary.
+     */
+    fun labelOnWhite(): Color =
+        if (ContrastRatios.passesAa(primary, Color.White)) primary else onPrimary
+}
 
 object BrandPalettes {
     val Light = BrandPalette(
@@ -59,23 +68,25 @@ object BrandPalettes {
         textTertiary = SoftUiColors.TextTertiaryLight,
         heroStart = SoftUiColors.HeroStartLight,
         heroEnd = SoftUiColors.HeroEndLight,
+        heroText = SoftUiColors.HeroTextLight,
+        heroTextMuted = SoftUiColors.HeroTextMutedLight,
         orange = SoftUiColors.OrangeLight,
-        iconBlue = Color(0xFF1F55B5),
+        iconBlue = SoftUiColors.ForestPrimary,
         iconViolet = SoftUiColors.ForestPrimary,
-        iconGreen = Color(0xFF1D6B5C),
-        tagRelayFg = Color(0xFF4A43D1),
-        tagRelayBg = Color(0xFFECEAFF),
-        tagManualFg = Color(0xFF1D6B5C),
-        tagManualBg = Color(0xFFDDF3EE),
-        tagBrokerFg = Color(0xFF1F55B5),
-        tagBrokerBg = Color(0xFFE3EEFF),
-        shadow = Color(0x405B54E6),
-        goldStart = Color(0xFFFFE29A),
-        goldEnd = Color(0xFFF5C451),
-        goldOnGold = Color(0xFF3D2A00),
-        goldTagText = Color(0xFF8A5A00),
-        goldTagBg = Color(0xFFFFF1D6),
-        goldOnHero = Color(0xFFFFD27A),
+        iconGreen = SemanticColors.Light.success,
+        tagRelayFg = SoftUiColors.ForestPrimary,
+        tagRelayBg = SoftUiColors.Sage,
+        tagManualFg = SemanticColors.Light.success,
+        tagManualBg = SemanticColors.Light.successContainer,
+        tagBrokerFg = SoftUiColors.OnContainerLight,
+        tagBrokerBg = Color(0xFFE6E8F0),
+        shadow = Color(0x403F3D9E),
+        goldStart = Color(0xFFE4D2A1),
+        goldEnd = Color(0xFFC8A867),
+        goldOnGold = Color(0xFF1D1708),
+        goldTagText = Color(0xFF86542A),
+        goldTagBg = Color(0xFFF6F0E4),
+        goldOnHero = Color(0xFFC8A867),
     )
 
     val Dark = BrandPalette(
@@ -92,23 +103,25 @@ object BrandPalettes {
         textTertiary = SoftUiColors.TextTertiaryDark,
         heroStart = SoftUiColors.HeroStartDark,
         heroEnd = SoftUiColors.HeroEndDark,
+        heroText = SoftUiColors.HeroTextDark,
+        heroTextMuted = SoftUiColors.HeroTextMutedDark,
         orange = SoftUiColors.OrangeDark,
-        iconBlue = Color(0xFF8DB8FF),
+        iconBlue = SoftUiColors.OnContainerDark,
         iconViolet = SoftUiColors.ForestAccentDark,
-        iconGreen = Color(0xFF6FDCC4),
-        tagRelayFg = Color(0xFFCFCBFF),
-        tagRelayBg = Color(0xFF2E2A66),
-        tagManualFg = Color(0xFF6FDCC4),
-        tagManualBg = Color(0xFF123A33),
-        tagBrokerFg = Color(0xFF8DB8FF),
-        tagBrokerBg = Color(0xFF152D52),
+        iconGreen = SemanticColors.Dark.success,
+        tagRelayFg = SoftUiColors.OnContainerDark,
+        tagRelayBg = SoftUiColors.SurfaceMutedDark,
+        tagManualFg = SemanticColors.Dark.success,
+        tagManualBg = SemanticColors.Dark.successContainer,
+        tagBrokerFg = SoftUiColors.TextPrimaryDark,
+        tagBrokerBg = Color(0xFF1E2438),
         shadow = Color(0x80000000),
-        goldStart = Color(0xFFFFE29A),
-        goldEnd = Color(0xFFF5C451),
-        goldOnGold = Color(0xFF3D2A00),
-        goldTagText = Color(0xFFFFD27A),
-        goldTagBg = Color(0xFF3D2E0F),
-        goldOnHero = Color(0xFFFFD27A),
+        goldStart = Color(0xFFE4D2A1),
+        goldEnd = Color(0xFFD6BC85),
+        goldOnGold = Color(0xFF1D1708),
+        goldTagText = Color(0xFFD6BC85),
+        goldTagBg = Color(0xFF2C2618),
+        goldOnHero = Color(0xFFD6BC85),
     )
 }
 

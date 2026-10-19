@@ -44,6 +44,7 @@ import com.truckerload.R
 import com.truckerload.domain.filter.LoadFilter
 import com.truckerload.domain.money.Money
 import com.truckerload.presentation.theme.AppTypography
+import com.truckerload.presentation.theme.LocalBrandPalette
 import com.truckerload.presentation.theme.LocalReduceMotion
 import com.truckerload.presentation.theme.SoftUiShapes
 import com.truckerload.presentation.theme.motionDurationMs
@@ -70,9 +71,9 @@ internal fun HomeWeekHero(
     onOpenWeeklyGoal: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val cs = MaterialTheme.colorScheme
-    val onHero = cs.onPrimary
-    val muted = onHero.copy(alpha = 0.82f)
+    val brand = LocalBrandPalette.current
+    val onHero = brand.heroText
+    val muted = brand.heroTextMuted
     val isThisWeek = filter == LoadFilter.THIS_WEEK
     val (week, year) = getCurrentWeekNumberAndYear()
     val weekTitle = if (isThisWeek) {
@@ -103,9 +104,9 @@ internal fun HomeWeekHero(
             .background(
                 Brush.verticalGradient(
                     listOf(
-                        lerp(cs.primary, Color.White, 0.18f),
-                        cs.primary,
-                        lerp(cs.primary, Color.Black, 0.16f),
+                        brand.heroStart,
+                        lerp(brand.heroStart, brand.heroEnd, 0.45f),
+                        brand.heroEnd,
                     ),
                 ),
             )

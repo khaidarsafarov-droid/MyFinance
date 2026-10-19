@@ -16,37 +16,37 @@ class WidgetCabinColorsTest {
         val old = 0xFF12251C.toInt()
         assertTrue(luminance(WidgetCabinColors.Forest.bg) > luminance(old))
         assertEquals(BrandPalettes.Light.card.toArgb(), WidgetCabinColors.Forest.bg)
-        assertEquals(0xFFFFFFFF.toInt(), WidgetCabinColors.Forest.bg)
+        assertEquals(0xFFFDFCFA.toInt(), WidgetCabinColors.Forest.bg)
         assertFalse(WidgetCabinColors.Forest.dynamic)
     }
 
     @Test
     fun forestDarkPlate_usesIndigoCabinAndHeader() {
         assertEquals(BrandPalettes.Dark.card.toArgb(), WidgetCabinColors.ForestDark.bg)
-        assertEquals(0xFF17173A.toInt(), WidgetCabinColors.ForestDark.bg)
-        assertEquals(0xFF3A33C9.toInt(), WidgetCabinColors.ForestDark.headerStart)
-        assertEquals(0xFF19189A.toInt(), WidgetCabinColors.ForestDark.headerEnd)
+        assertEquals(0xFF161929.toInt(), WidgetCabinColors.ForestDark.bg)
+        assertEquals(0xFF1E2250.toInt(), WidgetCabinColors.ForestDark.headerStart)
+        assertEquals(0xFF111430.toInt(), WidgetCabinColors.ForestDark.headerEnd)
     }
 
     @Test
     fun forestLight_headerIsIndigoAndBodyTextIsReadable() {
         assertEquals(BrandPalettes.Light.textPrimary.toArgb(), WidgetCabinColors.Forest.text)
         assertEquals(BrandPalettes.Light.textSecondary.toArgb(), WidgetCabinColors.Forest.muted)
-        assertEquals(0xFF2B25A1.toInt(), WidgetCabinColors.Forest.headerStart)
-        assertEquals(0xFF0C0F6C.toInt(), WidgetCabinColors.Forest.headerEnd)
-        assertEquals(0xFF0B7A3E.toInt(), WidgetCabinColors.Forest.rpmFg)
-        assertEquals(0xFFDDF5E8.toInt(), WidgetCabinColors.Forest.rpmBg)
+        assertEquals(0xFF1E2150.toInt(), WidgetCabinColors.Forest.headerStart)
+        assertEquals(0xFF0F1230.toInt(), WidgetCabinColors.Forest.headerEnd)
+        assertEquals(0xFF3D6A55.toInt(), WidgetCabinColors.Forest.rpmFg)
+        assertEquals(0xFFE5EDE8.toInt(), WidgetCabinColors.Forest.rpmBg)
         assertTrue(luminance(WidgetCabinColors.Forest.bg) > luminance(WidgetCabinColors.ForestDark.bg))
     }
 
     @Test
     fun actionsUseTonalContainerAndPrimaryIcon() {
         assertEquals(BrandPalettes.Light.container.toArgb(), WidgetCabinColors.Forest.actionChip)
-        assertEquals(0xFFEEEDFF.toInt(), WidgetCabinColors.Forest.actionChip)
-        assertEquals(0xFF5B54E6.toInt(), WidgetCabinColors.Forest.accent)
+        assertEquals(0xFFEAE9F4.toInt(), WidgetCabinColors.Forest.actionChip)
+        assertEquals(0xFF3F3D9E.toInt(), WidgetCabinColors.Forest.accent)
         assertEquals(BrandPalettes.Dark.container.toArgb(), WidgetCabinColors.ForestDark.actionChip)
-        assertEquals(0xFF2E2A66.toInt(), WidgetCabinColors.ForestDark.dayFilled)
-        assertEquals(0xFF8F89FF.toInt(), WidgetCabinColors.ForestDark.dayToday)
+        assertEquals(0xFF262A4F.toInt(), WidgetCabinColors.ForestDark.dayFilled)
+        assertEquals(0xFFD6BC85.toInt(), WidgetCabinColors.ForestDark.dayToday)
     }
 
     @Test

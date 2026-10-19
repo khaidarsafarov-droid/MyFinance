@@ -42,8 +42,12 @@ class ProfileScreenshotTest {
     private fun assertIndigo(bitmap: Bitmap) {
         val pixel = bitmap.getPixel(bitmap.width / 2, (bitmap.height * 0.08f).toInt())
         assertTrue(
-            "hero should be dark indigo, was ${Integer.toHexString(pixel)}",
-            Color.blue(pixel) > 90 && Color.red(pixel) < 90 && Color.green(pixel) < 80,
+            "hero should be midnight navy, was ${Integer.toHexString(pixel)}",
+            Color.blue(pixel) >= 48 &&
+                Color.blue(pixel) > Color.red(pixel) &&
+                Color.blue(pixel) > Color.green(pixel) &&
+                Color.red(pixel) < 60 &&
+                Color.green(pixel) < 60,
         )
     }
 

@@ -29,7 +29,7 @@ object WidgetDayChipStyle {
     ): Int = when (kind) {
         Kind.OUTLINE -> colors.dayFutureLetter
         Kind.FILLED -> colors.onFilled
-        // Today uses a light lavender plate — body text, not white-on-primary.
-        Kind.TODAY -> colors.text
+        // Today fill is brand primary, so the letter uses on-primary (AA on gold and indigo).
+        Kind.TODAY -> colors.onFilled
     }
 }

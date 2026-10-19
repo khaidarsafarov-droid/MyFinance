@@ -113,7 +113,7 @@ internal fun LoadCardOptionC(
         ) {
             Text(
                 text = header,
-                color = Color.White,
+                color = brand.heroText,
                 style = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.SemiBold,
                 maxLines = 1,

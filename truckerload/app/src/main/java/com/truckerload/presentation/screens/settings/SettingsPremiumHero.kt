@@ -49,8 +49,8 @@ internal fun SettingsPremiumHero(
     modifier: Modifier = Modifier,
 ) {
     val brand = LocalBrandPalette.current
-    val onHero = Color.White
-    val muted = Color.White.copy(alpha = 0.86f)
+    val onHero = brand.heroText
+    val muted = brand.heroTextMuted
 
     Column(
         modifier = modifier
@@ -195,14 +195,14 @@ private fun StatusLine(model: SettingsPremiumHeroModel, muted: Color, modifier: 
             Icon(
                 if (active) AppIcons.Check else AppIcons.Lock,
                 contentDescription = null,
-                tint = if (active) semantic.success else Color.White,
+                tint = if (active) semantic.success else LocalBrandPalette.current.heroText,
                 modifier = Modifier.size(14.dp),
             )
             Text(
                 text = stringResource(
                     if (active) R.string.settings_premium_active_chip else R.string.settings_premium_inactive_chip,
                 ),
-                color = if (active) semantic.success else Color.White,
+                color = if (active) semantic.success else LocalBrandPalette.current.heroText,
                 style = MaterialTheme.typography.labelMedium,
                 fontWeight = FontWeight.SemiBold,
                 modifier = Modifier.padding(start = 4.dp),
@@ -247,12 +247,12 @@ private fun FeatureGrid(modifier: Modifier = Modifier) {
                         Icon(
                             AppIcons.Check,
                             contentDescription = null,
-                            tint = Color.White,
+                            tint = LocalBrandPalette.current.heroText,
                             modifier = Modifier.size(16.dp),
                         )
                         Text(
                             text = stringResource(SettingsPremiumState.featureLabelRes(group)),
-                            color = Color.White,
+                            color = LocalBrandPalette.current.heroText,
                             style = MaterialTheme.typography.bodySmall,
                             modifier = Modifier.padding(start = 6.dp),
                         )
@@ -285,7 +285,7 @@ private fun HeroAction(
     } else {
         Brush.horizontalGradient(listOf(Color.White, Color.White))
     }
-    val content = if (gold) brand.goldOnGold else brand.primary
+    val content = if (gold) brand.goldOnGold else brand.labelOnWhite()
     Row(
         modifier = modifier
             .fillMaxWidth()
