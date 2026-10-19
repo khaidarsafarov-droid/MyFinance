@@ -90,7 +90,7 @@ internal fun LanguageSelectionContent(
             ),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            item {
+            item(contentType = "header") {
                 Text(
                     text = stringResource(R.string.settings_language_desc),
                     style = MaterialTheme.typography.bodyMedium,
@@ -98,7 +98,7 @@ internal fun LanguageSelectionContent(
                     modifier = Modifier.padding(bottom = 4.dp),
                 )
             }
-            items(languages, key = { it.code }) { item ->
+            items(languages, key = { it.code }, contentType = { "language" }) { item ->
                 LanguageOptionCard(
                     item = item,
                     selected = item.code == selectedCode,

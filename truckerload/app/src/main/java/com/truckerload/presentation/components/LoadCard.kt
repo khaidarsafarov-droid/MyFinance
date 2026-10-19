@@ -52,27 +52,25 @@ fun LoadCard(
     onCameraClick: (() -> Unit)? = null,
     onScanClick: (() -> Unit)? = null,
 ) {
-    // Разные ветки — единственный корректный способ избежать collectAsState в каждой карточке списка.
+    // Different branches so list rows that already mapped thresholds do not collect here.
     if (rpmThresholds != null) {
-        LoadCardContent(
-            load = load,
+        LoadCard(
+            card = rememberLoadCard(load, rpmThresholds),
             onClick = onClick,
             modifier = modifier,
             solidBackground = solidBackground,
             wrapInCard = wrapInCard,
-            rpmThresholds = rpmThresholds,
             onCameraClick = onCameraClick,
             onScanClick = onScanClick,
         )
     } else {
         val thresholds by LocalRpmThresholdsStore.current.thresholds.collectAsStateWithLifecycle()
-        LoadCardContent(
-            load = load,
+        LoadCard(
+            card = rememberLoadCard(load, thresholds),
             onClick = onClick,
             modifier = modifier,
             solidBackground = solidBackground,
             wrapInCard = wrapInCard,
-            rpmThresholds = thresholds,
             onCameraClick = onCameraClick,
             onScanClick = onScanClick,
         )
@@ -80,19 +78,39 @@ fun LoadCard(
 }
 
 @Composable
+fun LoadCard(
+    card: LoadCardModel,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    solidBackground: Boolean = false,
+    wrapInCard: Boolean = true,
+    onCameraClick: (() -> Unit)? = null,
+    onScanClick: (() -> Unit)? = null,
+) {
+    LoadCardContent(
+        card = card,
+        onClick = onClick,
+        modifier = modifier,
+        solidBackground = solidBackground,
+        wrapInCard = wrapInCard,
+        onCameraClick = onCameraClick,
+        onScanClick = onScanClick,
+    )
+}
+
+@Composable
 private fun LoadCardContent(
-    load: Load,
+    card: LoadCardModel,
     onClick: () -> Unit,
     modifier: Modifier,
     @Suppress("UNUSED_PARAMETER") solidBackground: Boolean,
     wrapInCard: Boolean,
-    rpmThresholds: RpmThresholds,
     onCameraClick: (() -> Unit)?,
     onScanClick: (() -> Unit)?,
 ) {
     val tc = LocalTruckColors.current
-    val disputeStain = if (load.isDispute) tc.Danger else null
-    val disputeWash = if (load.isActiveDispute) 0.16f else 0.10f
+    val disputeStain = if (card.isDispute) tc.Danger else null
+    val disputeWash = if (card.isActiveDispute) 0.16f else 0.10f
 
     val cardContent: @Composable () -> Unit = {
         Box(
@@ -113,8 +131,7 @@ private fun LoadCardContent(
                 ),
         ) {
             LoadCardOptionC(
-                load = load,
-                rpmThresholds = rpmThresholds,
+                card = card,
                 onCameraClick = onCameraClick,
                 onScanClick = onScanClick,
             )
@@ -124,7 +141,7 @@ private fun LoadCardContent(
     // Shared bounds only when this composable owns the outer card chrome.
     // SwipeableLoadCard applies [loadSharedBounds] on its Surface instead.
     val cardModifier = if (wrapInCard) {
-        modifier.loadSharedBounds(load.id)
+        modifier.loadSharedBounds(card.id)
     } else {
         modifier
     }
@@ -203,10 +220,10 @@ internal fun LoadCardSurface(
 
 @Composable
 internal fun DisputeCardChip(
-    load: Load,
+    hadDispute: Boolean,
     modifier: Modifier = Modifier,
 ) {
-    val label = if (load.hadDispute) {
+    val label = if (hadDispute) {
         stringResource(R.string.dispute_was_dispute)
     } else {
         stringResource(R.string.dispute_active)

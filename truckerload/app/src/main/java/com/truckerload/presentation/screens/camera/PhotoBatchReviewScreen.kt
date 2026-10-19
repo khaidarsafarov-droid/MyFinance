@@ -136,7 +136,11 @@ fun PhotoBatchReviewScreen(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                itemsIndexed(photos, key = { _, photo -> photo.file.absolutePath }) { index, photo ->
+                itemsIndexed(
+                    photos,
+                    key = { _, photo -> photo.file.absolutePath },
+                    contentType = { _, _ -> "photo" },
+                ) { index, photo ->
                     val bitmap = rememberDecodedBitmap(photo.file.absolutePath)
                     Column {
                         if (bitmap != null) {

@@ -138,7 +138,7 @@ fun PhotoGalleryScreen(
                         horizontalArrangement = Arrangement.spacedBy(10.dp),
                         verticalArrangement = Arrangement.spacedBy(10.dp),
                     ) {
-                        items(uiState.photos, key = { it.id }) { photo ->
+                        items(uiState.photos, key = { it.id }, contentType = { "photo" }) { photo ->
                             PhotoGridItem(
                                 photo = photo,
                                 loadLabel = photo.loadId?.let { uiState.loadLabels[it] },

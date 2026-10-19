@@ -92,7 +92,7 @@ fun CountryPickerField(
                             .heightIn(max = 360.dp)
                             .padding(top = 8.dp),
                     ) {
-                        items(filtered, key = { it.iso2 }) { country ->
+                        items(filtered, key = { it.iso2 }, contentType = { "country" }) { country ->
                             Text(
                                 text = "${country.displayName(isRussian)}  +${country.dialCode}",
                                 modifier = Modifier
@@ -198,7 +198,7 @@ fun PhoneWithCountryField(
                             .heightIn(max = 360.dp)
                             .padding(top = 8.dp),
                     ) {
-                        items(filtered, key = { it.iso2 + it.dialCode }) { item ->
+                        items(filtered, key = { it.iso2 + it.dialCode }, contentType = { "country" }) { item ->
                             Text(
                                 text = "${item.displayName(isRussian)}  +${item.dialCode}",
                                 modifier = Modifier

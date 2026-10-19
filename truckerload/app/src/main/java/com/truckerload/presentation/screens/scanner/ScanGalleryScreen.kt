@@ -175,7 +175,7 @@ fun ScanGalleryScreen(
                         contentPadding = PaddingValues(16.dp),
                         verticalArrangement = Arrangement.spacedBy(10.dp),
                     ) {
-                        items(visibleRows, key = { it.scan.id }) { row ->
+                        items(visibleRows, key = { it.scan.id }, contentType = { "scan" }) { row ->
                             ScanSummaryCard(
                                 row = row,
                                 onClick = { selectedId = row.scan.id },

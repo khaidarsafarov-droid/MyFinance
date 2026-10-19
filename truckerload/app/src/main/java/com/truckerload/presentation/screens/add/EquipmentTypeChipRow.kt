@@ -55,7 +55,7 @@ fun EquipmentTypeChipRow(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             if (includeAllChip) {
-                item(key = "all") {
+                item(key = "all", contentType = "filter") {
                     AppFilterChip(
                         selected = selected == null,
                         onClick = { onSelect(null) },
@@ -65,7 +65,7 @@ fun EquipmentTypeChipRow(
                     )
                 }
             }
-            items(types, key = { it.name }) { type ->
+            items(types, key = { it.name }, contentType = { "filter" }) { type ->
                 val isOn = selected == type
                 AppFilterChip(
                     selected = isOn,

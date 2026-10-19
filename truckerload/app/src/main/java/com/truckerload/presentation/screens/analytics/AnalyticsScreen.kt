@@ -221,6 +221,7 @@ private fun AnalyticsScreenBody(
                                     itemsIndexed(
                                         uiState.weeks,
                                         key = { _, week -> week.label },
+                                        contentType = { _, _ -> "filter" },
                                     ) { index, week ->
                                         AppFilterChip(
                                             selected = uiState.selectedWeekIndex == index,
