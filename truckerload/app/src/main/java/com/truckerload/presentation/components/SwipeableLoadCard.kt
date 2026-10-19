@@ -32,8 +32,6 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import com.truckerload.data.preferences.RpmThresholds
-import com.truckerload.domain.model.Load
 import com.truckerload.R
 import com.truckerload.presentation.theme.LocalBrandPalette
 import com.truckerload.presentation.theme.LocalSemantics
@@ -43,10 +41,9 @@ import com.truckerload.presentation.theme.loadSharedBounds
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SwipeableLoadCard(
-    load: Load,
+    card: LoadCardModel,
     onClick: () -> Unit,
     onDelete: () -> Unit,
-    rpmThresholds: RpmThresholds,
     modifier: Modifier = Modifier,
     onCameraClick: (() -> Unit)? = null,
     onScanClick: (() -> Unit)? = null,
@@ -61,7 +58,7 @@ fun SwipeableLoadCard(
     if (!enableSwipe) {
         Surface(
             modifier = modifier
-                .loadSharedBounds(load.id)
+                .loadSharedBounds(card.id)
                 .shadow(
                     elevation = 4.dp,
                     shape = cardShape,
@@ -75,10 +72,9 @@ fun SwipeableLoadCard(
             shadowElevation = 0.dp,
         ) {
             LoadCard(
-                load = load,
+                card = card,
                 onClick = onClick,
                 wrapInCard = false,
-                rpmThresholds = rpmThresholds,
                 onCameraClick = onCameraClick,
                 onScanClick = onScanClick,
             )
@@ -97,10 +93,10 @@ fun SwipeableLoadCard(
             }
         },
     )
-    LaunchedEffect(settleKey, load.id) {
+    LaunchedEffect(settleKey, card.id) {
         dismissState.snapTo(SwipeToDismissBoxValue.Settled)
     }
-    var swipeHapticFired by remember(load.id, settleKey) { mutableStateOf(false) }
+    var swipeHapticFired by remember(card.id, settleKey) { mutableStateOf(false) }
     val haptic = LocalHapticFeedback.current
     LaunchedEffect(dismissState.progress) {
         if (dismissState.progress > 0.35f && !swipeHapticFired) {
@@ -145,7 +141,7 @@ fun SwipeableLoadCard(
         },
         // Horizontal padding owned by the caller (HomeLoadCardRow / adaptive padding).
         modifier = modifier
-            .loadSharedBounds(load.id)
+            .loadSharedBounds(card.id)
             .clip(cardShape),
     ) {
         Surface(
@@ -157,10 +153,9 @@ fun SwipeableLoadCard(
             shadowElevation = 0.dp,
         ) {
             LoadCard(
-                load = load,
+                card = card,
                 onClick = onClick,
                 wrapInCard = false,
-                rpmThresholds = rpmThresholds,
                 onCameraClick = onCameraClick,
                 onScanClick = onScanClick,
             )

@@ -27,7 +27,6 @@ import com.truckerload.domain.model.Load
 import com.truckerload.presentation.components.HomePeriodFilterDropdown
 import com.truckerload.presentation.components.PeriodFilterStyle
 import com.truckerload.presentation.di.LocalWeeklyProfitGoalStore
-import com.truckerload.presentation.theme.BentoGlassSearchField
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.utils.MoneyFormat
 import com.truckerload.presentation.utils.adaptiveHorizontalPadding
@@ -42,7 +41,6 @@ import java.util.Locale
 internal fun TabletHomeDashboard(
     paddingValues: PaddingValues,
     uiState: HomeUiState,
-    searchQuery: String,
     periodSummary: HomeListItem.FilteredSectionHeader?,
     totals: LoadFilterUseCase.Totals,
     recentLoads: List<Load>,
@@ -80,7 +78,7 @@ internal fun TabletHomeDashboard(
         contentPadding = PaddingValues(start = pagePad, end = pagePad, bottom = 32.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        item(key = "tablet_header") {
+        item(key = "tablet_header", contentType = "header") {
             if (wide) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -94,9 +92,8 @@ internal fun TabletHomeDashboard(
                         modifier = Modifier.weight(1f),
                     )
                     Box(modifier = Modifier.widthIn(min = 200.dp, max = 360.dp)) {
-                        BentoGlassSearchField(
-                            value = searchQuery,
-                            onValueChange = viewModel::setSearchQuery,
+                        HomeJournalSearchField(
+                            viewModel = viewModel,
                             placeholder = stringResource(R.string.tablet_home_search_hint),
                         )
                     }
@@ -111,9 +108,8 @@ internal fun TabletHomeDashboard(
                         style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
                         color = tc.TextPrimary,
                     )
-                    BentoGlassSearchField(
-                        value = searchQuery,
-                        onValueChange = viewModel::setSearchQuery,
+                    HomeJournalSearchField(
+                        viewModel = viewModel,
                         placeholder = stringResource(R.string.tablet_home_search_hint),
                         modifier = Modifier.fillMaxWidth(),
                     )
@@ -121,7 +117,7 @@ internal fun TabletHomeDashboard(
             }
         }
 
-        item(key = "tablet_hero") {
+        item(key = "tablet_hero", contentType = "summary") {
             SoftHeroCard(
                 periodLabel = periodLabel,
                 gross = gross,
@@ -143,11 +139,11 @@ internal fun TabletHomeDashboard(
             )
         }
 
-        item(key = "tablet_add_load") {
+        item(key = "tablet_add_load", contentType = "actions") {
             SoftAddLoadButton(onAddLoad = onAddLoad)
         }
 
-        item(key = "tablet_stats") {
+        item(key = "tablet_stats", contentType = "summary") {
             TabletStatsGrid(
                 loadCount = totals.loadCount.toString(),
                 miles = MoneyFormat.formatNumber(totals.totalMiles),
@@ -157,7 +153,7 @@ internal fun TabletHomeDashboard(
             )
         }
 
-        item(key = "tablet_panels") {
+        item(key = "tablet_panels", contentType = "load") {
             if (wide) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -198,7 +194,7 @@ internal fun TabletHomeDashboard(
         }
 
         if (recentLoads.isEmpty()) {
-            item(key = "tablet_empty_hint") {
+            item(key = "tablet_empty_hint", contentType = "empty") {
                 HomeEmptyJournal(
                     title = if (uiState.filter == LoadFilter.THIS_WEEK) {
                         stringResource(R.string.home_empty_this_week)

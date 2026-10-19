@@ -34,6 +34,7 @@ import androidx.compose.material3.pulltorefresh.pullToRefresh
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -62,8 +63,8 @@ import com.truckerload.presentation.components.StatsCardSkeleton
 import com.truckerload.presentation.components.TlTextButton as TextButton
 import com.truckerload.presentation.di.LocalWeeklyProfitGoalStore
 import com.truckerload.presentation.screens.privacy.PrivacyTrustBadge
+import com.truckerload.presentation.components.rememberLoadCards
 import com.truckerload.presentation.theme.BentoGlassScreenBackground
-import com.truckerload.presentation.theme.BentoGlassSearchField
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.theme.UiDimens
 import com.truckerload.presentation.utils.adaptiveHorizontalPadding
@@ -74,7 +75,6 @@ import com.truckerload.presentation.utils.adaptiveLoadColumns
 internal fun HomeScreenContent(
     paddingValues: PaddingValues,
     uiState: HomeUiState,
-    searchQuery: String,
     listItems: List<HomeListItem>,
     periodSummary: HomeListItem.FilteredSectionHeader?,
     rpmThresholds: RpmThresholds,
@@ -162,7 +162,6 @@ internal fun HomeScreenContent(
                 TabletHomeDashboard(
                     paddingValues = paddingValues,
                     uiState = uiState,
-                    searchQuery = searchQuery,
                     periodSummary = periodSummary,
                     totals = totals,
                     recentLoads = tabletRecentLoads,
@@ -187,7 +186,9 @@ internal fun HomeScreenContent(
     val listState = rememberLazyListState()
     // Only accept pull-to-refresh at the absolute top. Otherwise residual fling
     // velocity near the top is eaten by PTR and the list "spins" before settling.
-    val pullToRefreshEnabled = !listState.canScrollBackward
+    val pullToRefreshEnabled by remember {
+        derivedStateOf { !listState.canScrollBackward }
+    }
     val loadColumns = adaptiveLoadColumns()
     val gridRows = remember(listItems, loadColumns) {
         buildHomeGridRows(listItems, loadColumns)
@@ -212,7 +213,7 @@ internal fun HomeScreenContent(
             contentPadding = PaddingValues(start = 0.dp, top = 0.dp, end = 0.dp, bottom = 88.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            item(key = "search") {
+            item(key = "search", contentType = "search") {
                 Column {
                     if (tabletChrome) {
                         PrivacyTrustBadge(
@@ -220,19 +221,17 @@ internal fun HomeScreenContent(
                             modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
                         )
                     }
-                    if (uiState.isSearchExpanded || searchQuery.isNotBlank()) {
-                        BentoGlassSearchField(
-                            value = searchQuery,
-                            onValueChange = { viewModel.setSearchQuery(it) },
-                            placeholder = stringResource(R.string.home_search_hint),
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                        )
-                    }
+                    HomeJournalSearchField(
+                        viewModel = viewModel,
+                        placeholder = stringResource(R.string.home_search_hint),
+                        visibleWhenBlank = uiState.isSearchExpanded,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    )
                 }
             }
 
             periodSummary?.let { summary ->
-                item(key = "period_summary_${summary.label}") {
+                item(key = "period_summary_${summary.label}", contentType = "summary") {
                     PeriodSummarySection(
                         header = summary,
                         currentFilter = uiState.filter,
@@ -242,7 +241,7 @@ internal fun HomeScreenContent(
                 }
             }
 
-            item(key = "quick_actions") {
+            item(key = "quick_actions", contentType = "actions") {
                 HomeQuickActionRow(
                     onDiesel = onOpenDiesel,
                     onPaycheck = onOpenPaycheck,
@@ -251,7 +250,7 @@ internal fun HomeScreenContent(
                 )
             }
 
-            item(key = "newcomer_next") {
+            item(key = "newcomer_next", contentType = "header") {
                 HomeUxMotivators(
                     onAddLoad = onAddLoad,
                     onWeeklyGoal = onOpenWeeklyGoal,
@@ -261,7 +260,7 @@ internal fun HomeScreenContent(
             }
 
             if (periodSummary == null) {
-                item(key = "period_filter") {
+                item(key = "period_filter", contentType = "filter") {
                     HomePeriodFilterDropdown(
                         currentFilter = uiState.filter,
                         selectedYear = uiState.selectedYear,
@@ -279,7 +278,7 @@ internal fun HomeScreenContent(
             val hasLoads = (paging != null && paging.itemCount > 0) ||
                 (paging == null && listItems.isNotEmpty())
             if (hasLoads || periodSummary != null) {
-                item(key = "recent_header") {
+                item(key = "recent_header", contentType = "header") {
                     // Title and period field are stacked. The field is fillMaxWidth,
                     // so a side-by-side Row collapses the title to one letter per line.
                     Column(modifier = Modifier.fillMaxWidth()) {
@@ -314,7 +313,7 @@ internal fun HomeScreenContent(
             val pagingRefreshLoading = paging != null &&
                 paging.loadState.refresh is LoadState.Loading
             if (HomeRefreshPolicy.shouldShowEmptyJournal(visibleItemCount, pagingRefreshLoading)) {
-                item(key = "empty_${uiState.filter}") {
+                item(key = "empty_${uiState.filter}", contentType = "empty") {
                     HomeEmptyJournal(
                         title = when (uiState.filter) {
                             LoadFilter.ALL -> stringResource(R.string.home_empty_all_title)
@@ -349,6 +348,7 @@ internal fun HomeScreenContent(
                     // Stable row keys only — flipping null→id mid-fling makes
                     // LazyColumn jump/spin while restoring scroll position.
                     key = { rowIndex -> "page_row_$rowIndex" },
+                    contentType = { "load" },
                 ) { rowIndex ->
                     val start = rowIndex * loadColumns
                     val rowLoads = (0 until loadColumns).mapNotNull { offset ->
@@ -356,9 +356,8 @@ internal fun HomeScreenContent(
                     }
                     if (rowLoads.isEmpty()) return@items
                     HomeLoadCardRow(
-                        loads = rowLoads,
+                        cards = rememberLoadCards(rowLoads, rpmThresholds),
                         columns = loadColumns,
-                        rpmThresholds = rpmThresholds,
                         settleKey = swipeSettleGeneration,
                         onLoadClick = onLoadClick,
                         onDelete = { id -> viewModel.requestDeleteLoad(id) },
@@ -383,6 +382,16 @@ internal fun HomeScreenContent(
                                 "loads_${row.loads.joinToString("_") { it.id }}"
                         }
                     },
+                    contentType = { _, row ->
+                        when (row) {
+                            is HomeGridRow.Loads -> "load"
+                            is HomeGridRow.FullWidth -> when (row.item) {
+                                is HomeListItem.LoadItem -> "load"
+                                is HomeListItem.FilteredSectionHeader -> "summary"
+                                else -> "header"
+                            }
+                        }
+                    },
                 ) { _, row ->
                     when (row) {
                         is HomeGridRow.FullWidth -> when (val item = row.item) {
@@ -390,9 +399,8 @@ internal fun HomeScreenContent(
                             is HomeListItem.MonthHeader -> MonthSectionHeader(section = item.section)
                             is HomeListItem.FilteredSectionHeader -> Unit
                             is HomeListItem.LoadItem -> HomeLoadCardRow(
-                                loads = listOf(item.load),
+                                cards = rememberLoadCards(listOf(item.load), rpmThresholds),
                                 columns = 1,
-                                rpmThresholds = rpmThresholds,
                                 settleKey = swipeSettleGeneration,
                                 onLoadClick = onLoadClick,
                                 onDelete = { id -> viewModel.requestDeleteLoad(id) },
@@ -402,9 +410,8 @@ internal fun HomeScreenContent(
                             )
                         }
                         is HomeGridRow.Loads -> HomeLoadCardRow(
-                            loads = row.loads,
+                            cards = rememberLoadCards(row.loads, rpmThresholds),
                             columns = loadColumns,
-                            rpmThresholds = rpmThresholds,
                             settleKey = swipeSettleGeneration,
                             onLoadClick = onLoadClick,
                             onDelete = { id -> viewModel.requestDeleteLoad(id) },

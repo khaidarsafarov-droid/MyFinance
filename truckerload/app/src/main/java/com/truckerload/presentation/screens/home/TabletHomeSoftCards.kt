@@ -19,6 +19,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -33,9 +34,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.truckerload.R
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.domain.model.Load
-import com.truckerload.domain.model.formatLoadRoute
-import com.truckerload.presentation.components.computeRpm
+import com.truckerload.presentation.components.LoadCardModel
+import com.truckerload.presentation.components.rememberLoadCards
+import com.truckerload.presentation.di.LocalRpmThresholdsStore
 import com.truckerload.presentation.theme.AppTypography
 import com.truckerload.presentation.theme.LocalSemantics
 import com.truckerload.presentation.theme.LocalTruckColors
@@ -171,6 +174,8 @@ internal fun SoftRecentCard(
     onLoadClick: (String) -> Unit,
 ) {
     val tc = LocalTruckColors.current
+    val thresholds by LocalRpmThresholdsStore.current.thresholds.collectAsStateWithLifecycle()
+    val cards = rememberLoadCards(loads, thresholds)
     Column(
         modifier = modifier
             .shadow(
@@ -204,19 +209,17 @@ internal fun SoftRecentCard(
                 )
             }
         } else {
-            loads.forEach { load ->
-                SoftLoadRow(load = load, onClick = { onLoadClick(load.id) })
+            cards.forEach { card ->
+                SoftLoadRow(card = card, onClick = { onLoadClick(card.id) })
             }
         }
     }
 }
 
 @Composable
-internal fun SoftLoadRow(load: Load, onClick: () -> Unit) {
+internal fun SoftLoadRow(card: LoadCardModel, onClick: () -> Unit) {
     val tc = LocalTruckColors.current
     val cs = MaterialTheme.colorScheme
-    val rpm = computeRpm(load.totalRate, load.drivenMiles)
-    val stops = load.stopCount.takeIf { it > 0 } ?: (load.puCount + load.delCount)
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -242,7 +245,7 @@ internal fun SoftLoadRow(load: Load, onClick: () -> Unit) {
             verticalAlignment = Alignment.Top,
         ) {
             Text(
-                text = load.tripId.ifBlank { "—" },
+                text = card.tripId.ifBlank { "—" },
                 style = AppTypography.CardTitle.copy(
                     fontFamily = FontFamily.Monospace,
                     fontSize = 14.sp,
@@ -253,13 +256,13 @@ internal fun SoftLoadRow(load: Load, onClick: () -> Unit) {
                 modifier = Modifier.weight(1f, fill = false),
             )
             Text(
-                text = load.date.take(10),
+                text = card.date.take(10),
                 style = AppTypography.CaptionMuted,
                 maxLines = 1,
             )
         }
         Text(
-            text = formatLoadRoute(load),
+            text = card.route,
             style = AppTypography.CardRoute.copy(color = tc.TextPrimary),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
@@ -267,17 +270,17 @@ internal fun SoftLoadRow(load: Load, onClick: () -> Unit) {
         Text(
             text = stringResource(
                 R.string.load_card_summary_line,
-                stops,
-                MoneyFormat.formatNumber(load.drivenMiles),
-                MoneyFormat.formatCurrency(load.totalRate, decimals = 2),
+                card.stopCount,
+                MoneyFormat.formatNumber(card.drivenMiles),
+                MoneyFormat.formatCurrency(card.totalRate, decimals = 2),
             ),
             style = AppTypography.CaptionMuted,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
-        if (rpm != null) {
+        if (card.rpm != null) {
             Text(
-                text = MoneyFormat.formatRpm(rpm),
+                text = MoneyFormat.formatRpm(card.rpm),
                 style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier

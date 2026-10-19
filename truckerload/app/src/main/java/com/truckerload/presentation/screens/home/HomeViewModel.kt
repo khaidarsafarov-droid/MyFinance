@@ -143,10 +143,10 @@ class HomeViewModel @Inject constructor(
             initialValue = true,
         )
 
-    /** Immediate search text for the field; filtering uses [debouncedSearchQuery]. */
+    /** Immediate field text. Lists read [debouncedSearchQuery] only. */
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
-    private val debouncedSearchQuery: StateFlow<String> = _searchQuery
+    val debouncedSearchQuery: StateFlow<String> = _searchQuery
         .debounce(250)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), "")
 
@@ -467,7 +467,6 @@ class HomeViewModel @Inject constructor(
 
     fun setSearchQuery(query: String) {
         _searchQuery.value = query
-        _uiState.update { it.copy(searchQuery = query) }
     }
     fun setSearchExpanded(expanded: Boolean) { _uiState.update { it.copy(isSearchExpanded = expanded) } }
 

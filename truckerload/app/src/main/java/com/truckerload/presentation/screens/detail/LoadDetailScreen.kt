@@ -255,7 +255,7 @@ fun LoadDetailScreen(
                                     modifier = Modifier.padding(bottom = 8.dp),
                                 )
                                 LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    items(linkedPhotos, key = { it.id }) { photo ->
+                                    items(linkedPhotos, key = { it.id }, contentType = { "photo" }) { photo ->
                                         val thumb = rememberDecodedBitmap(photo.filePath)
                                         if (thumb != null) {
                                             Image(

@@ -37,18 +37,14 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.truckerload.R
-import com.truckerload.data.preferences.RpmThresholds
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.Stop
-import com.truckerload.domain.model.StopType
-import com.truckerload.domain.model.effectiveFinishDate
 import com.truckerload.presentation.icons.AppIcons
 import com.truckerload.presentation.theme.BrandPalette
 import com.truckerload.presentation.theme.LocalBrandPalette
 import com.truckerload.presentation.utils.MoneyFormat
-import kotlin.math.ceil
 
-internal enum class LoadSourceTag { RELAY, MANUAL, BROKER }
+enum class LoadSourceTag { RELAY, MANUAL, BROKER }
 
 /** Best-effort source from fields we already store. No schema change. */
 internal fun Load.journalSource(): LoadSourceTag {
@@ -66,28 +62,25 @@ internal fun Load.journalSource(): LoadSourceTag {
 
 @Composable
 internal fun LoadCardOptionC(
-    load: Load,
-    rpmThresholds: RpmThresholds,
+    card: LoadCardModel,
     onCameraClick: (() -> Unit)?,
     onScanClick: (() -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
     val brand = LocalBrandPalette.current
-    val rpm = computeRpm(load.totalRate, load.drivenMiles)
-    val tier = rpmTier(rpm, rpmThresholds.minProfit, rpmThresholds.targetProfit)
     val rpmText = formatRpm(
-        load.totalRate,
-        load.drivenMiles,
+        card.totalRate,
+        card.drivenMiles,
         stringResource(R.string.rpm_per_mile_format),
     )
-    val trip = load.tripId.let { id ->
+    val trip = card.tripId.let { id ->
         when {
             id.isBlank() -> ""
             id.startsWith("#") -> id
             else -> "#$id"
         }
     }
-    val dateLabel = formatJournalDate(load.effectiveFinishDate() ?: load.date)
+    val dateLabel = formatJournalDate(card.headerDate)
     val header = buildString {
         append(dateLabel)
         if (trip.isNotBlank()) {
@@ -95,13 +88,6 @@ internal fun LoadCardOptionC(
             append(trip)
         }
     }
-    val pu = load.stops.firstOrNull { it.type == StopType.PU }
-    val del = load.stops.lastOrNull { it.type == StopType.DEL }
-    val originCity = load.firstPuCityState.ifBlank { load.pointA }.ifBlank { "—" }
-    val destCity = load.lastDelCityState.ifBlank { load.pointB }.ifBlank { "—" }
-    val stops = load.stopCount.takeIf { it > 0 } ?: (load.puCount + load.delCount)
-    val days = ceil(load.durationDays).toInt().coerceAtLeast(if (load.durationDays > 0.0) 1 else 0)
-
     Column(modifier = modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier
@@ -121,16 +107,16 @@ internal fun LoadCardOptionC(
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(1f),
             )
-            if (tier != null && rpm != null) {
-                RpmValueBadge(rpmText = rpmText, tier = tier)
+            if (card.rpmTier != null && card.rpm != null) {
+                RpmValueBadge(rpmText = rpmText, tier = card.rpmTier)
             }
         }
         Column(
             modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            if (load.isDispute) {
-                DisputeCardChip(load = load)
+            if (card.isDispute) {
+                DisputeCardChip(hadDispute = card.hadDispute)
             }
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -138,7 +124,7 @@ internal fun LoadCardOptionC(
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = MoneyFormat.formatCurrency(load.totalRate, decimals = 0),
+                        text = MoneyFormat.formatCurrency(card.totalRate, decimals = 0),
                         color = brand.textPrimary,
                         style = MaterialTheme.typography.headlineLarge.copy(
                             fontWeight = FontWeight.Bold,
@@ -150,11 +136,11 @@ internal fun LoadCardOptionC(
                         softWrap = false,
                         overflow = TextOverflow.Ellipsis,
                     )
-                    if (load.pace.isPositive()) {
+                    if (card.pace.isPositive()) {
                         Text(
                             text = stringResource(
                                 R.string.load_card_per_day,
-                                MoneyFormat.formatCurrency(load.pace, decimals = 2),
+                                MoneyFormat.formatCurrency(card.pace, decimals = 2),
                             ),
                             color = brand.textSecondary,
                             style = MaterialTheme.typography.bodyMedium.copy(fontFeatureSettings = "tnum"),
@@ -186,17 +172,17 @@ internal fun LoadCardOptionC(
                 }
             }
             RoutePair(
-                originCity = originCity,
-                originStreet = routeStreet(pu, originCity),
-                destCity = destCity,
-                destStreet = routeStreet(del, destCity),
+                originCity = card.originCity,
+                originStreet = card.originStreet,
+                destCity = card.destCity,
+                destStreet = card.destStreet,
                 brand = brand,
             )
             FactsRow(
-                miles = MoneyFormat.formatNumber(load.drivenMiles),
-                stops = stops,
-                days = days,
-                source = load.journalSource(),
+                miles = MoneyFormat.formatNumber(card.drivenMiles),
+                stops = card.stopCount,
+                days = card.durationDays,
+                source = card.source,
                 brand = brand,
             )
         }

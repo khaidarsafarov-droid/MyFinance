@@ -134,7 +134,7 @@ fun MiscExpenseScreen(
             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 96.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            item {
+            item(contentType = "header") {
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(
                         text = stringResource(R.string.misc_expense_hint),
@@ -152,9 +152,9 @@ fun MiscExpenseScreen(
                 }
             }
             when (phase) {
-                ScreenPhase.Loading -> item { ScreenLoading() }
-                ScreenPhase.Error -> item { ScreenLoadError(onRetry = viewModel::retry) }
-                ScreenPhase.Empty -> item {
+                ScreenPhase.Loading -> item(contentType = "status") { ScreenLoading() }
+                ScreenPhase.Error -> item(contentType = "status") { ScreenLoadError(onRetry = viewModel::retry) }
+                ScreenPhase.Empty -> item(contentType = "empty") {
                     EmptyState(
                         icon = AppIcons.Receipt,
                         title = stringResource(R.string.misc_expense_empty),
@@ -167,7 +167,7 @@ fun MiscExpenseScreen(
                         },
                     )
                 }
-                ScreenPhase.Content -> items(ui.entries, key = { it.id }) { expense ->
+                ScreenPhase.Content -> items(ui.entries, key = { it.id }, contentType = { "expense" }) { expense ->
                     MiscExpenseCard(
                         expense = expense,
                         modifier = Modifier.animateItem(),

@@ -164,7 +164,7 @@ fun DieselJournalScreen(
             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 96.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            item {
+            item(contentType = "header") {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     JournalWeekSelectorRow(
                         weekNumber = ui.weekNumber,
@@ -206,7 +206,7 @@ fun DieselJournalScreen(
                 }
             }
             if (importState is DieselImportUiState.Loading) {
-                item {
+                item(contentType = "status") {
                     Text(
                         text = stringResource(R.string.diesel_import_loading),
                         style = MaterialTheme.typography.bodyMedium,
@@ -216,9 +216,9 @@ fun DieselJournalScreen(
                 }
             }
             when (phase) {
-                ScreenPhase.Loading -> item { ScreenLoading() }
-                ScreenPhase.Error -> item { ScreenLoadError(onRetry = viewModel::retry) }
-                ScreenPhase.Empty -> item {
+                ScreenPhase.Loading -> item(contentType = "status") { ScreenLoading() }
+                ScreenPhase.Error -> item(contentType = "status") { ScreenLoadError(onRetry = viewModel::retry) }
+                ScreenPhase.Empty -> item(contentType = "empty") {
                     EmptyState(
                         icon = AppIcons.LocalGasStation,
                         title = stringResource(R.string.diesel_empty_week),
@@ -253,7 +253,7 @@ fun DieselJournalScreen(
                         },
                     )
                 }
-                ScreenPhase.Content -> items(ui.entries, key = { it.id }) { fill ->
+                ScreenPhase.Content -> items(ui.entries, key = { it.id }, contentType = { "fill" }) { fill ->
                     DieselFillCard(
                         diesel = fill,
                         onClick = { onEditDiesel(fill.id) },

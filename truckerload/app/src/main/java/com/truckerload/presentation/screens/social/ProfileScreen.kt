@@ -92,7 +92,7 @@ fun ProfileScreen(
                 .fillMaxSize()
                 .padding(padding),
         ) {
-            item(key = "hero") {
+            item(key = "hero", contentType = "header") {
                 ProfileHero(
                     givenName = uiState.givenName,
                     familyName = uiState.familyName,
@@ -113,7 +113,7 @@ fun ProfileScreen(
                     onAddLoad = onAddLoad,
                 )
             }
-            item(key = "body") {
+            item(key = "body", contentType = "summary") {
                 AnimatedVisibility(
                     visible = cardsShown,
                     enter = screenEnterAnimation(reduceMotion),
@@ -145,7 +145,7 @@ fun ProfileScreen(
                 }
             }
             if (nameOpen) {
-                item(key = "name") {
+                item(key = "name", contentType = "form") {
                     ProfileSectionHeader(stringResource(R.string.profile_editing))
                     ProfileCard {
                         ProfileNameSection(
@@ -158,7 +158,7 @@ fun ProfileScreen(
                     }
                 }
             }
-            item(key = "details") {
+            item(key = "details", contentType = "summary") {
                 ProfileFilledDetails(profile)
                 Spacer(Modifier.height(if (tablet) 24.dp else 16.dp))
             }

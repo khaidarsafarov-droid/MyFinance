@@ -83,7 +83,7 @@ fun HomeScreen(
     val openDrawer = LocalOpenDrawer.current
     val viewModel: HomeViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
+    val debouncedSearchQuery by viewModel.debouncedSearchQuery.collectAsStateWithLifecycle()
     val filteredResult by viewModel.filteredLoadsAndTotals.collectAsStateWithLifecycle()
     val isInitialLoading by viewModel.isInitialLoading.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
@@ -95,7 +95,7 @@ fun HomeScreen(
     val filteredLoads = filteredResult.loads
     val totals = filteredResult.totals
     val useRoomPaging = viewModel.usesRoomPaging(uiState.filter, uiState.selectedYear) ||
-        searchQuery.isNotBlank()
+        debouncedSearchQuery.isNotBlank()
     val pagedLoads = if (useRoomPaging) {
         viewModel.roomPagedLoads.collectAsLazyPagingItems()
     } else {
@@ -245,7 +245,6 @@ fun HomeScreen(
                     HomeScreenContent(
                         paddingValues = paddingValues,
                         uiState = uiState,
-                        searchQuery = searchQuery,
                         listItems = listItems,
                         periodSummary = periodSummary,
                         rpmThresholds = rpmThresholds,

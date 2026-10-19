@@ -8,8 +8,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.truckerload.data.preferences.RpmThresholds
 import com.truckerload.domain.model.Load
+import com.truckerload.presentation.components.LoadCardModel
 import com.truckerload.presentation.components.SwipeableLoadCard
 import com.truckerload.presentation.motion.arriveIfRecent
 import com.truckerload.presentation.utils.adaptiveHorizontalPadding
@@ -66,9 +66,8 @@ fun pagedLoadRowCount(itemCount: Int, columns: Int): Int {
 
 @Composable
 internal fun HomeLoadCardRow(
-    loads: List<Load>,
+    cards: List<LoadCardModel>,
     columns: Int,
-    rpmThresholds: RpmThresholds,
     settleKey: Any,
     onLoadClick: (String) -> Unit,
     onDelete: (String) -> Unit,
@@ -84,30 +83,29 @@ internal fun HomeLoadCardRow(
             .padding(horizontal = horizontal),
         horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        loads.forEach { load ->
+        cards.forEach { card ->
             SwipeableLoadCard(
-                load = load,
-                onClick = { if (load.id.isNotBlank()) onLoadClick(load.id) },
-                onDelete = { if (load.id.isNotBlank()) onDelete(load.id) },
-                rpmThresholds = rpmThresholds,
+                card = card,
+                onClick = { if (card.id.isNotBlank()) onLoadClick(card.id) },
+                onDelete = { if (card.id.isNotBlank()) onDelete(card.id) },
                 modifier = Modifier
                     .weight(1f)
-                    .arriveIfRecent(load.parsedAt),
+                    .arriveIfRecent(card.parsedAt),
                 onCameraClick = {
-                    if (load.id.isNotBlank()) {
-                        onLoadCamera(load.id, load.tripId, load.date)
+                    if (card.id.isNotBlank()) {
+                        onLoadCamera(card.id, card.tripId, card.date)
                     }
                 },
                 onScanClick = {
-                    if (load.id.isNotBlank()) {
-                        onLoadScan(load.id, load.tripId, load.date)
+                    if (card.id.isNotBlank()) {
+                        onLoadScan(card.id, card.tripId, card.date)
                     }
                 },
                 settleKey = settleKey,
                 enableSwipe = enableSwipe,
             )
         }
-        repeat(columns - loads.size) {
+        repeat(columns - cards.size) {
             Spacer(modifier = Modifier.weight(1f))
         }
     }

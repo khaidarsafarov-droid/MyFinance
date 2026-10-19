@@ -193,7 +193,7 @@ fun AttachLoadPickScreen(
                     contentPadding = PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
-                    item {
+                    item(contentType = "header") {
                         Text(
                             text = stringResource(
                                 when {
@@ -210,7 +210,7 @@ fun AttachLoadPickScreen(
                         )
                     }
                     if (browseMode == AttachPickBrowseMode.ALL) {
-                        item {
+                        item(contentType = "search") {
                             OutlinedTextField(
                                 value = searchQuery,
                                 onValueChange = { searchQuery = it },
@@ -227,7 +227,7 @@ fun AttachLoadPickScreen(
                         }
                     }
                     if (displayedLoads.isEmpty()) {
-                        item {
+                        item(contentType = "empty") {
                             Text(
                                 text = stringResource(R.string.attach_pick_search_empty),
                                 style = MaterialTheme.typography.bodyMedium,
@@ -236,12 +236,12 @@ fun AttachLoadPickScreen(
                             )
                         }
                     } else {
-                        items(displayedLoads, key = { it.id }) { load ->
+                        items(displayedLoads, key = { it.id }, contentType = { "load" }) { load ->
                             AttachLoadRow(load = load, onClick = { onLoadSelected(load) })
                         }
                     }
                     if (browseMode == AttachPickBrowseMode.THIS_WEEK) {
-                        item {
+                        item(contentType = "actions") {
                             Spacer(modifier = Modifier.height(4.dp))
                             OutlinedButton(
                                 onClick = { browseMode = AttachPickBrowseMode.ALL },

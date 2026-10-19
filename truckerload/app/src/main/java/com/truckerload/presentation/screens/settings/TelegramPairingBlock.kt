@@ -8,7 +8,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -19,6 +18,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.R
 import com.truckerload.data.preferences.SettingsDataStore
 import com.truckerload.data.preferences.TelegramTokenStore
@@ -36,7 +36,8 @@ fun TelegramPairingBlock(onStatus: (String) -> Unit) {
     val tc = LocalTruckColors.current
     val scope = rememberCoroutineScope()
     val settings = remember { SettingsDataStore(context) }
-    val pairedChatId by remember { settings.observeTelegramChatId() }.collectAsState(initial = null)
+    val pairedChatId by remember { settings.observeTelegramChatId() }
+        .collectAsStateWithLifecycle(initialValue = null)
     var code by remember { mutableStateOf<String?>(null) }
     var botUsername by remember { mutableStateOf<String?>(null) }
 

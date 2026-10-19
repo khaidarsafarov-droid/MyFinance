@@ -140,7 +140,7 @@ fun PaycheckJournalScreen(
             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            item {
+            item(contentType = "header") {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     JournalWeekSelectorRow(
                         weekNumber = ui.weekNumber,
@@ -187,9 +187,9 @@ fun PaycheckJournalScreen(
                 }
             }
             when (phase) {
-                ScreenPhase.Loading -> item { ScreenLoading() }
-                ScreenPhase.Error -> item { ScreenLoadError(onRetry = viewModel::retry) }
-                ScreenPhase.Empty -> item {
+                ScreenPhase.Loading -> item(contentType = "status") { ScreenLoading() }
+                ScreenPhase.Error -> item(contentType = "status") { ScreenLoadError(onRetry = viewModel::retry) }
+                ScreenPhase.Empty -> item(contentType = "empty") {
                     val searching = ui.searchQuery.isNotBlank()
                     EmptyState(
                         icon = AppIcons.Payments,
@@ -211,7 +211,7 @@ fun PaycheckJournalScreen(
                         },
                     )
                 }
-                ScreenPhase.Content -> items(ui.entries, key = { it.id }) { paycheck ->
+                ScreenPhase.Content -> items(ui.entries, key = { it.id }, contentType = { "paycheck" }) { paycheck ->
                     PaycheckCard(
                         paycheck = paycheck,
                         modifier = Modifier.animateItem(),
