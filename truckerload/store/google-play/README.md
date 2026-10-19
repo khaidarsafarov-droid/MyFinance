@@ -11,7 +11,7 @@ python3 render_screenshots.py
 
 Requires Google Chrome (headless) and Pillow. Fonts and the launcher mark are copied from `app/src/main/res`.
 
-These are **marketing frames** around UI that matches the current kit palette (`SoftUiColors`, purple `#5B54E6`), the real 3-tab phone nav (Loads / Goal / Profile), and the tablet rail + journal SoftUI. Demo numbers are illustrative, not a live device dump.
+These are **marketing frames** around UI that matches the Midnight & Gold palette (accent `#3F3D9E`, midnight `#1E2150` → `#0F1230`, gold `#C8A867`), the real 3-tab phone nav (Loads / Goal / Profile), and the tablet rail + journal. Demo numbers are illustrative, not a live device dump.
 
 ## Specs (Play Console)
 
@@ -20,6 +20,7 @@ These are **marketing frames** around UI that matches the current kit palette (`
 | Phone screenshots | 1080×1920 (9:16) | 24-bit PNG, no alpha | 8 (max) |
 | 10" tablet | 1920×1200 (16:9) | 24-bit PNG, no alpha | 1 |
 | Feature graphic | 1024×500 | 24-bit PNG, no alpha | 1 (required) |
+| Feature graphic, 2× | 2048×1000 | 24-bit PNG, no alpha | `feature-graphic-*-2048x1000.png` |
 
 Each file is under 8 MB. Long side / short side stays within the 2:1 Play limit.
 

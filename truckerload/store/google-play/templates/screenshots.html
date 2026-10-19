@@ -27,16 +27,16 @@
     }
 
     :root {
-      --kit: #5B54E6;
-      --kit-deep: #3F3AB8;
-      --lavender: #A29BFE;
-      --soft: #D4D0FF;
-      --sage: #EEEDFF;
-      --sage-hover: #E0DEFF;
-      --border: #E8E7F4;
-      --border-strong: #C4C1E0;
-      --bg: #F8F9FE;
-      --shell: #F0F1FA;
+      --kit: #3F3D9E;
+      --kit-deep: #1E2250;
+      --lavender: #D6BC85;
+      --soft: #DCD3BE;
+      --sage: #ECEAE4;
+      --sage-hover: #E3E0D8;
+      --border: #E4E1DA;
+      --border-strong: #CFCAC0;
+      --bg: #F5F4F1;
+      --shell: #EFEDE8;
       --surface: #FFFFFF;
       --text: #1A1A1A;
       --muted: #5C5C5C;
@@ -47,8 +47,8 @@
       --teal: #48C9B0;
       --orange: #FFB74D;
       --pink: #FF708D;
-      --dark: #16141F;
-      --dark-surface: #1E1B2C;
+      --dark: #0F1230;
+      --dark-surface: #161929;
       --radius-card: 24px;
       --radius-btn: 16px;
       --font: "DM Sans", system-ui, sans-serif;
@@ -70,23 +70,22 @@
       overflow: hidden;
       position: relative;
       background:
-        radial-gradient(ellipse at 20% 0%, #7a74f0 0%, transparent 55%),
-        radial-gradient(ellipse at 100% 80%, #2a2460 0%, transparent 50%),
-        linear-gradient(165deg, #5B54E6 0%, #3F3AB8 42%, #16141F 100%);
+        radial-gradient(ellipse at 20% 0%, #2A2D66 0%, transparent 55%),
+        linear-gradient(165deg, #1E2150 0%, #171A42 45%, #0F1230 100%);
     }
     .canvas.tablet {
       width: 1920px;
       height: 1200px;
       background:
-        radial-gradient(ellipse at 10% 0%, #7a74f0 0%, transparent 50%),
-        linear-gradient(120deg, #5B54E6 0%, #2a2460 55%, #16141F 100%);
+        radial-gradient(ellipse at 10% 0%, #2A2D66 0%, transparent 50%),
+        linear-gradient(120deg, #1E2150 0%, #171A42 55%, #0F1230 100%);
     }
     .canvas.feature {
       width: 1024px;
       height: 500px;
       background:
-        radial-gradient(ellipse at 0% 50%, #8a85f5 0%, transparent 55%),
-        linear-gradient(105deg, #5B54E6 0%, #3F3AB8 45%, #16141F 100%);
+        radial-gradient(ellipse at 0% 50%, #2E3270 0%, transparent 55%),
+        linear-gradient(105deg, #1E2150 0%, #171A42 45%, #0F1230 100%);
     }
 
     .caption {
@@ -129,7 +128,7 @@
       transform: translateX(-50%);
       width: 720px;
       height: 1488px;
-      background: #1E1B2C;
+      background: #161929;
       border-radius: 56px;
       padding: 14px;
       box-shadow:
@@ -144,7 +143,7 @@
       transform: translateX(-50%);
       width: 140px;
       height: 18px;
-      background: #0d0b14;
+      background: #0B0D1C;
       border-radius: 12px;
       z-index: 4;
     }
@@ -201,7 +200,7 @@
       align-items: center;
       justify-content: space-between;
       flex-shrink: 0;
-      border-bottom: 1px solid #D4D2E8;
+      border-bottom: 1px solid #DDD9CF;
     }
     .hdr .left { display: flex; align-items: center; gap: 12px; min-width: 0; }
     .hdr h2 {
@@ -228,12 +227,12 @@
     .canvas.tablet .body { padding: 16px 18px; display: flex; gap: 16px; }
 
     .hero {
-      background: linear-gradient(160deg, #5B54E6 0%, #3F3AB8 100%);
+      background: linear-gradient(160deg, #1E2250 0%, #111430 100%);
       color: #fff;
       border-radius: var(--radius-card);
       padding: 20px;
       margin-bottom: 14px;
-      box-shadow: 0 10px 28px rgba(91, 84, 230, 0.35);
+      box-shadow: 0 10px 28px rgba(15, 18, 48, 0.28);
     }
     .hero .kicker {
       font-size: 12px;
@@ -282,7 +281,7 @@
       justify-content: center;
       gap: 8px;
       margin: 0 0 16px;
-      box-shadow: 0 6px 16px rgba(91, 84, 230, 0.35);
+      box-shadow: 0 6px 16px rgba(63, 61, 158, 0.22);
     }
     .btn.ghost {
       background: var(--surface);
@@ -307,7 +306,7 @@
       border-radius: var(--radius-card);
       padding: 16px;
       margin-bottom: 10px;
-      box-shadow: 0 2px 8px rgba(91, 84, 230, 0.06);
+      box-shadow: 0 2px 8px rgba(15, 18, 48, 0.05);
     }
     .card .row { display: flex; justify-content: space-between; align-items: baseline; }
     .card .id { font-weight: 700; font-size: 16px; }
@@ -363,13 +362,13 @@
     .ring {
       width: 168px; height: 168px;
       border-radius: 50%;
-      background: conic-gradient(#48C9B0 0 72%, rgba(255,255,255,0.18) 72% 100%);
+      background: conic-gradient(#C8A867 0 72%, rgba(255,255,255,0.14) 72% 100%);
       display: grid; place-items: center;
     }
     .ring-inner {
       width: 128px; height: 128px;
       border-radius: 50%;
-      background: #3F3AB8;
+      background: #161929;
       display: grid; place-items: center;
       text-align: center;
       color: #fff;
@@ -566,7 +565,7 @@
       width: 240px;
       height: 240px;
       border-radius: 52px;
-      box-shadow: 0 18px 40px rgba(0,0,0,0.28);
+      box-shadow: 0 18px 40px rgba(0,0,0,0.38), 0 0 0 1px rgba(214,188,133,0.28);
       flex-shrink: 0;
     }
     .feature-inner h1 {
@@ -604,8 +603,8 @@
     .homescreen {
       flex: 1;
       background:
-        radial-gradient(ellipse at 30% 0%, #7a74f0 0%, transparent 55%),
-        linear-gradient(180deg, #3F3AB8 0%, #16141F 100%);
+        radial-gradient(ellipse at 30% 0%, #2A2D66 0%, transparent 55%),
+        linear-gradient(180deg, #1E2150 0%, #0F1230 100%);
       color: #fff;
       padding: 6px 16px 18px;
       display: flex;
@@ -627,7 +626,7 @@
       margin: 8px 0 22px;
     }
     .wid {
-      background: #EEEDFF;
+      background: #F5F4F1;
       color: #12121A;
       border-radius: 22px;
       padding: 14px 16px 12px;
@@ -639,7 +638,7 @@
     .wid-bar {
       height: 10px;
       border-radius: 999px;
-      background: #EEEDFF;
+      background: #E6E3DC;
       overflow: hidden;
       margin: 10px 0 12px;
     }
@@ -647,7 +646,7 @@
       display: block;
       height: 100%;
       width: 72%;
-      background: linear-gradient(90deg, #5B54E6, #48C9B0);
+      background: linear-gradient(90deg, #3F3D9E, #C8A867);
     }
     .wid-rev .k { font-size: 11px; color: var(--muted); }
     .wid-rev .v { font-size: 28px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.1; }
@@ -666,20 +665,20 @@
       font-size: 11px;
       font-weight: 700;
       color: var(--muted);
-      border: 1px solid #D4D2E8;
+      border: 1px solid #DDD9CF;
     }
     .wid-days span.on { background: var(--kit); color: #fff; border-color: var(--kit); }
-    .wid-days span.filled { background: #EEEDFF; color: var(--kit); border-color: transparent; }
+    .wid-days span.filled { background: #ECE9E1; color: var(--kit); border-color: transparent; }
     .wid-actions { display: flex; gap: 8px; margin-top: 12px; }
     .wid-act {
       flex: 1;
-      background: #DCD9FF;
+      background: #ECE9E1;
       border-radius: 16px;
       padding: 10px 4px 8px;
       text-align: center;
       font-size: 11px;
       font-weight: 700;
-      color: #3F3AC0;
+      color: #3F3D9E;
     }
     .wid-act .bub {
       width: 40px; height: 40px;
@@ -736,7 +735,7 @@
     }
     .gps-chip {
       position: absolute; top: 14px; left: 14px; right: 14px;
-      background: rgba(22, 20, 31, 0.78);
+      background: rgba(15, 18, 48, 0.80);
       color: #fff;
       border-radius: 999px;
       padding: 9px 14px;
@@ -781,13 +780,13 @@
       border-radius: 16px;
       padding: 16px 16px 12px;
       min-height: 150px;
-      box-shadow: 0 8px 20px rgba(91,84,230,0.08);
+      box-shadow: 0 8px 20px rgba(15,18,48,0.06);
       margin-bottom: 12px;
     }
     .doc-sheet .line {
       height: 8px;
       border-radius: 4px;
-      background: #EEEDFF;
+      background: #ECEAE4;
       margin-bottom: 8px;
     }
     .doc-sheet .line.w2 { width: 72%; }
@@ -1216,7 +1215,7 @@
             </div>
           </div>
           <div class="hs-dock">
-            <div class="hs-app"><div class="app-dot" style="background:#5B54E6"></div>TruckoRig</div>
+            <div class="hs-app"><div class="app-dot" style="background:#1E2150;box-shadow:inset 0 0 0 2px #C8A867"></div>TruckoRig</div>
             <div class="hs-app"><div class="app-dot"></div></div>
             <div class="hs-app"><div class="app-dot"></div></div>
             <div class="hs-app"><div class="app-dot"></div></div>

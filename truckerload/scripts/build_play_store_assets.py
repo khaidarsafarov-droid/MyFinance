@@ -22,12 +22,14 @@ STORE = REPO / "docs" / "play-store"
 RAW = STORE / "screenshots" / "phone"
 FRAMED = STORE / "screenshots" / "phone-framed"
 ICON_SOURCE = REPO / "app" / "src" / "main" / "res" / "drawable-nodpi" / "ic_launcher_image.png"
-LOGO_SOURCE = REPO / "app" / "src" / "main" / "res" / "drawable-nodpi" / "app_logo.png"
 
-# Фирменные цвета из SoftUiColors (presentation/theme/SoftUiTheme.kt).
-BRAND = (0x5B, 0x54, 0xE6)
-BRAND_DEEP = (0x2E, 0x2A, 0x7A)
-BRAND_INK = (0x16, 0x14, 0x1F)
+# Midnight & Gold. Кадры и значок повторяют лаунчер (option B), не старый индиго.
+BRAND = (0x1E, 0x21, 0x50)
+BRAND_DEEP = (0x0F, 0x12, 0x30)
+BRAND_INK = (0x0F, 0x12, 0x30)
+BRAND_GLOW = (0x2A, 0x2D, 0x66)
+GOLD = (0xC8, 0xA8, 0x67)
+DOT = (0xC8, 0xA8, 0x67)
 
 # Подписи к скриншотам: имя файла -> (заголовок, подзаголовок).
 CAPTIONS: dict[str, tuple[str, str]] = {
@@ -100,7 +102,7 @@ def frame_screenshot(shot: Image.Image, title: str, subtitle: str,
 
     # Мягкое световое пятно за «телефоном», чтобы фон не был плоским.
     glow = Image.new("RGBA", (width, height), (0, 0, 0, 0))
-    ImageDraw.Draw(glow).ellipse([-260, 420, width + 260, 1720], fill=(255, 255, 255, 34))
+    ImageDraw.Draw(glow).ellipse([-260, -200, width + 260, 700], fill=(*BRAND_GLOW, 90))
     canvas.alpha_composite(glow.filter(ImageFilter.GaussianBlur(120)))
 
     draw = ImageDraw.Draw(canvas)
@@ -120,21 +122,50 @@ def frame_screenshot(shot: Image.Image, title: str, subtitle: str,
     return canvas.convert("RGB")
 
 
-def build_icon(out: pathlib.Path) -> None:
-    """512x512 иконка для Play — тот же кадр, что видно на лаунчере.
+def _launcher_plate(size: int) -> Image.Image:
+    """Полноцветный холст 108dp: градиент, блик и золотое кольцо, как ic_launcher_background.xml."""
+    import math
+    im = Image.new("RGBA", (size, size))
+    px = im.load()
+    ang = math.radians(160)
+    ux, uy = math.cos(ang), -math.sin(ang)
+    half = (size - 1) / 2.0
+    span = abs(ux) * half + abs(uy) * half
+    scale = size / 108.0
+    for y in range(size):
+        for x in range(size):
+            proj = (x - half) * ux + (y - half) * uy
+            t = max(0.0, min(1.0, (proj / span + 1) / 2))
+            px[x, y] = tuple(round(BRAND[i] + (BRAND_DEEP[i] - BRAND[i]) * t) for i in range(3)) + (255,)
+    hl = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    hp = hl.load()
+    cx, cy, rad = 54 * scale, 28 * scale, 42 * scale
+    for y in range(size):
+        for x in range(size):
+            d = math.hypot(x - cx, y - cy) / rad
+            if d >= 1:
+                continue
+            alpha = int(255 + (0x66 - 255) * (d / 0.45)) if d <= 0.45 else int(0x66 * (1 - (d - 0.45) / 0.55))
+            hp[x, y] = (*BRAND_GLOW, max(0, min(255, alpha)))
+    im = Image.alpha_composite(im, hl)
+    rr, sw = 29.8 * scale, max(1, round(1.6 * scale))
+    ImageDraw.Draw(im).ellipse(
+        [half + 0.5 - rr, half + 0.5 - rr, half + 0.5 + rr, half + 0.5 + rr],
+        outline=(*GOLD, 255), width=sw)
+    glyph = Image.open(ICON_SOURCE).convert("RGBA")
+    inset = round(21 * scale)
+    inner = size - 2 * inset
+    im.alpha_composite(glyph.resize((inner, inner), Image.LANCZOS), (inset, inset))
+    return im
 
-    Adaptive-icon: холст 108, foreground с инсетом 21dp (safe zone 66), маска
-    показывает центральные 72. Play рисует полный квадрат, поэтому повторяем
-    кадрирование маской: foreground занимает 66/72 итогового размера.
-    """
-    size = 512
-    icon = Image.new("RGB", (size, size), BRAND)
-    foreground = Image.open(ICON_SOURCE).convert("RGBA")
-    inner = round(size * 66 / 72)
-    foreground = foreground.resize((inner, inner), Image.LANCZOS)
-    offset = (size - inner) // 2
-    icon.paste(foreground, (offset, offset), foreground)
-    icon.save(out, "PNG")
+
+def build_icon(out: pathlib.Path) -> None:
+    """512x512 иконка для Play — видимая зона adaptive-icon (центр 72 из 108)."""
+    plate = _launcher_plate(864)
+    x0 = round(864 * 18 / 108)
+    side = round(864 * 72 / 108)
+    icon = plate.crop((x0, x0, x0 + side, x0 + side)).resize((512, 512), Image.LANCZOS)
+    icon.convert("RGB").save(out, "PNG")
 
 
 def build_feature_graphic(out: pathlib.Path, font_dir: pathlib.Path | None) -> None:
@@ -142,11 +173,11 @@ def build_feature_graphic(out: pathlib.Path, font_dir: pathlib.Path | None) -> N
     canvas = vertical_gradient((width, height), BRAND, BRAND_INK).convert("RGBA")
 
     glow = Image.new("RGBA", (width, height), (0, 0, 0, 0))
-    ImageDraw.Draw(glow).ellipse([620, -160, 1180, 500], fill=(255, 255, 255, 52))
+    ImageDraw.Draw(glow).ellipse([-80, -180, 520, 360], fill=(*BRAND_GLOW, 110))
     canvas.alpha_composite(glow.filter(ImageFilter.GaussianBlur(90)))
 
     logo_size = 252
-    logo = Image.open(LOGO_SOURCE).convert("RGBA").resize((logo_size, logo_size), Image.LANCZOS)
+    logo = Image.open(STORE / "icon-512.png").convert("RGBA").resize((logo_size, logo_size), Image.LANCZOS)
     canvas.alpha_composite(rounded(logo, logo_size // 4), (742, (height - logo_size) // 2))
 
     title = load_font(font_dir, "Inter-Bold.ttf", 78)
@@ -158,7 +189,7 @@ def build_feature_graphic(out: pathlib.Path, font_dir: pathlib.Path | None) -> N
     draw.text((66, 196), FEATURE_SUBTITLE, font=subtitle, fill=(255, 255, 255, 226))
     y = 272
     for line in FEATURE_BULLETS:
-        draw.ellipse([70, y + 10, 82, y + 22], fill=(0xA2, 0x9B, 0xFE))
+        draw.ellipse([70, y + 10, 82, y + 22], fill=DOT)
         draw.text((100, y), line, font=bullet, fill=(255, 255, 255, 210))
         y += 46
     canvas.convert("RGB").save(out, "PNG")

@@ -43,7 +43,7 @@ TABLET_SIZE = (1920, 1200)
 FEATURE_SIZE = (1024, 500)
 
 
-def chrome_screenshot(url: str, dest: Path, size: tuple[int, int]) -> None:
+def chrome_screenshot(url: str, dest: Path, size: tuple[int, int], scale: int = 1) -> None:
     if not CHROME:
         raise SystemExit("google-chrome is required to render Play screenshots")
     w, h = size
@@ -58,7 +58,7 @@ def chrome_screenshot(url: str, dest: Path, size: tuple[int, int]) -> None:
             "--disable-dev-shm-usage",
             "--hide-scrollbars",
             "--no-first-run",
-            "--force-device-scale-factor=1",
+            f"--force-device-scale-factor={scale}",
             "--allow-file-access-from-files",
             f"--user-data-dir={profile}",
             f"--window-size={w},{h}",
@@ -67,8 +67,9 @@ def chrome_screenshot(url: str, dest: Path, size: tuple[int, int]) -> None:
         ]
         subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         img = Image.open(raw).convert("RGB")
-        if img.size != size:
-            img = img.resize(size, Image.Resampling.LANCZOS)
+        target = (size[0] * scale, size[1] * scale)
+        if img.size != target:
+            img = img.resize(target, Image.Resampling.LANCZOS)
         dest.parent.mkdir(parents=True, exist_ok=True)
         img.save(dest, "PNG", optimize=True)
 
@@ -85,15 +86,17 @@ def main() -> int:
     for lang, folder in (("ru", "phone-ru"), ("en", "phone-en")):
         for i, slide in enumerate(PHONE_SLIDES, start=1):
             name = f"{i:02d}_{slide}.png"
-            jobs.append((file_url("phone", lang, slide), ROOT / folder / name, PHONE_SIZE))
+            jobs.append((file_url("phone", lang, slide), ROOT / folder / name, PHONE_SIZE, 1))
     for lang, folder in (("ru", "tablet-10-ru"), ("en", "tablet-10-en")):
-        jobs.append((file_url("tablet", lang), ROOT / folder / "01_journal_landscape.png", TABLET_SIZE))
-    jobs.append((file_url("feature", "ru"), ROOT / "feature-graphic-ru.png", FEATURE_SIZE))
-    jobs.append((file_url("feature", "en"), ROOT / "feature-graphic-en.png", FEATURE_SIZE))
+        jobs.append((file_url("tablet", lang), ROOT / folder / "01_journal_landscape.png", TABLET_SIZE, 1))
+    jobs.append((file_url("feature", "ru"), ROOT / "feature-graphic-ru.png", FEATURE_SIZE, 1))
+    jobs.append((file_url("feature", "en"), ROOT / "feature-graphic-en.png", FEATURE_SIZE, 1))
+    jobs.append((file_url("feature", "ru"), ROOT / "feature-graphic-ru-2048x1000.png", FEATURE_SIZE, 2))
+    jobs.append((file_url("feature", "en"), ROOT / "feature-graphic-en-2048x1000.png", FEATURE_SIZE, 2))
 
-    for url, dest, size in jobs:
-        print(f"render {dest.relative_to(ROOT)}  {size[0]}x{size[1]}", flush=True)
-        chrome_screenshot(url, dest, size)
+    for url, dest, size, scale in jobs:
+        print(f"render {dest.relative_to(ROOT)}  {size[0] * scale}x{size[1] * scale}", flush=True)
+        chrome_screenshot(url, dest, size, scale)
 
     print(f"done: {len(jobs)} images")
     return 0
