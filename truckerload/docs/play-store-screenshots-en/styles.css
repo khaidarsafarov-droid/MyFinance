@@ -1,13 +1,13 @@
 :root {
-  --purple: #5B54E6;
-  --purple-dark: #3D38B0;
-  --lavender: #EEEDFF;
-  --bg: #F8F9FE;
-  --shell: #F0F1FA;
+  --purple: #3F3D9E;
+  --purple-dark: #1E2250;
+  --lavender: #ECEAE4;
+  --bg: #F5F4F1;
+  --shell: #EFEDE8;
   --card: #FFFFFF;
   --text: #1A1A1A;
   --muted: #5C5C5C;
-  --border: #E8E7F4;
+  --border: #E4E1DA;
   --green: #1A7A68;
   --yellow: #9A6400;
   --red: #C4395A;
@@ -29,11 +29,11 @@ html, body { background: #111; font-family: "Segoe UI", Roboto, "Helvetica Neue"
   position: absolute;
   left: 48px; right: 48px; top: 36px;
   z-index: 20;
-  background: linear-gradient(135deg, rgba(91,84,230,0.96), rgba(61,56,176,0.94));
+  background: linear-gradient(135deg, rgba(30,33,80,0.97), rgba(15,18,48,0.96));
   border-radius: 22px;
   padding: 28px 32px;
   color: #fff;
-  box-shadow: 0 12px 40px rgba(91,84,230,0.35);
+  box-shadow: 0 12px 40px rgba(15,18,48,0.28);
 }
 .overlay h1 {
   font-size: 42px;
@@ -76,18 +76,18 @@ html, body { background: #111; font-family: "Segoe UI", Roboto, "Helvetica Neue"
 }
 .content { flex: 1; padding: 0 32px 120px; overflow: hidden; }
 .hero {
-  background: linear-gradient(145deg, #5B54E6 0%, #6C63FF 45%, #48C9B0 140%);
+  background: linear-gradient(145deg, #1E2250 0%, #111430 100%);
   border-radius: 28px;
   padding: 28px 24px 24px;
   color: #fff;
   text-align: center;
-  box-shadow: 0 16px 36px rgba(91,84,230,0.28);
+  box-shadow: 0 16px 36px rgba(15,18,48,0.24);
 }
 .hero .week { font-size: 18px; opacity: 0.9; margin-bottom: 8px; }
 .ring {
   width: 220px; height: 220px; margin: 8px auto 12px;
   border-radius: 50%;
-  background: conic-gradient(#fff 0 74%, rgba(255,255,255,0.28) 74% 100%);
+  background: conic-gradient(#C8A867 0 74%, rgba(255,255,255,0.14) 74% 100%);
   display: grid; place-items: center;
   position: relative;
 }
@@ -96,7 +96,7 @@ html, body { background: #111; font-family: "Segoe UI", Roboto, "Helvetica Neue"
   position: absolute;
   inset: 16px;
   border-radius: 50%;
-  background: linear-gradient(160deg, #5B54E6, #4A45C8);
+  background: #161929;
 }
 .ring-inner {
   position: relative; z-index: 1; text-align: center;
@@ -106,9 +106,9 @@ html, body { background: #111; font-family: "Segoe UI", Roboto, "Helvetica Neue"
 .dots { display: flex; justify-content: center; gap: 10px; margin: 8px 0 14px; }
 .dot {
   width: 14px; height: 14px; border-radius: 50%;
-  background: rgba(255,255,255,0.35);
+  background: rgba(255,255,255,0.22);
 }
-.dot.on { background: #fff; }
+.dot.on { background: #C8A867; }
 .rpm-label { font-size: 16px; opacity: 0.9; }
 .rpm-val { font-size: 40px; font-weight: 800; margin-top: 2px; }
 .filter {
@@ -136,7 +136,7 @@ html, body { background: #111; font-family: "Segoe UI", Roboto, "Helvetica Neue"
   border-radius: var(--radius);
   padding: 20px 22px;
   margin-bottom: 14px;
-  box-shadow: 0 4px 16px rgba(91,84,230,0.06);
+  box-shadow: 0 4px 16px rgba(15,18,48,0.05);
 }
 .card .row { display: flex; justify-content: space-between; align-items: flex-start; }
 .trip {
@@ -167,7 +167,7 @@ html, body { background: #111; font-family: "Segoe UI", Roboto, "Helvetica Neue"
   padding: 18px 28px;
   font-size: 20px;
   font-weight: 700;
-  box-shadow: 0 12px 28px rgba(91,84,230,0.4);
+  box-shadow: 0 12px 28px rgba(63,61,158,0.28);
   display: flex; align-items: center; gap: 10px;
   z-index: 15;
 }
@@ -200,7 +200,7 @@ html, body { background: #111; font-family: "Segoe UI", Roboto, "Helvetica Neue"
   padding: 12px 16px;
   font-size: 18px;
   font-weight: 700;
-  box-shadow: 0 10px 30px rgba(91,84,230,0.25);
+  box-shadow: 0 10px 30px rgba(15,18,48,0.16);
 }
 .callout::after {
   content: "";
@@ -243,7 +243,7 @@ html, body { background: #111; font-family: "Segoe UI", Roboto, "Helvetica Neue"
 }
 .paste-box {
   background: var(--shell);
-  border: 1px dashed #C4C1E0;
+  border: 1px dashed #CFCAC0;
   border-radius: 18px;
   padding: 18px;
   font-family: ui-monospace, Menlo, Consolas, monospace;
@@ -280,7 +280,7 @@ html, body { background: #111; font-family: "Segoe UI", Roboto, "Helvetica Neue"
   height: 180px;
   border-radius: 18px;
   background:
-    linear-gradient(to top, rgba(91,84,230,0.18), transparent),
+    linear-gradient(to top, rgba(63,61,158,0.14), transparent),
     repeating-linear-gradient(90deg, transparent 0 70px, rgba(0,0,0,0.04) 70px 71px);
   border: 1px solid var(--border);
   position: relative;
@@ -298,7 +298,7 @@ html, body { background: #111; font-family: "Segoe UI", Roboto, "Helvetica Neue"
   padding: 18px;
   min-height: 280px;
 }
-.finance-col.pay { background: #EEEDFF; }
+.finance-col.pay { background: #ECEAE4; }
 .finance-col.die { background: #E6F5F1; }
 .finance-col h3 { font-size: 18px; margin-bottom: 8px; }
 .finance-col .big { font-size: 32px; font-weight: 800; margin-bottom: 14px; }
@@ -337,7 +337,7 @@ html, body { background: #111; font-family: "Segoe UI", Roboto, "Helvetica Neue"
   white-space: nowrap;
 }
 .cta-shot {
-  background: linear-gradient(160deg, #5B54E6 0%, #3D38B0 55%, #2A2660 100%);
+  background: radial-gradient(ellipse at 50% 0%, #2A2D66 0%, transparent 55%), linear-gradient(160deg, #1E2150 0%, #171A42 55%, #0F1230 100%);
   color: #fff;
   display: flex;
   flex-direction: column;
@@ -349,8 +349,8 @@ html, body { background: #111; font-family: "Segoe UI", Roboto, "Helvetica Neue"
 .logo-mark {
   width: 160px; height: 160px;
   border-radius: 36px;
-  background: rgba(255,255,255,0.16);
-  border: 2px solid rgba(255,255,255,0.28);
+  background: rgba(255,255,255,0.06);
+  border: 2px solid #C8A867;
   display: grid; place-items: center;
   font-size: 72px;
   margin-bottom: 36px;
@@ -360,8 +360,8 @@ html, body { background: #111; font-family: "Segoe UI", Roboto, "Helvetica Neue"
 .cta-shot .tag { font-size: 30px; margin-top: 16px; opacity: 0.95; }
 .cta-btn {
   margin-top: 48px;
-  background: #fff;
-  color: var(--purple);
+  background: #D6BC85;
+  color: #0F1230;
   font-size: 26px;
   font-weight: 800;
   padding: 22px 40px;
@@ -382,7 +382,7 @@ html, body { background: #111; font-family: "Segoe UI", Roboto, "Helvetica Neue"
   position: absolute; top: 4px; right: 4px;
   width: 24px; height: 24px; border-radius: 50%; background: #fff;
 }
-.switch.off { background: #C4C1E0; }
+.switch.off { background: #CFCAC0; }
 .switch.off::after { left: 4px; right: auto; }
 .trust-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; }
 .trust {
