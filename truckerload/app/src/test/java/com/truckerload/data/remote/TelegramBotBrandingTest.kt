@@ -45,6 +45,11 @@ class TelegramBotBrandingTest {
             .putString(TelegramBotBranding.KEY_PHOTO, fp)
             .commit()
         assertTrue(TelegramBotBranding.isNameApplied(prefs, token))
+        // Bare fingerprint is the pre-Midnight stamp; the photo must upload again.
+        assertFalse(TelegramBotBranding.isPhotoApplied(prefs, token))
+        prefs.edit()
+            .putString(TelegramBotBranding.KEY_PHOTO, TelegramBotBranding.photoStamp(fp))
+            .commit()
         assertTrue(TelegramBotBranding.isPhotoApplied(prefs, token))
     }
 

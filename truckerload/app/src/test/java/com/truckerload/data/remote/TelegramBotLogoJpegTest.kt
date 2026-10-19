@@ -30,12 +30,13 @@ class TelegramBotLogoJpegTest {
     }
 
     @Test
-    fun plateFill_isKitPurpleNotLegacyNavy() {
+    fun plateFill_isMidnightNotLegacyNavy() {
         val src = File("src/main/java/com/truckerload/data/remote/TelegramBotLogoJpeg.kt").takeIf { it.isFile }
             ?: File("app/src/main/java/com/truckerload/data/remote/TelegramBotLogoJpeg.kt").takeIf { it.isFile }
             ?: File("../app/src/main/java/com/truckerload/data/remote/TelegramBotLogoJpeg.kt")
         val text = src.readText()
-        assertTrue(text.contains("#5B54E6"))
+        assertTrue(text.contains("#1E2150"))
+        assertTrue(!text.contains("#5B54E6"))
         assertTrue(!text.contains("#143882"))
     }
 }
