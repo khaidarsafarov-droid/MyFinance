@@ -1,11 +1,15 @@
 package com.truckerload.data.repository
 
+import android.content.Context
+import android.os.Looper
 import androidx.room.Room
 import com.truckerload.data.local.AppDatabase
+import com.truckerload.data.local.DeletedLoadLedger
 import com.truckerload.data.local.entities.LoadHistory
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.Stop
 import com.truckerload.domain.model.StopType
+import com.truckerload.domain.money.Money
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -16,9 +20,24 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
+import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
-import com.truckerload.domain.money.Money
 
+/**
+ * In-memory Room database. The suite shares one process, so this class has to
+ * undo leftovers from earlier tests:
+ *
+ * 1. [AppDatabase.getInstance] keeps an application context. [LoadRepository.insertLoad]
+ *    then consults [DeletedLoadLedger]. Another test's delete of `load-1` makes
+ *    insert return without a parent row, and the following stop insert fails the
+ *    foreign key.
+ * 2. That context can be a different Robolectric application than
+ *    [RuntimeEnvironment.getApplication], so the ledger has to be cleared on
+ *    both. Otherwise insert returns without a parent and the stop insert
+ *    fails the foreign key.
+ * 3. With that context set, insert/update also posts a widget refresh onto the
+ *    main looper. Robolectric fails the test if that runnable is still queued.
+ */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [28])
 class LoadUpdatePersistsFieldsTest {
@@ -29,6 +48,12 @@ class LoadUpdatePersistsFieldsTest {
     @Before
     fun setUp() {
         val context = RuntimeEnvironment.getApplication()
+        // A previous test in this process may already have recorded these ids
+        // on the application context [AppDatabase] kept after getInstance.
+        ledgerContexts(context).forEach { ctx ->
+            ledgerIds().forEach { (id, trip) -> DeletedLoadLedger.markDeleted(ctx, id, trip) }
+            releaseDeletedLedger(ctx)
+        }
         db = Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java)
             .allowMainThreadQueries()
             .build()
@@ -37,12 +62,15 @@ class LoadUpdatePersistsFieldsTest {
 
     @After
     fun tearDown() {
-        db.close()
+        drainMainLooper()
+        if (::db.isInitialized) db.close()
+        drainMainLooper()
     }
 
     @Test
     fun updateLoad_persistsTripIdCountsAndRawMessage() = runBlocking {
         repo.insertLoad(sampleLoad("load-1", tripId = "T-OLD"), playFeedback = false)
+        assertNotNull(repo.getLoadById("load-1"))
 
         repo.updateLoad(
             sampleLoad("load-1", tripId = "t-new").copy(
@@ -131,4 +159,25 @@ class LoadUpdatePersistsFieldsTest {
         parsedAt = 1L,
         updatedAt = 1L,
     )
+
+    private fun ledgerIds(): List<Pair<String, String>> = listOf(
+        "load-1" to "T-OLD",
+        "load-1" to "T-NEW",
+        "load-case" to "T-ABC",
+        "load-h" to "T-H",
+        "load-d" to "T-DSP",
+    )
+
+    private fun ledgerContexts(testContext: Context): List<Context> {
+        val stored = AppDatabase.applicationContext()
+        return if (stored == null || stored === testContext) listOf(testContext) else listOf(testContext, stored)
+    }
+
+    private fun releaseDeletedLedger(context: Context) {
+        ledgerIds().forEach { (id, trip) -> DeletedLoadLedger.allowAgain(context, id, trip) }
+    }
+
+    private fun drainMainLooper() {
+        shadowOf(Looper.getMainLooper()).idle()
+    }
 }
