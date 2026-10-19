@@ -1,0 +1,26 @@
+# Startup subset for dex layout (AGP 9). Only classes needed to reach Home.
+# S = startup. R8 uses this to pack these classes into the primary dex.
+
+SLcom/truckerload/TruckerLoadApp;
+SLcom/truckerload/presentation/MainActivity;
+SLcom/truckerload/data/preferences/AuthStore;
+SLcom/truckerload/presentation/navigation/NavGraphKt;
+SLcom/truckerload/presentation/navigation/AuthNavHostKt;
+SLcom/truckerload/presentation/screens/auth/FirstRunNameScreenKt;
+SLcom/truckerload/presentation/theme/ThemeKt;
+SLcom/truckerload/presentation/screens/home/HomeScreenKt;
+SLcom/truckerload/presentation/screens/home/HomeScreenContentKt;
+SLcom/truckerload/presentation/screens/home/HomeViewModel;
+SLcom/truckerload/presentation/components/SoftBottomBarKt;
+SLcom/truckerload/presentation/components/MainTabNavigationKt;
+SLandroidx/profileinstaller/ProfileInstaller;
+SLandroidx/profileinstaller/ProfileInstallerInitializer;
+SLandroidx/compose/runtime/ComposerImpl;
+SLandroidx/compose/runtime/CompositionImpl;
+SLandroidx/compose/runtime/Recomposer;
+SLandroidx/compose/ui/platform/AndroidComposeView;
+SLandroidx/compose/ui/platform/ComposeView;
+SLandroidx/compose/ui/node/LayoutNode;
+SLandroidx/compose/material3/ScaffoldKt;
+SLandroidx/compose/material3/SurfaceKt;
+SLandroidx/compose/material3/TextKt;
