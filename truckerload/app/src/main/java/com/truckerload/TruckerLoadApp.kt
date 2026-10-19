@@ -45,6 +45,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import android.widget.Toast
 
@@ -94,19 +95,15 @@ class TruckerLoadApp : Application(), Configuration.Provider {
         }
         initializeCrashReporting()
         com.truckerload.data.premium.PremiumAccess.get(this).refresh()
-        appScope.launch(Dispatchers.IO) {
-            authStore.awaitReady()
-            WeekStartRuntime.install(
-                settingsDataStore.getLoadWeekStartDayOnce(),
-                settingsDataStore.getDieselWeekStartDayOnce(),
-            )
-            val explicitLanguage = settingsDataStore.getExplicitLanguageOnce()
-            val legacyTag = SettingsDataStore.readLegacyLanguageTag(this@TruckerLoadApp)
-            val themeMode = runCatching { settingsDataStore.getThemeModeOnce() }
-                .getOrDefault(AppThemeMode.SYSTEM)
-            withContext(Dispatchers.Main) {
-                AppLanguageManager.migrateLegacyIfNeeded(explicitLanguage?.tag ?: legacyTag)
-                ThemeManager.apply(themeMode)
+        if (DatabasePassphraseStore.isRobolectric()) {
+            // Tests replace Dispatchers.Main with UnconfinedTestDispatcher. Finishing
+            // this read on that dispatcher crashes the next runTest.
+            applyStartupChromeOnCaller()
+        } else {
+            appScope.launch(Dispatchers.IO) {
+                authStore.awaitReady()
+                val chrome = readStartupChrome()
+                withContext(Dispatchers.Main) { chrome.applyOnCaller() }
             }
         }
         DynamicColors.applyToActivitiesIfAvailable(this)
@@ -138,6 +135,50 @@ class TruckerLoadApp : Application(), Configuration.Provider {
                 WidgetRefresh.flushForHomeScreen(this@TruckerLoadApp)
             }
         })
+    }
+
+    private suspend fun readStartupChrome(): StartupChrome {
+        WeekStartRuntime.install(
+            settingsDataStore.getLoadWeekStartDayOnce(),
+            settingsDataStore.getDieselWeekStartDayOnce(),
+        )
+        val explicitLanguage = settingsDataStore.getExplicitLanguageOnce()
+        val legacyTag = SettingsDataStore.readLegacyLanguageTag(this)
+        val themeMode = runCatching { settingsDataStore.getThemeModeOnce() }
+            .getOrDefault(AppThemeMode.SYSTEM)
+        return StartupChrome(
+            languageTag = explicitLanguage?.tag ?: legacyTag,
+            themeMode = themeMode,
+        )
+    }
+
+    /**
+     * Robolectric publishes the session on this thread. Read the device-global theme and
+     * language on a worker, then apply them here. Week-start settings are account-scoped
+     * and would open [AuthStore] during [onCreate], pinning a profile before the test runs.
+     */
+    private fun applyStartupChromeOnCaller() {
+        val chrome = runBlocking(Dispatchers.Default) {
+            val explicitLanguage = settingsDataStore.getExplicitLanguageOnce()
+            val legacyTag = SettingsDataStore.readLegacyLanguageTag(this@TruckerLoadApp)
+            val themeMode = runCatching { settingsDataStore.getThemeModeOnce() }
+                .getOrDefault(AppThemeMode.SYSTEM)
+            StartupChrome(
+                languageTag = explicitLanguage?.tag ?: legacyTag,
+                themeMode = themeMode,
+            )
+        }
+        chrome.applyOnCaller()
+    }
+
+    private data class StartupChrome(
+        val languageTag: String?,
+        val themeMode: AppThemeMode,
+    ) {
+        fun applyOnCaller() {
+            AppLanguageManager.migrateLegacyIfNeeded(languageTag)
+            ThemeManager.apply(themeMode)
+        }
     }
 
     private fun startTelegramForActiveUser() {
@@ -227,8 +268,10 @@ class TruckerLoadApp : Application(), Configuration.Provider {
                 .onFailure { e -> Log.e(TAG, "Pending load deletes failed", e) }
             BackupService.restoreLatestCompanionBackupIfEmpty(this@TruckerLoadApp)
                 ?.onSuccess { message ->
-                    withContext(Dispatchers.Main) {
-                        Toast.makeText(this@TruckerLoadApp, message, Toast.LENGTH_LONG).show()
+                    if (!DatabasePassphraseStore.isRobolectric()) {
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(this@TruckerLoadApp, message, Toast.LENGTH_LONG).show()
+                        }
                     }
                     WidgetUpdateWorker.refreshNow(this@TruckerLoadApp)
                 }
