@@ -39,6 +39,10 @@ internal object AuthKeystoreOpen {
     }
 
     fun openOnce(context: Context): SharedPreferences {
+        // Do not call isStaleRobolectricApplication here. Callers reject a leaked
+        // Robolectric app before taking a lock. currentApplication() needs
+        // Robolectric's runtime lock, and this method can already hold prefsLock
+        // (or be called by logout while it holds the session lock).
         AuthStore.prefsRef?.let { return it }
         synchronized(AuthStore.prefsLock) {
             AuthStore.prefsRef?.let { return it }

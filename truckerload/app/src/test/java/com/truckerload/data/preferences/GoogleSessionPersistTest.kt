@@ -229,6 +229,9 @@ class GoogleSessionPersistTest {
             provider = AuthProvider.EMAIL,
         )
         AuthStore.resetForTests()
+        // A previous Robolectric app (still alive on a background thread) must
+        // not publish its own local_dev over this process's persisted id.
+        AuthStore(android.app.Application())
         val restored = AuthStore(context)
         assertEquals(legacyId, restored.currentUserIdOrNull())
         assertTrue(restored.isLoggedIn.value)
