@@ -22,6 +22,7 @@ dependencyResolutionManagement {
 
 rootProject.name = "TruckoRig"
 include(":app")
+include(":baselineprofile")
 include(":shared")
 include(":shared:contract")
 include(":shared:domain")

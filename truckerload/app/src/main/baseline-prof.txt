@@ -1,0 +1,90 @@
+# Hand-curated starter. AGP merges this with any profile from
+# :app:generateBaselineProfile. R8 rewrites these names for the minified release.
+# HSP = hot, startup, and post-startup.
+
+# Startup
+HSPLcom/truckerload/TruckerLoadApp;
+HSPLcom/truckerload/presentation/MainActivity;
+HSPLcom/truckerload/data/preferences/AuthStore;
+HSPLcom/truckerload/presentation/navigation/NavGraphKt;
+HSPLcom/truckerload/presentation/navigation/AuthNavHostKt;
+HSPLcom/truckerload/presentation/screens/auth/FirstRunNameScreenKt;
+HSPLcom/truckerload/presentation/theme/ThemeKt;
+HSPLandroidx/profileinstaller/ProfileInstaller;
+HSPLandroidx/profileinstaller/ProfileInstallerInitializer;
+
+# Compose runtime
+HSPLandroidx/compose/runtime/ComposerImpl;
+HSPLandroidx/compose/runtime/ComposerKt;
+HSPLandroidx/compose/runtime/CompositionImpl;
+HSPLandroidx/compose/runtime/Recomposer;
+HSPLandroidx/compose/runtime/SnapshotStateKt;
+HSPLandroidx/compose/runtime/internal/ComposableLambdaKt;
+HSPLandroidx/compose/runtime/snapshots/SnapshotStateObserver;
+
+# Compose UI
+HSPLandroidx/compose/ui/platform/AndroidComposeView;
+HSPLandroidx/compose/ui/platform/ComposeView;
+HSPLandroidx/compose/ui/platform/AndroidCompositionLocals_androidKt;
+HSPLandroidx/compose/ui/node/LayoutNode;
+HSPLandroidx/compose/ui/layout/LayoutKt;
+
+# Compose foundation
+HSPLandroidx/compose/foundation/ClickableKt;
+HSPLandroidx/compose/foundation/gestures/ScrollableKt;
+HSPLandroidx/compose/foundation/lazy/LazyDslKt;
+HSPLandroidx/compose/foundation/lazy/LazyListKt;
+HSPLandroidx/compose/foundation/lazy/LazyListState;
+
+# Compose Material 3
+HSPLandroidx/compose/material3/TextKt;
+HSPLandroidx/compose/material3/IconKt;
+HSPLandroidx/compose/material3/ButtonKt;
+HSPLandroidx/compose/material3/SurfaceKt;
+HSPLandroidx/compose/material3/ScaffoldKt;
+HSPLandroidx/compose/material3/CardKt;
+HSPLandroidx/compose/material3/NavigationBarKt;
+
+# Home journal and load cards
+HSPLcom/truckerload/presentation/screens/home/HomeScreenKt;
+HSPLcom/truckerload/presentation/screens/home/HomeScreenContentKt;
+HSPLcom/truckerload/presentation/screens/home/HomeViewModel;
+HSPLcom/truckerload/presentation/screens/home/HomeLoadGridKt;
+HSPLcom/truckerload/presentation/screens/home/HomeListBuilderKt;
+HSPLcom/truckerload/presentation/screens/home/HomeWeekHeroKt;
+HSPLcom/truckerload/presentation/screens/home/HomeEmptyJournalKt;
+HSPLcom/truckerload/presentation/components/LoadCardKt;
+HSPLcom/truckerload/presentation/components/LoadCardModel;
+HSPLcom/truckerload/presentation/components/SwipeableLoadCardKt;
+HSPLcom/truckerload/presentation/components/LoadRouteBlockKt;
+HSPLcom/truckerload/presentation/components/SoftBottomBarKt;
+HSPLcom/truckerload/presentation/components/MainTabNavigationKt;
+
+# Goal, Profile, Settings, Add load, load detail, navigation
+HSPLcom/truckerload/presentation/screens/goal/WeeklyGoalScreenKt;
+HSPLcom/truckerload/presentation/screens/goal/GoalViewModel;
+HSPLcom/truckerload/presentation/screens/goal/WeeklyGoalHeroCardKt;
+HSPLcom/truckerload/presentation/screens/goal/WeeklyGoalDayPlanCardKt;
+HSPLcom/truckerload/presentation/screens/goal/WeeklyGoalPaceSectionKt;
+HSPLcom/truckerload/presentation/screens/social/ProfileScreenKt;
+HSPLcom/truckerload/presentation/screens/social/ProfileViewModel;
+HSPLcom/truckerload/presentation/screens/social/ProfileHeroCardKt;
+HSPLcom/truckerload/presentation/screens/social/ProfileAccountCardKt;
+HSPLcom/truckerload/presentation/screens/social/ProfileChromeKt;
+HSPLcom/truckerload/presentation/screens/settings/SettingsScreenKt;
+HSPLcom/truckerload/presentation/screens/settings/SettingsViewModel;
+HSPLcom/truckerload/presentation/screens/settings/SettingsBodyKt;
+HSPLcom/truckerload/presentation/screens/settings/SettingsChromeKt;
+HSPLcom/truckerload/presentation/screens/settings/SettingsPremiumHeroKt;
+HSPLcom/truckerload/presentation/screens/add/AddLoadScreenKt;
+HSPLcom/truckerload/presentation/screens/add/AddLoadViewModel;
+HSPLcom/truckerload/presentation/screens/add/AddLoadManualFormKt;
+HSPLcom/truckerload/presentation/screens/detail/LoadDetailScreenKt;
+HSPLcom/truckerload/presentation/screens/detail/LoadDetailViewModel;
+HSPLcom/truckerload/presentation/screens/detail/LoadDetailSummaryKt;
+HSPLcom/truckerload/presentation/navigation/Routes;
+HSPLcom/truckerload/presentation/navigation/LoadsNavGraphKt;
+HSPLcom/truckerload/presentation/navigation/SocialNavGraphKt;
+HSPLcom/truckerload/presentation/navigation/ToolsNavGraphKt;
+HSPLcom/truckerload/presentation/navigation/JournalListDetailHostKt;
+HSPLcom/truckerload/presentation/components/AppDrawerKt;

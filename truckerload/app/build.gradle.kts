@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
+    alias(libs.plugins.androidx.baselineprofile)
 }
 
 val firebaseConfigured = file("google-services.json").isFile
@@ -172,6 +173,15 @@ android {
     }
 }
 
+// Profiles are generated only when someone runs :app:generateBaselineProfile
+// on a device. Release builds keep the checked-in src/main profiles and do
+// not wait on a device. Signing, applicationId, version, and R8 minify stay
+// on the release build type above.
+baselineProfile {
+    automaticGenerationDuringBuild = false
+    dexLayoutOptimization = true
+}
+
 ksp {
     arg("room.schemaLocation", "$projectDir/schemas")
 }
@@ -179,6 +189,8 @@ ksp {
 dependencies {
     implementation(project(":shared:contract"))
     implementation(project(":shared:domain"))
+    implementation(libs.androidx.profileinstaller)
+    baselineProfile(project(":baselineprofile"))
     coreLibraryDesugaring(libs.desugar.jdk.libs)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
