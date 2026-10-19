@@ -89,6 +89,9 @@ def main() -> int:
             jobs.append((file_url("phone", lang, slide), ROOT / folder / name, PHONE_SIZE, 1))
     for lang, folder in (("ru", "tablet-10-ru"), ("en", "tablet-10-en")):
         jobs.append((file_url("tablet", lang), ROOT / folder / "01_journal_landscape.png", TABLET_SIZE, 1))
+    tablet7 = (1200, 1920)
+    for lang, folder in (("ru", "tablet-7-ru"), ("en", "tablet-7-en")):
+        jobs.append((file_url("tablet7", lang), ROOT / folder / "01_journal.png", tablet7, 1))
     jobs.append((file_url("feature", "ru"), ROOT / "feature-graphic-ru.png", FEATURE_SIZE, 1))
     jobs.append((file_url("feature", "en"), ROOT / "feature-graphic-en.png", FEATURE_SIZE, 1))
     jobs.append((file_url("feature", "ru"), ROOT / "feature-graphic-ru-2048x1000.png", FEATURE_SIZE, 2))

@@ -25,6 +25,15 @@ html, body { background: #111; font-family: "Segoe UI", Roboto, "Helvetica Neue"
   background: var(--bg);
   color: var(--text);
 }
+.live-ui {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1080px;
+  height: 1920px;
+  object-fit: cover;
+  object-position: top center;
+}
 .overlay {
   position: absolute;
   left: 48px; right: 48px; top: 36px;
