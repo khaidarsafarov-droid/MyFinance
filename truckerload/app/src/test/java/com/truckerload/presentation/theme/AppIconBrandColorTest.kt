@@ -6,21 +6,25 @@ import javax.imageio.ImageIO
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-/** Launcher + in-app mark must use kit purple, not legacy navy/forest green. */
+/** Launcher mark is Midnight & Gold. In-app logo plate stays on the theme primary. */
 class AppIconBrandColorTest {
 
     @Test
-    fun launcherBackground_isKitPrimary() {
+    fun launcherBackground_isMidnightGold() {
         val xml = readRes("drawable/ic_launcher_background.xml")
-        assertTrue(xml.contains("#FF5B54E6"))
+        assertTrue(xml.contains("#FF1E2150"))
+        assertTrue(xml.contains("#FF0F1230"))
+        assertTrue(xml.contains("#FFC8A867"))
+        assertTrue(!xml.contains("#FF5B54E6"))
         assertTrue(!xml.contains("#FF143882"))
         assertTrue(!xml.contains("#FF2F4F3E"))
     }
 
     @Test
-    fun launcherForegroundFallback_isKitPrimary() {
+    fun launcherForegroundFallback_isMidnight() {
         val xml = readRes("drawable/ic_launcher_foreground.xml")
-        assertTrue(xml.contains("#FF5B54E6"))
+        assertTrue(xml.contains("#FF1E2150"))
+        assertTrue(!xml.contains("#FF5B54E6"))
         assertTrue(!xml.contains("#FF143882"))
         assertTrue(!xml.contains("#FF2F4F3E"))
     }
@@ -44,57 +48,41 @@ class AppIconBrandColorTest {
     }
 
     @Test
-    fun legacyLauncherMipmap_hasSafeZoneMargins() {
+    fun legacyLauncherMipmap_isMidnightGoldNotKitPurple() {
         val image = readResImage("mipmap-xxxhdpi/ic_launcher.png")
-        val margin = transparentMarginPx(image)
-        // ~17% of 192px ≈ 33px per side for 66/108 safe zone.
-        assertTrue("Expected transparent launcher margins, got $margin", margin >= 28)
-    }
-
-    private fun transparentMarginPx(image: BufferedImage): Int {
-        val w = image.width
-        val h = image.height
-        fun rowTransparent(y: Int): Boolean {
-            for (x in 0 until w) {
-                if (image.getRGB(x, y) ushr 24 and 0xFF >= 16) return false
-            }
-            return true
-        }
-        fun colTransparent(x: Int): Boolean {
-            for (y in 0 until h) {
-                if (image.getRGB(x, y) ushr 24 and 0xFF >= 16) return false
-            }
-            return true
-        }
-        var top = 0
-        while (top < h && rowTransparent(top)) top++
-        var bottom = 0
-        var y = h - 1
-        while (y >= 0 && rowTransparent(y)) {
-            bottom++
-            y--
-        }
-        var left = 0
-        while (left < w && colTransparent(left)) left++
-        var right = 0
-        var x = w - 1
-        while (x >= 0 && colTransparent(x)) {
-            right++
-            x--
-        }
-        return minOf(top, bottom, left, right)
+        val round = readResImage("mipmap-xxxhdpi/ic_launcher_round.png")
+        assertTrue(image.width == 192 && round.width == 192)
+        assertTrue(!containsRgb(image, 0x5B, 0x54, 0xE6))
+        assertTrue(!containsRgb(round, 0x5B, 0x54, 0xE6))
+        assertTrue(containsRgb(image, 0x1E, 0x21, 0x50, tolerance = 18))
+        assertTrue(containsRgb(image, 0xC8, 0xA8, 0x67, tolerance = 22))
+        assertTrue(containsRgb(round, 0xC8, 0xA8, 0x67, tolerance = 22))
+        // Circle mask keeps the corners clear; the ring sits inside the disc.
+        val corner = image.getRGB(0, 0)
+        assertTrue((corner ushr 24 and 0xFF) < 16)
+        val roundCorner = round.getRGB(0, 0)
+        assertTrue((roundCorner ushr 24 and 0xFF) < 16)
     }
 
     @Test
-    fun launcherForegroundPng_usesKitPalette_notLegacyForestGreen() {
+    fun launcherForegroundPng_isTransparentGlyph_notKitPurple() {
         val image = readResImage("drawable-nodpi/ic_launcher_image.png")
         assertTrue(image.width > 32 && image.height > 32)
-        // Legacy Mindwell forest green plate (#2F4F3E / #30513F) must not remain.
         assertTrue(!containsRgb(image, 0x2F, 0x4F, 0x3E))
         assertTrue(!containsRgb(image, 0x30, 0x51, 0x3F))
         assertTrue(!containsRgb(image, 0x14, 0x38, 0x82))
-        // Kit purple plate should be present.
-        assertTrue(containsRgb(image, 0x5B, 0x54, 0xE6) || containsRgb(image, 0x20, 0x1D, 0x51))
+        assertTrue(!containsRgb(image, 0x5B, 0x54, 0xE6))
+        assertTrue(containsRgb(image, 0x38, 0xA0, 0x88, tolerance = 24))
+        assertTrue(hasTransparentPixel(image))
+    }
+
+    private fun hasTransparentPixel(image: BufferedImage): Boolean {
+        for (y in 0 until image.height step 4) {
+            for (x in 0 until image.width step 4) {
+                if (image.getRGB(x, y) ushr 24 and 0xFF < 16) return true
+            }
+        }
+        return false
     }
 
     private fun readResImage(relativePath: String): BufferedImage {

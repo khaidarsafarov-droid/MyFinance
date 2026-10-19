@@ -28,8 +28,8 @@ class WidgetTodayPointerTest {
     }
 
     @Test
-    fun pointer_usesAppPurple_notDarkBrandText() {
-        assertEquals(0xFF5B54E6.toInt(), WidgetCabinPalette.RING)
+    fun pointer_usesCabinRing_notDarkBrandText() {
+        assertEquals(0xFF3F3D9E.toInt(), WidgetCabinPalette.RING)
         assertEquals(BrandPalettes.Dark.primary.toArgb(), WidgetCabinColors.ForestDark.ring)
         assertEquals(BrandPalettes.Light.primary.toArgb(), WidgetCabinColors.ForestLight.ring)
     }

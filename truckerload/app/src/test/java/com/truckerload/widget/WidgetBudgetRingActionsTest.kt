@@ -105,9 +105,10 @@ class WidgetBudgetRingActionsTest {
         assertTrue(!xml.contains("#FF143882"))
         assertTrue(!xml.contains("#FF00E676"))
         val light = readRes("values/widget_colors.xml")
-        assertTrue(light.contains("#FFFFFFFF"))
-        assertTrue(light.contains("#FF5B54E6"))
-        assertTrue(light.contains("#FF12121A"))
+        assertTrue(light.contains("#FFFDFCFA"))
+        assertTrue(light.contains("#FF3F3D9E"))
+        assertTrue(light.contains("#FF16182B"))
+        assertTrue(!light.contains("#FF5B54E6"))
     }
 
     private fun readSource(relativePath: String): String {

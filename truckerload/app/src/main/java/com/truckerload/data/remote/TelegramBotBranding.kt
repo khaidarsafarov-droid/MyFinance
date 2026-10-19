@@ -18,6 +18,14 @@ object TelegramBotBranding {
     internal const val KEY_NAME = "bot_display_name_fp"
     internal const val KEY_PHOTO = "bot_profile_photo_fp"
 
+    /**
+     * Artwork revision mixed into the photo stamp only.
+     * Existing installs stored the bare token fingerprint and will upload once more.
+     */
+    internal const val PHOTO_REVISION = "midnight-gold"
+
+    fun photoStamp(tokenFp: String): String = "$tokenFp:$PHOTO_REVISION"
+
     /** Same file as the Telegram sync worker / FGS setup flags. */
     private const val PREFS_NAME = "telegram_sync"
     private const val TAG = "TelegramBotBrand"
@@ -28,7 +36,7 @@ object TelegramBotBranding {
         stored(prefs, KEY_NAME) == nameStamp(TelegramBotTokenFingerprint.of(token))
 
     fun isPhotoApplied(prefs: SharedPreferences, token: String): Boolean =
-        stored(prefs, KEY_PHOTO) == TelegramBotTokenFingerprint.of(token)
+        stored(prefs, KEY_PHOTO) == photoStamp(TelegramBotTokenFingerprint.of(token))
 
     suspend fun apply(context: Context, token: String, forceName: Boolean = false) {
         val trimmed = token.trim()
@@ -48,7 +56,7 @@ object TelegramBotBranding {
         if (needPhoto) {
             val jpeg = TelegramBotLogoJpeg.encode(app) ?: return
             api.setMyProfilePhoto(jpeg)
-                .onSuccess { prefs.edit { putString(KEY_PHOTO, fp) } }
+                .onSuccess { prefs.edit { putString(KEY_PHOTO, photoStamp(fp)) } }
                 .onFailure { e ->
                     Log.w(TAG, "setMyProfilePhoto: ${LogRedactor.redact(e.message)}")
                 }

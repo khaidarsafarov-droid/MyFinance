@@ -14,7 +14,7 @@ object TelegramBotLogoJpeg {
 
     const val SIZE_PX = 640
     const val JPEG_QUALITY = 90
-    private val plate = Color.parseColor("#5B54E6")
+    private val plate = Color.parseColor("#1E2150")
 
     fun encode(context: Context): ByteArray? {
         val src = loadLogoBitmap(context) ?: return null
