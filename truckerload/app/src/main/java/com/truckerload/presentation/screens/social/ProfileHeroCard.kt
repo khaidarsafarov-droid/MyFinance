@@ -55,8 +55,8 @@ internal fun ProfileHero(
     modifier: Modifier = Modifier,
 ) {
     val brand = LocalBrandPalette.current
-    val onHero = Color.White
-    val muted = Color.White.copy(alpha = 0.86f)
+    val onHero = brand.heroText
+    val muted = brand.heroTextMuted
     val display = AnalyticsOwnerName.display(givenName, familyName)
     val initials = ProfileHeroState.initials(givenName, familyName)
     val empty = ProfileHeroState.isEmpty(totalLoads)
@@ -198,10 +198,10 @@ internal fun ProfileHero(
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Icon(AppIcons.Add, contentDescription = null, tint = brand.primary, modifier = Modifier.size(20.dp))
+                Icon(AppIcons.Add, contentDescription = null, tint = brand.labelOnWhite(), modifier = Modifier.size(20.dp))
                 Text(
                     text = stringResource(R.string.home_add_load_button),
-                    color = brand.primary,
+                    color = brand.labelOnWhite(),
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(start = 8.dp),

@@ -179,7 +179,7 @@ fun AddLoadScreen(
                             text = weekChip,
                             modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
                             style = MaterialTheme.typography.labelMedium.copy(fontFeatureSettings = "tnum"),
-                            color = com.truckerload.presentation.theme.LocalBrandPalette.current.primary,
+                            color = com.truckerload.presentation.theme.LocalBrandPalette.current.labelOnWhite(),
                         )
                     }
                 },

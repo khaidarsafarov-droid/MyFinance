@@ -33,14 +33,14 @@ data class SemanticPalette(
 object SemanticColors {
     /** Light cabin / daylight. */
     val Light = SemanticPalette(
-        success = Color(0xFF0B7A3E),
-        warning = Color(0xFF8F4C00),
-        danger = Color(0xFFC4314B),
+        success = Color(0xFF3D6A55),
+        warning = Color(0xFF86542A),
+        danger = Color(0xFF953C46),
         neutral = SoftUiColors.TextSecondaryLight,
-        successContainer = Color(0xFFDDF5E8),
-        warningContainer = Color(0xFFFFEFD6),
-        dangerContainer = Color(0xFFFDE7EB),
-        neutralContainer = Color(0xFFEEEDFF),
+        successContainer = Color(0xFFE5EDE8),
+        warningContainer = Color(0xFFF3EADD),
+        dangerContainer = Color(0xFFF4E4E4),
+        neutralContainer = Color(0xFFEAE9F4),
         hero = SoftUiColors.TextPrimaryLight,
         mediaScrim = Color(0xFF000000),
         onMedia = SoftUiColors.TextPrimaryDark,
@@ -48,14 +48,14 @@ object SemanticColors {
 
     /** Dedicated dark tokens — not an invert of Light. */
     val Dark = SemanticPalette(
-        success = Color(0xFF5FD69B),
-        warning = Color(0xFFF5C26B),
-        danger = Color(0xFFFF8A9B),
+        success = Color(0xFF8FBFA6),
+        warning = Color(0xFFDDAE84),
+        danger = Color(0xFFE39AA2),
         neutral = SoftUiColors.TextSecondaryDark,
-        successContainer = Color(0xFF163A2A),
-        warningContainer = Color(0xFF3D2F12),
-        dangerContainer = Color(0xFF42182A),
-        neutralContainer = Color(0xFF2E2A66),
+        successContainer = Color(0xFF1B2C25),
+        warningContainer = Color(0xFF33261C),
+        dangerContainer = Color(0xFF382127),
+        neutralContainer = Color(0xFF262A4F),
         hero = SoftUiColors.TextPrimaryDark,
         mediaScrim = Color(0xFF000000),
         onMedia = SoftUiColors.TextPrimaryDark,

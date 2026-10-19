@@ -65,7 +65,7 @@ internal fun forestDarkColorScheme(): ColorScheme {
         tertiaryContainer = semantic.successContainer,
         onTertiaryContainer = SoftUiColors.ForestSoft,
         error = semantic.danger,
-        onError = Color(0xFF3D1520),
+        onError = SoftUiColors.OnDangerDark,
         background = background,
         onBackground = SoftUiColors.TextPrimaryDark,
         surface = surface,

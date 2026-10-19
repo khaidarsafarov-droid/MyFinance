@@ -52,7 +52,7 @@ fun ProfileAvatar(
         onHero -> Color.White.copy(alpha = 0.16f)
         else -> brand.container
     }
-    val mark = brand.primary
+    val mark = if (hasInitials) brand.labelOnWhite() else brand.primary
 
     Box(
         modifier = modifier

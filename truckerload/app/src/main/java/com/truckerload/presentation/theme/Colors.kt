@@ -11,7 +11,7 @@ object DarkGlassTokens {
     val Surface = SoftUiColors.SurfaceLight
     val SurfaceMetric = SoftUiColors.SurfaceLight
     val SurfaceList = SoftUiColors.SurfaceLight
-    val Border = Color(0xFFE5E7EB)
+    val Border = SoftUiColors.CardBorder
     val AccentBlue = SoftUiColors.PurpleEnd
     val AccentPurple = SoftUiColors.PurpleStart
     val TextPrimary = SoftUiColors.TextPrimaryLight
@@ -44,7 +44,7 @@ object NeoGlassPalette {
     val Warning = AppColors.RpmYellow
     val Error = AppColors.RpmRed
     val ShadowSoft = SoftUiColors.ShadowTint
-    val GlassStroke = Color(0xFFE5E7EB)
+    val GlassStroke = SoftUiColors.CardBorder
     val Surface = SoftUiColors.SurfaceLight
 }
 

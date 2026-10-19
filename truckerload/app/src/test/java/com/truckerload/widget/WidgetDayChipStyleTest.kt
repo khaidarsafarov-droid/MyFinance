@@ -12,8 +12,8 @@ class WidgetDayChipStyleTest {
             WidgetDayChipStyle.Kind.TODAY,
             WidgetDayChipStyle.kind(hasLoad = true, isToday = true, selected = true),
         )
-        assertEquals(0xFF5B54E6.toInt(), WidgetDayChipStyle.fillColor(WidgetDayChipStyle.Kind.TODAY))
-        assertEquals(WidgetCabinColors.Forest.text, WidgetDayChipStyle.letterColor(WidgetDayChipStyle.Kind.TODAY))
+        assertEquals(0xFF3F3D9E.toInt(), WidgetDayChipStyle.fillColor(WidgetDayChipStyle.Kind.TODAY))
+        assertEquals(WidgetCabinColors.Forest.onFilled, WidgetDayChipStyle.letterColor(WidgetDayChipStyle.Kind.TODAY))
     }
 
     @Test
@@ -26,7 +26,7 @@ class WidgetDayChipStyleTest {
             WidgetDayChipStyle.Kind.FILLED,
             WidgetDayChipStyle.kind(hasLoad = false, isToday = false, selected = true),
         )
-        assertEquals(0xFFEEEDFF.toInt(), WidgetDayChipStyle.fillColor(WidgetDayChipStyle.Kind.FILLED))
+        assertEquals(0xFFEAE9F4.toInt(), WidgetDayChipStyle.fillColor(WidgetDayChipStyle.Kind.FILLED))
     }
 
     @Test

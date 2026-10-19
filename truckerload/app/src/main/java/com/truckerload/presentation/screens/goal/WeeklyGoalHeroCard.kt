@@ -70,8 +70,8 @@ internal fun GoalHeroCard(
     val brand = LocalBrandPalette.current
     val openDrawer = LocalOpenDrawer.current
     val showMenu = !useNavigationRail()
-    val onHero = Color.White
-    val onHeroMuted = Color.White.copy(alpha = 0.86f)
+    val onHero = brand.heroText
+    val onHeroMuted = brand.heroTextMuted
     val amount = MoneyFormat.formatCurrency(progress.currentGross)
     val target = MoneyFormat.formatCurrency(progress.targetAmount)
     val remaining = MoneyFormat.formatCurrency(progress.remainingAmount)
@@ -331,12 +331,12 @@ private fun HeroTile(
     ) {
         Text(
             text = label,
-            color = Color.White.copy(alpha = 0.86f),
+            color = LocalBrandPalette.current.heroTextMuted,
             style = MaterialTheme.typography.bodyMedium,
         )
         Text(
             text = value,
-            color = Color.White,
+            color = LocalBrandPalette.current.heroText,
             fontWeight = FontWeight.Bold,
             style = MaterialTheme.typography.titleLarge.copy(fontFeatureSettings = "tnum"),
             modifier = Modifier.padding(top = 4.dp),

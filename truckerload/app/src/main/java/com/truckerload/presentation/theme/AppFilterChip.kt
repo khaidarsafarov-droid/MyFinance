@@ -42,8 +42,8 @@ import androidx.compose.ui.unit.dp
 import com.truckerload.presentation.icons.AppIcons
 
 /**
- * Option 3 pill. Selected fill is brand primary (#5B54E6 / #8F89FF) with
- * onPrimary (#FFFFFF / #14123A) — both clear WCAG AA. The leading icon
+ * Option 3 pill. Selected fill is brand primary (#3F3D9E / #D6BC85) with
+ * onPrimary (#FFFFFF / #1D1708) — both clear WCAG AA. The leading icon
  * crossfades to a check. Unselected is the card surface with a 1dp border.
  * Visual height is 40dp; the outer box is 48dp so the touch target holds.
  */

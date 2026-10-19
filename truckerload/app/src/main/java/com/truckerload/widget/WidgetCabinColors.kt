@@ -7,6 +7,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import com.truckerload.presentation.theme.BrandPalette
 import com.truckerload.presentation.theme.BrandPalettes
+import com.truckerload.presentation.theme.SemanticColors
 import com.truckerload.presentation.theme.forestDarkColorScheme
 import com.truckerload.presentation.theme.forestLightColorScheme
 import com.truckerload.data.preferences.AppThemeMode
@@ -39,43 +40,46 @@ data class WidgetCabinColors(
     val dynamic: Boolean = false,
     val headerStart: Int = progressStart,
     val headerEnd: Int = progressEnd,
-    val rpmFg: Int = 0xFF0B7A3E.toInt(),
-    val rpmBg: Int = 0xFFDDF5E8.toInt(),
+    val rpmFg: Int = 0xFF3D6A55.toInt(),
+    val rpmBg: Int = 0xFFE5EDE8.toInt(),
     val onHeader: Int = Color.White.toArgb(),
 ) {
     companion object {
-        fun fromBrand(brand: BrandPalette) = WidgetCabinColors(
-            bg = brand.card.toArgb(),
-            text = brand.textPrimary.toArgb(),
-            muted = brand.textSecondary.toArgb(),
-            accent = brand.primary.toArgb(),
-            brand = brand.primary.toArgb(),
-            ring = brand.primary.toArgb(),
-            ringTrack = brand.container.toArgb(),
-            progressStart = brand.heroStart.toArgb(),
-            progressEnd = brand.heroEnd.toArgb(),
-            progressLabel = brand.onPrimary.toArgb(),
-            actionBg = brand.primary.toArgb(),
-            actionChip = brand.container.toArgb(),
-            actionStroke = brand.cardBorder.toArgb(),
-            divider = brand.cardBorder.toArgb(),
-            dayFilled = brand.container.toArgb(),
-            dayToday = brand.primary.toArgb(),
-            dayOutline = brand.container.toArgb(),
-            dayFutureLetter = brand.textSecondary.toArgb(),
-            dayEmptyCaption = brand.textTertiary.toArgb(),
-            onFilled = brand.onPrimary.toArgb(),
-            dynamic = false,
-            headerStart = brand.heroStart.toArgb(),
-            headerEnd = brand.heroEnd.toArgb(),
-            rpmFg = 0xFF0B7A3E.toInt(),
-            rpmBg = 0xFFDDF5E8.toInt(),
-            onHeader = Color.White.toArgb(),
-        )
+        fun fromBrand(brand: BrandPalette, dark: Boolean = false): WidgetCabinColors {
+            val status = if (dark) SemanticColors.Dark else SemanticColors.Light
+            return WidgetCabinColors(
+                bg = brand.card.toArgb(),
+                text = brand.textPrimary.toArgb(),
+                muted = brand.textSecondary.toArgb(),
+                accent = brand.primary.toArgb(),
+                brand = brand.primary.toArgb(),
+                ring = brand.primary.toArgb(),
+                ringTrack = brand.container.toArgb(),
+                progressStart = brand.heroStart.toArgb(),
+                progressEnd = brand.heroEnd.toArgb(),
+                progressLabel = brand.onPrimary.toArgb(),
+                actionBg = brand.primary.toArgb(),
+                actionChip = brand.container.toArgb(),
+                actionStroke = brand.cardBorder.toArgb(),
+                divider = brand.cardBorder.toArgb(),
+                dayFilled = brand.container.toArgb(),
+                dayToday = brand.primary.toArgb(),
+                dayOutline = brand.container.toArgb(),
+                dayFutureLetter = brand.textSecondary.toArgb(),
+                dayEmptyCaption = brand.textTertiary.toArgb(),
+                onFilled = brand.onPrimary.toArgb(),
+                dynamic = false,
+                headerStart = brand.heroStart.toArgb(),
+                headerEnd = brand.heroEnd.toArgb(),
+                rpmFg = status.success.toArgb(),
+                rpmBg = status.successContainer.toArgb(),
+                onHeader = Color.White.toArgb(),
+            )
+        }
 
         val ForestLight = fromBrand(BrandPalettes.Light)
 
-        val ForestDark = fromBrand(BrandPalettes.Dark)
+        val ForestDark = fromBrand(BrandPalettes.Dark, dark = true)
 
         /** Default plate used by Glance previews — brand light, not dynamic color. */
         val Forest = ForestLight

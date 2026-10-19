@@ -24,7 +24,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -58,7 +57,7 @@ fun DashboardHero(
     content: @Composable ColumnScope.() -> Unit = {},
 ) {
     val brand = LocalBrandPalette.current
-    val onHero = Color.White
+    val onHero = brand.heroText
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -101,7 +100,7 @@ fun DashboardHero(
         subtitle?.takeIf { it.isNotBlank() }?.let {
             Text(
                 text = it,
-                color = Color.White.copy(alpha = 0.86f),
+                color = brand.heroTextMuted,
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 2.dp),
             )
