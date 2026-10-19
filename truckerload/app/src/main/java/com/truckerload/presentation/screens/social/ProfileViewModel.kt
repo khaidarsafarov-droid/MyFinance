@@ -19,6 +19,12 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
+/** Keeps the last profile so returning to the screen does not flash the spinner. */
+internal val ProfileUiSharing: SharingStarted = SharingStarted.WhileSubscribed(
+    stopTimeoutMillis = 5_000,
+    replayExpirationMillis = Long.MAX_VALUE,
+)
+
 data class ProfileUiState(
     val profile: EnhancedDriverProfile? = null,
     val givenName: String = "",
@@ -68,7 +74,7 @@ class ProfileViewModel @Inject constructor(
                 premiumPhase = premiumModel.phase,
                 premiumPrice = premiumModel.price,
             )
-        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ProfileUiState())
+        }.stateIn(viewModelScope, ProfileUiSharing, ProfileUiState())
 
     init {
         viewModelScope.launch {

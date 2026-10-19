@@ -8,6 +8,8 @@ import java.io.IOException
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.truckerload.data.preferences.SettingsDataStore
+import com.truckerload.data.preferences.SettingsScreenSnapshot
 import com.truckerload.data.repository.LoadRepository
 import com.truckerload.utils.CsvExporter
 import com.truckerload.utils.LoadExporter
@@ -19,16 +21,26 @@ import java.io.File
 import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val loadRepository: LoadRepository,
+    settingsDataStore: SettingsDataStore,
     @ApplicationContext private val appContext: Context,
 ) : ViewModel() {
+
+    /**
+     * Theme, quiet hours, notifications, and week start from one DataStore read.
+     * Defaults match the previous per-flow initial values. Keys are unchanged.
+     */
+    val settingsSnapshot: StateFlow<SettingsScreenSnapshot> = settingsDataStore.screenSnapshot
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), SettingsScreenSnapshot())
 
     sealed interface ExportState {
         data object Idle : ExportState

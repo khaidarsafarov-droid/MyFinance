@@ -96,7 +96,11 @@ fun HomeScreen(
     val totals = filteredResult.totals
     val useRoomPaging = viewModel.usesRoomPaging(uiState.filter, uiState.selectedYear) ||
         searchQuery.isNotBlank()
-    val pagedLoads = viewModel.roomPagedLoads.collectAsLazyPagingItems()
+    val pagedLoads = if (useRoomPaging) {
+        viewModel.roomPagedLoads.collectAsLazyPagingItems()
+    } else {
+        null
+    }
     val weekLabel = remember(
         uiState.filter,
         uiState.selectedDateLabel,
