@@ -316,11 +316,11 @@ internal fun PlayCamera(photo: CapturedPhoto) {
 }
 
 @Composable
-internal fun PlayScanner(pending: PendingScan) {
+internal fun PlayScanner(pending: PendingScan, attached: Boolean = true) {
     ScanResultScreen(
         pending = pending,
         sessionCount = 1,
-        isAttachedToLoad = true,
+        isAttachedToLoad = attached,
         onSaveToApp = {},
         onSaveToPhone = {},
         onShare = {},

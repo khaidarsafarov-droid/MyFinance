@@ -28,16 +28,19 @@ CHROME_CANDIDATES = [
 ]
 CHROME = next((p for p in CHROME_CANDIDATES if p and Path(p).exists()), None)
 
-PHONE_SLIDES = [
-    "journal",
-    "widget",
-    "add_load",
-    "camera",
-    "scanner",
-    "diesel",
-    "weekly_goal",
-    "telegram",
-]
+PHONE_SLIDES = {
+    "en": ["dashboard", "widget", "photo", "scanner", "maintenance"],
+    "ru": [
+        "journal",
+        "widget",
+        "add_load",
+        "camera",
+        "scanner",
+        "diesel",
+        "weekly_goal",
+        "telegram",
+    ],
+}
 PHONE_SIZE = (1080, 1920)
 TABLET_SIZE = (1920, 1200)
 FEATURE_SIZE = (1024, 500)
@@ -82,20 +85,33 @@ def file_url(kind: str, lang: str, slide: str | None = None) -> str:
 
 
 def main() -> int:
-    jobs: list[tuple[str, Path, tuple[int, int]]] = []
+    only = set(sys.argv[1:])
+    jobs: list[tuple[str, Path, tuple[int, int], int]] = []
     for lang, folder in (("ru", "phone-ru"), ("en", "phone-en")):
-        for i, slide in enumerate(PHONE_SLIDES, start=1):
+        if only and f"{lang}-phone" not in only and "all" not in only and "phone" not in only:
+            continue
+        dest_dir = ROOT / folder
+        keep = set()
+        for i, slide in enumerate(PHONE_SLIDES[lang], start=1):
             name = f"{i:02d}_{slide}.png"
-            jobs.append((file_url("phone", lang, slide), ROOT / folder / name, PHONE_SIZE, 1))
-    for lang, folder in (("ru", "tablet-10-ru"), ("en", "tablet-10-en")):
-        jobs.append((file_url("tablet", lang), ROOT / folder / "01_journal_landscape.png", TABLET_SIZE, 1))
-    tablet7 = (1200, 1920)
-    for lang, folder in (("ru", "tablet-7-ru"), ("en", "tablet-7-en")):
-        jobs.append((file_url("tablet7", lang), ROOT / folder / "01_journal.png", tablet7, 1))
-    jobs.append((file_url("feature", "ru"), ROOT / "feature-graphic-ru.png", FEATURE_SIZE, 1))
-    jobs.append((file_url("feature", "en"), ROOT / "feature-graphic-en.png", FEATURE_SIZE, 1))
-    jobs.append((file_url("feature", "ru"), ROOT / "feature-graphic-ru-2048x1000.png", FEATURE_SIZE, 2))
-    jobs.append((file_url("feature", "en"), ROOT / "feature-graphic-en-2048x1000.png", FEATURE_SIZE, 2))
+            keep.add(name)
+            jobs.append((file_url("phone", lang, slide), dest_dir / name, PHONE_SIZE, 1))
+        if dest_dir.is_dir():
+            for stale in dest_dir.glob("*.png"):
+                if stale.name not in keep:
+                    stale.unlink()
+                    print(f"remove {stale.relative_to(ROOT)}", flush=True)
+    if not only or "tablet" in only or "all" in only:
+        for lang, folder in (("ru", "tablet-10-ru"), ("en", "tablet-10-en")):
+            jobs.append((file_url("tablet", lang), ROOT / folder / "01_journal_landscape.png", TABLET_SIZE, 1))
+        tablet7 = (1200, 1920)
+        for lang, folder in (("ru", "tablet-7-ru"), ("en", "tablet-7-en")):
+            jobs.append((file_url("tablet7", lang), ROOT / folder / "01_journal.png", tablet7, 1))
+    if not only or "feature" in only or "all" in only:
+        jobs.append((file_url("feature", "ru"), ROOT / "feature-graphic-ru.png", FEATURE_SIZE, 1))
+        jobs.append((file_url("feature", "en"), ROOT / "feature-graphic-en.png", FEATURE_SIZE, 1))
+        jobs.append((file_url("feature", "ru"), ROOT / "feature-graphic-ru-2048x1000.png", FEATURE_SIZE, 2))
+        jobs.append((file_url("feature", "en"), ROOT / "feature-graphic-en-2048x1000.png", FEATURE_SIZE, 2))
 
     for url, dest, size, scale in jobs:
         print(f"render {dest.relative_to(ROOT)}  {size[0] * scale}x{size[1] * scale}", flush=True)

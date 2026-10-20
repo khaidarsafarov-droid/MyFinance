@@ -1,9 +1,11 @@
 package com.truckerload.presentation.store
 
+import android.app.Activity
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.os.Looper
 import android.view.View
+import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -13,6 +15,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.semantics.SemanticsNode
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.glance.appwidget.ExperimentalGlanceRemoteViewsApi
@@ -39,6 +45,7 @@ import com.truckerload.widget.glance.SplitCabinBody
 import java.io.File
 import java.io.FileOutputStream
 import java.time.LocalDate
+import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -65,9 +72,9 @@ import org.robolectric.annotation.GraphicsMode
 class PlayListingCaptureTest {
 
     @Test
-    @Config(qualifiers = "en-rUS-w414dp-h930dp-420dpi")
+    @Config(qualifiers = "en-rUS-w414dp-h860dp-420dpi")
     fun captureEnglishPhone() {
-        captureLocale(lang = "en", tablet = false)
+        captureEnglishFeatureSet()
     }
 
     @Test
@@ -130,7 +137,7 @@ class PlayListingCaptureTest {
             assertListingBitmap(bitmap, minWidth = 1600)
             return
         }
-        val widget = renderGlanceWidget()
+        val widget = renderGlanceWidget(DpSize(400.dp, 360.dp))
         val shots = listOf(
             "journal" to @Composable { PlayJournal(loads, dense = false) },
             "widget" to @Composable { PlayWidgetLauncher(widget) },
@@ -148,12 +155,55 @@ class PlayListingCaptureTest {
             "settings" to @Composable { PlaySettings() },
         )
         shots.forEach { (name, content) ->
-            val bitmap = render(lang, name, content)
+            val bitmap = render(lang, name) { content() }
             assertListingBitmap(bitmap, minWidth = 1000)
         }
     }
 
-    private fun render(lang: String, name: String, content: @Composable () -> Unit): Bitmap {
+    private fun captureEnglishFeatureSet() {
+        val loads = playLoads()
+        val context = org.robolectric.RuntimeEnvironment.getApplication()
+        val (db, maintenance) = playMaintenanceRepository(context)
+        val wallpaper = playAsset("demo-wallpaper.jpg")
+        val truck = playAsset("demo-truck-road.jpg")
+        val photo = demoCaptured(stampLocationPhoto(context, truck))
+        val page = withDetectedEdges(playAsset("demo-rate-confirmation.jpg"))
+        val pageFile = File(
+            File(System.getProperty("java.io.tmpdir"), "play-scan").apply { mkdirs() },
+            "rate-confirmation.jpg",
+        )
+        pageFile.outputStream().use { page.compress(Bitmap.CompressFormat.JPEG, 92, it) }
+        val scan = playScanPending(pageFile)
+        val large = renderGlanceWidget(DpSize(400.dp, 340.dp))
+        val compact = renderGlanceWidget(DpSize(340.dp, 230.dp))
+        val shots = listOf(
+            "dashboard" to @Composable { PlayDashboard(loads, maintenance) },
+            "widget" to @Composable { PlayWidgetHome(wallpaper, large, compact) },
+            "photo" to @Composable { PlayCamera(photo) },
+            "scanner" to @Composable { PlayScanFrame(scan, page) },
+            "maintenance" to @Composable { PlayMaintenance() },
+        )
+        try {
+            shots.forEach { (name, content) ->
+                val bitmap = render(lang = "en", name = name, afterLayout = { activity ->
+                    if (name == "scanner") {
+                        val opened = clickLabeled(activity, "recognized")
+                        assertTrue("scanner OCR toggle was not clicked", opened)
+                    }
+                }) { content() }
+                assertListingBitmap(bitmap, minWidth = 1000)
+            }
+        } finally {
+            db.close()
+        }
+    }
+
+    private fun render(
+        lang: String,
+        name: String,
+        afterLayout: (Activity) -> Unit = {},
+        content: @Composable () -> Unit,
+    ): Bitmap {
         val activity = Robolectric.buildActivity(ComponentActivity::class.java).setup().get()
         activity.setContent {
             TruckerLoadTheme(darkTheme = false, dynamicColor = false, reduceMotion = true) {
@@ -176,7 +226,26 @@ class PlayListingCaptureTest {
             View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.EXACTLY),
         )
         decor.layout(0, 0, width, height)
-        repeat(6) { shadowOf(Looper.getMainLooper()).idle() }
+        val looper = shadowOf(Looper.getMainLooper())
+        repeat(8) { looper.idle() }
+        afterLayout(activity)
+        looper.idle()
+        Robolectric.getForegroundThreadScheduler().advanceBy(400, TimeUnit.MILLISECONDS)
+        repeat(8) { looper.idle() }
+        if (name == "photo") {
+            // PhotoPreviewScreen decodes on Dispatchers.IO. The main looper does not
+            // run that pool, so wait for the bitmap and lay the weighted image out.
+            repeat(30) {
+                Thread.sleep(40)
+                looper.idle()
+            }
+            decor.measure(
+                View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.EXACTLY),
+            )
+            decor.layout(0, 0, width, height)
+            repeat(4) { looper.idle() }
+        }
         val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
         decor.draw(android.graphics.Canvas(bitmap))
         save(bitmap, lang, name)
@@ -184,9 +253,8 @@ class PlayListingCaptureTest {
     }
 
     @OptIn(ExperimentalGlanceRemoteViewsApi::class, ExperimentalCoroutinesApi::class)
-    private fun renderGlanceWidget(): Bitmap {
+    private fun renderGlanceWidget(size: DpSize): Bitmap {
         val activity = Robolectric.buildActivity(ComponentActivity::class.java).setup().get()
-        val size = DpSize(400.dp, 360.dp)
         val done = CompletableDeferred<android.widget.RemoteViews>()
         CoroutineScope(Dispatchers.Main).launch {
             val result = GlanceRemoteViews().compose(context = activity, size = size) {
@@ -215,8 +283,8 @@ class PlayListingCaptureTest {
         val child = remote.apply(activity, host)
         host.addView(child)
         val density = activity.resources.displayMetrics.density
-        val width = (400f * density).toInt().coerceAtLeast(1)
-        val height = (360f * density).toInt().coerceAtLeast(1)
+        val width = (size.width.value * density).toInt().coerceAtLeast(1)
+        val height = (size.height.value * density).toInt().coerceAtLeast(1)
         host.measure(
             View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY),
             View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.EXACTLY),
@@ -267,6 +335,54 @@ class PlayListingCaptureTest {
             y += stepY
         }
         assertTrue("sampled $indigo/$samples pixels of legacy indigo #5B54E6", indigo * 20 < samples)
+    }
+
+    private fun clickLabeled(activity: Activity, label: String): Boolean {
+        val compose = findComposeView(activity.window.decorView) ?: return false
+        val owner = semanticsOwner(compose) ?: return false
+        val root = owner.javaClass.methods.firstOrNull { method ->
+            method.parameterCount == 0 && method.name == "getUnmergedRootSemanticsNode"
+        }?.invoke(owner) as? SemanticsNode ?: return false
+        val target = findClickable(root, label) ?: return false
+        val action = target.config.getOrNull(SemanticsActions.OnClick) ?: return false
+        return action.action?.invoke() == true
+    }
+
+    private fun semanticsOwner(compose: View): Any? {
+        val method = compose.javaClass.methods.firstOrNull { candidate ->
+            candidate.parameterCount == 0 && candidate.name.contains("SemanticsOwner")
+        } ?: compose.javaClass.declaredMethods.firstOrNull { candidate ->
+            candidate.parameterCount == 0 && candidate.name.contains("semanticsOwner")
+        }?.apply { isAccessible = true }
+        return method?.invoke(compose)
+    }
+
+    private fun findComposeView(view: View): View? {
+        if (view.javaClass.name.contains("AndroidComposeView")) return view
+        if (view is ViewGroup) {
+            for (index in 0 until view.childCount) {
+                findComposeView(view.getChildAt(index))?.let { return it }
+            }
+        }
+        return null
+    }
+
+    private fun findClickable(node: SemanticsNode, label: String): SemanticsNode? {
+        val text = node.config.getOrNull(SemanticsProperties.Text)?.joinToString { it.text }.orEmpty()
+        val spoken = node.config.getOrNull(SemanticsProperties.ContentDescription)?.joinToString().orEmpty()
+        val matches = text.contains(label, ignoreCase = true) || spoken.contains(label, ignoreCase = true)
+        if (matches && node.config.getOrNull(SemanticsActions.OnClick) != null) return node
+        node.children.forEach { child ->
+            findClickable(child, label)?.let { return it }
+        }
+        if (matches) {
+            var parent = node.parent
+            while (parent != null) {
+                if (parent.config.getOrNull(SemanticsActions.OnClick) != null) return parent
+                parent = parent.parent
+            }
+        }
+        return null
     }
 
     private fun demoWidgetStats(): WidgetStats = WidgetStats(

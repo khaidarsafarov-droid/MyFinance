@@ -17,7 +17,7 @@ Phone, 7", and 10" frames use the Midnight & Gold caption plate (`#1E2150` → `
 
 | Asset | Size | Format | Count |
 | --- | --- | --- | --- |
-| Phone screenshots | 1080×1920 (9:16) | 24-bit PNG, no alpha | 8 (max) |
+| Phone screenshots | 1080×1920 (9:16) | 24-bit PNG, no alpha | 5 English, 8 Russian |
 | 10" tablet | 1920×1200 (16:9) | 24-bit PNG, no alpha | 1 |
 | 7" tablet | 1200×1920 | 24-bit PNG, no alpha | 1 |
 | Feature graphic | 1024×500 | 24-bit PNG, no alpha | 1 (required) |
@@ -33,7 +33,7 @@ Play Console → **Grow** → **Store presence** → **Main store listing**
 
 1. **App icon** — 512×512 32-bit PNG: `high-res-icon.png` (same plate as the adaptive launcher).
 2. **Feature graphic** — `feature-graphic-en.png`
-3. **Phone screenshots** (order matters; first is the store card) — `phone-en/01_journal.png` … `08_telegram.png`
+3. **Phone screenshots** (order matters; first is the store card) — `phone-en/01_dashboard.png` … `05_maintenance.png`
 4. **10" tablet screenshots** — `tablet-10-en/01_journal_landscape.png`
 5. **7" tablet screenshots** — `tablet-7-en/01_journal.png`
 
@@ -46,7 +46,15 @@ Same console page → language **Русский** (add a localized listing if it
 - Tablet 10": `tablet-10-ru/01_journal_landscape.png`
 - Tablet 7": `tablet-7-ru/01_journal.png`
 
-## Phone set (same order in RU and EN)
+## English phone set
+
+1. Dashboard — week hero, load cards, shortcuts, bottom bar
+2. Home-screen widget — split header on a wallpaper, two sizes
+3. Location photo — trip photo with the app’s city, time, and GPS stamp
+4. Document scan — rate confirmation with the recognized text open
+5. Maintenance — mileage and date service reminders
+
+## Russian phone set
 
 1. Journal — all data on the phone, any load type
 2. Home-screen widget — camera, scanner, diesel in one tap

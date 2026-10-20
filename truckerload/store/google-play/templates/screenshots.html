@@ -1039,15 +1039,21 @@
         journalH: "All your data, always on hand",
         journalP: "Journal, goal and numbers stay on the phone — even offline",
         widgetH: "Home-screen widget",
-        widgetP: "Gross, goal, camera, scanner and diesel — one tap away",
+        widgetP: "Daily bars, plus camera, scanner, and diesel",
         goalH: "Weekly goal, always in view",
         goalP: "See remaining gross and the daily pace you need",
         addH: "Any load — not only Relay",
         addP: "Paste, Telegram bot, form, or a photo of the paperwork",
-        cameraH: "Camera with location",
-        cameraP: "Trip photos get city and GPS the moment you shoot",
-        scannerH: "File and document scanner",
-        scannerP: "PDF, photo or receipt — fields fill in for you",
+        dashboardH: "The week on one screen",
+        dashboardP: "Gross, goal, loads, and shortcuts together",
+        cameraH: "Photos with location",
+        cameraP: "City, time, and GPS stay on the picture",
+        photoH: "Photos with location",
+        photoP: "City, time, and GPS stay on the picture",
+        scannerH: "Scan the paperwork",
+        scannerP: "A rate confirmation, with the text open",
+        maintenanceH: "Service, on time",
+        maintenanceP: "Mileage and date reminders before they are due",
         telegramH: "Telegram in — journal out",
         telegramP: "Forward a load to the bot. Import HTML or text to restore your history",
         dieselH: "Diesel in seconds",
@@ -1388,6 +1394,9 @@
       diesel: [t.dieselH, t.dieselP],
       weekly_goal: [t.goalH, t.goalP],
       telegram: [t.telegramH, t.telegramP],
+      dashboard: [t.dashboardH || t.journalH, t.dashboardP || t.journalP],
+      photo: [t.photoH || t.cameraH, t.photoP || t.cameraP],
+      maintenance: [t.maintenanceH || t.goalH, t.maintenanceP || t.goalP],
     };
 
     function liveShot(name) {
@@ -1433,7 +1442,7 @@
     if (kind === "feature") root.innerHTML = featureCanvas();
     else if (kind === "tablet") root.innerHTML = tabletCanvas();
     else if (kind === "tablet7") root.innerHTML = tablet7Canvas();
-    else root.innerHTML = phoneCanvas(slide in SCREENS ? slide : "journal");
+    else root.innerHTML = phoneCanvas(slide in CAPTIONS ? slide : "journal");
     const canvas = document.querySelector(".canvas");
     if (canvas) {
       const w = getComputedStyle(canvas).width;
