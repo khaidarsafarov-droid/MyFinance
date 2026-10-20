@@ -95,7 +95,9 @@ def main() -> int:
         for i, slide in enumerate(PHONE_SLIDES[lang], start=1):
             name = f"{i:02d}_{slide}.png"
             keep.add(name)
-            jobs.append((file_url("phone", lang, slide), dest_dir / name, PHONE_SIZE, 1))
+            # English frames are shot at 2× and downsampled so captions stay crisp.
+            scale = 2 if lang == "en" else 1
+            jobs.append((file_url("phone", lang, slide), dest_dir / name, PHONE_SIZE, scale))
         if dest_dir.is_dir():
             for stale in dest_dir.glob("*.png"):
                 if stale.name not in keep:
@@ -114,8 +116,13 @@ def main() -> int:
         jobs.append((file_url("feature", "en"), ROOT / "feature-graphic-en-2048x1000.png", FEATURE_SIZE, 2))
 
     for url, dest, size, scale in jobs:
-        print(f"render {dest.relative_to(ROOT)}  {size[0] * scale}x{size[1] * scale}", flush=True)
+        print(f"render {dest.relative_to(ROOT)}  {size[0]}x{size[1]}", flush=True)
         chrome_screenshot(url, dest, size, scale)
+        if scale > 1 and size == PHONE_SIZE:
+            sharp = Image.open(dest).convert("RGB")
+            if sharp.size != PHONE_SIZE:
+                sharp = sharp.resize(PHONE_SIZE, Image.Resampling.LANCZOS)
+                sharp.save(dest, "PNG", optimize=True)
 
     print(f"done: {len(jobs)} images")
     return 0

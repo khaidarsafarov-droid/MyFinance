@@ -2,9 +2,7 @@ package com.truckerload.presentation.store
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.Paint
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -26,7 +24,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.res.stringResource
@@ -62,6 +63,9 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 
+/** 2026-10-20 09:41 UTC — the same instant on the photo stamp, the scan, and the home screen. */
+internal const val PLAY_STORY_AT = 1_792_489_260_000L
+
 /** In-memory Room so the real bottom bar can read maintenance state. */
 internal fun playMaintenanceRepository(context: Context): Pair<AppDatabase, MaintenanceRepository> {
     val db = Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java)
@@ -93,10 +97,11 @@ internal fun PlayDashboard(loads: List<Load>, maintenance: MaintenanceRepository
                     HomeWeekHero(
                         periodLabel = "",
                         filter = LoadFilter.THIS_WEEK,
-                        gross = Money.fromDollars(shown.sumOf { it.totalRate.cents } / 100.0),
-                        miles = shown.sumOf { it.drivenMiles },
-                        loadCount = shown.size,
-                        avgRpm = 2.94,
+                        gross = Money.fromDollars(loads.sumOf { it.totalRate.cents } / 100.0),
+                        miles = loads.sumOf { it.drivenMiles },
+                        loadCount = loads.size,
+                        avgRpm = loads.sumOf { it.totalRate.cents } / 100.0 /
+                            loads.sumOf { it.drivenMiles }.coerceAtLeast(1.0),
                         weeklyGoal = 13_000.0,
                         summaryContentDescription = "",
                         onOpenWeeklyGoal = {},
@@ -149,7 +154,7 @@ internal fun PlayDashboard(loads: List<Load>, maintenance: MaintenanceRepository
 internal fun PlayWidgetHome(wallpaper: Bitmap, large: Bitmap, compact: Bitmap) {
     val locale = LocalLocale.current.platformLocale
     val date = remember(locale) {
-        LocalDate.of(2026, 10, 19).format(
+        LocalDate.of(2026, 10, 20).format(
             DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).withLocale(locale),
         )
     }
@@ -206,19 +211,52 @@ private fun WidgetPlate(bitmap: Bitmap, horizontal: androidx.compose.ui.unit.Dp)
 @Composable
 internal fun PlayScanFrame(pending: PendingScan, page: Bitmap) {
     Column(modifier = Modifier.fillMaxSize()) {
-        Image(
-            bitmap = page.asImageBitmap(),
-            contentDescription = null,
-            contentScale = ContentScale.Fit,
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(start = 16.dp, end = 16.dp, top = 12.dp)
-                .height(196.dp)
-                .clip(RoundedCornerShape(16.dp)),
-        )
+                .height(268.dp)
+                .clip(RoundedCornerShape(18.dp)),
+        ) {
+            Image(
+                bitmap = page.asImageBitmap(),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                alignment = Alignment.TopCenter,
+                modifier = Modifier.fillMaxSize(),
+            )
+            ScanCornerBrackets()
+        }
         Box(modifier = Modifier.weight(1f)) {
             PlayScanner(pending, attached = false)
         }
+    }
+}
+
+/** Crisp detection corners on the visible page. Drawn in vectors so they stay sharp. */
+@Composable
+private fun ScanCornerBrackets() {
+    val ink = androidx.compose.ui.graphics.Color(0xFF1A140C)
+    val gold = androidx.compose.ui.graphics.Color(0xFFE4C98A)
+    Canvas(modifier = Modifier.fillMaxSize()) {
+        val inset = 18.dp.toPx()
+        val arm = 34.dp.toPx()
+        val under = Stroke(width = 6.5.dp.toPx(), cap = StrokeCap.Round)
+        val stroke = Stroke(width = 3.2.dp.toPx(), cap = StrokeCap.Round)
+        val right = size.width - inset
+        val bottom = size.height - inset
+        fun corner(color: androidx.compose.ui.graphics.Color, width: Float, x: Float, y: Float, dx: Float, dy: Float) {
+            drawLine(color, Offset(x, y), Offset(x + dx, y), width, StrokeCap.Round)
+            drawLine(color, Offset(x, y), Offset(x, y + dy), width, StrokeCap.Round)
+        }
+        val corners = listOf(
+            floatArrayOf(inset, inset, arm, arm),
+            floatArrayOf(right, inset, -arm, arm),
+            floatArrayOf(inset, bottom, arm, -arm),
+            floatArrayOf(right, bottom, -arm, -arm),
+        )
+        corners.forEach { (x, y, dx, dy) -> corner(ink, under.width, x, y, dx, dy) }
+        corners.forEach { (x, y, dx, dy) -> corner(gold, stroke.width, x, y, dx, dy) }
     }
 }
 
@@ -262,11 +300,10 @@ internal fun playAsset(name: String): Bitmap {
 private object PlayListingFeatureScreens
 
 internal fun stampLocationPhoto(context: Context, source: Bitmap): File {
-    val width = 1080
-    val height = (source.height * (width.toFloat() / source.width)).toInt().coerceAtLeast(1)
-    val scaled = Bitmap.createScaledBitmap(source, width, height, true)
+    // Watermark the decoded pixels and store them losslessly. A second JPEG pass
+    // and an upscale both soften the truck and the location stamp.
     val stamped = PhotoManager(context).addWatermark(
-        bitmap = scaled,
+        bitmap = source,
         locationData = com.truckerload.utils.LocationData(
             latitude = 35.711,
             longitude = -78.614,
@@ -274,47 +311,13 @@ internal fun stampLocationPhoto(context: Context, source: Bitmap): File {
             state = "NC",
             zipCode = "27529",
         ),
-        timestamp = 1_792_402_860_000L,
+        timestamp = PLAY_STORY_AT,
         title = "T-116KYL6KW",
     )
-    val file = File(File(System.getProperty("java.io.tmpdir"), "play-photo").apply { mkdirs() }, "garner-stop.jpg")
-    file.outputStream().use { stamped.compress(Bitmap.CompressFormat.JPEG, 92, it) }
-    if (scaled !== source) scaled.recycle()
-    if (stamped !== scaled) stamped.recycle()
+    val file = File(File(System.getProperty("java.io.tmpdir"), "play-photo").apply { mkdirs() }, "garner-stop.png")
+    file.outputStream().use { stamped.compress(Bitmap.CompressFormat.PNG, 100, it) }
+    if (stamped !== source) stamped.recycle()
     return file
-}
-
-/**
- * Gold corner brackets on the demo page. Play Services draws the live edge
- * UI; this test only shows the detected quad the way a scan result looks.
- */
-internal fun withDetectedEdges(source: Bitmap): Bitmap {
-    val width = 900
-    val height = (source.height * (width.toFloat() / source.width)).toInt().coerceAtLeast(1)
-    val page = Bitmap.createScaledBitmap(source, width, height, true)
-    val out = page.copy(Bitmap.Config.ARGB_8888, true)
-    val canvas = Canvas(out)
-    val gold = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.parseColor("#C8A867")
-        style = Paint.Style.STROKE
-        strokeWidth = 10f
-        strokeCap = Paint.Cap.ROUND
-        strokeJoin = Paint.Join.ROUND
-    }
-    val inset = 36f
-    val arm = 78f
-    val right = width - inset
-    val bottom = height - inset
-    canvas.drawLine(inset, inset, inset + arm, inset, gold)
-    canvas.drawLine(inset, inset, inset, inset + arm, gold)
-    canvas.drawLine(right, inset, right - arm, inset, gold)
-    canvas.drawLine(right, inset, right, inset + arm, gold)
-    canvas.drawLine(inset, bottom, inset + arm, bottom, gold)
-    canvas.drawLine(inset, bottom, inset, bottom - arm, gold)
-    canvas.drawLine(right, bottom, right - arm, bottom, gold)
-    canvas.drawLine(right, bottom, right, bottom - arm, gold)
-    if (page !== source) page.recycle()
-    return out
 }
 
 internal fun playScanPending(pageFile: File): PendingScan = PendingScan(
@@ -330,9 +333,9 @@ internal fun playScanPending(pageFile: File): PendingScan = PendingScan(
         Miles: 850
         Rate: ${'$'}2,500.00
         Equipment: Dry van
-        Date: October 19, 2026
+        Date: October 20, 2026
     """.trimIndent(),
-    timestamp = 1_792_402_860_000L,
+    timestamp = PLAY_STORY_AT,
     category = com.truckerload.domain.model.ScanDocumentCategory.LOAD,
 )
 

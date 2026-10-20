@@ -289,16 +289,17 @@ private fun PreviewRing(
 
 @Composable
 private fun PreviewActionRow() {
+    // Same order as CabinQuickAction: Camera, Scanner, Diesel.
     val actions = listOf(
-        Triple(
-            AppIcons.DocumentScanner,
-            stringResource(R.string.widget_scanner_short),
-            Color(WidgetCabinPalette.ACTION_SCANNER),
-        ),
         Triple(
             AppIcons.PhotoCamera,
             stringResource(R.string.widget_camera_short),
             Color(WidgetCabinPalette.ACTION_CAMERA),
+        ),
+        Triple(
+            AppIcons.DocumentScanner,
+            stringResource(R.string.widget_scanner_short),
+            Color(WidgetCabinPalette.ACTION_SCANNER),
         ),
         Triple(
             AppIcons.LocalGasStation,

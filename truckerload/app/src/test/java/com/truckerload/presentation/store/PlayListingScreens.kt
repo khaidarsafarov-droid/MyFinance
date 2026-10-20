@@ -101,7 +101,7 @@ internal fun playLoads(): List<Load> = listOf(
         origin = "Garner, NC",
         dest = "Dallas, TX",
         raw = "Amazon Relay\nTrip ID: T-116KYL6KW\nTotal Rate: 2500.00\nPu-address: SWF2, Garner, NC\nDel-address: DAL3, Dallas, TX",
-        date = "2026-10-19",
+        date = "2026-10-20",
     ),
     playLoad(
         id = "load-manual",
@@ -111,7 +111,7 @@ internal fun playLoads(): List<Load> = listOf(
         origin = "Chicago, IL",
         dest = "Atlanta, GA",
         raw = "",
-        date = "2026-10-18",
+        date = "2026-10-19",
     ),
     playLoad(
         id = "load-broker",
@@ -121,7 +121,7 @@ internal fun playLoads(): List<Load> = listOf(
         origin = "Kansas City, MO",
         dest = "Phoenix, AZ",
         raw = "Broker load\nRate confirmation KC-PHX-19",
-        date = "2026-10-17",
+        date = "2026-10-19",
     ),
     playLoad(
         id = "load-amarillo",
@@ -131,7 +131,7 @@ internal fun playLoads(): List<Load> = listOf(
         origin = "Aurora, CO",
         dest = "Arlington, WA",
         raw = "Amazon Relay\nTrip ID: 114RS221Y\nTotal Rate: 3815.90\nPu-address: DEN4, Aurora, CO\nDel-address: SEA8, Arlington, WA",
-        date = "2026-10-16",
+        date = "2026-10-18",
     ),
 )
 
@@ -304,7 +304,7 @@ internal fun PlayAddLoad() {
 }
 
 @Composable
-internal fun PlayCamera(photo: CapturedPhoto) {
+internal fun PlayCamera(photo: CapturedPhoto, previewMaxEdgePx: Int = 512) {
     PhotoPreviewScreen(
         photo = photo,
         onCancel = {},
@@ -312,6 +312,7 @@ internal fun PlayCamera(photo: CapturedPhoto) {
         onSaved = {},
         onSave = {},
         saveSuccess = false,
+        previewMaxEdgePx = previewMaxEdgePx,
     )
 }
 
@@ -615,16 +616,20 @@ internal fun demoPending(file: File): PendingScan = PendingScan(
     category = ScanDocumentCategory.LOAD,
 )
 
-internal fun demoCaptured(file: File): CapturedPhoto = CapturedPhoto(
-    file = file,
-    locationData = LocationData(
+internal fun demoCaptured(
+    file: File,
+    locationData: LocationData = LocationData(
         latitude = 35.222,
         longitude = -101.831,
         city = "Amarillo",
         state = "TX",
         zipCode = "79101",
     ),
-    timestamp = 1_760_864_460_000L,
+    timestamp: Long = 1_760_864_460_000L,
+): CapturedPhoto = CapturedPhoto(
+    file = file,
+    locationData = locationData,
+    timestamp = timestamp,
 )
 
 private fun RpmThresholdsStoreSafe(context: android.content.Context): com.truckerload.data.preferences.RpmThresholdsStore {

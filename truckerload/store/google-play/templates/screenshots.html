@@ -111,6 +111,25 @@
       font-weight: 500;
       color: var(--soft);
     }
+    .canvas.store-phone .caption {
+      top: 52px;
+      left: 56px;
+      right: 56px;
+      height: 168px;
+    }
+    .canvas.store-phone .caption h1 {
+      font-size: 64px;
+      font-weight: 700;
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+    }
+    .canvas.store-phone .caption p {
+      margin-top: 12px;
+      font-size: 30px;
+      line-height: 1.25;
+      font-weight: 500;
+      color: #E4D3A8;
+    }
     .canvas.tablet .caption {
       left: 64px;
       right: auto;
@@ -1039,21 +1058,21 @@
         journalH: "All your data, always on hand",
         journalP: "Journal, goal and numbers stay on the phone — even offline",
         widgetH: "Home-screen widget",
-        widgetP: "Daily bars, plus camera, scanner, and diesel",
+        widgetP: "Camera, scanner, and diesel — one tap",
         goalH: "Weekly goal, always in view",
         goalP: "See remaining gross and the daily pace you need",
         addH: "Any load — not only Relay",
         addP: "Paste, Telegram bot, form, or a photo of the paperwork",
         dashboardH: "The week on one screen",
-        dashboardP: "Gross, goal, loads, and shortcuts together",
+        dashboardP: "Gross, goal, and the loads behind them",
         cameraH: "Photos with location",
-        cameraP: "City, time, and GPS stay on the picture",
+        cameraP: "City, time, and GPS on the shot",
         photoH: "Photos with location",
-        photoP: "City, time, and GPS stay on the picture",
+        photoP: "City, time, and GPS on the shot",
         scannerH: "Scan the paperwork",
-        scannerP: "A rate confirmation, with the text open",
+        scannerP: "Rate confirmation, text included",
         maintenanceH: "Service, on time",
-        maintenanceP: "Mileage and date reminders before they are due",
+        maintenanceP: "Mileage and dates, before they are due",
         telegramH: "Telegram in — journal out",
         telegramP: "Forward a load to the bot. Import HTML or text to restore your history",
         dieselH: "Diesel in seconds",
@@ -1405,7 +1424,8 @@
 
     function phoneCanvas(id) {
       const [h, p] = CAPTIONS[id];
-      return `<div class="canvas">
+      const canvasClass = lang === "en" ? "canvas store-phone" : "canvas";
+      return `<div class="${canvasClass}">
         <div class="caption"><h1>${h}</h1><p>${p}</p></div>
         <div class="device"><div class="phone live-phone">${liveShot(id)}</div></div>
       </div>`;

@@ -166,20 +166,30 @@ class PlayListingCaptureTest {
         val (db, maintenance) = playMaintenanceRepository(context)
         val wallpaper = playAsset("demo-wallpaper.jpg")
         val truck = playAsset("demo-truck-road.jpg")
-        val photo = demoCaptured(stampLocationPhoto(context, truck))
-        val page = withDetectedEdges(playAsset("demo-rate-confirmation.jpg"))
+        val photo = demoCaptured(
+            stampLocationPhoto(context, truck),
+            locationData = com.truckerload.utils.LocationData(
+                latitude = 35.711,
+                longitude = -78.614,
+                city = "Garner",
+                state = "NC",
+                zipCode = "27529",
+            ),
+            timestamp = PLAY_STORY_AT,
+        )
+        val page = playAsset("demo-rate-confirmation.png")
         val pageFile = File(
             File(System.getProperty("java.io.tmpdir"), "play-scan").apply { mkdirs() },
             "rate-confirmation.jpg",
         )
         pageFile.outputStream().use { page.compress(Bitmap.CompressFormat.JPEG, 92, it) }
         val scan = playScanPending(pageFile)
-        val large = renderGlanceWidget(DpSize(400.dp, 340.dp))
-        val compact = renderGlanceWidget(DpSize(340.dp, 230.dp))
+        val large = renderGlanceWidget(DpSize(400.dp, 340.dp), selectedOffset = 2)
+        val compact = renderGlanceWidget(DpSize(340.dp, 230.dp), selectedOffset = 2)
         val shots = listOf(
             "dashboard" to @Composable { PlayDashboard(loads, maintenance) },
             "widget" to @Composable { PlayWidgetHome(wallpaper, large, compact) },
-            "photo" to @Composable { PlayCamera(photo) },
+            "photo" to @Composable { PlayCamera(photo, previewMaxEdgePx = 2048) },
             "scanner" to @Composable { PlayScanFrame(scan, page) },
             "maintenance" to @Composable { PlayMaintenance() },
         )
@@ -253,7 +263,7 @@ class PlayListingCaptureTest {
     }
 
     @OptIn(ExperimentalGlanceRemoteViewsApi::class, ExperimentalCoroutinesApi::class)
-    private fun renderGlanceWidget(size: DpSize): Bitmap {
+    private fun renderGlanceWidget(size: DpSize, selectedOffset: Int = 1): Bitmap {
         val activity = Robolectric.buildActivity(ComponentActivity::class.java).setup().get()
         val done = CompletableDeferred<android.widget.RemoteViews>()
         CoroutineScope(Dispatchers.Main).launch {
@@ -266,7 +276,7 @@ class PlayListingCaptureTest {
                         context = activity,
                         shown = demoWidgetStats(),
                         week = demoWidgetStats(),
-                        selectedOffset = 1,
+                        selectedOffset = selectedOffset,
                         wide = true,
                     )
                 }
@@ -396,11 +406,11 @@ class PlayListingCaptureTest {
         goalRemainingAmount = 1_394.10,
         goalDailyNeeded = 232.0,
         goalActualDailyYield = 2_901.0,
-        goalDaysRemaining = 6,
+        goalDaysRemaining = 4,
         goalPaceStatus = "ahead",
-        weekLoadMask = 0b01110,
-        dayLoads = listOf(0, 1, 1, 2, 0, 0, 0),
-        dayGross = listOf(0.0, 2500.0, 2400.0, 6705.9, 0.0, 0.0, 0.0),
+        weekLoadMask = 0b00111,
+        dayLoads = listOf(1, 2, 1, 0, 0, 0, 0),
+        dayGross = listOf(3815.90, 5290.0, 2500.0, 0.0, 0.0, 0.0, 0.0),
         dayMiles = listOf(0.0, 850.0, 720.0, 2549.0, 0.0, 0.0, 0.0),
         updatedAtMillis = 1_760_864_460_000L,
     )
