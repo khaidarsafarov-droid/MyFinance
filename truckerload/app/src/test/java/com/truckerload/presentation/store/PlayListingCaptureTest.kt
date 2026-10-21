@@ -205,6 +205,10 @@ class PlayListingCaptureTest {
             "photo" to @Composable { PlayCamera(photo, previewMaxEdgePx = 2048) },
             "scanner" to @Composable { PlayScanFrame(scan, page) },
             "maintenance" to @Composable { PlayMaintenance() },
+            "premium" to @Composable { PlayPaywall() },
+            "analytics" to @Composable {
+                PlayPremiumAnalytics(playPremiumFinance(), playPremiumRoutes(), playPremiumWeeks())
+            },
         )
         try {
             shots.forEach { (name, content) ->
@@ -212,6 +216,10 @@ class PlayListingCaptureTest {
                     if (name == "scanner") {
                         val opened = clickLabeled(activity, "recognized")
                         assertTrue("scanner OCR toggle was not clicked", opened)
+                    }
+                    if (name == "premium") {
+                        val copy = waitForPaywall(activity)
+                        assertTrue("paywall stayed on a placeholder: $copy", paywallSettled(copy))
                     }
                 }) { content() }
                 assertListingBitmap(bitmap, minWidth = 1000)
@@ -262,6 +270,8 @@ class PlayListingCaptureTest {
                 Thread.sleep(40)
                 looper.idle()
             }
+        }
+        if (name == "premium" || name == "analytics" || name == "photo") {
             decor.measure(
                 View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY),
                 View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.EXACTLY),
@@ -367,6 +377,48 @@ class PlayListingCaptureTest {
         assertTrue("sampled $indigo/$samples pixels of legacy indigo #5B54E6", indigo * 20 < samples)
     }
 
+    private fun waitForPaywall(activity: Activity): String {
+        // Play Billing posts the product-details timeout (~28.5s) on the main looper.
+        // There is no Play Store in this test, so that timeout is what lets the real
+        // paywall leave "Loading the Play price…" and show "Try 1 month free".
+        val looper = shadowOf(Looper.getMainLooper())
+        val scheduler = Robolectric.getForegroundThreadScheduler()
+        var copy = ""
+        repeat(8) {
+            // The billing client can deliver the timeout and the failed query together.
+            // The first result settles the button; the second resume is ignored.
+            runCatching { scheduler.advanceBy(5, TimeUnit.SECONDS) }
+            runCatching { looper.idle() }
+            looper.idle()
+            copy = semanticsText(activity)
+            if (paywallSettled(copy)) return copy
+        }
+        return copy
+    }
+
+    private fun paywallSettled(copy: String): Boolean {
+        val loading = copy.contains("Loading the Play price", ignoreCase = true)
+        val offer = copy.contains("Try 1 month free", ignoreCase = true) ||
+            copy.contains("Subscribe", ignoreCase = true)
+        return !loading && offer && copy.contains("Premium") && copy.contains("2.99")
+    }
+
+    private fun semanticsText(activity: Activity): String {
+        val compose = findComposeView(activity.window.decorView) ?: return ""
+        val owner = semanticsOwner(compose) ?: return ""
+        val root = owner.javaClass.methods.firstOrNull { method ->
+            method.parameterCount == 0 && method.name == "getUnmergedRootSemanticsNode"
+        }?.invoke(owner) as? SemanticsNode ?: return ""
+        val parts = ArrayList<String>()
+        fun walk(node: SemanticsNode) {
+            node.config.getOrNull(SemanticsProperties.Text)?.forEach { parts += it.text }
+            node.config.getOrNull(SemanticsProperties.ContentDescription)?.forEach { parts += it }
+            node.children.forEach { child -> walk(child) }
+        }
+        walk(root)
+        return parts.joinToString("\n")
+    }
+
     private fun clickLabeled(activity: Activity, label: String): Boolean {
         val compose = findComposeView(activity.window.decorView) ?: return false
         val owner = semanticsOwner(compose) ?: return false
@@ -450,6 +502,30 @@ class PlayListingCaptureTest {
         rawExtractedText = "Pilot Travel Center\n86.400 gal\n3.649",
         sourceFileName = "receipt-amarillo.jpg",
         addedAt = 1_760_864_460_000L,
+    )
+
+    private fun playPremiumFinance(): PeriodFinance = PeriodFinance(
+        paycheckTotal = 11_605.90,
+        dieselTotal = 315.27,
+        dieselGallons = 86.4,
+        dieselSavings = 21.60,
+    )
+
+    private fun playPremiumRoutes(): List<RouteData> = listOf(
+        RouteData("Aurora, CO", "Arlington, WA", "Aurora, CO → Arlington, WA", 3815.90, 1369.0, 1, 2.79),
+        RouteData("Kansas City, MO", "Phoenix, AZ", "Kansas City, MO → Phoenix, AZ", 2890.0, 1180.0, 1, 2.45),
+        RouteData("Garner, NC", "Dallas, TX", "Garner, NC → Dallas, TX", 2500.0, 850.0, 1, 2.94),
+    )
+
+    private fun playPremiumWeeks(): List<WeekData> = listOf(
+        WeekData(36, 2026, "W36", 8_240.0, 2_910.0, 3),
+        WeekData(37, 2026, "W37", 9_180.0, 3_240.0, 3),
+        WeekData(38, 2026, "W38", 7_640.0, 2_880.0, 3),
+        WeekData(39, 2026, "W39", 10_220.0, 3_510.0, 4),
+        WeekData(40, 2026, "W40", 8_860.0, 3_020.0, 3),
+        WeekData(41, 2026, "W41", 9_740.0, 3_360.0, 3),
+        WeekData(42, 2026, "W42", 10_410.0, 3_480.0, 4),
+        WeekData(43, 2026, "W43", 11_605.90, 4_119.0, 4),
     )
 }
 
