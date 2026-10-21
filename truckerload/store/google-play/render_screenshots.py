@@ -29,7 +29,7 @@ CHROME_CANDIDATES = [
 CHROME = next((p for p in CHROME_CANDIDATES if p and Path(p).exists()), None)
 
 PHONE_SLIDES = {
-    "en": ["dashboard", "widget", "photo", "scanner", "maintenance"],
+    "en": ["dashboard", "widget", "photo", "scanner", "maintenance", "premium", "analytics"],
     "ru": [
         "journal",
         "widget",
@@ -86,19 +86,33 @@ def file_url(kind: str, lang: str, slide: str | None = None) -> str:
 
 def main() -> int:
     only = set(sys.argv[1:])
+    kinds = {"all", "phone", "tablet", "feature", "en-phone", "ru-phone"}
+    slides = only - kinds
+
+    def wants_phone(lang: str) -> bool:
+        if not only:
+            return True
+        if f"{lang}-phone" in only or "phone" in only or "all" in only:
+            return True
+        # `python3 render_screenshots.py premium` renders that slide only.
+        return bool(slides) and only.isdisjoint(kinds)
+
     jobs: list[tuple[str, Path, tuple[int, int], int]] = []
     for lang, folder in (("ru", "phone-ru"), ("en", "phone-en")):
-        if only and f"{lang}-phone" not in only and "all" not in only and "phone" not in only:
+        if not wants_phone(lang):
             continue
         dest_dir = ROOT / folder
         keep = set()
         for i, slide in enumerate(PHONE_SLIDES[lang], start=1):
+            if slides and slide not in slides:
+                continue
             name = f"{i:02d}_{slide}.png"
             keep.add(name)
             # English frames are shot at 2× and downsampled so captions stay crisp.
             scale = 2 if lang == "en" else 1
             jobs.append((file_url("phone", lang, slide), dest_dir / name, PHONE_SIZE, scale))
-        if dest_dir.is_dir():
+        # A named slide (python3 render_screenshots.py premium) must not delete the rest.
+        if not slides and dest_dir.is_dir():
             for stale in dest_dir.glob("*.png"):
                 if stale.name not in keep:
                     stale.unlink()

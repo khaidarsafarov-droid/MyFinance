@@ -1073,6 +1073,10 @@
         scannerP: "Rate confirmation, text included",
         maintenanceH: "Service, on time",
         maintenanceP: "Mileage and dates, before they are due",
+        premiumH: "First month free",
+        premiumP: "Then $2.99/month",
+        analyticsH: "Premium numbers",
+        analyticsP: "Paycheck, diesel, and the routes that paid",
         telegramH: "Telegram in — journal out",
         telegramP: "Forward a load to the bot. Import HTML or text to restore your history",
         dieselH: "Diesel in seconds",
@@ -1416,6 +1420,8 @@
       dashboard: [t.dashboardH || t.journalH, t.dashboardP || t.journalP],
       photo: [t.photoH || t.cameraH, t.photoP || t.cameraP],
       maintenance: [t.maintenanceH || t.goalH, t.maintenanceP || t.goalP],
+      premium: [t.premiumH || "First month free", t.premiumP || "Then $2.99/month"],
+      analytics: [t.analyticsH || t.analytics, t.analyticsP || t.analyticsSub],
     };
 
     function liveShot(name) {

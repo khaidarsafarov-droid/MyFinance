@@ -50,7 +50,9 @@ import com.truckerload.domain.model.analytics.RouteData
 import com.truckerload.domain.model.analytics.WeekData
 import com.truckerload.domain.money.Money
 import com.truckerload.domain.money.UnitPrice
+import com.truckerload.domain.premium.PremiumFeature
 import com.truckerload.presentation.components.DashboardHero
+import com.truckerload.presentation.components.DashboardPremiumTag
 import com.truckerload.presentation.components.LoadCard
 import com.truckerload.presentation.components.OneUiBottomActionBar
 import com.truckerload.presentation.components.TlButton
@@ -65,6 +67,7 @@ import com.truckerload.presentation.screens.add.AddLoadManualForm
 import com.truckerload.presentation.screens.add.AddLoadModeSelector
 import com.truckerload.presentation.screens.add.DieselAmountFields
 import com.truckerload.presentation.screens.add.ManualLoadFields
+import com.truckerload.presentation.premium.PaywallScreen
 import com.truckerload.presentation.screens.analytics.AnalyticsFinanceSection
 import com.truckerload.presentation.screens.auth.TelegramOnboardingScreen
 import com.truckerload.presentation.screens.camera.CapturedPhoto
@@ -83,6 +86,7 @@ import com.truckerload.presentation.screens.social.ProfileNavRow
 import com.truckerload.presentation.screens.social.ProfileSectionHeader
 import com.truckerload.presentation.screens.social.ProfileTotals
 import com.truckerload.presentation.theme.BentoGlassScreenBackground
+import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.LocalBrandPalette
 import com.truckerload.utils.LocationData
 import java.io.File
@@ -374,6 +378,83 @@ internal fun PlayAnalytics(finance: PeriodFinance, routes: List<RouteData>, week
             TopRoutesBarChart(routes = routes)
             DailyDistributionChart(dailyData = days)
             WeeklyRevenueLineChart(weeks = weeks, selectedIndex = weeks.lastIndex, onWeekSelected = {})
+            Spacer(Modifier.height(24.dp))
+        }
+    }
+}
+
+/** Real paywall. The offer headline and price live in the marketing caption. */
+@Composable
+internal fun PlayPaywall() {
+    PaywallScreen(feature = PremiumFeature.ANALYTICS, onBack = {})
+}
+
+/**
+ * Analytics with the unlocked Premium tag. Figures match the English week
+ * already on the dashboard and the home-screen widget.
+ */
+@Composable
+internal fun PlayPremiumAnalytics(
+    finance: PeriodFinance,
+    routes: List<RouteData>,
+    weeks: List<WeekData>,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(LocalBrandPalette.current.page)
+            .verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        DashboardHero(
+            title = stringResource(R.string.analytics_title),
+            subtitle = stringResource(R.string.analytics_subtitle),
+            showBack = true,
+            onBack = {},
+        ) {
+            DashboardPremiumTag(
+                locked = false,
+                modifier = Modifier.padding(start = 20.dp, top = 8.dp),
+            )
+        }
+        Column(modifier = Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            AnalyticsFinanceSection(finance = finance)
+            BentoGlassCard(modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = stringResource(R.string.analytics_weekly_revenue),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = LocalBrandPalette.current.textPrimary,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                    WeeklyRevenueLineChart(
+                        weeks = weeks,
+                        selectedIndex = weeks.lastIndex,
+                        onWeekSelected = {},
+                        modifier = Modifier.padding(top = 12.dp),
+                    )
+                }
+            }
+            BentoGlassCard(modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = stringResource(R.string.analytics_top_routes),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = LocalBrandPalette.current.textPrimary,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                    Text(
+                        text = stringResource(R.string.analytics_top_routes_hint),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = LocalBrandPalette.current.textSecondary,
+                        modifier = Modifier.padding(top = 4.dp),
+                    )
+                    TopRoutesBarChart(
+                        routes = routes,
+                        modifier = Modifier.padding(top = 12.dp),
+                    )
+                }
+            }
             Spacer(Modifier.height(24.dp))
         }
     }
