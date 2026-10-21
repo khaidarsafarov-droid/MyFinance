@@ -793,6 +793,10 @@
     <string name="premium_offer_feature_insights">Analytics and weekly goal</string>
     <string name="premium_offer_feature_tools">Scanner, map, and export</string>
     <string name="premium_offer_continue_free">Continue with the free version</string>
+    <string name="day7_survey_question">Is the free version enough for you?</string>
+    <string name="day7_survey_enough">It\'s enough</string>
+    <string name="day7_survey_more">I want more</string>
+    <string name="day7_survey_channel_name">Free version</string>
     <string name="trial_reminder_title">Free month ending</string>
     <string name="trial_reminder_body">Your free month ends on %1$s. Then %2$s/month will be charged.</string>
     <string name="trial_reminder_channel_name">Subscription</string>

@@ -9,6 +9,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.truckerload.domain.premium.PremiumFeature
+import com.truckerload.presentation.premium.PaywallScreen
 import com.truckerload.presentation.premium.PremiumGate
 import com.truckerload.presentation.screens.about.AboutAppScreen
 import com.truckerload.presentation.screens.feedback.ImprovementFeedbackScreen
@@ -373,5 +374,14 @@ fun NavGraphBuilder.toolsNavGraph(
             photoId = photoId,
             onBack = { navController.popBackStack() },
         )
+    }
+    composable(
+        route = Routes.PAYWALL,
+        enterTransition = { navForwardEnter(reduceMotion) },
+        exitTransition = { navForwardExit(reduceMotion) },
+        popEnterTransition = { navPopEnter(reduceMotion) },
+        popExitTransition = { navPopExit(reduceMotion) },
+    ) {
+        PaywallScreen(onBack = { navController.popBackStack() })
     }
 }

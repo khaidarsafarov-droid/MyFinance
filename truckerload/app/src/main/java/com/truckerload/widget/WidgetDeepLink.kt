@@ -20,6 +20,8 @@ object WidgetDeepLink {
     const val ROUTE_SCANNER = "scanner"
     const val ROUTE_ADD_DIESEL = "add_diesel"
     const val ROUTE_ADD_PAYCHECK = "add_paycheck"
+    /** Opens PaywallScreen. Used by the day-7 survey notification. */
+    const val ROUTE_PAYWALL = "paywall"
     /** Pick a recent load, then open camera attached to it. */
     const val ROUTE_ATTACH_CAMERA = "attach_pick/camera"
     /** Pick a recent load, then open scanner attached to it. */
@@ -44,6 +46,7 @@ object WidgetDeepLink {
         ROUTE_SCANNER, "scanner", ROUTE_ATTACH_SCANNER -> ROUTE_ATTACH_SCANNER
         ROUTE_ADD_DIESEL, "diesel", "add_diesel" -> ROUTE_ADD_DIESEL
         ROUTE_ADD_PAYCHECK, "add_paycheck" -> "add_paycheck"
+        ROUTE_PAYWALL, "paywall" -> "paywall"
         else -> null
     }
 

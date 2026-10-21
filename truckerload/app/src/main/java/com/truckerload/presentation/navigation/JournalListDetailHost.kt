@@ -61,6 +61,9 @@ fun JournalListDetailHost(
                     navController.navigate(Routes.scannerForLoad(loadId, tripId, loadDate))
                 },
                 onOpenPrivacy = { navController.navigate(Routes.PRIVACY_SETTINGS) },
+                onOpenPaywall = {
+                    navController.navigate(Routes.PAYWALL) { launchSingleTop = true }
+                },
             )
         },
         detailContent = {

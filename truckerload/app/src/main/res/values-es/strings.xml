@@ -793,6 +793,10 @@
     <string name="premium_offer_feature_insights">Analítica y meta semanal</string>
     <string name="premium_offer_feature_tools">Escáner, mapa y exportación</string>
     <string name="premium_offer_continue_free">Seguir con la versión gratis</string>
+    <string name="day7_survey_question">¿Te basta la versión gratuita?</string>
+    <string name="day7_survey_enough">Me basta</string>
+    <string name="day7_survey_more">Quiero más</string>
+    <string name="day7_survey_channel_name">Versión gratuita</string>
     <string name="trial_reminder_title">El mes gratis termina</string>
     <string name="trial_reminder_body">El mes gratis termina el %1$s. Después se cobrará %2$s/mes.</string>
     <string name="trial_reminder_channel_name">Suscripción</string>

@@ -793,6 +793,10 @@
     <string name="premium_offer_feature_insights">Аналитика и цель на неделю</string>
     <string name="premium_offer_feature_tools">Сканер, карта и экспорт</string>
     <string name="premium_offer_continue_free">Остаться на бесплатной версии</string>
+    <string name="day7_survey_question">Хватает ли вам бесплатной версии?</string>
+    <string name="day7_survey_enough">Мне хватает</string>
+    <string name="day7_survey_more">Хочу больше</string>
+    <string name="day7_survey_channel_name">Бесплатная версия</string>
     <string name="trial_reminder_title">Бесплатный месяц заканчивается</string>
     <string name="trial_reminder_body">Бесплатный месяц заканчивается %1$s. Затем спишется %2$s/мес.</string>
     <string name="trial_reminder_channel_name">Подписка</string>

@@ -184,6 +184,10 @@ fun NavGraph(
                 navController.navigate(Routes.ADD_PAYCHECK) { launchSingleTop = true }
                 onDeepLinkHandled()
             }
+            Routes.PAYWALL -> {
+                navController.navigate(Routes.PAYWALL) { launchSingleTop = true }
+                onDeepLinkHandled()
+            }
             else -> {
                 if (destination.startsWith("attach_pick/")) {
                     navController.navigate(destination) { launchSingleTop = true }
@@ -304,6 +308,9 @@ fun NavGraph(
                                 navController.navigate(Routes.scannerForLoad(loadId, tripId, loadDate))
                             },
                             onOpenPrivacy = { navController.navigate(Routes.PRIVACY_SETTINGS) },
+                            onOpenPaywall = {
+                                navController.navigate(Routes.PAYWALL) { launchSingleTop = true }
+                            },
                         )
                     }
                 }
