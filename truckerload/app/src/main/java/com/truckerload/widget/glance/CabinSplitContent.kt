@@ -41,6 +41,7 @@ import com.truckerload.widget.WidgetStats
 import com.truckerload.widget.WidgetStatsFormatter
 import com.truckerload.widget.WidgetWeekDayHelper
 import com.truckerload.widget.formatSplitWeekRange
+import java.time.LocalDate
 import java.util.Locale
 
 /** Glance has no res-font hook; DM Sans is the in-app face, widgets use the system sans. */
@@ -53,18 +54,20 @@ internal fun SplitCabinBody(
     week: WidgetStats,
     selectedOffset: Int,
     wide: Boolean,
+    today: LocalDate = LocalDate.now(),
+    weekRange: String? = null,
 ) {
     val layout = cabinLayoutFor(LocalSize.current, LocalWidgetSizeMode.current)
     val colors = LocalCabinColors.current
     if (layout.bucket == CabinBucket.MICRO && wide) {
-        MicroSplitRow(context, shown, layout, colors)
+        MicroSplitRow(context, shown, layout, colors, today, weekRange)
     } else {
         Column(
             modifier = GlanceModifier
                 .fillMaxSize()
                 .cabinPlate(colors, layout.cornerDp),
         ) {
-            SplitHeader(context, shown, layout, colors, GlanceModifier.fillMaxWidth())
+            SplitHeader(context, shown, layout, colors, GlanceModifier.fillMaxWidth(), today, weekRange)
             Column(
                 modifier = GlanceModifier
                     .fillMaxWidth()
@@ -77,7 +80,7 @@ internal fun SplitCabinBody(
                 }
                 if (layout.showWeekRow) {
                     Spacer(modifier = GlanceModifier.height(layout.sectionGap))
-                    DayBars(context, week, selectedOffset, layout, colors)
+                    DayBars(context, week, selectedOffset, layout, colors, today)
                 }
                 Spacer(modifier = GlanceModifier.height(layout.sectionGap))
                 SplitActionRow(context, layout, colors)
@@ -92,6 +95,8 @@ private fun MicroSplitRow(
     shown: WidgetStats,
     layout: CabinLayout,
     colors: WidgetCabinColors,
+    today: LocalDate,
+    weekRange: String?,
 ) {
     Row(
         modifier = GlanceModifier
@@ -106,6 +111,8 @@ private fun MicroSplitRow(
             layout,
             colors,
             GlanceModifier.defaultWeight(),
+            today,
+            weekRange,
         )
         Spacer(modifier = GlanceModifier.width(8.dp))
         SplitActionRow(context, layout, colors)
@@ -119,8 +126,10 @@ private fun SplitHeader(
     layout: CabinLayout,
     colors: WidgetCabinColors,
     modifier: GlanceModifier,
+    today: LocalDate,
+    weekRange: String?,
 ) {
-    val weekLine = headerLine(context, shown)
+    val weekLine = headerLine(context, shown, today, weekRange)
     val amount = WidgetStatsFormatter.formatGrossUsd(shown.totalLoadRate)
     val goal = goalMoney(context, shown)
     val percent = WidgetStatsFormatter.formatRingPercent(shown.goalProgressPercent)
@@ -275,14 +284,20 @@ private fun DayBars(
     selectedOffset: Int,
     layout: CabinLayout,
     colors: WidgetCabinColors,
+    today: LocalDate,
 ) {
     val density = context.resources.displayMetrics.density
-    val weekStart = WidgetWeekDayHelper.startOfWeek()
+    val weekStart = WidgetWeekDayHelper.startOfWeek(today)
     val labels = WidgetWeekDayHelper.localizedLabels(
         context,
         com.truckerload.domain.week.WeekStartDay.fromJavaDayOfWeek(weekStart.dayOfWeek),
     )
-    val chips = WidgetWeekDayHelper.chips(week.weekLoadMask, weekStart = weekStart, labels = labels)
+    val chips = WidgetWeekDayHelper.chips(
+        week.weekLoadMask,
+        today = today,
+        weekStart = weekStart,
+        labels = labels,
+    )
     val todayLabel = context.getString(R.string.widget_day_today)
     val maxGross = week.dayGross.maxOrNull()?.takeIf { it > 0.0 } ?: 1.0
     Row(
@@ -442,8 +457,14 @@ private fun ActionIcon(
     )
 }
 
-private fun headerLine(context: Context, shown: WidgetStats): String {
-    val weekStart = WidgetWeekDayHelper.startOfWeek()
+private fun headerLine(
+    context: Context,
+    shown: WidgetStats,
+    today: LocalDate = LocalDate.now(),
+    weekRange: String? = null,
+): String {
+    if (!weekRange.isNullOrBlank()) return weekRange
+    val weekStart = WidgetWeekDayHelper.startOfWeek(today)
     val range = formatSplitWeekRange(
         weekStart,
         weekStart.plusDays(6),

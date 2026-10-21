@@ -52,7 +52,7 @@ Confirm:
 | Full description | `…/full-description.txt` |
 | High-res icon | `store/google-play/high-res-icon.png` |
 | Feature graphic | `feature-graphic-en.png` / `feature-graphic-ru.png` |
-| Phone screenshots | `phone-en/` · `phone-ru/` (or SoftUI set in `docs/play-store-screenshots-en/`) |
+| Phone screenshots | `phone-en/` (5) · `phone-ru/` (8) · same English frames in `docs/play-store-screenshots-en/` |
 | Tablet | `tablet-10-en/` · `tablet-10-ru/` |
 | What’s new | `RELEASE_NOTES_1.5.11.md` (user-facing section) |
 

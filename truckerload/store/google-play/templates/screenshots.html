@@ -111,6 +111,25 @@
       font-weight: 500;
       color: var(--soft);
     }
+    .canvas.store-phone .caption {
+      top: 52px;
+      left: 56px;
+      right: 56px;
+      height: 168px;
+    }
+    .canvas.store-phone .caption h1 {
+      font-size: 64px;
+      font-weight: 700;
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+    }
+    .canvas.store-phone .caption p {
+      margin-top: 12px;
+      font-size: 30px;
+      line-height: 1.25;
+      font-weight: 500;
+      color: #E4D3A8;
+    }
     .canvas.tablet .caption {
       left: 64px;
       right: auto;
@@ -178,6 +197,28 @@
       color: var(--text);
     }
     .canvas.tablet .phone { border-radius: 26px; }
+    .phone.live-phone { background: #0B0D1C; }
+    .phone img.live {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: top center;
+      display: block;
+    }
+    .canvas.tablet7 {
+      width: 1200px;
+      height: 1920px;
+      background:
+        radial-gradient(ellipse at 20% 0%, #2A2D66 0%, transparent 55%),
+        linear-gradient(165deg, #1E2150 0%, #171A42 45%, #0F1230 100%);
+    }
+    .canvas.tablet7 .caption h1 { font-size: 60px; }
+    .canvas.tablet7 .caption p { font-size: 30px; }
+    .canvas.tablet7 .device {
+      width: 780px;
+      height: 1500px;
+      bottom: 36px;
+    }
 
     .status {
       height: 42px;
@@ -1017,15 +1058,21 @@
         journalH: "All your data, always on hand",
         journalP: "Journal, goal and numbers stay on the phone — even offline",
         widgetH: "Home-screen widget",
-        widgetP: "Gross, goal, camera, scanner and diesel — one tap away",
+        widgetP: "Camera, scanner, and diesel — one tap",
         goalH: "Weekly goal, always in view",
         goalP: "See remaining gross and the daily pace you need",
         addH: "Any load — not only Relay",
         addP: "Paste, Telegram bot, form, or a photo of the paperwork",
-        cameraH: "Camera with location",
-        cameraP: "Trip photos get city and GPS the moment you shoot",
-        scannerH: "File and document scanner",
-        scannerP: "PDF, photo or receipt — fields fill in for you",
+        dashboardH: "The week on one screen",
+        dashboardP: "Gross, goal, and the loads behind them",
+        cameraH: "Photos with location",
+        cameraP: "City, time, and GPS on the shot",
+        photoH: "Photos with location",
+        photoP: "City, time, and GPS on the shot",
+        scannerH: "Scan the paperwork",
+        scannerP: "Rate confirmation, text included",
+        maintenanceH: "Service, on time",
+        maintenanceP: "Mileage and dates, before they are due",
         telegramH: "Telegram in — journal out",
         telegramP: "Forward a load to the bot. Import HTML or text to restore your history",
         dieselH: "Diesel in seconds",
@@ -1366,65 +1413,36 @@
       diesel: [t.dieselH, t.dieselP],
       weekly_goal: [t.goalH, t.goalP],
       telegram: [t.telegramH, t.telegramP],
+      dashboard: [t.dashboardH || t.journalH, t.dashboardP || t.journalP],
+      photo: [t.photoH || t.cameraH, t.photoP || t.cameraP],
+      maintenance: [t.maintenanceH || t.goalH, t.maintenanceP || t.goalP],
     };
+
+    function liveShot(name) {
+      return `<img class="live" alt="" src="../captures/${lang}/${name}.png" />`;
+    }
 
     function phoneCanvas(id) {
       const [h, p] = CAPTIONS[id];
-      return `<div class="canvas">
+      const canvasClass = lang === "en" ? "canvas store-phone" : "canvas";
+      return `<div class="${canvasClass}">
         <div class="caption"><h1>${h}</h1><p>${p}</p></div>
-        <div class="device"><div class="phone">${SCREENS[id]()}</div></div>
+        <div class="device"><div class="phone live-phone">${liveShot(id)}</div></div>
       </div>`;
     }
 
     function tabletCanvas() {
       return `<div class="canvas tablet">
         <div class="caption"><h1>${t.tabletH}</h1><p>${t.tabletP}</p></div>
-        <div class="device"><div class="phone" style="flex-direction:row">
-          <div class="rail">
-            <div class="rbtn on">${ICO.truck}</div>
-            <div class="rbtn">${ICO.flag}</div>
-            <div class="rbtn">${ICO.person}</div>
-          </div>
-          <div class="tablet-main">
-            <div class="tablet-col">
-              ${hdr("TruckoRig", t.hello)}
-              <div style="padding:8px 4px 0">
-                <h3 class="section">${t.recent}</h3>
-                <article class="card">
-                  <div class="row"><span class="id">114RS221Y <span class="src">${t.typeRelay}</span></span><span class="date">21 Jul</span></div>
-                  <div class="route">AURORA, CO → ARLINGTON, WA</div>
-                  <div class="stats">2 stops · 1,369 mi · <b>$3,815.90</b></div>
-                  <span class="rpm">$2.79 / mi</span>
-                </article>
-                <article class="card">
-                  <div class="row"><span class="id">M-0826-CHI <span class="src alt">${t.typeManual}</span></span><span class="date">20 Jul</span></div>
-                  <div class="route">CHICAGO, IL → ATLANTA, GA</div>
-                  <div class="stats">720 mi · <b>$2,400.00</b></div>
-                  <span class="rpm">$3.33 / mi</span>
-                </article>
-                <article class="card">
-                  <div class="row"><span class="id">KC-PHX-19 <span class="src">${t.typeBroker}</span></span><span class="date">19 Jul</span></div>
-                  <div class="route">KANSAS CITY, MO → PHOENIX, AZ</div>
-                  <div class="stats">1,180 mi · <b>$2,890.00</b></div>
-                  <span class="rpm warn">$2.45 / mi</span>
-                </article>
-              </div>
-            </div>
-            <div class="tablet-col side">
-              <div class="hero">
-                <div class="kicker">${t.week}</div>
-                <div class="amt">$12,315</div>
-                <div class="meta">4,617 mi · $2.67 / mi</div>
-                ${weekDots()}
-              </div>
-              <button class="btn">+ ${t.addLoad}</button>
-              <div class="grid2">
-                <div class="tile"><div class="k">${t.loads}</div><div class="v">4</div></div>
-                <div class="tile"><div class="k">RPM</div><div class="v">$2.67</div></div>
-              </div>
-            </div>
-          </div>
-        </div></div>
+        <div class="device"><div class="phone live-phone">${liveShot("tablet")}</div></div>
+      </div>`;
+    }
+
+    function tablet7Canvas() {
+      const [h, p] = CAPTIONS.journal;
+      return `<div class="canvas tablet7">
+        <div class="caption"><h1>${h}</h1><p>${p}</p></div>
+        <div class="device"><div class="phone live-phone">${liveShot("journal")}</div></div>
       </div>`;
     }
 
@@ -1443,7 +1461,8 @@
     const root = document.getElementById("root");
     if (kind === "feature") root.innerHTML = featureCanvas();
     else if (kind === "tablet") root.innerHTML = tabletCanvas();
-    else root.innerHTML = phoneCanvas(slide in SCREENS ? slide : "journal");
+    else if (kind === "tablet7") root.innerHTML = tablet7Canvas();
+    else root.innerHTML = phoneCanvas(slide in CAPTIONS ? slide : "journal");
     const canvas = document.querySelector(".canvas");
     if (canvas) {
       const w = getComputedStyle(canvas).width;
