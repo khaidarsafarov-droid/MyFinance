@@ -160,6 +160,9 @@ internal fun PlayDashboard(loads: List<Load>, maintenance: MaintenanceRepository
     }
 }
 
+/** Launcher page inset shared by the widget, icon grid, search pill, and dock. */
+private val LauncherInset = 16.dp
+
 /**
  * Pixel-style launcher. One full-width 4×3 widget under the status bar, then
  * an icon grid, a search pill, a dock, and the gesture bar. The wallpaper stays
@@ -188,8 +191,8 @@ internal fun PlayWidgetHome(wallpaper: Bitmap, widget: Bitmap) {
         )
         Column(modifier = Modifier.fillMaxSize()) {
             DemoStatusBar(onDark = true)
-            Spacer(Modifier.height(8.dp))
-            WidgetPlate(widget, horizontal = 16.dp)
+            Spacer(Modifier.height(LauncherInset))
+            WidgetPlate(widget, horizontal = LauncherInset)
             Spacer(Modifier.height(18.dp))
             HomeIconGrid(launcher)
             Spacer(Modifier.weight(1f))
@@ -207,8 +210,57 @@ internal fun PlayWidgetHome(wallpaper: Bitmap, widget: Bitmap) {
 private fun rememberLauncherIcon(): androidx.compose.ui.graphics.ImageBitmap? {
     val context = LocalContext.current
     return remember(context) {
-        BitmapFactory.decodeResource(context.resources, R.drawable.ic_launcher_image)?.asImageBitmap()
+        adaptiveLauncherIcon(context).asImageBitmap()
     }
+}
+
+/** Icon B: midnight gradient, gold ring, circular, same 56dp as the other plates. */
+private fun adaptiveLauncherIcon(context: Context): Bitmap {
+    val decoded = BitmapFactory.decodeResource(context.resources, R.mipmap.ic_launcher_round)
+    if (decoded != null && isMidnightPlate(decoded)) return decoded
+    return paintAdaptiveLauncherIcon(context)
+}
+
+private fun isMidnightPlate(bitmap: Bitmap): Boolean {
+    val center = bitmap.getPixel(bitmap.width / 2, bitmap.height / 2)
+    val alpha = (center ushr 24) and 0xFF
+    val lum = (((center shr 16) and 0xFF) + ((center shr 8) and 0xFF) + (center and 0xFF)) / 3
+    return alpha > 200 && lum < 80
+}
+
+private fun paintAdaptiveLauncherIcon(context: Context): Bitmap {
+    val size = 192
+    val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+    val canvas = AndroidCanvas(bitmap)
+    val paint = Paint(Paint.ANTI_ALIAS_FLAG)
+    paint.shader = android.graphics.LinearGradient(
+        size * 0.89f,
+        size * 0.81f,
+        size * 0.11f,
+        size * 0.19f,
+        0xFF1E2150.toInt(),
+        0xFF0F1230.toInt(),
+        android.graphics.Shader.TileMode.CLAMP,
+    )
+    val radius = size / 2f
+    canvas.drawCircle(radius, radius, radius, paint)
+    paint.shader = null
+    paint.style = Paint.Style.STROKE
+    paint.strokeWidth = size * (1.6f / 108f)
+    paint.color = 0xFFC8A867.toInt()
+    canvas.drawCircle(radius, radius, size * (29.8f / 72f), paint)
+    val mark = BitmapFactory.decodeResource(context.resources, R.drawable.ic_launcher_image)
+    if (mark != null) {
+        val inset = size * (21f / 108f)
+        paint.style = Paint.Style.FILL
+        canvas.drawBitmap(
+            mark,
+            null,
+            android.graphics.RectF(inset, inset, size - inset, size - inset),
+            paint,
+        )
+    }
+    return bitmap
 }
 
 private enum class HomeGlyph { Phone, Chat, Camera, Photo, Calendar, Clock, Folder, Gear, Mail, Note, Cloud }
@@ -238,7 +290,7 @@ private fun HomeIconGrid(launcher: androidx.compose.ui.graphics.ImageBitmap?) {
         { GlyphAppIcon(app) }
     }
     Column(
-        modifier = Modifier.padding(horizontal = 12.dp),
+        modifier = Modifier.padding(horizontal = LauncherInset),
         verticalArrangement = Arrangement.spacedBy(22.dp),
     ) {
         cells.chunked(columns).forEach { row ->
@@ -426,7 +478,7 @@ private fun HomeSearchPill() {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp)
+            .padding(horizontal = LauncherInset)
             .height(48.dp)
             .clip(RoundedCornerShape(24.dp))
             .background(Color.White.copy(alpha = 0.94f))
@@ -460,7 +512,7 @@ private fun HomeDock() {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp)
+            .padding(horizontal = LauncherInset)
             .clip(RoundedCornerShape(28.dp))
             .background(Color.White.copy(alpha = 0.16f))
             .padding(vertical = 10.dp),
@@ -487,7 +539,8 @@ private fun HomeGestureBar() {
 /**
  * The production week header is day-first and lowercase for every locale
  * ("18 – 24 oct"). The English listing wants a US month-first label. This
- * repaints only that header line on the already-rendered widget bitmap.
+ * repaints only that header line, starting at the same left edge as the
+ * gross amount so the rounded header corner cannot clip the first letter.
  */
 internal fun withEnglishWeekRange(source: Bitmap): Bitmap {
     val bitmap = source.copy(Bitmap.Config.ARGB_8888, true)
@@ -501,42 +554,66 @@ internal fun withEnglishWeekRange(source: Bitmap): Bitmap {
         val b = color and 0xFF
         return (r + g + b) / 3
     }
-    val scanBottom = (height * 0.22f).toInt()
-    var top = -1
-    var bottom = -1
-    val leftLimit = (width * 0.06f).toInt()
-    val rightLimit = (width * 0.62f).toInt()
+    fun bright(x: Int, y: Int): Boolean = lum(pixels[y * width + x]) > 200
+    val scanBottom = (height * 0.48f).toInt().coerceAtMost(height)
+    // Skip the rounded corner. A light pixel there is the plate, not a glyph.
+    val inset = (width * 0.07f).toInt()
+    val mid = (width * 0.58f).toInt()
+    val rowCount = IntArray(scanBottom)
     for (y in 0 until scanBottom) {
-        var light = 0
-        for (x in leftLimit until rightLimit) {
-            if (lum(pixels[y * width + x]) > 215) light++
+        var count = 0
+        for (x in inset until mid) {
+            if (bright(x, y)) count++
         }
-        if (light > 10) {
-            if (top < 0) top = y
-            bottom = y
-        } else if (top >= 0 && y > top + 6) {
-            break
+        rowCount[y] = count
+    }
+    var amountTop = -1
+    var amountBottom = -1
+    var bestSpan = 0
+    var y = 0
+    while (y < scanBottom) {
+        if (rowCount[y] > 8) {
+            val bandTop = y
+            while (y < scanBottom && rowCount[y] > 8) y++
+            val bandBottom = y - 1
+            val span = bandBottom - bandTop
+            if (span > bestSpan) {
+                bestSpan = span
+                amountTop = bandTop
+                amountBottom = bandBottom
+            }
+        } else {
+            y++
         }
     }
-    check(top >= 0) { "widget week label was not found on the rendered bitmap" }
-    var textLeft = width
-    var textRight = 0
-    for (y in top..bottom) {
-        for (x in 0 until (width * 0.75f).toInt()) {
-            if (lum(pixels[y * width + x]) > 200) {
-                if (x < textLeft) textLeft = x
-                if (x > textRight) textRight = x
+    check(amountTop >= 0) { "widget amount was not found on the rendered bitmap" }
+    var amountLeft = width
+    for (row in amountTop..amountBottom) {
+        for (x in inset until mid) {
+            if (bright(x, row)) {
+                if (x < amountLeft) amountLeft = x
+                break
             }
         }
     }
-    val sampleY = (bottom + 8).coerceAtMost(height - 1)
-    val clearBottom = (bottom + 2).coerceAtMost(height - 1)
-    for (y in (top - 1).coerceAtLeast(0)..clearBottom) {
-        for (x in (textLeft - 2).coerceAtLeast(0)..(textRight + 8).coerceAtMost(width - 1)) {
-            pixels[y * width + x] = pixels[sampleY * width + x]
+    check(amountLeft < width) { "widget amount has no left edge" }
+    var cursor = amountTop - 1
+    while (cursor >= 0 && rowCount[cursor] > 4) cursor--
+    while (cursor >= 0 && rowCount[cursor] <= 4) cursor--
+    var dateTop = -1
+    var dateBottom = if (cursor >= 0) cursor else -1
+    var dateRight = amountLeft
+    while (cursor >= 0 && rowCount[cursor] > 4) {
+        dateTop = cursor
+        cursor--
+    }
+    check(dateTop >= 0 && dateBottom >= dateTop) { "widget week label was not found on the rendered bitmap" }
+    val minX = (amountLeft - 8).coerceAtLeast(0)
+    for (row in dateTop..dateBottom) {
+        for (x in minX until (width * 0.75f).toInt()) {
+            if (bright(x, row) && x > dateRight) dateRight = x
         }
     }
-    bitmap.setPixels(pixels, 0, width, 0, 0, width, height)
     val density = width / 400f
     val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = android.graphics.Color.WHITE
@@ -546,9 +623,79 @@ internal fun withEnglishWeekRange(source: Bitmap): Bitmap {
     val label = "Oct 18 – 24"
     val bounds = android.graphics.Rect()
     paint.getTextBounds(label, 0, label.length, bounds)
-    val baseline = top + (bottom - top - bounds.height()) / 2f - bounds.top
-    AndroidCanvas(bitmap).drawText(label, textLeft.toFloat(), baseline, paint)
+    val bandHeight = (dateBottom - dateTop).toFloat().coerceAtLeast(1f)
+    if (bounds.height() > 0) {
+        val fitted = paint.textSize * (bandHeight / bounds.height())
+        paint.textSize = fitted.coerceIn(12f * density * 0.9f, 12f * density * 1.45f)
+        paint.getTextBounds(label, 0, label.length, bounds)
+    }
+    val textWidth = paint.measureText(label)
+    var gapY = (dateBottom + 1).coerceAtMost(height - 1)
+    for (row in (dateBottom + 1) until amountTop) {
+        if (rowCount[row] == 0) {
+            gapY = row
+            break
+        }
+    }
+    val clearLeft = (amountLeft - 4).coerceAtLeast(0)
+    val clearRight = maxOf(dateRight + 8, (amountLeft + textWidth + 4).toInt()).coerceAtMost(width - 1)
+    val clearTop = (dateTop - 2).coerceAtLeast(0)
+    val clearBottom = (dateBottom + 2).coerceAtMost(height - 1)
+    for (row in clearTop..clearBottom) {
+        for (x in clearLeft..clearRight) {
+            pixels[row * width + x] = pixels[gapY * width + x]
+        }
+    }
+    bitmap.setPixels(pixels, 0, width, 0, 0, width, height)
+    val baseline = dateTop + (bandHeight - bounds.height()) / 2f - bounds.top
+    val drawX = (amountLeft - bounds.left).toFloat()
+    AndroidCanvas(bitmap).drawText(label, drawX, baseline, paint)
     return bitmap
+}
+
+/**
+ * The 4×3 compose size is taller than the FULL layout, so the plate keeps an
+ * empty band under the buttons. Keep the rendered content and a short pad.
+ */
+internal fun croppedToWidgetContent(source: Bitmap): Bitmap {
+    val width = source.width
+    val height = source.height
+    if (width < 8 || height < 8) return source
+    val density = width / 400f
+    val pad = (10f * density).toInt().coerceAtLeast(1)
+    val probeY = (height - (6f * density).toInt()).coerceIn(0, height - 1)
+    val plate = source.getPixel(width / 2, probeY)
+    fun differs(color: Int): Boolean {
+        val alpha = (color ushr 24) and 0xFF
+        if (alpha < 200) return true
+        val dr = kotlin.math.abs(((color shr 16) and 0xFF) - ((plate shr 16) and 0xFF))
+        val dg = kotlin.math.abs(((color shr 8) and 0xFF) - ((plate shr 8) and 0xFF))
+        val db = kotlin.math.abs((color and 0xFF) - (plate and 0xFF))
+        return dr + dg + db > 36
+    }
+    val x0 = (width * 0.14f).toInt()
+    val x1 = (width * 0.86f).toInt()
+    val step = ((x1 - x0) / 48).coerceAtLeast(1)
+    var contentBottom = -1
+    for (y in height - 1 downTo (height * 0.4f).toInt()) {
+        var hits = 0
+        var x = x0
+        while (x < x1) {
+            if (differs(source.getPixel(x, y))) {
+                hits++
+                if (hits >= 3) break
+            }
+            x += step
+        }
+        if (hits >= 3) {
+            contentBottom = y
+            break
+        }
+    }
+    if (contentBottom < 0) return source
+    val keep = (contentBottom + 1 + pad).coerceAtMost(height)
+    if (keep >= height - 2) return source
+    return Bitmap.createBitmap(source, 0, 0, width, keep)
 }
 
 @Composable

@@ -188,11 +188,13 @@ class PlayListingCaptureTest {
         val previousLocale = java.util.Locale.getDefault()
         java.util.Locale.setDefault(storyLocale)
         val large = try {
-            withEnglishWeekRange(
-                renderGlanceWidget(
-                    DpSize(400.dp, 340.dp),
-                    selectedOffset = 2,
-                    today = LocalDate.of(2026, 10, 20),
+            croppedToWidgetContent(
+                withEnglishWeekRange(
+                    renderGlanceWidget(
+                        DpSize(400.dp, 340.dp),
+                        selectedOffset = 2,
+                        today = LocalDate.of(2026, 10, 20),
+                    ),
                 ),
             )
         } finally {
