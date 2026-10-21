@@ -3,9 +3,16 @@ package com.truckerload.presentation.premium
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.union
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -65,7 +72,7 @@ fun PaywallScreen(
     }
     androidx.compose.material3.Scaffold(
         containerColor = page,
-        contentWindowInsets = androidx.compose.foundation.layout.WindowInsets(0, 0, 0, 0),
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
             com.truckerload.presentation.components.DashboardHero(
                 title = stringResource(R.string.premium_title),
@@ -83,6 +90,10 @@ fun PaywallScreen(
         modifier = Modifier
             .fillMaxSize()
             .padding(padding)
+            // Insets wrap verticalScroll so the viewport ends above the nav bar and IME.
+            // Union avoids stacking the two bottom insets when the keyboard is open.
+            .windowInsetsPadding(WindowInsets.navigationBars.union(WindowInsets.ime))
+            .verticalScroll(rememberScrollState())
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
