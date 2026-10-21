@@ -18,6 +18,7 @@ import com.truckerload.domain.premium.PlayPricingPhase
 import com.truckerload.domain.premium.PlaySubscriptionOffer
 import com.truckerload.domain.premium.PremiumOfferQuote
 import com.truckerload.domain.premium.PremiumPolicy
+import com.truckerload.domain.premium.TrialPurchaseObservation
 import kotlin.coroutines.resume
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -38,13 +39,17 @@ import java.util.concurrent.atomic.AtomicBoolean
  *
  * Бесплатный месяц задаётся оффером подписки [PremiumPolicy.PLAY_PRODUCT_ID]
  * в Play Console. Пока триал или оплаченный период активны, Play отдаёт покупку
- * в состоянии PURCHASED — отдельный таймер в приложении не нужен.
- * Бэкенда нет: покупку подтверждаем на устройстве и кэшируем статус локально.
+ * в состоянии PURCHASED. Доступ к Premium решает только этот статус.
+ *
+ * Напоминание за 3 дня до конца бесплатного месяца — локальная оценка
+ * ([com.truckerload.domain.premium.TrialReminderPolicy]): Play не присылает дату
+ * окончания, сервера нет. Эта оценка не открывает и не закрывает Premium.
  */
 class BillingManager(context: Context) {
 
     private val app = context.applicationContext
     private val cache = SubscriptionCache(app)
+    private val trialReminders = TrialReminderCoordinator(app)
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val connectLock = Mutex()
 
@@ -74,20 +79,25 @@ class BillingManager(context: Context) {
      * последней успешной проверки.
      */
     suspend fun refresh() {
-        if (!connect()) {
+        val known = refreshKnown()
+        if (known == null) {
             _isSubscribed.value = cache.readFresh()
-            return
         }
+    }
+
+    /**
+     * Null when Play did not answer. The caller keeps the cached flag in that case.
+     * A false result means Play reported no active subscription, not a failed request.
+     */
+    suspend fun refreshKnown(): Boolean? {
+        if (!connect()) return null
         retryPendingAcks()
-        val purchases = queryPurchases()
-        if (purchases == null) {
-            _isSubscribed.value = cache.readFresh()
-            return
-        }
+        val purchases = queryPurchases() ?: return null
         val active = applyPurchases(purchases)
         cache.save(active)
         _isSubscribed.value = active
         reconnectAttempt = 0
+        return active
     }
 
     /**
@@ -97,6 +107,7 @@ class BillingManager(context: Context) {
     suspend fun loadOffer(): PremiumOfferQuote? {
         if (!connect()) return null
         val selected = playOffer(queryProduct() ?: return null) ?: return null
+        trialReminders.noteOffer(selected, launched = false)
         return PremiumOfferQuote(
             formattedPrice = selected.recurringFormattedPrice,
             includesFreeMonth = selected.includesFreeMonth,
@@ -107,7 +118,9 @@ class BillingManager(context: Context) {
     suspend fun launchBillingFlow(activity: Activity): String? {
         if (!connect()) return "billing_unavailable"
         val details = queryProduct() ?: return "product_missing"
-        val offerToken = playOffer(details)?.offerToken ?: return "offer_missing"
+        val selected = playOffer(details) ?: return "offer_missing"
+        trialReminders.noteOffer(selected, launched = true)
+        val offerToken = selected.offerToken
         val params = BillingFlowParams.newBuilder()
             .setProductDetailsParamsList(
                 listOf(
@@ -152,17 +165,35 @@ class BillingManager(context: Context) {
     private suspend fun applyPurchases(purchases: List<Purchase>): Boolean {
         val ours = purchases.filter { it.products.contains(PremiumPolicy.PLAY_PRODUCT_ID) }
         val purchased = ours.filter { it.purchaseState == Purchase.PurchaseState.PURCHASED }
+        val justAcked = mutableSetOf<String>()
         var ackFailed = false
         for (purchase in purchased.filter { !it.isAcknowledged }) {
             if (acknowledge(purchase.purchaseToken)) {
                 cache.removePendingAck(purchase.purchaseToken)
+                justAcked.add(purchase.purchaseToken)
             } else {
                 cache.addPendingAck(purchase.purchaseToken)
                 ackFailed = true
             }
         }
         val alreadyAcked = purchased.any { it.isAcknowledged }
-        return alreadyAcked || (purchased.isNotEmpty() && !ackFailed)
+        val active = alreadyAcked || (purchased.isNotEmpty() && !ackFailed)
+        trialReminders.onAcknowledgedSubscriptions(
+            premiumActive = active,
+            purchases = purchased.mapNotNull { purchase ->
+                val acked = purchase.isAcknowledged || purchase.purchaseToken in justAcked
+                if (!acked) {
+                    null
+                } else {
+                    TrialPurchaseObservation(
+                        purchaseToken = purchase.purchaseToken,
+                        purchaseTimeMillis = purchase.purchaseTime,
+                        originalJson = purchase.originalJson,
+                    )
+                }
+            },
+        )
+        return active
     }
 
     private suspend fun retryPendingAcks() {
