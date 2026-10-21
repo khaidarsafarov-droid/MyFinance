@@ -39,6 +39,12 @@ class PremiumAccess private constructor(context: Context) {
         scope.launch(Dispatchers.IO) { billing.refresh() }
     }
 
+    /**
+     * Play's answer after a fresh query. Null when Play did not answer, so a reminder
+     * does not treat an offline phone as a canceled subscription.
+     */
+    suspend fun refreshKnown(): Boolean? = withContext(Dispatchers.IO) { billing.refreshKnown() }
+
     fun isUnlocked(): Boolean = isSubscribed.value
 
     suspend fun loadOffer(): PremiumOfferQuote? = billing.loadOffer()

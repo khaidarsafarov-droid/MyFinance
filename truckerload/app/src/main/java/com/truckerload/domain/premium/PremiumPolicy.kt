@@ -1,5 +1,7 @@
 package com.truckerload.domain.premium
 
+import java.util.Locale
+
 /** What stays behind the paid plan after the first month. The journal itself stays free. */
 enum class PremiumFeature {
     TELEGRAM,
@@ -63,4 +65,19 @@ object PremiumPolicy {
      */
     fun shouldPromptForSubscription(subscribed: Boolean, offerAlreadyHandled: Boolean): Boolean =
         !subscribed && !offerAlreadyHandled
+
+    /** US catalog price ($2.99) when Play has not returned a formatted price. */
+    fun usMonthlyPriceLabel(): String {
+        val dollars = US_MONTHLY_PRICE_MICROS / 1_000_000
+        val cents = (US_MONTHLY_PRICE_MICROS % 1_000_000) / 10_000
+        return String.format(Locale.US, "$%d.%02d", dollars, cents)
+    }
+}
+
+/** Play's formatted price when it is present, otherwise the US catalog price. */
+object PremiumOfferPrice {
+    fun display(playFormattedPrice: String?): String {
+        val fromPlay = playFormattedPrice?.trim().orEmpty()
+        return fromPlay.ifEmpty { PremiumPolicy.usMonthlyPriceLabel() }
+    }
 }
