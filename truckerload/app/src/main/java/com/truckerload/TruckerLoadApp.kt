@@ -30,6 +30,11 @@ import com.truckerload.presentation.theme.ThemeManager
 import com.truckerload.di.UserComponentManager
 import com.truckerload.sync.TelegramBotPoller
 import com.truckerload.sync.TelegramSyncWorker
+import com.truckerload.data.premium.Day7SurveyStore
+import com.truckerload.data.premium.PremiumAccess
+import com.truckerload.domain.premium.Day7SurveyPolicy
+import com.truckerload.sync.Day7SurveyNotifications
+import com.truckerload.sync.Day7SurveyScheduler
 import com.truckerload.sync.SmartNotificationWorker
 import com.truckerload.utils.BackupService
 import com.truckerload.utils.CrashReporting
@@ -119,6 +124,7 @@ class TruckerLoadApp : Application(), Configuration.Provider {
         scheduleTelegramSync()
         scheduleTelegramWatchdog()
         scheduleSmartNotifications()
+        scheduleDay7Survey()
         WidgetUpdateWorker.schedule(this)
         // One deferred widget paint at cold start; periodic worker keeps it fresh.
         WidgetUpdateWorker.refreshNow(this)
@@ -175,6 +181,25 @@ class TruckerLoadApp : Application(), Configuration.Provider {
             ExistingPeriodicWorkPolicy.KEEP,
             request,
         )
+    }
+
+    private fun scheduleDay7Survey() {
+        appScope.launch(Dispatchers.IO) {
+            val store = Day7SurveyStore(this@TruckerLoadApp)
+            val now = System.currentTimeMillis()
+            store.ensureFirstLaunch(now)
+            val delay = Day7SurveyPolicy.nextCheckDelayMillis(
+                record = store.read(),
+                nowMillis = now,
+                premiumActive = PremiumAccess.get(this@TruckerLoadApp).isUnlocked(),
+                notificationsPermitted = Day7SurveyNotifications.canPost(this@TruckerLoadApp),
+            )
+            if (delay == null) {
+                Day7SurveyScheduler.cancel(this@TruckerLoadApp)
+            } else {
+                Day7SurveyScheduler.enqueue(this@TruckerLoadApp, delay)
+            }
+        }
     }
 
     private fun scheduleSmartNotifications() {

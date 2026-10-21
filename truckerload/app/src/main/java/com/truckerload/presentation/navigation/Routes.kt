@@ -28,6 +28,8 @@ object Routes {
     const val PRIVACY_SETTINGS = "privacy_settings"
     const val LANGUAGE_SETTINGS = "language_settings"
     const val ABOUT = "about"
+    /** Existing PaywallScreen. Survey and its notification open this route. */
+    const val PAYWALL = "paywall"
     const val IMPROVE = "improve"
     const val CAMERA = "camera"
     const val CAMERA_FOR_LOAD = "camera_load/{loadId}/{tripId}/{loadDate}"

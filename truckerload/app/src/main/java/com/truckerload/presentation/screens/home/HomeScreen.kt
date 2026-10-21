@@ -34,6 +34,7 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import com.truckerload.R
 import com.truckerload.domain.filter.LoadFilter
 import com.truckerload.presentation.components.AuthStatusBanner
+import com.truckerload.presentation.premium.Day7SurveyBanner
 import com.truckerload.presentation.components.LocalOpenDrawer
 import com.truckerload.presentation.connectivity.ConnectivityObserver
 import com.truckerload.presentation.connectivity.ConnectivityStatus
@@ -66,6 +67,7 @@ fun HomeScreen(
     onLoadCamera: (loadId: String, tripId: String, loadDate: String) -> Unit = { _, _, _ -> },
     onLoadScan: (loadId: String, tripId: String, loadDate: String) -> Unit = { _, _, _ -> },
     onOpenPrivacy: () -> Unit = {},
+    onOpenPaywall: () -> Unit = {},
 ) {
     val tc = LocalTruckColors.current
     val socialProfile by LocalProfileRepository.current.watchMyEnhancedProfile()
@@ -242,6 +244,7 @@ fun HomeScreen(
                         )
                     }
                     AuthStatusBanner()
+                    Day7SurveyBanner(onWantMore = onOpenPaywall)
                     HomeScreenContent(
                         paddingValues = paddingValues,
                         uiState = uiState,

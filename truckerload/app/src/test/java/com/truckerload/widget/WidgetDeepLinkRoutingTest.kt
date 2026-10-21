@@ -27,6 +27,7 @@ class WidgetDeepLinkRoutingTest {
         assertEquals("home", WidgetDeepLink.resolveNavRoute(WidgetDeepLink.ROUTE_HOME))
         assertEquals("home", WidgetDeepLink.resolveNavRoute(WidgetDeepLink.ROUTE_JOURNAL_THIS_WEEK))
         assertEquals("add_load", WidgetDeepLink.resolveNavRoute(WidgetDeepLink.ROUTE_ADD_LOAD))
+        assertEquals("paywall", WidgetDeepLink.resolveNavRoute(WidgetDeepLink.ROUTE_PAYWALL))
     }
 
     @Test
@@ -64,6 +65,7 @@ class WidgetDeepLinkRoutingTest {
     fun sanitizeIncomingRoute_keepsAllowListedRoutes() {
         assertEquals("add_load", WidgetDeepLink.sanitizeIncomingRoute("add_load"))
         assertEquals("add_paycheck", WidgetDeepLink.sanitizeIncomingRoute(" add_paycheck "))
+        assertEquals("paywall", WidgetDeepLink.sanitizeIncomingRoute("paywall"))
         assertEquals("home", WidgetDeepLink.sanitizeIncomingRoute("journal_this_week"))
         assertEquals("analytics", WidgetDeepLink.sanitizeIncomingRoute("stats"))
         assertEquals("attach_pick/camera", WidgetDeepLink.sanitizeIncomingRoute("camera"))

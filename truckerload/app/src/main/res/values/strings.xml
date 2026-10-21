@@ -789,6 +789,10 @@
     <string name="premium_offer_title">Subscribe in Google Play</string>
     <string name="premium_offer_body">The free month does not start when you open the app. It starts only after you subscribe in Google Play: one month free, then the monthly price ($2.99 in the United States). If you skip, the free version stays: loads, diesel, paychecks, and deadhead. Telegram, analytics, and the other Premium tools stay locked.</string>
     <string name="premium_offer_continue_free">Continue with the free version</string>
+    <string name="day7_survey_question">Is the free version enough for you?</string>
+    <string name="day7_survey_enough">It\'s enough</string>
+    <string name="day7_survey_more">I want more</string>
+    <string name="day7_survey_channel_name">Free version</string>
     <string name="premium_active">Premium is active</string>
     <string name="settings_premium_pill">PREMIUM</string>
     <string name="settings_premium_active_chip">Active</string>

@@ -53,8 +53,8 @@ fun rememberPremiumAccess(): PremiumAccess {
 
 @Composable
 fun PaywallScreen(
-    feature: PremiumFeature,
     onBack: () -> Unit,
+    feature: PremiumFeature? = null,
 ) {
     val tc = LocalTruckColors.current
     val access = rememberPremiumAccess()
@@ -88,11 +88,13 @@ fun PaywallScreen(
     ) {
         com.truckerload.presentation.components.DashboardCard {
             Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(
-            stringResource(feature.lockedMessage()),
-            style = MaterialTheme.typography.bodyLarge,
-            color = com.truckerload.presentation.theme.LocalBrandPalette.current.textPrimary,
-        )
+        if (feature != null) {
+            Text(
+                stringResource(feature.lockedMessage()),
+                style = MaterialTheme.typography.bodyLarge,
+                color = com.truckerload.presentation.theme.LocalBrandPalette.current.textPrimary,
+            )
+        }
         Text(
             stringResource(R.string.premium_body),
             style = MaterialTheme.typography.bodyMedium,

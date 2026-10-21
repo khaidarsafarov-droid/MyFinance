@@ -789,6 +789,10 @@
     <string name="premium_offer_title">Подписка в Google Play</string>
     <string name="premium_offer_body">Бесплатный месяц не включается, когда вы открываете приложение. Он начинается только после подписки в Google Play: первый месяц бесплатно, дальше ежемесячная цена (в США 2,99 $). Если пропустить, останется бесплатная версия: грузы, дизель, зарплаты и deadhead. Telegram, аналитика и остальные инструменты Premium будут закрыты.</string>
     <string name="premium_offer_continue_free">Остаться на бесплатной версии</string>
+    <string name="day7_survey_question">Хватает ли вам бесплатной версии?</string>
+    <string name="day7_survey_enough">Мне хватает</string>
+    <string name="day7_survey_more">Хочу больше</string>
+    <string name="day7_survey_channel_name">Бесплатная версия</string>
     <string name="premium_active">Подписка активна</string>
     <string name="settings_premium_pill">PREMIUM</string>
     <string name="settings_premium_active_chip">Активна</string>

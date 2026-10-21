@@ -789,6 +789,10 @@
     <string name="premium_offer_title">Suscripción en Google Play</string>
     <string name="premium_offer_body">El mes gratis no empieza al abrir la app. Empieza solo cuando te suscribes en Google Play: un mes gratis y luego el precio mensual (2,99 $ en Estados Unidos). Si lo omites, sigue la versión gratis: cargas, diésel, pagos y deadhead. Telegram, analítica y el resto de Premium quedan bloqueados.</string>
     <string name="premium_offer_continue_free">Seguir con la versión gratis</string>
+    <string name="day7_survey_question">¿Te basta la versión gratuita?</string>
+    <string name="day7_survey_enough">Me basta</string>
+    <string name="day7_survey_more">Quiero más</string>
+    <string name="day7_survey_channel_name">Versión gratuita</string>
     <string name="premium_active">Premium activo</string>
     <string name="settings_premium_pill">PREMIUM</string>
     <string name="settings_premium_active_chip">Activa</string>
