@@ -55,18 +55,19 @@ internal fun SplitCabinBody(
     selectedOffset: Int,
     wide: Boolean,
     today: LocalDate = LocalDate.now(),
+    weekRange: String? = null,
 ) {
     val layout = cabinLayoutFor(LocalSize.current, LocalWidgetSizeMode.current)
     val colors = LocalCabinColors.current
     if (layout.bucket == CabinBucket.MICRO && wide) {
-        MicroSplitRow(context, shown, layout, colors, today)
+        MicroSplitRow(context, shown, layout, colors, today, weekRange)
     } else {
         Column(
             modifier = GlanceModifier
                 .fillMaxSize()
                 .cabinPlate(colors, layout.cornerDp),
         ) {
-            SplitHeader(context, shown, layout, colors, GlanceModifier.fillMaxWidth(), today)
+            SplitHeader(context, shown, layout, colors, GlanceModifier.fillMaxWidth(), today, weekRange)
             Column(
                 modifier = GlanceModifier
                     .fillMaxWidth()
@@ -95,6 +96,7 @@ private fun MicroSplitRow(
     layout: CabinLayout,
     colors: WidgetCabinColors,
     today: LocalDate,
+    weekRange: String?,
 ) {
     Row(
         modifier = GlanceModifier
@@ -110,6 +112,7 @@ private fun MicroSplitRow(
             colors,
             GlanceModifier.defaultWeight(),
             today,
+            weekRange,
         )
         Spacer(modifier = GlanceModifier.width(8.dp))
         SplitActionRow(context, layout, colors)
@@ -124,8 +127,9 @@ private fun SplitHeader(
     colors: WidgetCabinColors,
     modifier: GlanceModifier,
     today: LocalDate,
+    weekRange: String?,
 ) {
-    val weekLine = headerLine(context, shown, today)
+    val weekLine = headerLine(context, shown, today, weekRange)
     val amount = WidgetStatsFormatter.formatGrossUsd(shown.totalLoadRate)
     val goal = goalMoney(context, shown)
     val percent = WidgetStatsFormatter.formatRingPercent(shown.goalProgressPercent)
@@ -453,7 +457,13 @@ private fun ActionIcon(
     )
 }
 
-private fun headerLine(context: Context, shown: WidgetStats, today: LocalDate = LocalDate.now()): String {
+private fun headerLine(
+    context: Context,
+    shown: WidgetStats,
+    today: LocalDate = LocalDate.now(),
+    weekRange: String? = null,
+): String {
+    if (!weekRange.isNullOrBlank()) return weekRange
     val weekStart = WidgetWeekDayHelper.startOfWeek(today)
     val range = formatSplitWeekRange(
         weekStart,

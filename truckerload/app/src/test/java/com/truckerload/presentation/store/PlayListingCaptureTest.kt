@@ -189,12 +189,11 @@ class PlayListingCaptureTest {
         java.util.Locale.setDefault(storyLocale)
         val large = try {
             croppedToWidgetContent(
-                withEnglishWeekRange(
-                    renderGlanceWidget(
-                        DpSize(400.dp, 340.dp),
-                        selectedOffset = 2,
-                        today = LocalDate.of(2026, 10, 20),
-                    ),
+                renderGlanceWidget(
+                    DpSize(400.dp, 340.dp),
+                    selectedOffset = 2,
+                    today = LocalDate.of(2026, 10, 20),
+                    weekRange = "Oct 18 – 24",
                 ),
             )
         } finally {
@@ -281,6 +280,7 @@ class PlayListingCaptureTest {
         size: DpSize,
         selectedOffset: Int = 1,
         today: LocalDate = LocalDate.now(),
+        weekRange: String? = null,
     ): Bitmap {
         val activity = Robolectric.buildActivity(ComponentActivity::class.java).setup().get()
         val done = CompletableDeferred<android.widget.RemoteViews>()
@@ -297,6 +297,7 @@ class PlayListingCaptureTest {
                         selectedOffset = selectedOffset,
                         wide = true,
                         today = today,
+                        weekRange = weekRange,
                     )
                 }
             }

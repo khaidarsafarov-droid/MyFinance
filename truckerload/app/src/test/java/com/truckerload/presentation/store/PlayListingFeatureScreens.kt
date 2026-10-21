@@ -4,7 +4,6 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas as AndroidCanvas
 import android.graphics.Paint
-import android.graphics.Typeface
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -534,123 +533,6 @@ private fun HomeGestureBar() {
                 .background(Color.White.copy(alpha = 0.88f)),
         )
     }
-}
-
-/**
- * The production week header is day-first and lowercase for every locale
- * ("18 – 24 oct"). The English listing wants a US month-first label. This
- * repaints only that header line, starting at the same left edge as the
- * gross amount so the rounded header corner cannot clip the first letter.
- */
-internal fun withEnglishWeekRange(source: Bitmap): Bitmap {
-    val bitmap = source.copy(Bitmap.Config.ARGB_8888, true)
-    val width = bitmap.width
-    val height = bitmap.height
-    val pixels = IntArray(width * height)
-    bitmap.getPixels(pixels, 0, width, 0, 0, width, height)
-    fun lum(color: Int): Int {
-        val r = (color shr 16) and 0xFF
-        val g = (color shr 8) and 0xFF
-        val b = color and 0xFF
-        return (r + g + b) / 3
-    }
-    fun bright(x: Int, y: Int): Boolean = lum(pixels[y * width + x]) > 200
-    val scanBottom = (height * 0.48f).toInt().coerceAtMost(height)
-    // Skip the rounded corner. A light pixel there is the plate, not a glyph.
-    val inset = (width * 0.07f).toInt()
-    val mid = (width * 0.58f).toInt()
-    val rowCount = IntArray(scanBottom)
-    for (y in 0 until scanBottom) {
-        var count = 0
-        for (x in inset until mid) {
-            if (bright(x, y)) count++
-        }
-        rowCount[y] = count
-    }
-    var amountTop = -1
-    var amountBottom = -1
-    var bestSpan = 0
-    var y = 0
-    while (y < scanBottom) {
-        if (rowCount[y] > 8) {
-            val bandTop = y
-            while (y < scanBottom && rowCount[y] > 8) y++
-            val bandBottom = y - 1
-            val span = bandBottom - bandTop
-            if (span > bestSpan) {
-                bestSpan = span
-                amountTop = bandTop
-                amountBottom = bandBottom
-            }
-        } else {
-            y++
-        }
-    }
-    check(amountTop >= 0) { "widget amount was not found on the rendered bitmap" }
-    var amountLeft = width
-    for (row in amountTop..amountBottom) {
-        for (x in inset until mid) {
-            if (bright(x, row)) {
-                if (x < amountLeft) amountLeft = x
-                break
-            }
-        }
-    }
-    check(amountLeft < width) { "widget amount has no left edge" }
-    var cursor = amountTop - 1
-    while (cursor >= 0 && rowCount[cursor] > 4) cursor--
-    while (cursor >= 0 && rowCount[cursor] <= 4) cursor--
-    var dateTop = -1
-    var dateBottom = if (cursor >= 0) cursor else -1
-    var dateRight = amountLeft
-    while (cursor >= 0 && rowCount[cursor] > 4) {
-        dateTop = cursor
-        cursor--
-    }
-    check(dateTop >= 0 && dateBottom >= dateTop) { "widget week label was not found on the rendered bitmap" }
-    val minX = (amountLeft - 8).coerceAtLeast(0)
-    for (row in dateTop..dateBottom) {
-        for (x in minX until (width * 0.75f).toInt()) {
-            if (bright(x, row) && x > dateRight) dateRight = x
-        }
-    }
-    val density = width / 400f
-    val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = android.graphics.Color.WHITE
-        textSize = 12f * density
-        typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
-    }
-    val label = "Oct 18 – 24"
-    val bounds = android.graphics.Rect()
-    paint.getTextBounds(label, 0, label.length, bounds)
-    val bandHeight = (dateBottom - dateTop).toFloat().coerceAtLeast(1f)
-    if (bounds.height() > 0) {
-        val fitted = paint.textSize * (bandHeight / bounds.height())
-        paint.textSize = fitted.coerceIn(12f * density * 0.9f, 12f * density * 1.45f)
-        paint.getTextBounds(label, 0, label.length, bounds)
-    }
-    val textWidth = paint.measureText(label)
-    var gapY = (dateBottom + 1).coerceAtMost(height - 1)
-    for (row in (dateBottom + 1) until amountTop) {
-        if (rowCount[row] == 0) {
-            gapY = row
-            break
-        }
-    }
-    val clearLeft = (amountLeft - 4).coerceAtLeast(0)
-    val clearRight = maxOf(dateRight + 8, (amountLeft + textWidth + 4).toInt()).coerceAtMost(width - 1)
-    val clearTop = (dateTop - 2).coerceAtLeast(0)
-    val clearBottom = (dateBottom + 2).coerceAtMost(height - 1)
-    for (row in clearTop..clearBottom) {
-        for (x in clearLeft..clearRight) {
-            pixels[row * width + x] = pixels[gapY * width + x]
-        }
-    }
-    bitmap.setPixels(pixels, 0, width, 0, 0, width, height)
-    val baseline = dateTop + (bandHeight - bounds.height()) / 2f - bounds.top
-    val drawX = (amountLeft - bounds.left).toFloat()
-    AndroidCanvas(bitmap).drawText(label, drawX, baseline, paint)
-    return bitmap
 }
 
 /**
