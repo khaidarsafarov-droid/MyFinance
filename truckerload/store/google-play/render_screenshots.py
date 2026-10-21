@@ -28,16 +28,19 @@ CHROME_CANDIDATES = [
 ]
 CHROME = next((p for p in CHROME_CANDIDATES if p and Path(p).exists()), None)
 
-PHONE_SLIDES = [
-    "journal",
-    "widget",
-    "add_load",
-    "camera",
-    "scanner",
-    "diesel",
-    "weekly_goal",
-    "telegram",
-]
+PHONE_SLIDES = {
+    "en": ["dashboard", "widget", "photo", "scanner", "maintenance", "premium", "analytics"],
+    "ru": [
+        "journal",
+        "widget",
+        "add_load",
+        "camera",
+        "scanner",
+        "diesel",
+        "weekly_goal",
+        "telegram",
+    ],
+}
 PHONE_SIZE = (1080, 1920)
 TABLET_SIZE = (1920, 1200)
 FEATURE_SIZE = (1024, 500)
@@ -82,21 +85,58 @@ def file_url(kind: str, lang: str, slide: str | None = None) -> str:
 
 
 def main() -> int:
-    jobs: list[tuple[str, Path, tuple[int, int]]] = []
+    only = set(sys.argv[1:])
+    kinds = {"all", "phone", "tablet", "feature", "en-phone", "ru-phone"}
+    slides = only - kinds
+
+    def wants_phone(lang: str) -> bool:
+        if not only:
+            return True
+        if f"{lang}-phone" in only or "phone" in only or "all" in only:
+            return True
+        # `python3 render_screenshots.py premium` renders that slide only.
+        return bool(slides) and only.isdisjoint(kinds)
+
+    jobs: list[tuple[str, Path, tuple[int, int], int]] = []
     for lang, folder in (("ru", "phone-ru"), ("en", "phone-en")):
-        for i, slide in enumerate(PHONE_SLIDES, start=1):
+        if not wants_phone(lang):
+            continue
+        dest_dir = ROOT / folder
+        keep = set()
+        for i, slide in enumerate(PHONE_SLIDES[lang], start=1):
+            if slides and slide not in slides:
+                continue
             name = f"{i:02d}_{slide}.png"
-            jobs.append((file_url("phone", lang, slide), ROOT / folder / name, PHONE_SIZE, 1))
-    for lang, folder in (("ru", "tablet-10-ru"), ("en", "tablet-10-en")):
-        jobs.append((file_url("tablet", lang), ROOT / folder / "01_journal_landscape.png", TABLET_SIZE, 1))
-    jobs.append((file_url("feature", "ru"), ROOT / "feature-graphic-ru.png", FEATURE_SIZE, 1))
-    jobs.append((file_url("feature", "en"), ROOT / "feature-graphic-en.png", FEATURE_SIZE, 1))
-    jobs.append((file_url("feature", "ru"), ROOT / "feature-graphic-ru-2048x1000.png", FEATURE_SIZE, 2))
-    jobs.append((file_url("feature", "en"), ROOT / "feature-graphic-en-2048x1000.png", FEATURE_SIZE, 2))
+            keep.add(name)
+            # English frames are shot at 2× and downsampled so captions stay crisp.
+            scale = 2 if lang == "en" else 1
+            jobs.append((file_url("phone", lang, slide), dest_dir / name, PHONE_SIZE, scale))
+        # A named slide (python3 render_screenshots.py premium) must not delete the rest.
+        if not slides and dest_dir.is_dir():
+            for stale in dest_dir.glob("*.png"):
+                if stale.name not in keep:
+                    stale.unlink()
+                    print(f"remove {stale.relative_to(ROOT)}", flush=True)
+    if not only or "tablet" in only or "all" in only:
+        for lang, folder in (("ru", "tablet-10-ru"), ("en", "tablet-10-en")):
+            jobs.append((file_url("tablet", lang), ROOT / folder / "01_journal_landscape.png", TABLET_SIZE, 1))
+        tablet7 = (1200, 1920)
+        for lang, folder in (("ru", "tablet-7-ru"), ("en", "tablet-7-en")):
+            jobs.append((file_url("tablet7", lang), ROOT / folder / "01_journal.png", tablet7, 1))
+    if not only or "feature" in only or "all" in only:
+        jobs.append((file_url("feature", "ru"), ROOT / "feature-graphic-ru.png", FEATURE_SIZE, 1))
+        jobs.append((file_url("feature", "en"), ROOT / "feature-graphic-en.png", FEATURE_SIZE, 1))
+        jobs.append((file_url("feature", "ru"), ROOT / "feature-graphic-ru-2048x1000.png", FEATURE_SIZE, 2))
+        jobs.append((file_url("feature", "en"), ROOT / "feature-graphic-en-2048x1000.png", FEATURE_SIZE, 2))
 
     for url, dest, size, scale in jobs:
-        print(f"render {dest.relative_to(ROOT)}  {size[0] * scale}x{size[1] * scale}", flush=True)
+        print(f"render {dest.relative_to(ROOT)}  {size[0]}x{size[1]}", flush=True)
         chrome_screenshot(url, dest, size, scale)
+        if scale > 1 and size == PHONE_SIZE:
+            sharp = Image.open(dest).convert("RGB")
+            if sharp.size != PHONE_SIZE:
+                sharp = sharp.resize(PHONE_SIZE, Image.Resampling.LANCZOS)
+                sharp.save(dest, "PNG", optimize=True)
 
     print(f"done: {len(jobs)} images")
     return 0

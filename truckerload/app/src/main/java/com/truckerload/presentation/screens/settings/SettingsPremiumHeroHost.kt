@@ -59,5 +59,13 @@ internal fun SettingsPremiumHeroHost(
         },
         onRestore = { access.refresh() },
         modifier = modifier,
+        footer = {
+            TrialEndReminderBanner(
+                onManage = {
+                    val activity = context.findActivity() ?: return@TrialEndReminderBanner
+                    access.openSubscriptionManagement(activity)
+                },
+            )
+        },
     )
 }

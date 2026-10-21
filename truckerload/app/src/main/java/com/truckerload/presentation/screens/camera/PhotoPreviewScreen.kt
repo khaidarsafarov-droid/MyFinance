@@ -57,11 +57,12 @@ fun PhotoPreviewScreen(
     saveSuccess: Boolean,
     saveError: Boolean = false,
     onSaveErrorShown: () -> Unit = {},
+    previewMaxEdgePx: Int = 512,
 ) {
     val context = LocalContext.current
     val tc = LocalTruckColors.current
     val snackbarHostState = remember { SnackbarHostState() }
-    val bitmap = rememberDecodedBitmap(photo.file.absolutePath)
+    val bitmap = rememberDecodedBitmap(photo.file.absolutePath, previewMaxEdgePx)
 
     LaunchedEffect(saveSuccess) {
         if (saveSuccess) {

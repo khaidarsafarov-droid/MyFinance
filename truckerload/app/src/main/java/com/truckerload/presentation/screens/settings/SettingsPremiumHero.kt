@@ -47,6 +47,7 @@ internal fun SettingsPremiumHero(
     onPurchase: () -> Unit,
     onRestore: () -> Unit,
     modifier: Modifier = Modifier,
+    footer: @Composable () -> Unit = {},
 ) {
     val brand = LocalBrandPalette.current
     val onHero = brand.heroText
@@ -162,6 +163,7 @@ internal fun SettingsPremiumHero(
                 )
             }
         }
+        footer()
     }
 }
 

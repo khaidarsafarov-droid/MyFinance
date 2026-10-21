@@ -11,11 +11,9 @@
 | `screenshots/phone-framed/*.png` | 8 × 1080×1920 PNG | Скриншоты телефона (**рекомендуется загружать эти**) |
 | `screenshots/phone/*.png` | 8 × 1080×1920 PNG | Исходные снимки экрана без подписей |
 
-`phone-framed` — те же снимки на фоне Midnight & Gold с русскими подписями: в поиске Play
-подпись видна сразу и продаёт функцию лучше, чем «голый» экран. `phone` оставлены
-как исходники — из них пересобираются подписанные версии, и их же можно залить,
-если нужны скриншоты без маркетингового оформления. Это реальные снимки эмулятора
-со старой палитрой приложения; перекраска кадров их не меняет.
+`phone-framed` — те же снимки на фоне Midnight & Gold с русскими подписями.
+`phone` — исходники без подписи. Это кадры текущего интерфейса (Compose, палитра
+Midnight & Gold), снятые тестом Robolectric на фиктивных грузах, а не старым эмулятором.
 
 ## Соответствие требованиям Google Play
 
@@ -58,40 +56,15 @@ python3 scripts/build_play_store_assets.py
 
 ## Как сняты исходные скриншоты
 
-Снимались на эмуляторе `android-34;default;x86_64` (AOSP-образ — он легче и не
-показывает системные диалоги Google Play Services), AVD 1080×1920 @ 420 dpi,
-`adb exec-out screencap -p`.
-
-Подготовка устройства перед съёмкой:
-
-```bash
-# анимации выключены, системные ANR-диалоги скрыты, жестовая навигация вместо трёх кнопок
-adb shell settings put global window_animation_scale 0
-adb shell settings put global transition_animation_scale 0
-adb shell settings put global animator_duration_scale 0
-adb shell settings put global hide_error_dialogs 1
-adb shell cmd overlay enable com.android.internal.systemui.navbar.gestural
-
-# «чистый» статус-бар: фиксированное время, полная батарея, без иконок уведомлений
-adb shell settings put global sysui_demo_allowed 1
-adb shell am broadcast -a com.android.systemui.demo -e command enter
-adb shell am broadcast -a com.android.systemui.demo -e command clock -e hhmm 0930
-adb shell am broadcast -a com.android.systemui.demo -e command battery -e level 100 -e plugged false
-adb shell am broadcast -a com.android.systemui.demo -e command notifications -e visible false
-```
-
-Данные на скриншотах — демонстрационные: 12 отчётных недель (48 грузов, зарплаты,
-дизель и разные расходы) залиты напрямую в Room-базу офлайн-аккаунта
-`/data/data/com.truckorig/databases/truckerload_local_dev`. Генератор SQL —
-`scripts/seed_play_store_demo_data.py`:
+Эмулятор в этой среде недоступен, поэтому кадры рисует тест
+`PlayListingCaptureTest` (Robolectric, API 33, 420 dpi, светлая тема). Он вызывает
+текущие Compose-экраны с вымышленными грузами (Алекс Морган, Garner NC, Dallas TX,
+Amarillo TX). Статус-бар на кадре — 9:41, полная батарея и сигнал. Виджет — живой
+Glance `SplitCabinBody`, не рисунок. Русские исходники для `screenshots/phone`
+кропаются из `store/google-play/captures/ru/` без увеличения.
 
 ```bash
-python3 scripts/seed_play_store_demo_data.py > demo.sql
-adb shell am force-stop com.truckorig
-adb push demo.sql /data/local/tmp/demo.sql
-adb shell "cat /data/local/tmp/demo.sql | run-as com.truckorig sqlite3 databases/truckerload_local_dev"
+# из каталога truckerload, после прогона теста снимки лежат в /tmp/play-captures
+python3 store/google-play/install_captures.py /tmp/play-captures
+python3 scripts/build_play_store_assets.py
 ```
-
-Даты в генераторе привязаны к неделе съёмки (23–29 августа 2026). Если скриншоты
-снимаются заново, поменяйте `WEEK_START` / `LAST_WEEK_START` / `TODAY` в скрипте,
-иначе фильтр «Эта неделя» окажется пустым.
