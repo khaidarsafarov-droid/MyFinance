@@ -2,18 +2,26 @@ package com.truckerload.presentation.store
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Canvas as AndroidCanvas
+import android.graphics.Paint
+import android.graphics.Typeface
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
@@ -24,12 +32,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalLocale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -60,8 +72,6 @@ import com.truckerload.utils.PhotoManager
 import android.content.Context
 import java.io.File
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-import java.time.format.FormatStyle
 
 /** 2026-10-20 09:41 UTC — the same instant on the photo stamp, the scan, and the home screen. */
 internal const val PLAY_STORY_AT = 1_792_489_260_000L
@@ -150,14 +160,14 @@ internal fun PlayDashboard(loads: List<Load>, maintenance: MaintenanceRepository
     }
 }
 
+/**
+ * Pixel-style launcher. One full-width 4×3 widget under the status bar, then
+ * an icon grid, a search pill, a dock, and the gesture bar. The wallpaper stays
+ * visible through a scrim so the widget plate stays readable.
+ */
 @Composable
-internal fun PlayWidgetHome(wallpaper: Bitmap, large: Bitmap, compact: Bitmap) {
-    val locale = LocalLocale.current.platformLocale
-    val date = remember(locale) {
-        LocalDate.of(2026, 10, 20).format(
-            DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).withLocale(locale),
-        )
-    }
+internal fun PlayWidgetHome(wallpaper: Bitmap, widget: Bitmap) {
+    val launcher = rememberLauncherIcon()
     Box(modifier = Modifier.fillMaxSize()) {
         Image(
             bitmap = wallpaper.asImageBitmap(),
@@ -165,31 +175,380 @@ internal fun PlayWidgetHome(wallpaper: Bitmap, large: Bitmap, compact: Bitmap) {
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize(),
         )
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(bottom = 18.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
+                .background(
+                    Brush.verticalGradient(
+                        0f to Color.Black.copy(alpha = 0.28f),
+                        0.42f to Color.Black.copy(alpha = 0.36f),
+                        1f to Color.Black.copy(alpha = 0.48f),
+                    ),
+                ),
+        )
+        Column(modifier = Modifier.fillMaxSize()) {
             DemoStatusBar(onDark = true)
+            Spacer(Modifier.height(8.dp))
+            WidgetPlate(widget, horizontal = 16.dp)
             Spacer(Modifier.height(18.dp))
-            Text(
-                text = "9:41",
-                color = androidx.compose.ui.graphics.Color.White,
-                fontSize = 64.sp,
-                fontWeight = FontWeight.Light,
-            )
-            Text(
-                text = date,
-                color = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.88f),
-                style = MaterialTheme.typography.titleMedium,
-            )
+            HomeIconGrid(launcher)
             Spacer(Modifier.weight(1f))
-            WidgetPlate(compact, horizontal = 36.dp)
-            Spacer(Modifier.height(14.dp))
-            WidgetPlate(large, horizontal = 14.dp)
+            HomeSearchPill()
+            Spacer(Modifier.height(10.dp))
+            HomeDock()
+            Spacer(Modifier.height(8.dp))
+            HomeGestureBar()
+            Spacer(Modifier.height(6.dp))
         }
     }
+}
+
+@Composable
+private fun rememberLauncherIcon(): androidx.compose.ui.graphics.ImageBitmap? {
+    val context = LocalContext.current
+    return remember(context) {
+        BitmapFactory.decodeResource(context.resources, R.drawable.ic_launcher_image)?.asImageBitmap()
+    }
+}
+
+private enum class HomeGlyph { Phone, Chat, Camera, Photo, Calendar, Clock, Folder, Gear, Mail, Note, Cloud }
+
+private data class HomeApp(val label: String, val glyph: HomeGlyph, val plate: Color)
+
+private val HomeApps = listOf(
+    HomeApp("Phone", HomeGlyph.Phone, Color(0xFF3E4C5E)),
+    HomeApp("Messages", HomeGlyph.Chat, Color(0xFF4A5568)),
+    HomeApp("Camera", HomeGlyph.Camera, Color(0xFF2F3C4A)),
+    HomeApp("Photos", HomeGlyph.Photo, Color(0xFF5C5348)),
+    HomeApp("Calendar", HomeGlyph.Calendar, Color(0xFF3F4A44)),
+    HomeApp("Clock", HomeGlyph.Clock, Color(0xFF4E463C)),
+    HomeApp("Files", HomeGlyph.Folder, Color(0xFF3A4454)),
+    HomeApp("Mail", HomeGlyph.Mail, Color(0xFF4A4038)),
+    HomeApp("Notes", HomeGlyph.Note, Color(0xFF3D4A42)),
+    HomeApp("Weather", HomeGlyph.Cloud, Color(0xFF3A4A55)),
+    HomeApp("Settings", HomeGlyph.Gear, Color(0xFF454550)),
+)
+
+@Composable
+private fun HomeIconGrid(launcher: androidx.compose.ui.graphics.ImageBitmap?) {
+    val columns = 4
+    val cells = listOf<(@Composable () -> Unit)>(
+        { LauncherAppIcon(launcher) },
+    ) + HomeApps.map { app ->
+        { GlyphAppIcon(app) }
+    }
+    Column(
+        modifier = Modifier.padding(horizontal = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(22.dp),
+    ) {
+        cells.chunked(columns).forEach { row ->
+            Row(modifier = Modifier.fillMaxWidth()) {
+                row.forEach { cell ->
+                    Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) { cell() }
+                }
+                repeat(columns - row.size) { Spacer(Modifier.weight(1f)) }
+            }
+        }
+    }
+}
+
+@Composable
+private fun LauncherAppIcon(launcher: androidx.compose.ui.graphics.ImageBitmap?) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        if (launcher != null) {
+            Image(
+                bitmap = launcher,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.size(56.dp).clip(CircleShape),
+            )
+        } else {
+            GlyphPlate(Color(0xFF1E2150)) { /* mark is the bitmap */ }
+        }
+        Spacer(Modifier.height(4.dp))
+        Text(
+            text = "TruckoRig",
+            color = Color.White,
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Medium,
+            maxLines = 1,
+        )
+    }
+}
+
+@Composable
+private fun GlyphAppIcon(app: HomeApp) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        GlyphPlate(app.plate) { HomeGlyphMark(app.glyph) }
+        Spacer(Modifier.height(4.dp))
+        Text(
+            text = app.label,
+            color = Color.White,
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Medium,
+            maxLines = 1,
+        )
+    }
+}
+
+@Composable
+private fun GlyphPlate(plate: Color, mark: @Composable () -> Unit) {
+    Box(
+        modifier = Modifier
+            .size(56.dp)
+            .clip(CircleShape)
+            .background(plate),
+        contentAlignment = Alignment.Center,
+    ) {
+        mark()
+    }
+}
+
+@Composable
+private fun HomeGlyphMark(glyph: HomeGlyph) {
+    val ink = Color.White
+    Canvas(modifier = Modifier.size(26.dp)) {
+        val s = size.minDimension
+        val stroke = Stroke(width = s * 0.08f, cap = StrokeCap.Round)
+        when (glyph) {
+            HomeGlyph.Phone -> {
+                drawRoundRect(
+                    ink,
+                    topLeft = Offset(s * 0.28f, s * 0.08f),
+                    size = Size(s * 0.44f, s * 0.84f),
+                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(s * 0.1f, s * 0.1f),
+                    style = stroke,
+                )
+            }
+            HomeGlyph.Chat -> {
+                drawRoundRect(
+                    ink,
+                    topLeft = Offset(s * 0.08f, s * 0.12f),
+                    size = Size(s * 0.84f, s * 0.58f),
+                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(s * 0.12f, s * 0.12f),
+                    style = stroke,
+                )
+                drawLine(ink, Offset(s * 0.28f, s * 0.7f), Offset(s * 0.22f, s * 0.9f), stroke.width, StrokeCap.Round)
+            }
+            HomeGlyph.Camera -> {
+                drawRoundRect(
+                    ink,
+                    topLeft = Offset(s * 0.08f, s * 0.28f),
+                    size = Size(s * 0.84f, s * 0.56f),
+                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(s * 0.1f, s * 0.1f),
+                    style = stroke,
+                )
+                drawCircle(ink, radius = s * 0.16f, center = Offset(s * 0.5f, s * 0.56f), style = stroke)
+            }
+            HomeGlyph.Photo -> {
+                drawRoundRect(
+                    ink,
+                    topLeft = Offset(s * 0.1f, s * 0.16f),
+                    size = Size(s * 0.8f, s * 0.68f),
+                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(s * 0.08f, s * 0.08f),
+                    style = stroke,
+                )
+                drawCircle(ink, radius = s * 0.08f, center = Offset(s * 0.32f, s * 0.36f))
+            }
+            HomeGlyph.Calendar -> {
+                drawRoundRect(
+                    ink,
+                    topLeft = Offset(s * 0.12f, s * 0.2f),
+                    size = Size(s * 0.76f, s * 0.68f),
+                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(s * 0.08f, s * 0.08f),
+                    style = stroke,
+                )
+                drawLine(ink, Offset(s * 0.12f, s * 0.4f), Offset(s * 0.88f, s * 0.4f), stroke.width, StrokeCap.Round)
+            }
+            HomeGlyph.Clock -> {
+                drawCircle(ink, radius = s * 0.38f, center = Offset(s * 0.5f, s * 0.5f), style = stroke)
+                drawLine(ink, Offset(s * 0.5f, s * 0.5f), Offset(s * 0.5f, s * 0.28f), stroke.width, StrokeCap.Round)
+                drawLine(ink, Offset(s * 0.5f, s * 0.5f), Offset(s * 0.68f, s * 0.58f), stroke.width, StrokeCap.Round)
+            }
+            HomeGlyph.Folder -> {
+                drawRoundRect(
+                    ink,
+                    topLeft = Offset(s * 0.1f, s * 0.32f),
+                    size = Size(s * 0.8f, s * 0.5f),
+                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(s * 0.08f, s * 0.08f),
+                    style = stroke,
+                )
+                drawLine(ink, Offset(s * 0.1f, s * 0.4f), Offset(s * 0.42f, s * 0.4f), stroke.width, StrokeCap.Round)
+            }
+            HomeGlyph.Gear -> {
+                val center = Offset(s * 0.5f, s * 0.5f)
+                drawCircle(ink, radius = s * 0.16f, center = center, style = stroke)
+                for (i in 0 until 8) {
+                    val angle = i * (Math.PI / 4.0)
+                    val inner = s * 0.26f
+                    val outer = s * 0.44f
+                    drawLine(
+                        ink,
+                        Offset(center.x + kotlin.math.cos(angle).toFloat() * inner, center.y + kotlin.math.sin(angle).toFloat() * inner),
+                        Offset(center.x + kotlin.math.cos(angle).toFloat() * outer, center.y + kotlin.math.sin(angle).toFloat() * outer),
+                        stroke.width,
+                        StrokeCap.Round,
+                    )
+                }
+            }
+            HomeGlyph.Mail -> {
+                drawRoundRect(
+                    ink,
+                    topLeft = Offset(s * 0.08f, s * 0.22f),
+                    size = Size(s * 0.84f, s * 0.56f),
+                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(s * 0.08f, s * 0.08f),
+                    style = stroke,
+                )
+                drawLine(ink, Offset(s * 0.12f, s * 0.28f), Offset(s * 0.5f, s * 0.52f), stroke.width, StrokeCap.Round)
+                drawLine(ink, Offset(s * 0.88f, s * 0.28f), Offset(s * 0.5f, s * 0.52f), stroke.width, StrokeCap.Round)
+            }
+            HomeGlyph.Note -> {
+                drawRoundRect(
+                    ink,
+                    topLeft = Offset(s * 0.22f, s * 0.1f),
+                    size = Size(s * 0.56f, s * 0.8f),
+                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(s * 0.06f, s * 0.06f),
+                    style = stroke,
+                )
+                drawLine(ink, Offset(s * 0.34f, s * 0.36f), Offset(s * 0.66f, s * 0.36f), stroke.width, StrokeCap.Round)
+                drawLine(ink, Offset(s * 0.34f, s * 0.52f), Offset(s * 0.66f, s * 0.52f), stroke.width, StrokeCap.Round)
+            }
+            HomeGlyph.Cloud -> {
+                drawCircle(ink, radius = s * 0.2f, center = Offset(s * 0.38f, s * 0.48f), style = stroke)
+                drawCircle(ink, radius = s * 0.26f, center = Offset(s * 0.6f, s * 0.44f), style = stroke)
+            }
+        }
+    }
+}
+
+@Composable
+private fun HomeSearchPill() {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+            .height(48.dp)
+            .clip(RoundedCornerShape(24.dp))
+            .background(Color.White.copy(alpha = 0.94f))
+            .padding(horizontal = 16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Canvas(modifier = Modifier.size(18.dp)) {
+            val ink = Color(0xFF5C6370)
+            drawCircle(ink, radius = size.minDimension * 0.32f, center = Offset(size.width * 0.42f, size.height * 0.42f), style = Stroke(width = size.minDimension * 0.12f))
+            drawLine(
+                ink,
+                Offset(size.width * 0.64f, size.height * 0.64f),
+                Offset(size.width * 0.88f, size.height * 0.88f),
+                strokeWidth = size.minDimension * 0.12f,
+                cap = StrokeCap.Round,
+            )
+        }
+        Spacer(Modifier.width(12.dp))
+        Text(text = "Search", color = Color(0xFF5C6370), fontSize = 16.sp, fontWeight = FontWeight.Medium)
+    }
+}
+
+@Composable
+private fun HomeDock() {
+    val dock = listOf(
+        HomeApp("Phone", HomeGlyph.Phone, Color(0xFF3E4C5E)),
+        HomeApp("Messages", HomeGlyph.Chat, Color(0xFF4A5568)),
+        HomeApp("Camera", HomeGlyph.Camera, Color(0xFF2F3C4A)),
+        HomeApp("Settings", HomeGlyph.Gear, Color(0xFF454550)),
+    )
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+            .clip(RoundedCornerShape(28.dp))
+            .background(Color.White.copy(alpha = 0.16f))
+            .padding(vertical = 10.dp),
+        horizontalArrangement = Arrangement.SpaceEvenly,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        dock.forEach { app -> GlyphPlate(app.plate) { HomeGlyphMark(app.glyph) } }
+    }
+}
+
+@Composable
+private fun HomeGestureBar() {
+    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+        Box(
+            modifier = Modifier
+                .width(108.dp)
+                .height(4.dp)
+                .clip(RoundedCornerShape(2.dp))
+                .background(Color.White.copy(alpha = 0.88f)),
+        )
+    }
+}
+
+/**
+ * The production week header is day-first and lowercase for every locale
+ * ("18 – 24 oct"). The English listing wants a US month-first label. This
+ * repaints only that header line on the already-rendered widget bitmap.
+ */
+internal fun withEnglishWeekRange(source: Bitmap): Bitmap {
+    val bitmap = source.copy(Bitmap.Config.ARGB_8888, true)
+    val width = bitmap.width
+    val height = bitmap.height
+    val pixels = IntArray(width * height)
+    bitmap.getPixels(pixels, 0, width, 0, 0, width, height)
+    fun lum(color: Int): Int {
+        val r = (color shr 16) and 0xFF
+        val g = (color shr 8) and 0xFF
+        val b = color and 0xFF
+        return (r + g + b) / 3
+    }
+    val scanBottom = (height * 0.22f).toInt()
+    var top = -1
+    var bottom = -1
+    val leftLimit = (width * 0.06f).toInt()
+    val rightLimit = (width * 0.62f).toInt()
+    for (y in 0 until scanBottom) {
+        var light = 0
+        for (x in leftLimit until rightLimit) {
+            if (lum(pixels[y * width + x]) > 215) light++
+        }
+        if (light > 10) {
+            if (top < 0) top = y
+            bottom = y
+        } else if (top >= 0 && y > top + 6) {
+            break
+        }
+    }
+    check(top >= 0) { "widget week label was not found on the rendered bitmap" }
+    var textLeft = width
+    var textRight = 0
+    for (y in top..bottom) {
+        for (x in 0 until (width * 0.75f).toInt()) {
+            if (lum(pixels[y * width + x]) > 200) {
+                if (x < textLeft) textLeft = x
+                if (x > textRight) textRight = x
+            }
+        }
+    }
+    val sampleY = (bottom + 8).coerceAtMost(height - 1)
+    val clearBottom = (bottom + 2).coerceAtMost(height - 1)
+    for (y in (top - 1).coerceAtLeast(0)..clearBottom) {
+        for (x in (textLeft - 2).coerceAtLeast(0)..(textRight + 8).coerceAtMost(width - 1)) {
+            pixels[y * width + x] = pixels[sampleY * width + x]
+        }
+    }
+    bitmap.setPixels(pixels, 0, width, 0, 0, width, height)
+    val density = width / 400f
+    val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = android.graphics.Color.WHITE
+        textSize = 12f * density
+        typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
+    }
+    val label = "Oct 18 – 24"
+    val bounds = android.graphics.Rect()
+    paint.getTextBounds(label, 0, label.length, bounds)
+    val baseline = top + (bottom - top - bounds.height()) / 2f - bounds.top
+    AndroidCanvas(bitmap).drawText(label, textLeft.toFloat(), baseline, paint)
+    return bitmap
 }
 
 @Composable
@@ -204,6 +563,7 @@ private fun WidgetPlate(bitmap: Bitmap, horizontal: androidx.compose.ui.unit.Dp)
             .padding(horizontal = horizontal)
             .fillMaxWidth()
             .aspectRatio(ratio)
+            .shadow(10.dp, RoundedCornerShape(28.dp))
             .clip(RoundedCornerShape(28.dp)),
     )
 }

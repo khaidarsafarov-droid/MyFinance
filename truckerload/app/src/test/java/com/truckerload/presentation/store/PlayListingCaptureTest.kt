@@ -184,11 +184,23 @@ class PlayListingCaptureTest {
         )
         pageFile.outputStream().use { page.compress(Bitmap.CompressFormat.JPEG, 92, it) }
         val scan = playScanPending(pageFile)
-        val large = renderGlanceWidget(DpSize(400.dp, 340.dp), selectedOffset = 2)
-        val compact = renderGlanceWidget(DpSize(340.dp, 230.dp), selectedOffset = 2)
+        val storyLocale = java.util.Locale.US
+        val previousLocale = java.util.Locale.getDefault()
+        java.util.Locale.setDefault(storyLocale)
+        val large = try {
+            withEnglishWeekRange(
+                renderGlanceWidget(
+                    DpSize(400.dp, 340.dp),
+                    selectedOffset = 2,
+                    today = LocalDate.of(2026, 10, 20),
+                ),
+            )
+        } finally {
+            java.util.Locale.setDefault(previousLocale)
+        }
         val shots = listOf(
             "dashboard" to @Composable { PlayDashboard(loads, maintenance) },
-            "widget" to @Composable { PlayWidgetHome(wallpaper, large, compact) },
+            "widget" to @Composable { PlayWidgetHome(wallpaper, large) },
             "photo" to @Composable { PlayCamera(photo, previewMaxEdgePx = 2048) },
             "scanner" to @Composable { PlayScanFrame(scan, page) },
             "maintenance" to @Composable { PlayMaintenance() },
@@ -263,7 +275,11 @@ class PlayListingCaptureTest {
     }
 
     @OptIn(ExperimentalGlanceRemoteViewsApi::class, ExperimentalCoroutinesApi::class)
-    private fun renderGlanceWidget(size: DpSize, selectedOffset: Int = 1): Bitmap {
+    private fun renderGlanceWidget(
+        size: DpSize,
+        selectedOffset: Int = 1,
+        today: LocalDate = LocalDate.now(),
+    ): Bitmap {
         val activity = Robolectric.buildActivity(ComponentActivity::class.java).setup().get()
         val done = CompletableDeferred<android.widget.RemoteViews>()
         CoroutineScope(Dispatchers.Main).launch {
@@ -278,6 +294,7 @@ class PlayListingCaptureTest {
                         week = demoWidgetStats(),
                         selectedOffset = selectedOffset,
                         wide = true,
+                        today = today,
                     )
                 }
             }
