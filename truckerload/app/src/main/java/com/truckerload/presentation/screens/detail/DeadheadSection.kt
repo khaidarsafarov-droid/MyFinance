@@ -26,6 +26,8 @@ import com.truckerload.R
 import com.truckerload.domain.model.DeadheadMiles
 import com.truckerload.domain.model.Load
 import com.truckerload.presentation.components.TlOutlinedButton
+import com.truckerload.presentation.components.dialogAboveIme
+import com.truckerload.presentation.components.dialogBodyScroll
 import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.LocalTruckColors
 import java.util.Locale
@@ -103,9 +105,13 @@ private fun DeadheadEditorDialog(
     val keyboard = LocalSoftwareKeyboardController.current
     AlertDialog(
         onDismissRequest = onDismiss,
+        modifier = Modifier.dialogAboveIme(),
         title = { Text(stringResource(R.string.load_detail_deadhead_title)) },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(
+                modifier = Modifier.dialogBodyScroll(),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
                 Text(stringResource(R.string.load_detail_deadhead_hint))
                 OutlinedTextField(
                     value = text,

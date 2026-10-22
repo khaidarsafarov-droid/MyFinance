@@ -7,8 +7,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
@@ -163,6 +165,9 @@ private fun TabletScaffold(
                 .weight(1f)
                 .fillMaxHeight()
                 .background(BentoGlassTheme.ScreenBackground)
+                // Keyboard-closed inset is zero, so the rail layout does not move.
+                .windowInsetsPadding(WindowInsets.ime)
+                .consumeWindowInsets(WindowInsets.ime)
                 .padding(
                     horizontal = horizontalPad,
                     vertical = adaptiveVerticalPadding(),
@@ -183,11 +188,15 @@ private fun PhoneScaffold(
     content: @Composable (PaddingValues) -> Unit,
 ) {
     val navBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+    val imeBottom = WindowInsets.ime.asPaddingValues().calculateBottomPadding()
     // Pill (82) + gap under it (8) + gap above it (12) + the gesture bar.
     // Content keeps that clearance so the last row can scroll clear of the pill,
     // while the pill itself floats over the page. Top and side safe-drawing
     // insets stay on the scaffold so screens still clear the status bar.
+    // When the keyboard is open it is taller than the pill, so the content ends
+    // on the keyboard instead of stacking the pill clearance on top of it.
     val barClearance = if (showBottomBar) navBottom + 82.dp + 20.dp else 0.dp
+    val bottomPad = if (showBottomBar) maxOf(barClearance, imeBottom) else 0.dp
     val insetSides = if (showBottomBar) {
         WindowInsetsSides.Horizontal + WindowInsetsSides.Top
     } else {
@@ -202,7 +211,8 @@ private fun PhoneScaffold(
             Box(
                 modifier = Modifier
                     .padding(padding)
-                    .padding(bottom = barClearance),
+                    .padding(bottom = bottomPad)
+                    .consumeWindowInsets(WindowInsets.ime),
             ) {
                 content(PaddingValues(0.dp))
             }

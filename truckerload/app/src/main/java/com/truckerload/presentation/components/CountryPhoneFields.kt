@@ -28,6 +28,8 @@ import androidx.compose.ui.unit.dp
 import com.truckerload.R
 import com.truckerload.domain.geo.CountryCatalog
 import com.truckerload.domain.geo.CountryInfo
+import com.truckerload.presentation.components.dialogAboveIme
+import com.truckerload.presentation.components.dialogBodyScroll
 import com.truckerload.presentation.theme.AppTextFieldDefaults
 import com.truckerload.presentation.theme.LocalTruckColors
 import java.util.Locale
@@ -75,9 +77,10 @@ fun CountryPickerField(
         }
         AlertDialog(
             onDismissRequest = { showDialog = false },
+            modifier = Modifier.dialogAboveIme(),
             title = { Text(label) },
             text = {
-                Column {
+                Column(modifier = Modifier.dialogBodyScroll()) {
                     OutlinedTextField(
                         value = query,
                         onValueChange = { query = it },
@@ -181,9 +184,10 @@ fun PhoneWithCountryField(
         }
         AlertDialog(
             onDismissRequest = { showDialPicker = false },
+            modifier = Modifier.dialogAboveIme(),
             title = { Text(stringResource(R.string.phone_country_code)) },
             text = {
-                Column {
+                Column(modifier = Modifier.dialogBodyScroll()) {
                     OutlinedTextField(
                         value = query,
                         onValueChange = { query = it },
