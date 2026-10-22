@@ -3,10 +3,16 @@ package com.truckerload.presentation.screens.add
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -14,14 +20,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.R
 import com.truckerload.presentation.components.TlButton as Button
 import com.truckerload.presentation.components.TlTextButton as TextButton
-import com.truckerload.presentation.components.verticalContentScroll
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.utils.formatDateForDisplay
 
@@ -29,6 +36,7 @@ import com.truckerload.utils.formatDateForDisplay
 fun DieselQuickAddScreen(
     onDone: () -> Unit,
     onCancel: () -> Unit,
+    imeBottom: Dp = 0.dp,
 ) {
     val viewModel: AddDieselViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -43,6 +51,11 @@ fun DieselQuickAddScreen(
         }
     }
 
+    val composeIme = WindowInsets.ime.asPaddingValues().calculateBottomPadding()
+    val keyboard = maxOf(imeBottom, composeIme)
+    // Cap only while the keyboard is open. Closed, the card stays wrap-content.
+    val maxHeight = (LocalConfiguration.current.screenHeightDp.dp - keyboard - 24.dp)
+        .coerceAtLeast(180.dp)
     Surface(
         modifier = Modifier
             .fillMaxWidth()
@@ -54,7 +67,8 @@ fun DieselQuickAddScreen(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .verticalContentScroll()
+                .then(if (keyboard > 0.dp) Modifier.heightIn(max = maxHeight) else Modifier)
+                .verticalScroll(rememberScrollState())
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {

@@ -31,6 +31,8 @@ import com.truckerload.data.preferences.TelegramTokenStore
 import com.truckerload.data.remote.TelegramBotHealth
 import com.truckerload.data.remote.TelegramTokenActivator
 import com.truckerload.presentation.components.BotStatusBadge
+import com.truckerload.presentation.components.dialogAboveIme
+import com.truckerload.presentation.components.dialogBodyScroll
 import com.truckerload.presentation.screens.auth.BotFatherLinks
 import com.truckerload.presentation.components.TlButton as Button
 import com.truckerload.presentation.components.TlOutlinedButton as OutlinedButton
@@ -75,12 +77,16 @@ fun TelegramSettingsSection() {
             onDismissRequest = {
                 if (!saving) showTokenDialog = false
             },
+            modifier = Modifier.dialogAboveIme(),
             containerColor = tc.CardBackground,
             titleContentColor = tc.TextPrimary,
             textContentColor = tc.TextPrimary,
             title = { Text(stringResource(R.string.settings_telegram_dialog_title)) },
             text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Column(
+                    modifier = Modifier.dialogBodyScroll(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
                     Text(
                         text = stringResource(R.string.settings_telegram_dialog_hint),
                         style = MaterialTheme.typography.bodySmall,

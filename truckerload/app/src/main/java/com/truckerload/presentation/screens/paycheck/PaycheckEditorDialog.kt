@@ -5,8 +5,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import com.truckerload.presentation.components.dialogAboveIme
+import com.truckerload.presentation.components.dialogBodyScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -59,6 +59,7 @@ fun PaycheckEditorDialog(
 
     AlertDialog(
         onDismissRequest = { if (!isSaving) onDismiss() },
+        modifier = Modifier.dialogAboveIme(),
         containerColor = tc.CardBackground,
         title = {
             Text(
@@ -68,7 +69,7 @@ fun PaycheckEditorDialog(
         },
         text = {
             Column(
-                modifier = Modifier.verticalScroll(rememberScrollState()),
+                modifier = Modifier.dialogBodyScroll(),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 Text(

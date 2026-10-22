@@ -34,6 +34,7 @@ import com.truckerload.R
 import com.truckerload.presentation.components.TlButton as Button
 import com.truckerload.presentation.components.TlOutlinedButton as OutlinedButton
 import com.truckerload.presentation.components.TlTextButton as TextButton
+import com.truckerload.presentation.components.dialogAboveIme
 import com.truckerload.presentation.components.dialogBodyScroll
 import com.truckerload.presentation.theme.AppTextFieldDefaults
 import com.truckerload.presentation.theme.LocalTruckColors
@@ -58,6 +59,7 @@ internal fun AddArchiveDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
+        modifier = Modifier.dialogAboveIme(),
         containerColor = tc.CardBackground,
         title = { Text(stringResource(R.string.maintenance_add_archive_title), color = tc.TextPrimary) },
         text = {

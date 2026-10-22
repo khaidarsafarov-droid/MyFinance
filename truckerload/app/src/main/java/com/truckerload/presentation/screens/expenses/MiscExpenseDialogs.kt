@@ -33,6 +33,7 @@ import com.truckerload.R
 import com.truckerload.domain.expense.MiscExpenseFields
 import com.truckerload.presentation.components.TlButton
 import com.truckerload.presentation.components.TlTextButton
+import com.truckerload.presentation.components.dialogAboveIme
 import com.truckerload.presentation.components.dialogBodyScroll
 import com.truckerload.presentation.screens.add.JournalDatePickerDialog
 import com.truckerload.presentation.theme.AppTextFieldDefaults
@@ -69,6 +70,7 @@ fun MiscExpenseEditorDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
+        modifier = Modifier.dialogAboveIme(),
         containerColor = tc.CardBackground,
         title = {
             Text(
