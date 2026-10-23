@@ -1,5 +1,6 @@
 package com.truckerload.data.preferences
 
+import com.truckerload.domain.units.DistanceUnit
 import com.truckerload.domain.week.WeekStartDay
 
 /**
@@ -19,4 +20,5 @@ data class SettingsScreenSnapshot(
     val notifyMaintenance: Boolean = true,
     val loadWeekStartDay: WeekStartDay = WeekStartDay.DEFAULT,
     val dieselWeekStartDay: WeekStartDay = WeekStartDay.DEFAULT,
+    val explicitDistanceUnit: DistanceUnit? = null,
 )

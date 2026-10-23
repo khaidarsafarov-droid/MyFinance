@@ -25,6 +25,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.R
 import com.truckerload.domain.parser.DecimalInput
+import com.truckerload.domain.units.DisplayUnits
+import com.truckerload.domain.units.MeasurementUnits
 import com.truckerload.presentation.components.RpmColorLegend
 import com.truckerload.presentation.components.TlButton as Button
 import com.truckerload.presentation.di.LocalRpmThresholdsStore
@@ -38,8 +40,12 @@ internal fun SettingsRpmForm(modifier: Modifier = Modifier) {
     val resources = LocalResources.current
     val semantic = LocalSemanticColors.current
     val thresholds by store.thresholds.collectAsStateWithLifecycle()
-    var minInput by remember(thresholds) { mutableStateOf(thresholds.minProfit.toString()) }
-    var targetInput by remember(thresholds) { mutableStateOf(thresholds.targetProfit.toString()) }
+    var minInput by remember(thresholds) {
+        mutableStateOf(rateFieldText(thresholds.minProfit))
+    }
+    var targetInput by remember(thresholds) {
+        mutableStateOf(rateFieldText(thresholds.targetProfit))
+    }
     var error by remember { mutableStateOf<String?>(null) }
     val fieldColors = AppTextFieldDefaults.outlined()
 
@@ -63,7 +69,17 @@ internal fun SettingsRpmForm(modifier: Modifier = Modifier) {
                     minInput = it
                     error = null
                 },
-                label = { Text(stringResource(R.string.settings_red_threshold_short)) },
+                label = {
+                    Text(
+                        stringResource(
+                            if (DisplayUnits.isMetric) {
+                                R.string.settings_red_threshold_short_km
+                            } else {
+                                R.string.settings_red_threshold_short
+                            },
+                        ),
+                    )
+                },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                 modifier = Modifier.weight(1f),
                 singleLine = true,
@@ -75,7 +91,17 @@ internal fun SettingsRpmForm(modifier: Modifier = Modifier) {
                     targetInput = it
                     error = null
                 },
-                label = { Text(stringResource(R.string.settings_green_threshold_short)) },
+                label = {
+                    Text(
+                        stringResource(
+                            if (DisplayUnits.isMetric) {
+                                R.string.settings_green_threshold_short_km
+                            } else {
+                                R.string.settings_green_threshold_short
+                            },
+                        ),
+                    )
+                },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                 modifier = Modifier.weight(1f),
                 singleLine = true,
@@ -96,7 +122,7 @@ internal fun SettingsRpmForm(modifier: Modifier = Modifier) {
                 when {
                     min == null -> error = resources.getString(R.string.settings_red_threshold_error)
                     target == null -> error = resources.getString(R.string.settings_green_threshold_error)
-                    else -> store.save(min, target)
+                    else -> store.save(storedRate(min), storedRate(target))
                         .onSuccess {
                             error = null
                             Toast.makeText(
@@ -116,3 +142,13 @@ internal fun SettingsRpmForm(modifier: Modifier = Modifier) {
         }
     }
 }
+
+private fun rateFieldText(perMile: Double): String =
+    if (DisplayUnits.isMetric) {
+        MeasurementUnits.formatInput(MeasurementUnits.displayRatePerDistance(perMile))
+    } else {
+        perMile.toString()
+    }
+
+private fun storedRate(display: Double): Double =
+    if (DisplayUnits.isMetric) MeasurementUnits.storedRatePerDistance(display) else display

@@ -30,7 +30,10 @@ import com.truckerload.domain.social.EnhancedDriverProfile
 import com.truckerload.domain.social.TruckType
 import com.truckerload.presentation.icons.AppIcons
 import com.truckerload.presentation.theme.LocalBrandPalette
+import com.truckerload.domain.units.DisplayUnits
+import com.truckerload.domain.units.MeasurementUnits
 import com.truckerload.presentation.utils.MoneyFormat
+import kotlin.math.roundToInt
 import java.util.Locale
 
 private val TileShape = RoundedCornerShape(20.dp)
@@ -52,8 +55,10 @@ internal fun ProfileTotals(loads: Int, miles: Int) {
         )
         TotalTile(
             icon = AppIcons.Route,
-            value = MoneyFormat.formatNumber(miles.toDouble()),
-            caption = stringResource(R.string.profile_miles_caption),
+            value = MoneyFormat.formatDistanceNumber(miles.toDouble()),
+            caption = stringResource(
+                if (DisplayUnits.isMetric) R.string.profile_miles_caption_km else R.string.profile_miles_caption,
+            ),
             modifier = Modifier.weight(1f),
         )
     }
@@ -182,7 +187,12 @@ private fun TerritoryBody(profile: EnhancedDriverProfile) {
         }
         if (profile.maxRadius > 0 && profile.maxRadius != 500) {
             Text(
-                text = "${stringResource(R.string.social_max_radius)}: ${profile.maxRadius} mi",
+                text = if (DisplayUnits.isMetric) {
+                    val km = MeasurementUnits.displayDistance(profile.maxRadius.toDouble()).roundToInt()
+                    "${stringResource(R.string.social_max_radius)}: $km km"
+                } else {
+                    "${stringResource(R.string.social_max_radius)}: ${profile.maxRadius} mi"
+                },
                 color = brand.textSecondary,
                 style = MaterialTheme.typography.bodyMedium.copy(fontFeatureSettings = "tnum"),
                 modifier = Modifier.padding(top = 4.dp),

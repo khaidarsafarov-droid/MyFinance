@@ -1,6 +1,8 @@
 package com.truckerload.presentation.utils
 
 import com.truckerload.domain.money.Money
+import com.truckerload.domain.units.DisplayUnits
+import com.truckerload.domain.units.MeasurementUnits
 import java.util.Locale
 import kotlin.math.abs
 
@@ -43,12 +45,24 @@ object MoneyFormat {
             String.format(locale, "%,.${decimals}f", value)
         }
 
-    fun formatRpm(value: Double): String =
-        String.format(locale, "$%.2f/mi", value)
+    fun formatRpm(value: Double): String {
+        val shown = MeasurementUnits.displayRatePerDistance(value)
+        val suffix = if (DisplayUnits.isMetric) "/km" else "/mi"
+        return String.format(locale, "$%.2f$suffix", shown)
+    }
 
     fun formatRpmShort(value: Double): String =
-        String.format(locale, "$%.2f", value)
+        String.format(locale, "$%.2f", MeasurementUnits.displayRatePerDistance(value))
 
-    fun formatMiles(value: Double, decimals: Int = 0): String =
-        "${formatNumber(value, decimals)} mi"
+    /** Distance number only. Miles mode matches [formatNumber] of the stored miles. */
+    fun formatDistanceNumber(canonicalMiles: Double, decimals: Int = 0): String =
+        formatNumber(MeasurementUnits.displayDistance(canonicalMiles), decimals)
+
+    fun formatMiles(value: Double, decimals: Int = 0): String {
+        val suffix = if (DisplayUnits.isMetric) "km" else "mi"
+        return "${formatDistanceNumber(value, decimals)} $suffix"
+    }
+
+    fun formatVolumeNumber(canonicalGallons: Double, decimals: Int = 2): String =
+        formatNumber(MeasurementUnits.displayVolume(canonicalGallons), decimals)
 }

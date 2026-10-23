@@ -65,6 +65,7 @@ object BackupSnapshotBuilder {
             lastEquipmentType = settings.getLastEquipmentTypeOnce()?.name,
             loadWeekStartDay = settings.getLoadWeekStartDayOnce().calendarDay,
             dieselWeekStartDay = settings.getDieselWeekStartDayOnce().calendarDay,
+            distanceUnit = settings.getExplicitDistanceUnitOnce()?.storageTag,
         )
         val goals = WeeklyProfitGoalStore(context, userId)
         val rpm = RpmThresholdsStore(context, userId).thresholds.value
@@ -87,6 +88,7 @@ object BackupSnapshotBuilder {
             rpmTargetProfit = rpm.targetProfit,
             loadWeekStartDay = settings.getLoadWeekStartDayOnce().calendarDay,
             dieselWeekStartDay = settings.getDieselWeekStartDayOnce().calendarDay,
+            distanceUnit = settings.getExplicitDistanceUnitOnce()?.storageTag,
         )
     }
 

@@ -1,7 +1,9 @@
 package com.truckerload.presentation.screens.tax
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.truckerload.R
 import com.truckerload.data.repository.DieselRepository
 import com.truckerload.data.repository.LoadRepository
 import com.truckerload.data.repository.MaintenanceRepository
@@ -11,8 +13,10 @@ import com.truckerload.domain.money.sum
 import com.truckerload.domain.tax.AccountantExportSection
 import com.truckerload.domain.tax.PerDiemCalculator
 import com.truckerload.domain.tax.PerDiemDayOverrides
+import com.truckerload.domain.units.DisplayUnits
 import com.truckerload.utils.AccountantWorkbookBuilder
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -56,6 +60,7 @@ private val QUARTERLY_DATES = listOf(
 
 @HiltViewModel
 class TaxTrackerViewModel @Inject constructor(
+    @ApplicationContext private val appContext: Context,
     private val paycheckRepository: PaycheckRepository,
     private val dieselRepository: DieselRepository,
     private val loadRepository: LoadRepository,
@@ -161,6 +166,7 @@ class TaxTrackerViewModel @Inject constructor(
         } else {
             emptyList()
         }
+        val metric = DisplayUnits.isMetric
         return AccountantWorkbookBuilder.Input(
             year = year,
             loads = loads,
@@ -168,6 +174,11 @@ class TaxTrackerViewModel @Inject constructor(
             perDiemDates = perDiemDates,
             maintenance = maintenance,
             grossIncome = _uiState.value.totalGrossIncome,
+            metric = metric,
+            distanceHeader = if (metric) appContext.getString(R.string.workbook_col_distance_km) else "Мили",
+            volumeHeader = if (metric) appContext.getString(R.string.workbook_col_volume_km) else "Галлоны",
+            priceHeader = if (metric) appContext.getString(R.string.workbook_col_price_km) else "Цена / гал",
+            discountHeader = if (metric) appContext.getString(R.string.workbook_col_discount_km) else "Цена со скидкой / гал",
         )
     }
 

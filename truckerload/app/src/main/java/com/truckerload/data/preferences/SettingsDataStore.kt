@@ -12,6 +12,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.truckerload.domain.model.EquipmentType
+import com.truckerload.domain.units.DistanceUnit
 import com.truckerload.domain.week.WeekStartDay
 import com.truckerload.utils.AppLanguageManager
 import java.security.SecureRandom
@@ -44,6 +45,7 @@ private val KEY_NOTIFY_MISSING_WEEK = booleanPreferencesKey("notify_missing_week
 private val KEY_NOTIFY_MAINTENANCE = booleanPreferencesKey("notify_maintenance")
 private val KEY_LOAD_WEEK_START_DAY = intPreferencesKey("load_week_start_day")
 private val KEY_DIESEL_WEEK_START_DAY = intPreferencesKey("diesel_week_start_day")
+private val KEY_DISTANCE_UNIT = stringPreferencesKey("distance_unit")
 
 class SettingsDataStore(context: Context) {
 
@@ -196,6 +198,7 @@ class SettingsDataStore(context: Context) {
                 WeekStartDay.DEFAULT.calendarDay,
             ),
         ),
+        explicitDistanceUnit = DistanceUnit.fromStored(prefs[KEY_DISTANCE_UNIT]),
     )
 
     private fun accountScopedBool(
@@ -418,6 +421,30 @@ class SettingsDataStore(context: Context) {
     suspend fun saveLanguage(language: AppLanguage) {
         appContext.settingsDataStore.edit { prefs ->
             prefs[KEY_LANGUAGE] = language.ordinal
+        }
+    }
+
+    /** Null until the driver picks Miles or Kilometers. Language must not write this. */
+    suspend fun getExplicitDistanceUnitOnce(): DistanceUnit? =
+        DistanceUnit.fromStored(appContext.settingsDataStore.data.first()[KEY_DISTANCE_UNIT])
+
+    suspend fun saveDistanceUnit(unit: DistanceUnit) {
+        appContext.settingsDataStore.edit { prefs ->
+            prefs[KEY_DISTANCE_UNIT] = unit.storageTag
+        }
+    }
+
+    /** Test helper. Removing the key means the driver has made no choice. */
+    internal suspend fun clearExplicitDistanceUnit() {
+        appContext.settingsDataStore.edit { prefs ->
+            prefs.remove(KEY_DISTANCE_UNIT)
+        }
+    }
+
+    /** Test helper. Removing the key restores "follow the system language". */
+    internal suspend fun clearExplicitLanguage() {
+        appContext.settingsDataStore.edit { prefs ->
+            prefs.remove(KEY_LANGUAGE)
         }
     }
 

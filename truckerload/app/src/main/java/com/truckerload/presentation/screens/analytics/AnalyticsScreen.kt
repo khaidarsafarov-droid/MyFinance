@@ -327,13 +327,25 @@ private fun SummaryMetricsGrid(summary: AnalyticsSummary) {
                 highlight = true,
             ),
             BentoItem(
-                value = MoneyFormat.formatNumber(summary.totalMiles),
-                label = stringResource(R.string.analytics_total_miles),
+                value = MoneyFormat.formatDistanceNumber(summary.totalMiles),
+                label = stringResource(
+                    if (com.truckerload.domain.units.DisplayUnits.isMetric) {
+                        R.string.analytics_total_miles_km
+                    } else {
+                        R.string.analytics_total_miles
+                    },
+                ),
                 color = tc.AccentInfo,
             ),
             BentoItem(
                 value = MoneyFormat.formatRpm(summary.avgRpm),
-                label = stringResource(R.string.analytics_avg_rpm),
+                label = stringResource(
+                    if (com.truckerload.domain.units.DisplayUnits.isMetric) {
+                        R.string.analytics_avg_rpm_km
+                    } else {
+                        R.string.analytics_avg_rpm
+                    },
+                ),
                 color = BentoGlassTheme.GoalGradientEnd,
             ),
             BentoItem(

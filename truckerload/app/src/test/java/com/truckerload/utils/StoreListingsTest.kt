@@ -56,7 +56,7 @@ class StoreListingsTest {
 
     @Test
     fun shareAndDriveCopy_staysUserFacingInAllLocales() {
-        val folders = listOf("values", "values-en", "values-ru", "values-es")
+        val folders = listOf("values", "values-en", "values-ru", "values-es", "values-fr")
         val banned = listOf(
             "store account is ready",
             "аккаунт в магазине",

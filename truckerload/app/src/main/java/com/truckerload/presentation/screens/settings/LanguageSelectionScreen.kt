@@ -26,6 +26,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
 import com.truckerload.data.preferences.AppLanguage
+import com.truckerload.domain.units.DisplayUnits
+import com.truckerload.domain.units.DistanceUnitPolicy
 import com.truckerload.presentation.components.SoftAppPageScaffold
 import com.truckerload.presentation.di.LocalSettingsDataStore
 import com.truckerload.presentation.theme.LocalTruckColors
@@ -57,6 +59,8 @@ fun LanguageSelectionScreen(
             scope.launch {
                 settingsDataStore.saveLanguage(AppLanguage.fromTag(item.code))
                 AppLanguageManager.setLanguage(item.code)
+                val explicit = settingsDataStore.getExplicitDistanceUnitOnce()
+                DisplayUnits.install(DistanceUnitPolicy.resolve(explicit, item.code))
                 WidgetRefresh.refreshAndUpdateAsync(context)
             }
         },

@@ -17,6 +17,8 @@ import com.truckerload.domain.import.usecase.ImportLoadsUseCase
 import com.truckerload.domain.model.Diesel
 import com.truckerload.domain.model.Paycheck
 import com.truckerload.domain.parser.LoadProcessor
+import com.truckerload.domain.units.DisplayUnits
+import com.truckerload.domain.units.MeasurementUnits
 import com.truckerload.domain.parser.MessageClassifier
 import com.truckerload.domain.parser.MessageParseService
 import com.truckerload.domain.parser.PaycheckTextParser
@@ -155,12 +157,21 @@ class TelegramMessageParser(
                 is ProcessingResult.Added -> {
                     addedCount++
                     stateMachine.incrementManualRestoreCount(chatId)
-                    val added = context.getString(
-                        R.string.sync_restore_manual_added,
-                        load.tripId,
-                        load.totalMiles,
-                        String.format(Locale.US, "%,.2f", load.totalRate.cents / 100.0),
-                    )
+                    val added = if (DisplayUnits.isMetric) {
+                        context.getString(
+                            R.string.sync_restore_manual_added_km,
+                            load.tripId,
+                            MeasurementUnits.displayDistance(load.totalMiles),
+                            String.format(Locale.US, "%,.2f", load.totalRate.cents / 100.0),
+                        )
+                    } else {
+                        context.getString(
+                            R.string.sync_restore_manual_added,
+                            load.tripId,
+                            load.totalMiles,
+                            String.format(Locale.US, "%,.2f", load.totalRate.cents / 100.0),
+                        )
+                    }
                     val route = TelegramLoadReply.routeLine(load)
                     replies.add(if (route.isBlank()) added else "$added\n$route")
                 }

@@ -20,6 +20,7 @@ import com.truckerload.domain.model.Diesel
 import com.truckerload.presentation.theme.AppTypography
 import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.LocalTruckColors
+import com.truckerload.domain.units.DisplayUnits
 import com.truckerload.presentation.utils.MoneyFormat
 import com.truckerload.utils.formatDateForDisplay
 
@@ -82,8 +83,20 @@ fun DieselFillCard(
 private fun dieselCardMeta(diesel: Diesel): String =
     DieselFillCardMetaFormatter.format(
         diesel = diesel,
-        withDiscountFormat = stringResource(R.string.diesel_card_meta_with_discount),
-        listOnlyFormat = stringResource(R.string.diesel_card_meta_list_only),
+        withDiscountFormat = stringResource(
+            if (DisplayUnits.isMetric) {
+                R.string.diesel_card_meta_with_discount_km
+            } else {
+                R.string.diesel_card_meta_with_discount
+            },
+        ),
+        listOnlyFormat = stringResource(
+            if (DisplayUnits.isMetric) {
+                R.string.diesel_card_meta_list_only_km
+            } else {
+                R.string.diesel_card_meta_list_only
+            },
+        ),
         savedSuffixFormat = stringResource(R.string.diesel_card_meta_saved_suffix),
         formatSavedAmount = { MoneyFormat.formatCurrency(it, decimals = 2) },
     )

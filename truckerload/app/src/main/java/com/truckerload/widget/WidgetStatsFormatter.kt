@@ -1,5 +1,7 @@
 package com.truckerload.widget
 
+import com.truckerload.domain.units.DisplayUnits
+import com.truckerload.domain.units.MeasurementUnits
 import java.util.Locale
 
 object WidgetStatsFormatter {
@@ -14,12 +16,15 @@ object WidgetStatsFormatter {
     fun formatCpm(value: Double): String =
         String.format(Locale.US, "%.2f$", value)
 
-    fun formatMiles(value: Double): String =
-        String.format(Locale.US, "%,.0f", value) + " mi"
+    fun formatMiles(value: Double): String {
+        val shown = MeasurementUnits.displayDistance(value)
+        val suffix = if (DisplayUnits.isMetric) " km" else " mi"
+        return String.format(Locale.US, "%,.0f", shown) + suffix
+    }
 
     /** Compact value for bento cell (no unit suffix — label carries context). */
     fun formatMilesShort(value: Double): String =
-        String.format(Locale.US, "%,.0f", value)
+        String.format(Locale.US, "%,.0f", MeasurementUnits.displayDistance(value))
 
     fun formatProgressPercent(progress: Float): String =
         String.format(Locale.US, "%.1f%%", progress.coerceIn(0f, 100f))
@@ -35,8 +40,15 @@ object WidgetStatsFormatter {
         }
     }
 
-    fun formatRpmPerMile(context: android.content.Context, rpm: Double): String =
-        context.getString(com.truckerload.R.string.rpm_per_mile_format, rpm)
+    fun formatRpmPerMile(context: android.content.Context, rpm: Double): String {
+        val shown = MeasurementUnits.displayRatePerDistance(rpm)
+        val res = if (DisplayUnits.isMetric) {
+            com.truckerload.R.string.rpm_per_km_format
+        } else {
+            com.truckerload.R.string.rpm_per_mile_format
+        }
+        return context.getString(res, shown)
+    }
 
     /** Sketch cabin copy: `RPM 2$` (whole dollars) or `RPM 2.46$`. */
     fun formatWidgetRpm(rpm: Double): String {
@@ -50,11 +62,14 @@ object WidgetStatsFormatter {
 
     /** Mockup metric value: `$1.74`. */
     fun formatUsdRpm(rpm: Double): String =
-        String.format(Locale.US, "$%.2f", rpm)
+        String.format(Locale.US, "$%.2f", MeasurementUnits.displayRatePerDistance(rpm))
 
     @Deprecated("Use formatRpmPerMile(context, rpm) for localized unit")
-    fun formatRpmPerMile(rpm: Double): String =
-        String.format(Locale.US, "$%.2f/mi", rpm)
+    fun formatRpmPerMile(rpm: Double): String {
+        val shown = MeasurementUnits.displayRatePerDistance(rpm)
+        val suffix = if (DisplayUnits.isMetric) "/km" else "/mi"
+        return String.format(Locale.US, "$%.2f$suffix", shown)
+    }
 
     fun avgRpm(totalRate: Double, totalMiles: Double): Double =
         if (totalMiles > 0) totalRate / totalMiles else 0.0

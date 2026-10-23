@@ -3,7 +3,8 @@ package com.truckerload.data.preferences
 enum class AppLanguage(val tag: String) {
     RU("ru"),
     EN("en"),
-    ES("es");
+    ES("es"),
+    FR("fr");
 
     companion object {
         fun fromOrdinal(ordinal: Int): AppLanguage =

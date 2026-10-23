@@ -34,6 +34,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.truckerload.R
+import com.truckerload.domain.units.DisplayUnits
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.domain.model.Load
 import com.truckerload.presentation.components.LoadCardModel
@@ -269,9 +270,9 @@ internal fun SoftLoadRow(card: LoadCardModel, onClick: () -> Unit) {
         )
         Text(
             text = stringResource(
-                R.string.load_card_summary_line,
+                if (DisplayUnits.isMetric) R.string.load_card_summary_line_km else R.string.load_card_summary_line,
                 card.stopCount,
-                MoneyFormat.formatNumber(card.drivenMiles),
+                MoneyFormat.formatDistanceNumber(card.drivenMiles),
                 MoneyFormat.formatCurrency(card.totalRate, decimals = 2),
             ),
             style = AppTypography.CaptionMuted,
@@ -408,7 +409,9 @@ internal fun TabletStatsGrid(
                     modifier = Modifier.weight(1f),
                     icon = AppIcons.Route,
                     tint = LocalSemantics.current.successContainer,
-                    label = stringResource(R.string.tablet_stat_miles),
+                    label = stringResource(
+                        if (DisplayUnits.isMetric) R.string.tablet_stat_miles_km else R.string.tablet_stat_miles,
+                    ),
                     value = miles,
                 )
             }
@@ -444,7 +447,9 @@ internal fun TabletStatsGrid(
                 modifier = Modifier.weight(1f),
                 icon = AppIcons.Route,
                 tint = LocalSemantics.current.successContainer,
-                label = stringResource(R.string.tablet_stat_miles),
+                label = stringResource(
+                    if (DisplayUnits.isMetric) R.string.tablet_stat_miles_km else R.string.tablet_stat_miles,
+                ),
                 value = miles,
             )
             SoftStatCard(

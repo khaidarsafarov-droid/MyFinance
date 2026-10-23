@@ -86,7 +86,17 @@ internal fun AddTaskDialog(
                     AppFilterChip(
                         selected = draft.reminderType == MaintenanceReminderType.MILES,
                         onClick = { onChange { it.copy(reminderType = MaintenanceReminderType.MILES) } },
-                        label = { Text(stringResource(R.string.maintenance_by_miles)) },
+                        label = {
+                            Text(
+                                stringResource(
+                                    if (com.truckerload.domain.units.DisplayUnits.isMetric) {
+                                        R.string.maintenance_by_km
+                                    } else {
+                                        R.string.maintenance_by_miles
+                                    },
+                                ),
+                            )
+                        },
                     )
                     AppFilterChip(
                         selected = draft.reminderType == MaintenanceReminderType.DATE,
@@ -98,7 +108,17 @@ internal fun AddTaskDialog(
                     OutlinedTextField(
                         value = draft.intervalMiles,
                         onValueChange = { value -> onChange { it.copy(intervalMiles = value.filter { ch -> ch.isDigit() || ch == '.' || ch == ',' }) } },
-                        label = { Text(stringResource(R.string.maintenance_interval_miles)) },
+                        label = {
+                            Text(
+                                stringResource(
+                                    if (com.truckerload.domain.units.DisplayUnits.isMetric) {
+                                        R.string.maintenance_interval_km
+                                    } else {
+                                        R.string.maintenance_interval_miles
+                                    },
+                                ),
+                            )
+                        },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
@@ -125,7 +145,17 @@ internal fun AddTaskDialog(
                 OutlinedTextField(
                     value = draft.odometerAtStart,
                     onValueChange = { value -> onChange { it.copy(odometerAtStart = value.filter { ch -> ch.isDigit() || ch == '.' || ch == ',' }) } },
-                    label = { Text(stringResource(R.string.maintenance_current_odometer)) },
+                    label = {
+                        Text(
+                            stringResource(
+                                if (com.truckerload.domain.units.DisplayUnits.isMetric) {
+                                    R.string.maintenance_current_odometer_km
+                                } else {
+                                    R.string.maintenance_current_odometer
+                                },
+                            ),
+                        )
+                    },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,

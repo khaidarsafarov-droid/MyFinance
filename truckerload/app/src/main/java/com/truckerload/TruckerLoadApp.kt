@@ -25,6 +25,9 @@ import com.truckerload.data.preferences.TelegramTokenStore
 import com.google.android.material.color.DynamicColors
 import com.truckerload.data.preferences.AppThemeMode
 import com.truckerload.data.preferences.SettingsDataStore
+import com.truckerload.domain.units.DisplayUnits
+import com.truckerload.domain.units.DistanceUnit
+import com.truckerload.domain.units.DistanceUnitPolicy
 import com.truckerload.domain.week.WeekStartRuntime
 import com.truckerload.presentation.theme.ThemeManager
 import com.truckerload.di.UserComponentManager
@@ -155,6 +158,7 @@ class TruckerLoadApp : Application(), Configuration.Provider {
         return StartupChrome(
             languageTag = explicitLanguage?.tag ?: legacyTag,
             themeMode = themeMode,
+            explicitDistanceUnit = settingsDataStore.getExplicitDistanceUnitOnce(),
         )
     }
 
@@ -172,6 +176,7 @@ class TruckerLoadApp : Application(), Configuration.Provider {
             StartupChrome(
                 languageTag = explicitLanguage?.tag ?: legacyTag,
                 themeMode = themeMode,
+                explicitDistanceUnit = settingsDataStore.getExplicitDistanceUnitOnce(),
             )
         }
         chrome.applyOnCaller()
@@ -180,10 +185,14 @@ class TruckerLoadApp : Application(), Configuration.Provider {
     private data class StartupChrome(
         val languageTag: String?,
         val themeMode: AppThemeMode,
+        val explicitDistanceUnit: DistanceUnit?,
     ) {
         fun applyOnCaller() {
             AppLanguageManager.migrateLegacyIfNeeded(languageTag)
             ThemeManager.apply(themeMode)
+            val language = languageTag?.takeIf { it.isNotBlank() }
+                ?: AppLanguageManager.getCurrentLanguageCode()
+            DisplayUnits.install(DistanceUnitPolicy.resolve(explicitDistanceUnit, language))
         }
     }
 

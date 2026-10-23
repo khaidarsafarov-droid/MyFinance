@@ -36,6 +36,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.R
+import com.truckerload.domain.units.DisplayUnits
+import com.truckerload.domain.units.MeasurementUnits
 import com.truckerload.domain.crowd.CrowdLaneAggregate
 import com.truckerload.domain.crowd.CrowdRateReport
 import com.truckerload.presentation.components.GoogleMapsHeatmapCard
@@ -151,7 +153,9 @@ private fun MapScreenBody(
                     .size(18.dp),
             )
             Text(
-                text = stringResource(R.string.map_my_rates_hint),
+                text = stringResource(
+                    if (DisplayUnits.isMetric) R.string.map_my_rates_hint_km else R.string.map_my_rates_hint,
+                ),
                 style = MaterialTheme.typography.bodySmall,
                 color = tc.TextSecondary,
                 modifier = Modifier.weight(1f),
@@ -186,8 +190,16 @@ private fun MapScreenBody(
             IconLabeledBody(
                 icon = AppIcons.Speed,
                 text = stringResource(
-                    R.string.map_crowd_state_avg,
-                    String.format(Locale.getDefault(), "%.2f", summary.avgOutboundRpm.cents / 100.0),
+                    if (DisplayUnits.isMetric) R.string.map_crowd_state_avg_km else R.string.map_crowd_state_avg,
+                    String.format(
+                        Locale.getDefault(),
+                        "%.2f",
+                        if (DisplayUnits.isMetric) {
+                            MeasurementUnits.displayRatePerDistance(summary.avgOutboundRpm.cents / 100.0)
+                        } else {
+                            summary.avgOutboundRpm.cents / 100.0
+                        },
+                    ),
                     summary.outboundTrips,
                 ),
             )
@@ -366,10 +378,18 @@ private fun TopLaneRow(lane: CrowdLaneAggregate) {
         )
         Text(
             text = stringResource(
-                R.string.map_crowd_lane_row,
+                if (DisplayUnits.isMetric) R.string.map_crowd_lane_row_km else R.string.map_crowd_lane_row,
                 lane.fromState,
                 lane.toState,
-                String.format(Locale.getDefault(), "%.2f", lane.avgRpm.cents / 100.0),
+                String.format(
+                    Locale.getDefault(),
+                    "%.2f",
+                    if (DisplayUnits.isMetric) {
+                        MeasurementUnits.displayRatePerDistance(lane.avgRpm.cents / 100.0)
+                    } else {
+                        lane.avgRpm.cents / 100.0
+                    },
+                ),
                 lane.tripCount,
             ),
             style = MaterialTheme.typography.bodySmall,
@@ -401,10 +421,18 @@ private fun MyRecentRow(report: CrowdRateReport) {
         )
         Text(
             text = stringResource(
-                R.string.map_my_recent_row,
+                if (DisplayUnits.isMetric) R.string.map_my_recent_row_km else R.string.map_my_recent_row,
                 report.fromState,
                 report.toState,
-                String.format(Locale.getDefault(), "%.2f", report.rpm.cents / 100.0),
+                String.format(
+                    Locale.getDefault(),
+                    "%.2f",
+                    if (DisplayUnits.isMetric) {
+                        MeasurementUnits.displayRatePerDistance(report.rpm.cents / 100.0)
+                    } else {
+                        report.rpm.cents / 100.0
+                    },
+                ),
                 age,
             ),
             style = MaterialTheme.typography.bodyMedium,

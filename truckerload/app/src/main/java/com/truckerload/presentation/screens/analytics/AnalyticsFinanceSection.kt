@@ -19,6 +19,8 @@ import com.truckerload.presentation.theme.AppTypography
 import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.FinanceCockpitColors
 import com.truckerload.presentation.theme.LocalTruckColors
+import com.truckerload.domain.units.DisplayUnits
+import com.truckerload.domain.units.MeasurementUnits
 import com.truckerload.presentation.utils.MoneyFormat
 import java.util.Locale
 
@@ -72,15 +74,45 @@ fun AnalyticsFinanceSection(
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     FinanceStat(
                         modifier = Modifier.weight(1f),
-                        label = stringResource(R.string.analytics_finance_gallons),
-                        value = String.format(Locale.US, "%,.0f", finance.dieselGallons),
+                        label = stringResource(
+                            if (DisplayUnits.isMetric) {
+                                R.string.analytics_finance_gallons_km
+                            } else {
+                                R.string.analytics_finance_gallons
+                            },
+                        ),
+                        value = String.format(
+                            Locale.US,
+                            "%,.0f",
+                            if (DisplayUnits.isMetric) {
+                                MeasurementUnits.displayVolume(finance.dieselGallons)
+                            } else {
+                                finance.dieselGallons
+                            },
+                        ),
                         valueColor = tc.TextPrimary,
                     )
                     FinanceStat(
                         modifier = Modifier.weight(1f),
-                        label = stringResource(R.string.analytics_finance_avg_price),
+                        label = stringResource(
+                            if (DisplayUnits.isMetric) {
+                                R.string.analytics_finance_avg_price_km
+                            } else {
+                                R.string.analytics_finance_avg_price
+                            },
+                        ),
                         value = finance.avgPricePerGallon
-                            ?.let { String.format(Locale.US, "$%.2f", it) }
+                            ?.let { price ->
+                                String.format(
+                                    Locale.US,
+                                    "$%.2f",
+                                    if (DisplayUnits.isMetric) {
+                                        MeasurementUnits.displayPricePerVolume(price)
+                                    } else {
+                                        price
+                                    },
+                                )
+                            }
                             ?: "—",
                         valueColor = tc.TextPrimary,
                     )

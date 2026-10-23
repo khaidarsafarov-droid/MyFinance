@@ -9,6 +9,7 @@ import com.truckerload.domain.model.MaintenanceArchiveEntry
 import com.truckerload.domain.model.formatLoadRoute
 import com.truckerload.domain.model.withRouteMetrics
 import com.truckerload.domain.tax.AccountantExportSection
+import com.truckerload.domain.units.MeasurementUnits
 import com.truckerload.domain.tax.PerDiemCalculator
 import java.time.LocalDate
 import java.util.Locale
@@ -32,6 +33,12 @@ object AccountantWorkbookBuilder {
         val grossIncome: Double,
         /** Caller hint only. Exported numbers always use a dot decimal ([Locale.ROOT]). */
         val locale: Locale = Locale.US,
+        /** When true, distance and fuel cells are converted and headers use the labels below. */
+        val metric: Boolean = false,
+        val distanceHeader: String = "Мили",
+        val volumeHeader: String = "Галлоны",
+        val priceHeader: String = "Цена / гал",
+        val discountHeader: String = "Цена со скидкой / гал",
     )
 
     fun resolveSections(requested: Set<AccountantExportSection>): Set<AccountantExportSection> {
@@ -136,7 +143,7 @@ object AccountantWorkbookBuilder {
             text("Trip ID"),
             text("Маршрут"),
             text("Ставка, USD"),
-            text("Мили"),
+            text(if (input.metric) input.distanceHeader else "Мили"),
             text("RPM"),
             text("Дней на рейсе"),
         )
@@ -147,14 +154,16 @@ object AccountantWorkbookBuilder {
                 val miles = metrics.totalMiles
                 val rate = metrics.totalRate
                 val rpm = if (miles > 0) rate.cents / 100.0 / miles else 0.0
+                val shownMiles = if (input.metric) MeasurementUnits.displayDistance(miles, true) else miles
+                val shownRpm = if (input.metric) MeasurementUnits.displayRatePerDistance(rpm, true) else rpm
                 val days = PerDiemCalculator.uniqueOnDutyDates(listOf(load), input.year).size
                 listOf(
                     dateCell(metrics.date),
                     text(metrics.tripId),
                     text(formatLoadRoute(metrics)),
                     moneyCell(rate),
-                    milesCell(miles),
-                    decimal2Cell(rpm),
+                    milesCell(shownMiles),
+                    decimal2Cell(shownRpm),
                     integerCell(days),
                 )
             }
@@ -168,9 +177,9 @@ object AccountantWorkbookBuilder {
             text("Начало недели"),
             text("Конец недели"),
             text("Сумма, USD"),
-            text("Галлоны"),
-            text("Цена / гал"),
-            text("Цена со скидкой / гал"),
+            text(if (input.metric) input.volumeHeader else "Галлоны"),
+            text(if (input.metric) input.priceHeader else "Цена / гал"),
+            text(if (input.metric) input.discountHeader else "Цена со скидкой / гал"),
             text("Экономия, USD"),
             text("Место"),
         )
@@ -183,9 +192,13 @@ object AccountantWorkbookBuilder {
                     dateCell(entry.weekStartDate),
                     dateCell(entry.weekEndDate),
                     moneyCell(entry.totalAmount),
-                    optionalDecimal2(entry.gallons),
-                    optionalPrice(entry.pricePerGallon),
-                    optionalPrice(entry.discountPricePerGallon),
+                    optionalDecimal2(
+                        entry.gallons?.let { gallons ->
+                            if (input.metric) MeasurementUnits.displayVolume(gallons, true) else gallons
+                        },
+                    ),
+                    optionalUnitPrice(entry.pricePerGallon, input.metric),
+                    optionalUnitPrice(entry.discountPricePerGallon, input.metric),
                     optionalMoney(entry.savingsAmount),
                     text(entry.location.orEmpty()),
                 )
@@ -269,6 +282,13 @@ object AccountantWorkbookBuilder {
     private fun optionalMoney(value: Money?): Cell = value?.let { moneyCell(it) } ?: blank()
 
     private fun optionalPrice(value: UnitPrice?): Cell = value?.let { priceCell(it) } ?: blank()
+
+    private fun optionalUnitPrice(value: UnitPrice?, metric: Boolean): Cell {
+        if (value == null) return blank()
+        if (!metric) return priceCell(value)
+        val shown = MeasurementUnits.displayPricePerVolume(value.thousandths / 1000.0, true)
+        return number(String.format(Locale.ROOT, "%.3f", shown), STYLE_PRICE)
+    }
 
     private fun optionalDecimal2(value: Double?): Cell = value?.let { decimal2Cell(it) } ?: blank()
 
