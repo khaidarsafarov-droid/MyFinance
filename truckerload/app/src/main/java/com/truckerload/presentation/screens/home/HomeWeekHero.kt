@@ -41,6 +41,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
+import com.truckerload.domain.units.DisplayUnits
 import com.truckerload.domain.filter.LoadFilter
 import com.truckerload.domain.money.Money
 import com.truckerload.presentation.theme.AppTypography
@@ -174,10 +175,17 @@ internal fun HomeWeekHero(
                 .padding(top = 16.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
-            HeroStat(stringResource(R.string.home_stat_rate_per_mile), rpmText, onHero, muted)
             HeroStat(
-                stringResource(R.string.home_stat_miles),
-                MoneyFormat.formatNumber(miles),
+                stringResource(
+                    if (DisplayUnits.isMetric) R.string.home_stat_rate_per_mile_km else R.string.home_stat_rate_per_mile,
+                ),
+                rpmText,
+                onHero,
+                muted,
+            )
+            HeroStat(
+                stringResource(if (DisplayUnits.isMetric) R.string.home_stat_miles_km else R.string.home_stat_miles),
+                MoneyFormat.formatDistanceNumber(miles),
                 onHero,
                 muted,
             )

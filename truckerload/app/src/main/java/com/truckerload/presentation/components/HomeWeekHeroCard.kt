@@ -21,6 +21,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
+import com.truckerload.domain.units.DisplayUnits
+import com.truckerload.domain.units.MeasurementUnits
 import com.truckerload.presentation.theme.AppTypography
 import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.BentoGlassTheme
@@ -85,14 +87,20 @@ fun HomeWeekHeroCard(
             )
             WeekDayDotsRow(modifier = Modifier.padding(top = 8.dp, bottom = 12.dp))
             Text(
-                text = stringResource(R.string.widget_metric_cpm),
+                text = stringResource(
+                    if (DisplayUnits.isMetric) R.string.widget_metric_cpm_km else R.string.widget_metric_cpm,
+                ),
                 style = AppTypography.CaptionMuted.copy(
                     color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.88f),
                 ),
             )
             if (rpm != null && rpm > 0) {
                 Text(
-                    text = String.format(Locale.US, "$%.2f/mi", rpm),
+                    text = if (DisplayUnits.isMetric) {
+                        String.format(Locale.US, "$%.2f/km", MeasurementUnits.displayRatePerDistance(rpm))
+                    } else {
+                        String.format(Locale.US, "$%.2f/mi", rpm)
+                    },
                     style = AppTypography.HeroNumberCompact.copy(
                         color = MaterialTheme.colorScheme.onPrimary,
                     ),

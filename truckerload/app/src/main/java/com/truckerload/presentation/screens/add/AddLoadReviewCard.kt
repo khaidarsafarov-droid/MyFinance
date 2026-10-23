@@ -24,7 +24,11 @@ fun loadFieldLabel(field: LoadField): String = stringResource(
         LoadField.RATE -> R.string.add_load_field_rate
         LoadField.PICKUP -> R.string.add_load_field_pickup
         LoadField.DELIVERY -> R.string.add_load_field_delivery
-        LoadField.MILES -> R.string.add_load_field_miles
+        LoadField.MILES -> if (com.truckerload.domain.units.DisplayUnits.isMetric) {
+            R.string.add_load_field_miles_km
+        } else {
+            R.string.add_load_field_miles
+        }
         LoadField.DATE -> R.string.add_load_field_date
         LoadField.TRIP_ID -> R.string.add_load_field_trip_id
     },

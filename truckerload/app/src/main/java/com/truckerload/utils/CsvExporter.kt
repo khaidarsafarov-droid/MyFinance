@@ -5,6 +5,8 @@ import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.formatLoadRoute
 import com.truckerload.domain.model.withRouteMetrics
 import com.truckerload.domain.parser.ParseUtils
+import com.truckerload.domain.units.DisplayUnits
+import com.truckerload.domain.units.MeasurementUnits
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -34,8 +36,8 @@ object CsvExporter {
             metrics.date,
             "\"$route\"",
             income.formatPlain(),
-            String.format(Locale.US, "%.0f", miles),
-            String.format(Locale.US, "%.2f", rpm),
+            String.format(Locale.US, "%.0f", MeasurementUnits.displayDistance(miles)),
+            String.format(Locale.US, "%.2f", MeasurementUnits.displayRatePerDistance(rpm)),
         ).joinToString(",")
     }
 
@@ -44,7 +46,7 @@ object CsvExporter {
         val sorted = loads.sortedByDescending { it.date.ifBlank { "0000-00-00" } }
         val rows = sorted.map(::formatLoadCsvRow)
         val content = buildString {
-            appendLine(CSV_HEADER)
+            appendLine(if (DisplayUnits.isMetric) "date,route,income,km,rpm" else CSV_HEADER)
             rows.forEach { appendLine(it) }
         }
         val dir = File(context.getExternalFilesDir(null), EXPORTS_SUBDIR).apply { mkdirs() }

@@ -1,5 +1,8 @@
 package com.truckerload.domain.parser
 
+import com.truckerload.domain.units.DisplayUnits
+import com.truckerload.domain.units.MeasurementUnits
+
 /**
  * Fills the next missing load field from a short chat reply.
  * A long paste is a new document, not an answer, and returns null.
@@ -28,7 +31,13 @@ object IncompleteLoadFill {
 
     fun foundSummary(draft: LoadDraftFields): String {
         val rate = draft.parsedRate()?.let { "$" + LoadDraftFields.formatAmount(it) }
-        val miles = draft.parsedMiles().takeIf { it > 0.0 }?.let { "${LoadDraftFields.formatAmount(it)} mi" }
+        val miles = draft.parsedMiles().takeIf { it > 0.0 }?.let { stored ->
+            if (DisplayUnits.isMetric) {
+                "${LoadDraftFields.formatAmount(MeasurementUnits.displayDistance(stored))} km"
+            } else {
+                "${LoadDraftFields.formatAmount(stored)} mi"
+            }
+        }
         val route = listOf(draft.pointA, draft.pointB)
             .map { it.trim() }
             .filter { it.isNotEmpty() }

@@ -25,6 +25,9 @@ import androidx.compose.ui.unit.dp
 import com.truckerload.R
 import com.truckerload.domain.model.DeadheadMiles
 import com.truckerload.domain.model.Load
+import com.truckerload.domain.parser.DecimalInput
+import com.truckerload.domain.units.DisplayUnits
+import com.truckerload.domain.units.MeasurementUnits
 import com.truckerload.presentation.components.TlOutlinedButton
 import com.truckerload.presentation.components.dialogAboveIme
 import com.truckerload.presentation.components.dialogBodyScroll
@@ -52,12 +55,21 @@ internal fun DeadheadSection(
             )
             Text(
                 if (deadhead > 0.0) {
-                    stringResource(
-                        R.string.load_detail_deadhead_set,
-                        deadhead,
-                        load.totalMiles,
-                        load.drivenMiles,
-                    )
+                    if (DisplayUnits.isMetric) {
+                        stringResource(
+                            R.string.load_detail_deadhead_set_km,
+                            MeasurementUnits.displayDistance(deadhead),
+                            MeasurementUnits.displayDistance(load.totalMiles),
+                            MeasurementUnits.displayDistance(load.drivenMiles),
+                        )
+                    } else {
+                        stringResource(
+                            R.string.load_detail_deadhead_set,
+                            deadhead,
+                            load.totalMiles,
+                            load.drivenMiles,
+                        )
+                    }
                 } else {
                     stringResource(R.string.load_detail_deadhead_none)
                 },
@@ -96,12 +108,17 @@ private fun DeadheadEditorDialog(
     onDismiss: () -> Unit,
     onSave: (Double) -> Unit,
 ) {
+    val metric = DisplayUnits.isMetric
     var text by rememberSaveable {
         mutableStateOf(
-            if (initialMiles > 0.0) String.format(Locale.US, "%.0f", initialMiles) else "",
+            when {
+                initialMiles <= 0.0 -> ""
+                metric -> MeasurementUnits.formatInput(MeasurementUnits.displayDistance(initialMiles))
+                else -> String.format(Locale.US, "%.0f", initialMiles)
+            },
         )
     }
-    val parsed = DeadheadMiles.parse(text)
+    val parsed = if (metric) parseDeadheadDisplay(text) else DeadheadMiles.parse(text)
     val keyboard = LocalSoftwareKeyboardController.current
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -116,7 +133,17 @@ private fun DeadheadEditorDialog(
                 OutlinedTextField(
                     value = text,
                     onValueChange = { text = it },
-                    label = { Text(stringResource(R.string.load_detail_deadhead_miles_label)) },
+                    label = {
+                        Text(
+                            stringResource(
+                                if (metric) {
+                                    R.string.load_detail_deadhead_miles_label_km
+                                } else {
+                                    R.string.load_detail_deadhead_miles_label
+                                },
+                            ),
+                        )
+                    },
                     singleLine = true,
                     isError = parsed == null,
                     keyboardOptions = KeyboardOptions(
@@ -147,4 +174,13 @@ private fun DeadheadEditorDialog(
             }
         },
     )
+}
+
+/** Typed kilometers become stored miles. Blank clears deadhead, same as [DeadheadMiles.parse]. */
+private fun parseDeadheadDisplay(raw: String): Double? {
+    if (raw.isBlank()) return 0.0
+    val display = DecimalInput.parse(raw) ?: return null
+    val miles = MeasurementUnits.storedDistance(display)
+    if (miles < 0.0 || miles > DeadheadMiles.MAX) return null
+    return miles
 }

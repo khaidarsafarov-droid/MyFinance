@@ -28,4 +28,6 @@ data class BackupAppSettings(
     val telegramChatId: Long? = null,
     val loadWeekStartDay: Int? = null,
     val dieselWeekStartDay: Int? = null,
+    /** "mi" or "km" when the driver chose. Null means no explicit choice. */
+    val distanceUnit: String? = null,
 )

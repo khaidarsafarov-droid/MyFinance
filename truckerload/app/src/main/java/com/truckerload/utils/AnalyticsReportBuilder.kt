@@ -1,6 +1,7 @@
 package com.truckerload.utils
 
 import com.truckerload.data.repository.AnalyticsDashboard
+import com.truckerload.domain.units.MeasurementUnits
 import com.truckerload.presentation.utils.MoneyFormat
 import java.util.Locale
 
@@ -76,9 +77,11 @@ object AnalyticsReportBuilder {
         appendLine("• ${labels.paycheck}: ${MoneyFormat.formatCurrency(f.paycheckTotal)}")
         appendLine("• ${labels.diesel}: ${MoneyFormat.formatCurrency(f.dieselTotal)}")
         if (f.dieselGallons > 0.0) {
-            appendLine("• ${labels.gallons}: ${MoneyFormat.formatNumber(f.dieselGallons)}")
+            appendLine("• ${labels.gallons}: ${MoneyFormat.formatVolumeNumber(f.dieselGallons, decimals = 0)}")
             f.avgPricePerGallon?.let { price ->
-                appendLine("• ${labels.avgPrice}: ${String.format(Locale.US, "$%.2f", price)}")
+                appendLine(
+                    "• ${labels.avgPrice}: ${String.format(Locale.US, "$%.2f", MeasurementUnits.displayPricePerVolume(price))}",
+                )
             }
         }
         if (f.dieselSavings > 0.0) {
@@ -138,8 +141,8 @@ object AnalyticsReportBuilder {
         appendLine(labels.summarySection)
         appendLine("${csv(labels.totalLoads)},${s.totalLoads}")
         appendLine("${csv(labels.totalGross)},${money(s.totalGross)}")
-        appendLine("${csv(labels.totalMiles)},${number(s.totalMiles)}")
-        appendLine("${csv(labels.avgRpm)},${money(s.avgRpm)}")
+        appendLine("${csv(labels.totalMiles)},${number(MeasurementUnits.displayDistance(s.totalMiles))}")
+        appendLine("${csv(labels.avgRpm)},${money(MeasurementUnits.displayRatePerDistance(s.avgRpm))}")
         appendLine("${csv(labels.avgPerLoad)},${money(s.avgGrossPerLoad)}")
         s.bestWeek?.let { best ->
             appendLine("${csv(labels.bestWeek)},${csv(best.label)},${money(best.gross)}")
@@ -150,8 +153,10 @@ object AnalyticsReportBuilder {
         appendLine(labels.financeSection)
         appendLine("${csv(labels.paycheck)},${money(f.paycheckTotal)}")
         appendLine("${csv(labels.diesel)},${money(f.dieselTotal)}")
-        appendLine("${csv(labels.gallons)},${number(f.dieselGallons)}")
-        appendLine("${csv(labels.avgPrice)},${f.avgPricePerGallon?.let { money(it) } ?: ""}")
+        appendLine("${csv(labels.gallons)},${number(MeasurementUnits.displayVolume(f.dieselGallons))}")
+        appendLine(
+            "${csv(labels.avgPrice)},${f.avgPricePerGallon?.let { money(MeasurementUnits.displayPricePerVolume(it)) } ?: ""}",
+        )
         appendLine("${csv(labels.savings)},${money(f.dieselSavings)}")
         appendLine()
 
@@ -171,7 +176,7 @@ object AnalyticsReportBuilder {
                     week.weekNumber.toString(),
                     week.year.toString(),
                     money(week.gross),
-                    number(week.miles),
+                    number(MeasurementUnits.displayDistance(week.miles)),
                     week.loadCount.toString(),
                 ).joinToString(","),
             )
@@ -193,8 +198,8 @@ object AnalyticsReportBuilder {
                 listOf(
                     csv(route.route),
                     money(route.gross),
-                    number(route.miles),
-                    money(route.rpm),
+                    number(MeasurementUnits.displayDistance(route.miles)),
+                    money(MeasurementUnits.displayRatePerDistance(route.rpm)),
                     route.loadCount.toString(),
                 ).joinToString(","),
             )

@@ -12,7 +12,7 @@ class AppLanguageManagerTest {
     @Test
     fun supportedLanguages_areEnglishRussianAndSpanish() {
         val codes = AppLanguageManager.getSupportedLanguages().map { it.code }
-        assertEquals(listOf("en", "ru", "es"), codes)
+        assertEquals(listOf("en", "ru", "es", "fr"), codes)
         assertFalse(codes.contains("ar"))
     }
 
@@ -22,12 +22,13 @@ class AppLanguageManagerTest {
         assertEquals("English", byCode.getValue("en").nativeName)
         assertEquals("Русский", byCode.getValue("ru").nativeName)
         assertEquals("Español", byCode.getValue("es").nativeName)
+        assertEquals("Français", byCode.getValue("fr").nativeName)
+        assertEquals("🇨🇦", byCode.getValue("fr").flagEmoji)
     }
 
     @Test
     fun canonicalize_fallsBackToEnglishForUnsupportedTags() {
         assertEquals("en", AppLanguageManager.canonicalize("de"))
-        assertEquals("en", AppLanguageManager.canonicalize("fr-CA"))
         assertEquals("en", AppLanguageManager.canonicalize(""))
         assertEquals("en", AppLanguageManager.canonicalize("ar"))
     }
@@ -37,6 +38,7 @@ class AppLanguageManagerTest {
         assertEquals("ru", AppLanguageManager.canonicalize("ru-RU"))
         assertEquals("es", AppLanguageManager.canonicalize("es-MX"))
         assertEquals("en", AppLanguageManager.canonicalize("EN-US"))
+        assertEquals("fr", AppLanguageManager.canonicalize("fr-CA"))
     }
 
     @Test
@@ -60,8 +62,10 @@ class AppLanguageManagerTest {
         assertEquals(AppLanguage.RU, AppLanguage.fromOrdinal(0))
         assertEquals(AppLanguage.EN, AppLanguage.fromOrdinal(1))
         assertEquals(AppLanguage.ES, AppLanguage.fromOrdinal(2))
+        assertEquals(AppLanguage.FR, AppLanguage.fromOrdinal(3))
         assertEquals(AppLanguage.EN, AppLanguage.fromOrdinal(99))
         assertEquals(AppLanguage.ES, AppLanguage.fromTag("es-MX"))
+        assertEquals(AppLanguage.FR, AppLanguage.fromTag("fr-CA"))
         assertEquals(AppLanguage.EN, AppLanguage.fromTag("de"))
     }
 }
@@ -74,6 +78,7 @@ class AppLanguageResourcesTest {
         assertTrue(text.contains("android:name=\"en\""))
         assertTrue(text.contains("android:name=\"ru\""))
         assertTrue(text.contains("android:name=\"es\""))
+        assertTrue(text.contains("android:name=\"fr\""))
         assertFalse(text.contains("android:name=\"ar\""))
     }
 
@@ -93,6 +98,7 @@ class AppLanguageResourcesTest {
         val res = resDir()
         assertTrue(File(res, "values-ru/strings.xml").isFile)
         assertTrue(File(res, "values-es/strings.xml").isFile)
+        assertTrue(File(res, "values-fr/strings.xml").isFile)
         val base = File(res, "values/strings.xml").readText()
         val ru = File(res, "values-ru/strings.xml").readText()
         val es = File(res, "values-es/strings.xml").readText()

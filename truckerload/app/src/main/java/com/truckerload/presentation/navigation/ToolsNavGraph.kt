@@ -25,6 +25,7 @@ import com.truckerload.presentation.screens.map.MapScreen
 import com.truckerload.presentation.screens.scanner.ScanGalleryScreen
 import com.truckerload.presentation.screens.scanner.ScannerFlowScreen
 import com.truckerload.presentation.screens.privacy.PrivacySettingsScreen
+import com.truckerload.presentation.screens.settings.DistanceUnitScreen
 import com.truckerload.presentation.screens.settings.LanguageSelectionScreen
 import com.truckerload.presentation.screens.settings.SettingsScreen
 import com.truckerload.presentation.screens.tax.TaxTrackerScreen
@@ -149,6 +150,7 @@ fun NavGraphBuilder.toolsNavGraph(
             showBack = !tablet,
             onOpenPrivacy = { navController.navigate(Routes.PRIVACY_SETTINGS) },
             onOpenLanguage = { navController.navigate(Routes.LANGUAGE_SETTINGS) },
+            onOpenUnits = { navController.navigate(Routes.DISTANCE_UNITS) },
             motionSettled = motionSettled,
         )
     }
@@ -160,6 +162,18 @@ fun NavGraphBuilder.toolsNavGraph(
         popExitTransition = { navPopExit(reduceMotion) },
     ) {
         LanguageSelectionScreen(
+            onBack = { navController.popBackStack() },
+            showBack = !tablet,
+        )
+    }
+    composable(
+        route = Routes.DISTANCE_UNITS,
+        enterTransition = { navForwardEnter(reduceMotion) },
+        exitTransition = { navForwardExit(reduceMotion) },
+        popEnterTransition = { navPopEnter(reduceMotion) },
+        popExitTransition = { navPopExit(reduceMotion) },
+    ) {
+        DistanceUnitScreen(
             onBack = { navController.popBackStack() },
             showBack = !tablet,
         )

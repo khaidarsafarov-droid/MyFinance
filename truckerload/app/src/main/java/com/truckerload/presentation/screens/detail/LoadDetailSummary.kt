@@ -31,13 +31,14 @@ import com.truckerload.presentation.di.LocalRpmThresholdsStore
 import com.truckerload.presentation.screens.add.labelRes
 import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.loadSharedBounds
+import com.truckerload.domain.units.DisplayUnits
 import com.truckerload.presentation.utils.MoneyFormat
 import kotlin.math.ceil
 
 @Composable
 internal fun LoadDetailSummary(load: Load) {
     val thresholds by LocalRpmThresholdsStore.current.thresholds.collectAsStateWithLifecycle()
-    val milesLabel = MoneyFormat.formatNumber(load.drivenMiles)
+    val milesLabel = MoneyFormat.formatDistanceNumber(load.drivenMiles)
     val rpmValue = if (load.drivenMiles > 0) {
         load.totalRate.cents / 100.0 / load.drivenMiles
     } else {
@@ -78,10 +79,12 @@ internal fun LoadDetailSummary(load: Load) {
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         MetricTile(
-            label = stringResource(R.string.load_detail_stat_miles),
+            label = stringResource(
+                if (DisplayUnits.isMetric) R.string.load_detail_stat_miles_km else R.string.load_detail_stat_miles,
+            ),
             value = milesLabel,
             caption = if (load.deadheadMiles > 0.0) {
-                "${MoneyFormat.formatNumber(load.totalMiles)} ${stringResource(R.string.load_detail_miles_loaded)}"
+                "${MoneyFormat.formatDistanceNumber(load.totalMiles)} ${stringResource(R.string.load_detail_miles_loaded)}"
             } else {
                 null
             },

@@ -20,6 +20,7 @@ internal fun SettingsBody(
     csvMark: SettingsPremiumMark,
     telegramMark: SettingsPremiumMark,
     languageValue: String,
+    unitsValue: String,
     weekValue: String,
     rpmSubtitle: String,
     quietValue: String,
@@ -34,6 +35,7 @@ internal fun SettingsBody(
     onBackup: () -> Unit,
     onCsv: () -> Unit,
     onLanguage: () -> Unit,
+    onUnits: () -> Unit,
     onWeek: () -> Unit,
     onRpm: () -> Unit,
     onTelegram: () -> Unit,
@@ -85,6 +87,13 @@ internal fun SettingsBody(
                 subtitle = stringResource(R.string.settings_language_desc),
                 value = languageValue,
                 onClick = onLanguage,
+            )
+            SettingsNavRow(
+                icon = AppIcons.Route,
+                title = stringResource(R.string.settings_units_title),
+                subtitle = stringResource(R.string.settings_units_desc),
+                value = unitsValue,
+                onClick = onUnits,
             )
             SettingsNavRow(
                 icon = AppIcons.CalendarMonth,

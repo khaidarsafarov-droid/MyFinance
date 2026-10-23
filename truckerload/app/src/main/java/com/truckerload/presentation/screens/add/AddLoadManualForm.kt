@@ -205,7 +205,17 @@ fun AddLoadManualForm(
             OutlinedTextField(
                 value = fields.miles,
                 onValueChange = onMiles,
-                label = { Text(stringResource(R.string.edit_load_total_miles)) },
+                label = {
+                    Text(
+                        stringResource(
+                            if (com.truckerload.domain.units.DisplayUnits.isMetric) {
+                                R.string.edit_load_total_miles_km
+                            } else {
+                                R.string.edit_load_total_miles
+                            },
+                        ),
+                    )
+                },
                 modifier = Modifier
                     .weight(1f)
                     .focusRequester(milesFocus)
@@ -219,7 +229,10 @@ fun AddLoadManualForm(
                 colors = colors,
             )
         }
-        LiveRpmRow(rate = fields.parsedRate(), miles = fields.parsedMiles())
+        LiveRpmRow(
+            rate = fields.parsedRate(),
+            miles = com.truckerload.domain.units.MeasurementUnits.storedDistance(fields.parsedMiles()),
+        )
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -395,7 +408,13 @@ private fun LiveRpmRow(rate: Double?, miles: Double) {
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                text = stringResource(R.string.add_load_rate_per_mile),
+                text = stringResource(
+                    if (com.truckerload.domain.units.DisplayUnits.isMetric) {
+                        R.string.add_load_rate_per_mile_km
+                    } else {
+                        R.string.add_load_rate_per_mile
+                    },
+                ),
                 style = MaterialTheme.typography.bodyMedium,
                 color = fg,
                 modifier = Modifier.weight(1f),
@@ -453,7 +472,11 @@ internal fun applyPastedPreview(
     if (load.totalRate.isPositive()) viewModel.setManualRate(load.totalRate.formatPlain())
     if (load.totalMiles > 0.0) {
         viewModel.setManualMiles(
-            if (load.totalMiles % 1.0 == 0.0) {
+            if (com.truckerload.domain.units.DisplayUnits.isMetric) {
+                com.truckerload.domain.units.MeasurementUnits.formatInput(
+                    com.truckerload.domain.units.MeasurementUnits.displayDistance(load.totalMiles),
+                )
+            } else if (load.totalMiles % 1.0 == 0.0) {
                 load.totalMiles.toInt().toString()
             } else {
                 String.format(java.util.Locale.US, "%.1f", load.totalMiles)

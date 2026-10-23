@@ -122,7 +122,17 @@ fun DieselAmountFields(
         OutlinedTextField(
             value = uiState.gallonsText,
             onValueChange = onGallonsChange,
-            label = { Text(stringResource(R.string.add_diesel_gallons)) },
+            label = {
+                Text(
+                    stringResource(
+                        if (com.truckerload.domain.units.DisplayUnits.isMetric) {
+                            R.string.add_diesel_gallons_km
+                        } else {
+                            R.string.add_diesel_gallons
+                        },
+                    ),
+                )
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .defaultMinSize(minHeight = UiDimens.InputMinHeight)
@@ -139,7 +149,17 @@ fun DieselAmountFields(
         OutlinedTextField(
             value = uiState.pricePerGallonText,
             onValueChange = onPriceChange,
-            label = { Text(stringResource(R.string.add_diesel_price_per_gallon)) },
+            label = {
+                Text(
+                    stringResource(
+                        if (com.truckerload.domain.units.DisplayUnits.isMetric) {
+                            R.string.add_diesel_price_per_gallon_km
+                        } else {
+                            R.string.add_diesel_price_per_gallon
+                        },
+                    ),
+                )
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .defaultMinSize(minHeight = UiDimens.InputMinHeight)
@@ -190,7 +210,11 @@ fun DieselAmountFields(
         uiState.gallons?.let { gallons ->
             Text(
                 text = stringResource(
-                    R.string.add_diesel_gallons_preview,
+                    if (com.truckerload.domain.units.DisplayUnits.isMetric) {
+                        R.string.add_diesel_gallons_preview_km
+                    } else {
+                        R.string.add_diesel_gallons_preview
+                    },
                     String.format(Locale.US, "%.2f", gallons),
                 ),
                 style = MaterialTheme.typography.bodySmall,

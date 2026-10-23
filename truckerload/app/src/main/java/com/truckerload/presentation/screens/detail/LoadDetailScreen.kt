@@ -318,8 +318,12 @@ fun LoadDetailScreen(
                                     )
                                     Text(
                                         stringResource(
-                                            R.string.load_card_meta_line,
-                                            com.truckerload.presentation.utils.MoneyFormat.formatNumber(l.drivenMiles),
+                                            if (com.truckerload.domain.units.DisplayUnits.isMetric) {
+                                                R.string.load_card_meta_line_km
+                                            } else {
+                                                R.string.load_card_meta_line
+                                            },
+                                            com.truckerload.presentation.utils.MoneyFormat.formatDistanceNumber(l.drivenMiles),
                                             l.stopCount.takeIf { it > 0 } ?: (l.puCount + l.delCount),
                                         ),
                                         style = MaterialTheme.typography.bodySmall,

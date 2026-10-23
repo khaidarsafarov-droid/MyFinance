@@ -27,9 +27,10 @@ import com.truckerload.presentation.components.PeriodFilterStyle
 import com.truckerload.presentation.theme.AppTypography
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.theme.SoftUiShapes
+import com.truckerload.domain.units.DisplayUnits
+import com.truckerload.domain.units.MeasurementUnits
 import com.truckerload.presentation.utils.MoneyFormat
 import com.truckerload.presentation.utils.adaptiveHorizontalPadding
-import java.util.Locale
 
 @Composable
 internal fun PeriodSummarySection(
@@ -40,9 +41,9 @@ internal fun PeriodSummarySection(
 ) {
     val totals = header.totals
     val grossLabel = MoneyFormat.formatCurrency(totals.totalRate, decimals = 0)
-    val miles = "${MoneyFormat.formatNumber(totals.totalMiles)} mi"
+    val miles = MoneyFormat.formatMiles(totals.totalMiles)
     val rpmValue = if (totals.totalMiles > 0) {
-        String.format(Locale.US, "$%.2f", totals.avgRpm)
+        MoneyFormat.formatRpmShort(totals.avgRpm)
     } else {
         "—"
     }
@@ -74,10 +75,10 @@ internal fun YearSectionHeader(section: YearSection) {
         Text(text = stringResource(R.string.home_year_section, section.year), style = MaterialTheme.typography.titleLarge, color = tc.AccentPrimary)
         Text(
             text = stringResource(
-                R.string.home_year_totals,
+                if (DisplayUnits.isMetric) R.string.home_year_totals_km else R.string.home_year_totals,
                 section.loadCount,
                 section.totalRate,
-                section.totalMiles
+                if (DisplayUnits.isMetric) MeasurementUnits.displayDistance(section.totalMiles) else section.totalMiles,
             ),
             style = MaterialTheme.typography.bodyMedium,
             color = tc.TextSecondary,

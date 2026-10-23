@@ -11,6 +11,8 @@ import com.truckerload.data.repository.LoadRepository
 import com.truckerload.data.repository.PaycheckRepository
 import com.truckerload.data.repository.WeekRepository
 import com.truckerload.domain.goal.WeekYieldSnapshot
+import com.truckerload.domain.units.DisplayUnits
+import com.truckerload.domain.units.MeasurementUnits
 import com.truckerload.domain.money.Money
 import com.truckerload.domain.goal.WeeklyGoalCalculator
 import com.truckerload.utils.getCurrentWeekNumberAndYear
@@ -59,17 +61,32 @@ object WidgetStatsLoader {
         )
         val grossDollars = goalProgress.currentGross.cents / 100.0
         val rpmTarget = RpmThresholdsStore(appContext).thresholds.value.targetProfit
-        val statsLine = appContext.getString(
-            R.string.home_stats_header,
-            goalProgress.loadsCount,
-            grossDollars,
-            goalProgress.totalMiles,
-            if (goalProgress.totalMiles > 0) {
-                String.format(Locale.US, "%.2f", grossDollars / goalProgress.totalMiles)
-            } else {
-                "0.00"
-            }
-        )
+        val weekRpm = if (goalProgress.totalMiles > 0) grossDollars / goalProgress.totalMiles else 0.0
+        val statsLine = if (DisplayUnits.isMetric) {
+            appContext.getString(
+                R.string.home_stats_header_km,
+                goalProgress.loadsCount,
+                grossDollars,
+                MeasurementUnits.displayDistance(goalProgress.totalMiles),
+                if (goalProgress.totalMiles > 0) {
+                    String.format(Locale.US, "%.2f", MeasurementUnits.displayRatePerDistance(weekRpm))
+                } else {
+                    "0.00"
+                },
+            )
+        } else {
+            appContext.getString(
+                R.string.home_stats_header,
+                goalProgress.loadsCount,
+                grossDollars,
+                goalProgress.totalMiles,
+                if (goalProgress.totalMiles > 0) {
+                    String.format(Locale.US, "%.2f", weekRpm)
+                } else {
+                    "0.00"
+                },
+            )
+        }
         WidgetStats(
             loadsCount = goalProgress.loadsCount,
             avgCpm = if (goalProgress.totalMiles > 0) grossDollars / goalProgress.totalMiles else 0.0,

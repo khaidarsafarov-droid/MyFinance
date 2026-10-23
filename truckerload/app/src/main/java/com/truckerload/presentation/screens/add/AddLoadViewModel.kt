@@ -366,7 +366,7 @@ class AddLoadViewModel @Inject constructor(
                 tripId = fields.tripId,
                 date = fields.date,
                 rate = rate,
-                miles = fields.parsedMiles(),
+                miles = com.truckerload.domain.units.MeasurementUnits.storedDistance(fields.parsedMiles()),
                 pointA = fields.pointA,
                 pointB = fields.pointB,
                 extraPoints = fields.extraPoints,

@@ -11,6 +11,7 @@ import com.truckerload.R
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.money.sum
 import com.truckerload.domain.parser.ParseUtils
+import com.truckerload.domain.units.DisplayUnits
 import com.truckerload.presentation.utils.MoneyFormat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -150,9 +151,15 @@ object LoadExporter {
             appendLine("========================================")
             appendLine("Total loads: $count")
             appendLine("Total income: ${formatMoney(totalIncome)}")
-            appendLine("Total miles: ${formatMilesValue(totalMiles)}")
-            appendLine("Avg income per load: ${formatMoney(avgIncome)}")
-            appendLine("Avg rate per mile: ${formatRpm(avgRpm)}")
+            if (DisplayUnits.isMetric) {
+                appendLine("Total kilometers: ${MoneyFormat.formatDistanceNumber(totalMiles)}")
+                appendLine("Avg income per load: ${formatMoney(avgIncome)}")
+                appendLine("Avg rate per kilometer: ${formatRpm(avgRpm)}")
+            } else {
+                appendLine("Total miles: ${formatMilesValue(totalMiles)}")
+                appendLine("Avg income per load: ${formatMoney(avgIncome)}")
+                appendLine("Avg rate per mile: ${formatRpm(avgRpm)}")
+            }
             appendLine("========================================")
         }
     }
