@@ -157,8 +157,20 @@ internal fun IsoDatePickerDialog(
 @Composable
 internal fun errorText(key: String): String = when (key) {
     "empty_title" -> stringResource(R.string.maintenance_error_empty_title)
-    "invalid_interval" -> stringResource(R.string.maintenance_error_interval)
-    "invalid_odometer" -> stringResource(R.string.maintenance_error_odometer)
+    "invalid_interval" -> stringResource(
+        if (com.truckerload.domain.units.DisplayUnits.isMetric) {
+            R.string.maintenance_error_interval_km
+        } else {
+            R.string.maintenance_error_interval
+        },
+    )
+    "invalid_odometer" -> stringResource(
+        if (com.truckerload.domain.units.DisplayUnits.isMetric) {
+            R.string.maintenance_error_odometer_km
+        } else {
+            R.string.maintenance_error_odometer
+        },
+    )
     "invalid_due_date" -> stringResource(R.string.maintenance_error_due_date)
     "empty_description" -> stringResource(R.string.maintenance_error_description)
     "invalid_amount" -> stringResource(R.string.maintenance_error_amount)

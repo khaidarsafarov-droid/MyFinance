@@ -184,11 +184,16 @@ fun formatRpm(totalRate: com.truckerload.domain.money.Money, totalMiles: Double,
     formatRpm(totalRate.cents / 100.0, totalMiles, unitFormat)
 
 fun formatRpm(totalRate: Double, totalMiles: Double, unitFormat: String): String {
-    return if (totalMiles > 0) {
-        String.format(Locale.US, unitFormat, totalRate / totalMiles)
-    } else {
-        "—"
+    if (totalMiles <= 0.0) return "—"
+    val perMile = totalRate / totalMiles
+    if (!com.truckerload.domain.units.DisplayUnits.isMetric) {
+        return String.format(Locale.US, unitFormat, perMile)
     }
+    return String.format(
+        Locale.US,
+        "$%.2f/km",
+        com.truckerload.domain.units.MeasurementUnits.displayRatePerDistance(perMile),
+    )
 }
 
 @Composable

@@ -2,6 +2,7 @@ package com.truckerload.utils
 
 import com.truckerload.R
 import com.truckerload.domain.parser.DecimalInput
+import com.truckerload.domain.units.DisplayUnits
 
 /** Resource ids for money and number fields. Null means the value is acceptable. */
 object FieldErrors {
@@ -17,13 +18,20 @@ object FieldErrors {
         if (AmountInputValidator.parsePositiveAmount(raw) != null) {
             null
         } else {
-            R.string.field_error_gallons_positive
+            if (DisplayUnits.isMetric) {
+                R.string.field_error_gallons_positive_km
+            } else {
+                R.string.field_error_gallons_positive
+            }
         }
 
     fun milesRes(raw: String): Int? {
         if (raw.isBlank()) return null
         val miles = DecimalInput.parse(raw)
-        return if (miles == null || miles < 0.0) R.string.field_error_miles else null
+        if (miles == null || miles < 0.0) {
+            return if (DisplayUnits.isMetric) R.string.field_error_miles_km else R.string.field_error_miles
+        }
+        return null
     }
 
     /** Blank discount is optional. A filled value must be a positive price at or below pump price. */

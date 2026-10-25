@@ -1,5 +1,7 @@
 package com.truckerload.domain.ingest
 
+import com.truckerload.domain.units.DisplayUnits
+import com.truckerload.domain.units.MeasurementUnits
 import java.util.Locale
 
 object ReceiptPreviewFormatter {
@@ -11,13 +13,26 @@ object ReceiptPreviewFormatter {
             lines += "💵 <b>\$%s</b>".format(Locale.US, String.format(Locale.US, "%,.2f", it))
         }
         preview.miles?.let {
-            lines += "🛣️ ${String.format(Locale.US, "%,.2f", it)} mi"
+            if (DisplayUnits.isMetric) {
+                lines += "🛣️ ${String.format(Locale.US, "%,.2f", MeasurementUnits.displayDistance(it))} km"
+            } else {
+                lines += "🛣️ ${String.format(Locale.US, "%,.2f", it)} mi"
+            }
         }
         preview.gallons?.let {
-            lines += "⛽ ${String.format(Locale.US, "%.2f", it)} gal"
+            if (DisplayUnits.isMetric) {
+                lines += "⛽ ${String.format(Locale.US, "%.2f", MeasurementUnits.displayVolume(it))} L"
+            } else {
+                lines += "⛽ ${String.format(Locale.US, "%.2f", it)} gal"
+            }
         }
         preview.pricePerGallon?.let {
-            lines += "PPG \$%s".format(Locale.US, String.format(Locale.US, "%.3f", it))
+            if (DisplayUnits.isMetric) {
+                val perLiter = MeasurementUnits.displayPricePerVolume(it)
+                lines += "\$%s/L".format(Locale.US, String.format(Locale.US, "%.3f", perLiter))
+            } else {
+                lines += "PPG \$%s".format(Locale.US, String.format(Locale.US, "%.3f", it))
+            }
         }
         preview.date?.let { lines += "📅 ${escape(it)}" }
         val route = listOfNotNull(preview.pointA, preview.pointB)

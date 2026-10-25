@@ -22,6 +22,7 @@ object AppLanguageManager {
         LanguageItem(code = "en", nativeName = "English", flagEmoji = "🇬🇧"),
         LanguageItem(code = "ru", nativeName = "Русский", flagEmoji = "🇷🇺"),
         LanguageItem(code = "es", nativeName = "Español", flagEmoji = "🇪🇸"),
+        LanguageItem(code = "fr", nativeName = "Français", flagEmoji = "🇨🇦"),
     )
 
     private val supportedCodes = supported.map { it.code }.toSet()

@@ -1,6 +1,8 @@
 package com.truckerload.sync
 
 import com.truckerload.domain.model.Load
+import com.truckerload.domain.units.DisplayUnits
+import com.truckerload.domain.units.MeasurementUnits
 import java.util.Locale
 import kotlin.math.abs
 import kotlin.math.round
@@ -31,7 +33,13 @@ internal object TelegramLoadReply {
 
     fun detail(rateCents: Long, miles: Double, origin: String, destination: String): String {
         val money = if (rateCents > 0L) formatMoney(rateCents) else ""
-        val milesText = if (miles > 0.0) "${formatMiles(miles)} mi" else ""
+        val milesText = if (miles <= 0.0) {
+            ""
+        } else if (DisplayUnits.isMetric) {
+            "${formatMiles(MeasurementUnits.displayDistance(miles))} km"
+        } else {
+            "${formatMiles(miles)} mi"
+        }
         val figures = listOf(money, milesText).filter { it.isNotBlank() }.joinToString(" · ")
         val from = origin.trim()
         val to = destination.trim()

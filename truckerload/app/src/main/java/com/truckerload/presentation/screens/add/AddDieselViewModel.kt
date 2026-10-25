@@ -235,15 +235,24 @@ class AddDieselViewModel @Inject constructor(
         val app = getApplication<Application>()
         val fields = DieselReceiptExtractor.extract(text)
         val labels = DieselScanLabels(
-            gallons = app.getString(R.string.add_diesel_gallons),
-            price = app.getString(R.string.add_diesel_price_per_gallon),
+            gallons = app.getString(DieselAmountUnits.gallonsLabel()),
+            price = app.getString(DieselAmountUnits.priceLabel()),
             discount = app.getString(R.string.add_diesel_discount_price),
             location = app.getString(R.string.add_diesel_location),
             noneMessage = app.getString(R.string.add_diesel_scan_none),
             foundTemplate = app.getString(R.string.add_diesel_scan_found),
         )
         _uiState.update { state ->
-            val next = DieselFormFill.applyScan(state, fields, text, labels)
+            val filled = DieselFormFill.applyScan(state, fields, text, labels)
+            val next = if (!com.truckerload.domain.units.DisplayUnits.isMetric) filled else filled.copy(
+                gallonsText = fields.gallons?.let { formatAmount(DieselAmountUnits.displayVolume(it)) } ?: filled.gallonsText,
+                pricePerGallonText = fields.pricePerGallon?.let {
+                    formatAmount(com.truckerload.domain.units.MeasurementUnits.displayPricePerVolume(it))
+                } ?: filled.pricePerGallonText,
+                discountPriceText = fields.discountPricePerGallon?.let {
+                    formatAmount(com.truckerload.domain.units.MeasurementUnits.displayPricePerVolume(it))
+                } ?: filled.discountPriceText,
+            )
             savedStateHandle[KEY_GALLONS_TEXT] = next.gallonsText
             savedStateHandle[KEY_PRICE_TEXT] = next.pricePerGallonText
             savedStateHandle[KEY_DISCOUNT_TEXT] = next.discountPriceText
@@ -305,9 +314,9 @@ class AddDieselViewModel @Inject constructor(
             return
         }
 
-        val gallons = state.gallons!!
-        val price = state.pricePerGallon!!
-        val discount = state.discountPricePerGallon
+        val gallons = DieselAmountUnits.storedGallons(state.gallons!!)
+        val price = DieselAmountUnits.storedPrice(state.pricePerGallon!!)
+        val discount = state.discountPricePerGallon?.let(DieselAmountUnits::storedPrice)
         val paidTotal = state.paidTotal!!
 
         val weekNumber = state.weekNumber
@@ -464,9 +473,21 @@ class AddDieselViewModel @Inject constructor(
     }
 
     private fun loadForEdit(existing: Diesel) {
-        val gallons = existing.gallons?.let { formatAmount(it) }.orEmpty()
-        val price = existing.pricePerGallon?.let { formatAmount(it) }.orEmpty()
-        val discount = existing.discountPricePerGallon?.let { formatAmount(it) }.orEmpty()
+        val gallons = existing.gallons?.let { formatAmount(DieselAmountUnits.displayVolume(it)) }.orEmpty()
+        val price = existing.pricePerGallon?.let { raw ->
+            if (com.truckerload.domain.units.DisplayUnits.isMetric) {
+                formatAmount(DieselAmountUnits.displayPrice(raw))
+            } else {
+                formatAmount(raw)
+            }
+        }.orEmpty()
+        val discount = existing.discountPricePerGallon?.let { raw ->
+            if (com.truckerload.domain.units.DisplayUnits.isMetric) {
+                formatAmount(DieselAmountUnits.displayPrice(raw))
+            } else {
+                formatAmount(raw)
+            }
+        }.orEmpty()
         savedStateHandle[KEY_GALLONS_TEXT] = gallons
         savedStateHandle[KEY_PRICE_TEXT] = price
         savedStateHandle[KEY_DISCOUNT_TEXT] = discount
@@ -508,12 +529,8 @@ class AddDieselViewModel @Inject constructor(
 
     private fun validateInputs(state: AddDieselUiState): String? {
         val app = getApplication<Application>()
-        if (state.gallons == null) {
-            return app.getString(R.string.add_diesel_gallons_required)
-        }
-        if (state.pricePerGallon == null) {
-            return app.getString(R.string.add_diesel_price_required)
-        }
+        if (state.gallons == null) return app.getString(DieselAmountUnits.gallonsRequired())
+        if (state.pricePerGallon == null) return app.getString(DieselAmountUnits.priceRequired())
         val discountRaw = state.discountPriceText.trim()
         if (discountRaw.isNotEmpty() && state.discountPricePerGallon == null) {
             return app.getString(R.string.add_diesel_discount_invalid)

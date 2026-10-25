@@ -10,6 +10,9 @@ import com.truckerload.data.preferences.RpmThresholdsStore
 import com.truckerload.data.preferences.SettingsDataStore
 import com.truckerload.data.preferences.WeeklyProfitGoalStore
 import com.truckerload.domain.model.EquipmentType
+import com.truckerload.domain.units.DisplayUnits
+import com.truckerload.domain.units.DistanceUnit
+import com.truckerload.domain.units.DistanceUnitPolicy
 import com.truckerload.domain.week.WeekStartDay
 import com.truckerload.domain.week.WeekStartRebinder
 import com.truckerload.domain.week.WeekStartRuntime
@@ -45,11 +48,18 @@ object BackupPrefsApplier {
         }
         settings.loadWeekStartDay?.let { store.saveLoadWeekStartDay(WeekStartDay.fromCalendarDay(it)) }
         settings.dieselWeekStartDay?.let { store.saveDieselWeekStartDay(WeekStartDay.fromCalendarDay(it)) }
+        settings.distanceUnit?.let { tag ->
+            DistanceUnit.fromStored(tag)?.let { store.saveDistanceUnit(it) }
+        }
         WeekStartRuntime.install(
             store.getLoadWeekStartDayOnce(),
             store.getDieselWeekStartDayOnce(),
         )
         runCatching { WeekStartRebinder.rebindIfPossible(app) }
+        val explicitUnit = store.getExplicitDistanceUnitOnce()
+        DisplayUnits.install(
+            DistanceUnitPolicy.resolve(explicitUnit, AppLanguageManager.getCurrentLanguageCode()),
+        )
 
         val userId = AuthStore(app).currentUserIdOrNull() ?: return
         settings.weeklyProfitGoal?.takeIf { it > 0 }?.let { goal ->

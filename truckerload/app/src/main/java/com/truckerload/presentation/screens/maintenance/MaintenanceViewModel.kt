@@ -100,8 +100,12 @@ class MaintenanceViewModel @Inject constructor(
         }
         when (draft.reminderType) {
             MaintenanceReminderType.MILES -> {
-                val interval = DecimalInput.parse(draft.intervalMiles)
-                val odo = DecimalInput.parse(draft.odometerAtStart)
+                val interval = DecimalInput.parse(draft.intervalMiles)?.let {
+                    com.truckerload.domain.units.MeasurementUnits.storedDistance(it)
+                }
+                val odo = DecimalInput.parse(draft.odometerAtStart)?.let {
+                    com.truckerload.domain.units.MeasurementUnits.storedDistance(it)
+                }
                 if (interval == null || interval <= 0) {
                     _formState.update { it.copy(errorMessage = "invalid_interval") }
                     return
@@ -125,7 +129,9 @@ class MaintenanceViewModel @Inject constructor(
                     _formState.update { it.copy(errorMessage = "invalid_due_date") }
                     return
                 }
-                val odo = DecimalInput.parse(draft.odometerAtStart)
+                val odo = DecimalInput.parse(draft.odometerAtStart)?.let {
+                    com.truckerload.domain.units.MeasurementUnits.storedDistance(it)
+                }
                 persistTask(
                     MaintenanceTask(
                         title = title,

@@ -185,7 +185,7 @@ class EditLoadViewModel @Inject constructor(
             tripId = state.tripId.ifBlank { original.tripId },
             date = state.loadDate.ifBlank { original.date },
             totalRate = com.truckerload.domain.money.Money.fromDollars(parsedRate),
-            totalMiles = parsedMiles,
+            totalMiles = com.truckerload.domain.units.MeasurementUnits.storedDistance(parsedMiles),
             pointA = state.pointA,
             pointB = state.pointB,
             equipmentType = state.equipmentType,
@@ -281,7 +281,13 @@ class EditLoadViewModel @Inject constructor(
                         }
                     }
                 val totalRate = savedStateHandle[KEY_RATE] ?: loaded.totalRate.toString()
-                val totalMiles = savedStateHandle[KEY_MILES] ?: loaded.totalMiles.toString()
+                val totalMiles = savedStateHandle[KEY_MILES] ?: if (com.truckerload.domain.units.DisplayUnits.isMetric) {
+                    com.truckerload.domain.units.MeasurementUnits.formatInput(
+                        com.truckerload.domain.units.MeasurementUnits.displayDistance(loaded.totalMiles),
+                    )
+                } else {
+                    loaded.totalMiles.toString()
+                }
                 val pointA = savedStateHandle[KEY_A] ?: loaded.pointA
                 val pointB = savedStateHandle[KEY_B] ?: loaded.pointB
                 _uiState.update { state ->

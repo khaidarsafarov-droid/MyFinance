@@ -19,6 +19,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
+import com.truckerload.domain.units.DisplayUnits
+import com.truckerload.domain.units.MeasurementUnits
 import com.truckerload.presentation.di.LocalRpmThresholdsStore
 import com.truckerload.presentation.theme.LocalTruckColors
 
@@ -33,12 +35,22 @@ fun RpmColorLegend(
     val thresholds by rpmStore.thresholds.collectAsStateWithLifecycle()
     val min = thresholds.minProfit
     val target = thresholds.targetProfit
+    val minShown = if (DisplayUnits.isMetric) MeasurementUnits.displayRatePerDistance(min) else min
+    val targetShown = if (DisplayUnits.isMetric) MeasurementUnits.displayRatePerDistance(target) else target
 
-    val items = listOf(
-        tc.AccentExpense to stringResource(R.string.rpm_legend_red, min),
-        tc.AccentWarning to stringResource(R.string.rpm_legend_yellow, min, target),
-        tc.AccentProfit to stringResource(R.string.rpm_legend_green, target),
-    )
+    val items = if (DisplayUnits.isMetric) {
+        listOf(
+            tc.AccentExpense to stringResource(R.string.rpm_legend_red_km, minShown),
+            tc.AccentWarning to stringResource(R.string.rpm_legend_yellow_km, minShown, targetShown),
+            tc.AccentProfit to stringResource(R.string.rpm_legend_green_km, targetShown),
+        )
+    } else {
+        listOf(
+            tc.AccentExpense to stringResource(R.string.rpm_legend_red, min),
+            tc.AccentWarning to stringResource(R.string.rpm_legend_yellow, min, target),
+            tc.AccentProfit to stringResource(R.string.rpm_legend_green, target),
+        )
+    }
 
     if (compact) {
         FlowRow(

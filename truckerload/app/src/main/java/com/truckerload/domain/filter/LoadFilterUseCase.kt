@@ -99,7 +99,12 @@ class LoadFilterUseCase {
     ) {
         val avgRpmFormatted: String
             get() = if (totalMiles > 0) {
-                "$${String.format(Locale.US, "%.2f", totalRate.cents / 100.0 / totalMiles)} / mi"
+                val perMile = totalRate.cents / 100.0 / totalMiles
+                if (com.truckerload.domain.units.DisplayUnits.isMetric) {
+                    "$${String.format(Locale.US, "%.2f", com.truckerload.domain.units.MeasurementUnits.displayRatePerDistance(perMile))} / km"
+                } else {
+                    "$${String.format(Locale.US, "%.2f", perMile)} / mi"
+                }
             } else {
                 "—"
             }

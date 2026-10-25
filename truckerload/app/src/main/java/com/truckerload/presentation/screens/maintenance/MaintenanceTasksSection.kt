@@ -168,13 +168,19 @@ private fun ActiveTaskCard(
             )
             when (task.reminderType) {
                 MaintenanceReminderType.MILES -> {
-                    val driven = String.format(Locale.US, "%,.0f", progress.milesDrivenSinceStart)
-                    val remaining = String.format(Locale.US, "%,.0f", progress.milesRemaining ?: 0.0)
-                    val estimated = String.format(Locale.US, "%,.0f", progress.estimatedOdometer ?: 0.0)
-                    val target = String.format(Locale.US, "%,.0f", progress.targetOdometer ?: 0.0)
+                    val metric = com.truckerload.domain.units.DisplayUnits.isMetric
+                    fun shown(miles: Double) = String.format(
+                        Locale.US,
+                        "%,.0f",
+                        com.truckerload.domain.units.MeasurementUnits.displayDistance(miles),
+                    )
+                    val driven = shown(progress.milesDrivenSinceStart)
+                    val remaining = shown(progress.milesRemaining ?: 0.0)
+                    val estimated = shown(progress.estimatedOdometer ?: 0.0)
+                    val target = shown(progress.targetOdometer ?: 0.0)
                     Text(
                         stringResource(
-                            R.string.maintenance_miles_progress,
+                            if (metric) R.string.maintenance_km_progress else R.string.maintenance_miles_progress,
                             driven,
                             remaining,
                             progress.loadsCounted,
@@ -189,7 +195,15 @@ private fun ActiveTaskCard(
                         )
                     }
                     Text(
-                        stringResource(R.string.maintenance_odometer_estimate, estimated, target),
+                        stringResource(
+                            if (metric) {
+                                R.string.maintenance_odometer_estimate_km
+                            } else {
+                                R.string.maintenance_odometer_estimate
+                            },
+                            estimated,
+                            target,
+                        ),
                         style = MaterialTheme.typography.bodySmall,
                         color = tc.TextSecondary,
                     )

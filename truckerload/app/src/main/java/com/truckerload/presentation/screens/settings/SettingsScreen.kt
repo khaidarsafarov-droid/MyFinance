@@ -34,6 +34,9 @@ import com.truckerload.presentation.theme.LocalReduceMotion
 import com.truckerload.presentation.theme.SoftUiColors
 import com.truckerload.presentation.theme.screenEnterAnimation
 import com.truckerload.presentation.utils.useNavigationRail
+import com.truckerload.domain.units.DisplayUnits
+import com.truckerload.domain.units.DistanceUnitPolicy
+import com.truckerload.domain.units.MeasurementUnits
 import com.truckerload.utils.AppLanguageManager
 import java.text.DateFormatSymbols
 import java.time.ZoneId
@@ -44,6 +47,7 @@ fun SettingsScreen(
     showBack: Boolean = false,
     onOpenPrivacy: () -> Unit = {},
     onOpenLanguage: () -> Unit = {},
+    onOpenUnits: () -> Unit = {},
     motionSettled: Boolean = true,
 ) {
     val settingsViewModel: SettingsViewModel = hiltViewModel()
@@ -90,6 +94,18 @@ fun SettingsScreen(
         .firstOrNull { it.code == AppLanguageManager.getCurrentLanguageCode() }
         ?.nativeName
         ?: stringResource(R.string.settings_language_en)
+    val unitsValue = stringResource(
+        if (
+            DistanceUnitPolicy.resolve(
+                settings.explicitDistanceUnit,
+                AppLanguageManager.getCurrentLanguageCode(),
+            ).isMetric
+        ) {
+            R.string.settings_units_kilometers
+        } else {
+            R.string.settings_units_miles
+        },
+    )
     val weekValue = remember(locale, loadWeekStartDay) {
         DateFormatSymbols(locale).shortWeekdays
             .getOrNull(loadWeekStartDay.calendarDay)
@@ -106,10 +122,20 @@ fun SettingsScreen(
     } else {
         stringResource(R.string.settings_quiet_off)
     }
+    val minRate = if (DisplayUnits.isMetric) {
+        MeasurementUnits.displayRatePerDistance(thresholds.minProfit)
+    } else {
+        thresholds.minProfit
+    }
+    val targetRate = if (DisplayUnits.isMetric) {
+        MeasurementUnits.displayRatePerDistance(thresholds.targetProfit)
+    } else {
+        thresholds.targetProfit
+    }
     val rpmSubtitle = stringResource(
         R.string.settings_row_rpm_value,
-        SettingsPremiumState.rpmAmount(thresholds.minProfit),
-        SettingsPremiumState.rpmAmount(thresholds.targetProfit),
+        SettingsPremiumState.rpmAmount(minRate),
+        SettingsPremiumState.rpmAmount(targetRate),
     )
 
     fun openPremium(feature: PremiumFeature, detailWhenUnlocked: SettingsDetail) {
@@ -140,6 +166,7 @@ fun SettingsScreen(
                     csvMark = SettingsPremiumState.mark(true, premium.allows(PremiumFeature.EXPORT)),
                     telegramMark = SettingsPremiumState.mark(true, premium.allows(PremiumFeature.TELEGRAM)),
                     languageValue = languageValue,
+                    unitsValue = unitsValue,
                     weekValue = weekValue,
                     rpmSubtitle = rpmSubtitle,
                     quietValue = quietValue,
@@ -154,6 +181,7 @@ fun SettingsScreen(
                     onBackup = { detail = SettingsDetail.DATA },
                     onCsv = { openPremium(PremiumFeature.EXPORT, SettingsDetail.DATA) },
                     onLanguage = onOpenLanguage,
+                    onUnits = onOpenUnits,
                     onWeek = { detail = SettingsDetail.WEEK },
                     onRpm = { detail = SettingsDetail.RPM },
                     onTelegram = { openPremium(PremiumFeature.TELEGRAM, SettingsDetail.TELEGRAM) },

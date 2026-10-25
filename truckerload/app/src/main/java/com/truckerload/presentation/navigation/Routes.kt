@@ -27,6 +27,7 @@ object Routes {
     const val SETTINGS = "settings"
     const val PRIVACY_SETTINGS = "privacy_settings"
     const val LANGUAGE_SETTINGS = "language_settings"
+    const val DISTANCE_UNITS = "distance_units"
     const val ABOUT = "about"
     /** Existing PaywallScreen. Survey and its notification open this route. */
     const val PAYWALL = "paywall"

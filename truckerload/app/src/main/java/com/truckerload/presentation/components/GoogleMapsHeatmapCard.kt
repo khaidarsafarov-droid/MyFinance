@@ -322,8 +322,16 @@ fun GoogleMapsHeatmapCard(
                 exit = fadeOut(tween(180)) + slideOutVertically(tween(180)) { it / 4 }
             ) {
                 selected?.let { state ->
-                    val rpmStr = if (state.trips > 0)
-                        String.format(Locale.getDefault(), "%.2f", state.revenuePerMile) else "—"
+                    val rpmNumber = if (com.truckerload.domain.units.DisplayUnits.isMetric) {
+                        com.truckerload.domain.units.MeasurementUnits.displayRatePerDistance(state.revenuePerMile)
+                    } else {
+                        state.revenuePerMile
+                    }
+                    val rpmStr = if (state.trips > 0) {
+                        String.format(Locale.getDefault(), "%.2f", rpmNumber)
+                    } else {
+                        "—"
+                    }
                     val grossStr = String.format(Locale.getDefault(), "%,.0f", state.revenue)
                     val ratingLabel = when (state.rating) {
                         StateRating.GOOD -> stringResource(R.string.map_rating_good)
@@ -349,7 +357,14 @@ fun GoogleMapsHeatmapCard(
                                 color = MaterialTheme.colorScheme.onSurface
                             )
                             Text(
-                                text = stringResource(R.string.map_rpm_per_mile, rpmStr),
+                                text = stringResource(
+                                    if (com.truckerload.domain.units.DisplayUnits.isMetric) {
+                                        R.string.map_rpm_per_km
+                                    } else {
+                                        R.string.map_rpm_per_mile
+                                    },
+                                    rpmStr,
+                                ),
                                 modifier = Modifier.padding(top = 4.dp),
                                 style = AppTypography.Body,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant

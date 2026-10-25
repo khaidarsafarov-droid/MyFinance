@@ -31,7 +31,6 @@ import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.utils.MoneyFormat
 import com.truckerload.presentation.utils.adaptiveHorizontalPadding
 import com.truckerload.presentation.utils.useWideTabletSidebar
-import java.util.Locale
 
 /**
  * Soft-UI tablet journal dashboard (hero + stats + recent loads + weekly goal).
@@ -57,9 +56,9 @@ internal fun TabletHomeDashboard(
     val periodLabel = periodSummary?.label
         ?: stringResource(R.string.home_filter_this_week)
     val gross = MoneyFormat.formatCurrency(totals.totalRate)
-    val milesLabel = "${MoneyFormat.formatNumber(totals.totalMiles)} mi"
+    val milesLabel = MoneyFormat.formatMiles(totals.totalMiles)
     val rpmLabel = if (totals.totalMiles > 0) {
-        String.format(Locale.US, "$%.2f", totals.avgRpm)
+        MoneyFormat.formatRpmShort(totals.avgRpm)
     } else {
         "—"
     }
@@ -146,7 +145,7 @@ internal fun TabletHomeDashboard(
         item(key = "tablet_stats", contentType = "summary") {
             TabletStatsGrid(
                 loadCount = totals.loadCount.toString(),
-                miles = MoneyFormat.formatNumber(totals.totalMiles),
+                miles = MoneyFormat.formatDistanceNumber(totals.totalMiles),
                 rpm = rpmLabel,
                 gross = gross,
                 compact = !wide,

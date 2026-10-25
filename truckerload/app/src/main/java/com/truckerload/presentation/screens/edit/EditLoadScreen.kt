@@ -88,7 +88,11 @@ fun EditLoadScreen(
     val milesFocus = remember { FocusRequester() }
     val rateError = FieldErrors.amountRes(uiState.totalRate)
     val milesError = when {
-        uiState.totalMiles.isBlank() -> R.string.field_error_miles
+        uiState.totalMiles.isBlank() -> if (com.truckerload.domain.units.DisplayUnits.isMetric) {
+            R.string.field_error_miles_km
+        } else {
+            R.string.field_error_miles
+        }
         else -> FieldErrors.milesRes(uiState.totalMiles)
     }
     val showRate = rateGate.visibleRes(rateError, uiState.showFieldErrors)
@@ -230,7 +234,17 @@ fun EditLoadScreen(
                         OutlinedTextField(
                             value = uiState.totalMiles,
                             onValueChange = viewModel::setTotalMiles,
-                            label = { Text(stringResource(R.string.edit_load_total_miles)) },
+                            label = {
+                                Text(
+                                    stringResource(
+                                        if (com.truckerload.domain.units.DisplayUnits.isMetric) {
+                                            R.string.edit_load_total_miles_km
+                                        } else {
+                                            R.string.edit_load_total_miles
+                                        },
+                                    ),
+                                )
+                            },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .focusRequester(milesFocus)

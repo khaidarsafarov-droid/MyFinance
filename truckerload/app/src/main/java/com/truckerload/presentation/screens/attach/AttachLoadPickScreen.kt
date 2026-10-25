@@ -304,7 +304,17 @@ private fun AttachLoadRow(
                         append(load.date)
                         if (load.drivenMiles > 0) {
                             append(" · ")
-                            append(String.format(Locale.US, "%,.0f mi", load.drivenMiles))
+                            append(
+                                if (com.truckerload.domain.units.DisplayUnits.isMetric) {
+                                    String.format(
+                                        Locale.US,
+                                        "%,.0f km",
+                                        com.truckerload.domain.units.MeasurementUnits.displayDistance(load.drivenMiles),
+                                    )
+                                } else {
+                                    String.format(Locale.US, "%,.0f mi", load.drivenMiles)
+                                },
+                            )
                         }
                         if (load.totalRate.isPositive()) {
                             append(" · ")

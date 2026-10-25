@@ -19,6 +19,8 @@ import com.truckerload.domain.model.Load
 import com.truckerload.presentation.theme.AppTypography
 import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.LocalTruckColors
+import com.truckerload.domain.units.DisplayUnits
+import com.truckerload.domain.units.MeasurementUnits
 import com.truckerload.presentation.utils.MoneyFormat
 import java.util.Locale
 
@@ -92,13 +94,21 @@ fun LoadParsePreviewCard(
                             style = AppTypography.AccentNumber.copy(color = tc.AccentProfit),
                         )
                         Text(
-                            "${MoneyFormat.formatNumber(preview.totalMiles)} mi",
+                            if (DisplayUnits.isMetric) {
+                                "${MoneyFormat.formatDistanceNumber(preview.totalMiles)} km"
+                            } else {
+                                "${MoneyFormat.formatNumber(preview.totalMiles)} mi"
+                            },
                             style = MaterialTheme.typography.bodyMedium,
                             color = tc.TextPrimary,
                         )
                         val rpm = if (preview.totalMiles > 0) preview.totalRate.cents / 100.0 / preview.totalMiles else 0.0
                         Text(
-                            String.format(Locale.US, "$%.2f/mi", rpm),
+                            if (DisplayUnits.isMetric) {
+                                String.format(Locale.US, "$%.2f/km", MeasurementUnits.displayRatePerDistance(rpm))
+                            } else {
+                                String.format(Locale.US, "$%.2f/mi", rpm)
+                            },
                             style = MaterialTheme.typography.bodyMedium,
                             color = tc.TextSecondary,
                         )

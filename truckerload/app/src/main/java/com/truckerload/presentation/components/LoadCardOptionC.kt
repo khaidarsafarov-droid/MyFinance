@@ -37,6 +37,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.truckerload.R
+import com.truckerload.domain.units.DisplayUnits
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.Stop
 import com.truckerload.presentation.icons.AppIcons
@@ -179,7 +180,7 @@ internal fun LoadCardOptionC(
                 brand = brand,
             )
             FactsRow(
-                miles = MoneyFormat.formatNumber(card.drivenMiles),
+                miles = MoneyFormat.formatDistanceNumber(card.drivenMiles),
                 stops = card.stopCount,
                 days = card.durationDays,
                 source = card.source,
@@ -285,7 +286,10 @@ private fun FactsRow(
         Fact(
             icon = AppIcons.Route,
             tint = brand.iconViolet,
-            text = stringResource(R.string.load_card_miles, miles),
+            text = stringResource(
+                if (DisplayUnits.isMetric) R.string.load_card_km else R.string.load_card_miles,
+                miles,
+            ),
             brand = brand,
         )
         if (stops > 0) {
