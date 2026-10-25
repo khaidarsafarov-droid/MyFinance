@@ -23,6 +23,7 @@ import com.truckerload.domain.premium.PremiumFeature
 import com.truckerload.presentation.premium.PaywallScreen
 import com.truckerload.presentation.theme.TruckerLoadTheme
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -57,6 +58,29 @@ class PaywallScreenUiTest {
             visibleBottom = screenHeightPx - navBarPx,
             label = "navigation bar",
         )
+    }
+
+    @Test
+    fun smallScreen_featureRowsRender() {
+        composePaywall(navigationBar = 48.dp, ime = 0.dp)
+        val app = ApplicationProvider.getApplicationContext<Application>()
+        val body = app.getString(R.string.premium_body)
+        assertTrue(body.contains("Google Play"))
+        assertFalse(body.contains("scanner, camera"))
+
+        composeRule.onNodeWithText(app.getString(R.string.premium_price_pill)).assertIsDisplayed()
+        scrollIntoView(app.getString(R.string.premium_included_title))
+        featureRows().forEach { (title, benefit) ->
+            scrollIntoView(app.getString(title))
+            scrollIntoView(app.getString(benefit))
+        }
+        scrollIntoView(app.getString(R.string.premium_free_title))
+        listOf(
+            R.string.premium_free_loads,
+            R.string.premium_free_diesel,
+            R.string.premium_free_pay,
+            R.string.premium_free_deadhead,
+        ).forEach { scrollIntoView(app.getString(it)) }
     }
 
     @Test
@@ -99,6 +123,22 @@ class PaywallScreenUiTest {
             }
         }
         composeRule.waitForIdle()
+    }
+
+    private fun featureRows(): List<Pair<Int, Int>> = listOf(
+        R.string.premium_feature_telegram_title to R.string.premium_feature_telegram_benefit,
+        R.string.premium_feature_analytics_title to R.string.premium_feature_analytics_benefit,
+        R.string.premium_feature_goal_title to R.string.premium_feature_goal_benefit,
+        R.string.premium_feature_map_title to R.string.premium_feature_map_benefit,
+        R.string.premium_feature_tax_title to R.string.premium_feature_tax_benefit,
+        R.string.premium_feature_scanner_title to R.string.premium_feature_scanner_benefit,
+        R.string.premium_feature_camera_title to R.string.premium_feature_camera_benefit,
+        R.string.premium_feature_export_title to R.string.premium_feature_export_benefit,
+        R.string.premium_feature_drive_title to R.string.premium_feature_drive_benefit,
+    )
+
+    private fun scrollIntoView(text: String) {
+        composeRule.onNodeWithText(text).performScrollTo().assertIsDisplayed()
     }
 
     private fun scrollSubscribeCtaIntoView(): SemanticsNode {
