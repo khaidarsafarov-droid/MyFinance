@@ -23,6 +23,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
@@ -79,10 +80,14 @@ fun PaywallScreen(
                 showBack = true,
                 onBack = onBack,
             ) {
-                com.truckerload.presentation.components.DashboardPremiumTag(
-                    locked = true,
-                    modifier = Modifier.padding(start = 20.dp, top = 8.dp),
-                )
+                Column(
+                    modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalAlignment = Alignment.Start,
+                ) {
+                    com.truckerload.presentation.components.DashboardPremiumTag(locked = true)
+                    PaywallPricePill()
+                }
             }
         },
     ) { padding ->
@@ -97,13 +102,11 @@ fun PaywallScreen(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        com.truckerload.presentation.components.DashboardCard {
-            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         if (feature != null) {
             Text(
                 stringResource(feature.lockedMessage()),
                 style = MaterialTheme.typography.bodyLarge,
-                color = com.truckerload.presentation.theme.LocalBrandPalette.current.textPrimary,
+                color = tc.TextPrimary,
             )
         }
         Text(
@@ -111,11 +114,7 @@ fun PaywallScreen(
             style = MaterialTheme.typography.bodyMedium,
             color = tc.TextSecondary,
         )
-        Text(
-            stringResource(R.string.premium_terms),
-            style = MaterialTheme.typography.bodySmall,
-            color = tc.TextSecondary,
-        )
+        PaywallIncludedSection()
         PremiumPurchaseButton(modifier = Modifier.fillMaxWidth())
         TextButton(
             onClick = { access.refresh() },
@@ -123,10 +122,13 @@ fun PaywallScreen(
         ) {
             Text(stringResource(R.string.premium_restore))
         }
+        Text(
+            stringResource(R.string.premium_terms),
+            style = MaterialTheme.typography.bodySmall,
+            color = tc.TextSecondary,
+        )
         TextButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
             Text(stringResource(R.string.common_back))
-        }
-            }
         }
     }
     }
