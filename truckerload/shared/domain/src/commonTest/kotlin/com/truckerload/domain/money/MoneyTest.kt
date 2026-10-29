@@ -5,6 +5,13 @@ import kotlin.test.assertEquals
 
 class MoneyTest {
     @Test
+    fun toStringIsPlainDecimal() {
+        assertEquals("2111.72", Money.fromCents(211172).toString())
+        assertEquals("0.05", Money.fromCents(5).toString())
+        assertEquals("2111.72", Money.fromCents(211172).formatPlain())
+    }
+
+    @Test
     fun summingManyDimesIsExact() {
         val dime = Money.parse("0.10")
         var sum = Money.ZERO

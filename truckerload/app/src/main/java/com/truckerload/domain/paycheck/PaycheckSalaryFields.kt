@@ -20,7 +20,10 @@ object PaycheckSalaryFields {
     fun validate(netText: String): Error? =
         if (parseAmount(netText) == null) Error.NET else null
 
-    fun formatAmount(amount: Money): String = formatAmount(amount.cents / 100.0)
+    fun formatAmount(amount: Money): String {
+        val plain = amount.formatPlain()
+        return if (plain.endsWith(".00")) plain.dropLast(3) else plain
+    }
 
     fun formatAmount(amount: Double): String =
         if (amount % 1.0 == 0.0) amount.toLong().toString()
