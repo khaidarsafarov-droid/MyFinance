@@ -3,33 +3,21 @@ package com.truckerload.presentation.screens.detail
 import com.truckerload.presentation.icons.AppIcons
 
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -40,47 +28,23 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.ui.draw.clip
-import com.truckerload.presentation.utils.rememberDecodedBitmap
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.truckerload.R
-import com.truckerload.domain.model.Load
-import com.truckerload.domain.model.ActualFinishDate
-import com.truckerload.domain.model.effectiveFinishDate
-import com.truckerload.domain.model.formatDurationDays
-import com.truckerload.domain.model.formatLoadRoute
-import com.truckerload.domain.model.formatPacePerDay
 import com.truckerload.domain.model.withRouteMetrics
 import com.truckerload.presentation.components.DashboardHero
-import com.truckerload.presentation.components.DisputeSection
-import com.truckerload.presentation.components.OneUiBottomActionBar
-import com.truckerload.presentation.components.StatBox
-import com.truckerload.presentation.components.TlButton as Button
-import com.truckerload.presentation.components.TlOutlinedButton as OutlinedButton
-import com.truckerload.presentation.components.formatRpm
-import com.truckerload.presentation.components.StopTimeline
 import com.truckerload.presentation.components.LoadDetailSkeleton
 import com.truckerload.presentation.theme.focusAfterNavigate
 import com.truckerload.presentation.di.LocalPhotoRepository
 import com.truckerload.presentation.di.LocalScanRepository
 import com.truckerload.presentation.screens.privacy.PrivacyTrustBadge
-import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.LocalTruckColors
-import com.truckerload.presentation.theme.OneUiTokens
 import com.truckerload.presentation.theme.UiDimens
-import com.truckerload.presentation.theme.loadSharedBounds
-import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -88,11 +52,13 @@ fun LoadDetailScreen(
     loadId: String,
     onBack: () -> Unit,
     onEdit: () -> Unit,
+    onEditMiles: () -> Unit = onEdit,
     onEditFinish: () -> Unit,
     onDelete: () -> Unit,
     onPhotoClick: (String) -> Unit = {},
     onScanClick: (String) -> Unit = {},
     onCamera: (loadId: String, tripId: String, loadDate: String) -> Unit = { _, _, _ -> },
+    onScanner: (loadId: String, tripId: String, loadDate: String) -> Unit = { _, _, _ -> },
     onOpenPrivacy: () -> Unit = {},
 ) {
     val tc = LocalTruckColors.current
@@ -107,7 +73,6 @@ fun LoadDetailScreen(
     val saveErrorEmpty = stringResource(R.string.common_save_error, "")
     var showDeleteConfirm by remember { mutableStateOf(false) }
     val lifecycleOwner = LocalLifecycleOwner.current
-    // Reload after returning from Edit (finish date / metrics may have changed).
     DisposableEffect(lifecycleOwner, loadId) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
@@ -149,8 +114,8 @@ fun LoadDetailScreen(
                         ) {
                             Icon(
                                 AppIcons.Edit,
-                                contentDescription = stringResource(R.string.load_detail_cd_edit),
-                                tint = androidx.compose.ui.graphics.Color.White,
+                                contentDescription = stringResource(R.string.common_edit),
+                                tint = Color.White,
                             )
                         }
                     }
@@ -161,7 +126,7 @@ fun LoadDetailScreen(
                         Icon(
                             AppIcons.Delete,
                             contentDescription = stringResource(R.string.load_detail_cd_delete),
-                            tint = androidx.compose.ui.graphics.Color.White,
+                            tint = Color.White,
                         )
                     }
                 },
@@ -170,39 +135,6 @@ fun LoadDetailScreen(
                     onClick = onOpenPrivacy,
                     modifier = Modifier.padding(start = 16.dp, top = 8.dp),
                 )
-            }
-        },
-        bottomBar = {
-            val current = uiState.load
-            if (current != null && uiState.loadError == null) {
-                OneUiBottomActionBar {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        IconButton(
-                            onClick = { onCamera(current.id, current.tripId, current.date) },
-                            modifier = Modifier.size(56.dp),
-                        ) {
-                            Icon(
-                                AppIcons.PhotoCamera,
-                                contentDescription = stringResource(R.string.take_photo),
-                                tint = MaterialTheme.colorScheme.primary,
-                            )
-                        }
-                        Button(
-                            onClick = onEdit,
-                            modifier = Modifier.weight(1f).height(56.dp),
-                        ) {
-                            Icon(AppIcons.Edit, contentDescription = null)
-                            Text(
-                                stringResource(R.string.load_detail_edit_load),
-                                modifier = Modifier.padding(start = 8.dp),
-                            )
-                        }
-                    }
-                }
             }
         },
     ) { padding ->
@@ -220,146 +152,29 @@ fun LoadDetailScreen(
             )
             else -> {
                 val raw = uiState.load ?: return@Scaffold
-                // Live recompute so duration/pace always reflect actualFinishDate + stops.
                 val l = remember(raw) { raw.withRouteMetrics() }
-                Column(
+                LoadDetailLoadedContent(
+                    load = l,
+                    photos = linkedPhotos,
+                    scans = linkedScans,
+                    onEditMiles = onEditMiles,
+                    onEditFinish = onEditFinish,
+                    onSaveDeadhead = { miles -> viewModel.setDeadheadMiles(miles, saveErrorEmpty) },
+                    onDisputeChanged = { updated -> viewModel.updateDispute(updated, saveErrorEmpty) },
+                    onPhotoClick = onPhotoClick,
+                    onCamera = { onCamera(l.id, l.tripId, l.date) },
+                    onScanner = { onScanner(l.id, l.tripId, l.date) },
+                    onScanClick = { scan -> onScanClick(scan.id) },
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(padding)
-                        .imePadding()
-                        .verticalScroll(rememberScrollState())
-                        .padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    LoadDetailSummary(load = l)
-                    DeadheadSection(
-                        load = l,
-                        onSave = { miles ->
-                            viewModel.setDeadheadMiles(miles, saveErrorEmpty)
-                        },
-                    )
-                    ActualFinishSection(
-                        load = l,
-                        onPickClick = onEditFinish,
-                        onClearClick = {
-                            viewModel.setActualFinishDate(null, saveErrorEmpty)
-                        },
-                    )
-                    if (linkedPhotos.isNotEmpty()) {
-                        BentoGlassCard(modifier = Modifier.fillMaxWidth()) {
-                            Column(modifier = Modifier.padding(20.dp)) {
-                                Text(
-                                    stringResource(R.string.load_detail_photos),
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = tc.TextPrimary,
-                                    modifier = Modifier.padding(bottom = 8.dp),
-                                )
-                                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    items(linkedPhotos, key = { it.id }, contentType = { "photo" }) { photo ->
-                                        val thumb = rememberDecodedBitmap(photo.filePath)
-                                        if (thumb != null) {
-                                            Image(
-                                                bitmap = thumb,
-                                                contentDescription = photo.fileName,
-                                                contentScale = ContentScale.Crop,
-                                                modifier = Modifier
-                                                    .width(96.dp)
-                                                    .height(96.dp)
-                                                    .clip(RoundedCornerShape(12.dp))
-                                                    .clickable { onPhotoClick(photo.id) },
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    if (linkedScans.isNotEmpty()) {
-                        BentoGlassCard(modifier = Modifier.fillMaxWidth()) {
-                            Column(modifier = Modifier.padding(20.dp)) {
-                                Text(
-                                    stringResource(R.string.load_detail_scans),
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = tc.TextPrimary,
-                                    modifier = Modifier.padding(bottom = 8.dp),
-                                )
-                                linkedScans.forEach { scan ->
-                                    Text(
-                                        text = scan.fileName,
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = tc.TextPrimary,
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .clickable { onScanClick(scan.id) }
-                                            .padding(vertical = 6.dp),
-                                    )
-                                }
-                            }
-                        }
-                    }
-                    if (l.stops.isNotEmpty()) {
-                        BentoGlassCard(modifier = Modifier.fillMaxWidth()) {
-                            Column(modifier = Modifier.padding(20.dp)) {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(bottom = 8.dp),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically,
-                                ) {
-                                    Text(
-                                        stringResource(R.string.load_detail_stops),
-                                        style = MaterialTheme.typography.titleMedium,
-                                        color = tc.TextPrimary,
-                                    )
-                                    Text(
-                                        stringResource(
-                                            if (com.truckerload.domain.units.DisplayUnits.isMetric) {
-                                                R.string.load_card_meta_line_km
-                                            } else {
-                                                R.string.load_card_meta_line
-                                            },
-                                            com.truckerload.presentation.utils.MoneyFormat.formatDistanceNumber(l.drivenMiles),
-                                            l.stopCount.takeIf { it > 0 } ?: (l.puCount + l.delCount),
-                                        ),
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = tc.TextSecondary,
-                                    )
-                                }
-                                StopTimeline(stops = l.stops)
-                            }
-                        }
-                    }
-                    BentoGlassCard(modifier = Modifier.fillMaxWidth()) {
-                        DisputeSection(
-                            load = l,
-                            onDisputeChanged = { updated ->
-                                viewModel.updateDispute(updated, saveErrorEmpty)
-                            },
-                            modifier = Modifier.padding(20.dp),
-                        )
-                    }
-                    BentoGlassCard(modifier = Modifier.fillMaxWidth()) {
-                        Column(modifier = Modifier.padding(20.dp)) {
-                            Text(
-                                stringResource(R.string.load_raw_message),
-                                style = MaterialTheme.typography.labelMedium,
-                                color = tc.TextLabel,
-                            )
-                            Text(
-                                (l.rawMessage).take(500).ifEmpty { "—" },
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = tc.TextSecondary,
-                                modifier = Modifier.padding(top = 4.dp),
-                            )
-                        }
-                    }
-                }
+                        .imePadding(),
+                )
             }
         }
     }
     if (showDeleteConfirm) {
-        androidx.compose.material3.AlertDialog(
+        AlertDialog(
             onDismissRequest = { showDeleteConfirm = false },
             title = { Text(stringResource(R.string.load_delete_confirm_title)) },
             text = { Text(stringResource(R.string.load_delete_confirm_message)) },
@@ -377,62 +192,5 @@ fun LoadDetailScreen(
                 }
             },
         )
-    }
-}
-
-@Composable
-private fun ActualFinishSection(
-    load: Load,
-    onPickClick: () -> Unit,
-    onClearClick: () -> Unit,
-) {
-    val tc = LocalTruckColors.current
-    val finishLabel = if (!load.actualFinishDate.isNullOrBlank()) {
-        ActualFinishDate.displayLabel(load.actualFinishDate)
-            ?: load.effectiveFinishDate()
-            ?: "—"
-    } else {
-        load.effectiveFinishDate() ?: "—"
-    }
-    val statusText = if (!load.actualFinishDate.isNullOrBlank()) {
-        stringResource(R.string.load_detail_finish_manual, finishLabel)
-    } else {
-        stringResource(R.string.load_detail_finish_from_stops, finishLabel)
-    }
-    BentoGlassCard(modifier = Modifier.fillMaxWidth()) {
-        Column(
-            modifier = Modifier.padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(OneUiTokens.CardGap),
-        ) {
-            Text(
-                stringResource(R.string.load_detail_finish_title),
-                style = MaterialTheme.typography.titleMedium,
-                color = tc.TextPrimary,
-            )
-            Text(
-                statusText,
-                style = MaterialTheme.typography.bodyMedium,
-                color = tc.TextSecondary,
-            )
-            Text(
-                stringResource(R.string.load_detail_finish_hint),
-                style = MaterialTheme.typography.labelSmall,
-                color = tc.TextLabel,
-            )
-            OutlinedButton(
-                onClick = onPickClick,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text(stringResource(R.string.load_detail_finish_pick))
-            }
-            if (!load.actualFinishDate.isNullOrBlank()) {
-                OutlinedButton(
-                    onClick = onClearClick,
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Text(stringResource(R.string.load_detail_finish_clear))
-                }
-            }
-        }
     }
 }

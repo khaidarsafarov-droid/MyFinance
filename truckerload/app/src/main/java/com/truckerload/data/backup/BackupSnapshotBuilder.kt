@@ -100,6 +100,7 @@ object BackupSnapshotBuilder {
         intervalMiles = intervalMiles,
         odometerAtStart = odometerAtStart,
         dueDate = dueDate,
+        repeatIntervalDays = repeatIntervalDays,
         isCompleted = isCompleted,
         completedAt = completedAt,
         notifiedAt = notifiedAt,

@@ -15,7 +15,7 @@ object Routes {
     const val MAP = "map"
     const val LOAD_DETAIL = "load_detail/{loadId}"
     const val ADD_LOAD = "add_load"
-    const val EDIT_LOAD = "edit_load/{loadId}?focusFinish={focusFinish}"
+    const val EDIT_LOAD = "edit_load/{loadId}?focusFinish={focusFinish}&focusMiles={focusMiles}"
     const val PAYCHECK = "paycheck"
     const val ADD_PAYCHECK = "add_paycheck"
     const val ADD_DIESEL = "add_diesel"
@@ -47,8 +47,8 @@ object Routes {
     const val SCAN_DETAIL = "scan_detail/{scanId}"
 
     fun loadDetail(loadId: String) = "load_detail/${encodePathSegment(loadId)}"
-    fun editLoad(loadId: String, focusFinish: Boolean = false) =
-        "edit_load/${encodePathSegment(loadId)}?focusFinish=$focusFinish"
+    fun editLoad(loadId: String, focusFinish: Boolean = false, focusMiles: Boolean = false) =
+        "edit_load/${encodePathSegment(loadId)}?focusFinish=$focusFinish&focusMiles=$focusMiles"
     fun photoDetail(photoId: String) = "photo_detail/${encodePathSegment(photoId)}"
     fun scanDetail(scanId: String) = "scan_detail/${encodePathSegment(scanId)}"
     fun gallery(tab: String) = "gallery/${encodePathSegment(tab)}"

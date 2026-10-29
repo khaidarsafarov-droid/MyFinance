@@ -43,6 +43,7 @@ import com.truckerload.domain.model.Load
 import com.truckerload.presentation.components.TlOutlinedButton as OutlinedButton
 import com.truckerload.presentation.components.TlTextButton as TextButton
 import com.truckerload.presentation.di.LocalLoadRepository
+import com.truckerload.presentation.theme.AppTextFieldDefaults
 import com.truckerload.presentation.theme.BentoGlassClickableCard
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.LocalTruckColors
@@ -218,13 +219,24 @@ fun AttachLoadPickScreen(
                                 onValueChange = { searchQuery = it },
                                 modifier = Modifier.fillMaxWidth(),
                                 singleLine = true,
+                                textStyle = MaterialTheme.typography.bodyLarge.copy(
+                                    color = AppTextFieldDefaults.inputColor(),
+                                ),
                                 leadingIcon = {
-                                    Icon(AppIcons.Search, contentDescription = null)
+                                    Icon(
+                                        AppIcons.Search,
+                                        contentDescription = stringResource(R.string.common_search),
+                                        tint = AppTextFieldDefaults.iconColor(),
+                                    )
                                 },
                                 placeholder = {
-                                    Text(stringResource(R.string.home_search_hint))
+                                    Text(
+                                        stringResource(R.string.home_search_hint),
+                                        color = AppTextFieldDefaults.hintColor(),
+                                    )
                                 },
                                 label = { Text(stringResource(R.string.common_search)) },
+                                colors = AppTextFieldDefaults.outlined(),
                             )
                         }
                     }

@@ -18,6 +18,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.layout
@@ -72,22 +74,26 @@ fun Modifier.dialogBodyScroll(): Modifier {
 fun Modifier.dialogAboveIme(): Modifier {
     val view = LocalView.current
     val ime = WindowInsets.ime.getBottom(LocalDensity.current)
+    // Remember the lift so a window that does not report the gravity we just
+    // wrote (Robolectric) does not reapply it on every frame.
+    val liftedAboveIme = remember { mutableStateOf(false) }
+    val topGravity = Gravity.TOP or Gravity.CENTER_HORIZONTAL
     SideEffect {
         val window = (view as? DialogWindowProvider)?.window
             ?: (view.parent as? DialogWindowProvider)?.window
             ?: return@SideEffect
         val params = window.attributes
-        val topGravity = Gravity.TOP or Gravity.CENTER_HORIZONTAL
         if (ime > 0) {
-            if (params.gravity != topGravity || params.y != 0) {
-                params.gravity = topGravity
-                params.y = 0
-                window.attributes = params
-            }
-        } else if (params.gravity != Gravity.CENTER || params.y != 0) {
+            if (liftedAboveIme.value) return@SideEffect
+            params.gravity = topGravity
+            params.y = 0
+            window.attributes = params
+            liftedAboveIme.value = true
+        } else if (liftedAboveIme.value) {
             params.gravity = Gravity.CENTER
             params.y = 0
             window.attributes = params
+            liftedAboveIme.value = false
         }
     }
     if (ime == 0) return this

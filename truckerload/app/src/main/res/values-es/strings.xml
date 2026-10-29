@@ -945,6 +945,18 @@
     <string name="load_card_attach_photo">Tomar foto de la carga</string>
     <string name="load_card_attach_scan">Escanear documento de la carga</string>
     <string name="load_detail_stops">Paradas</string>
+    <string name="load_detail_route">%1$s → %2$s</string>
+    <string name="load_detail_stat_gross">Bruto</string>
+    <string name="load_detail_stat_stops">Paradas</string>
+    <string name="load_detail_stops_section">Paradas</string>
+    <string name="load_detail_stops_empty">No hay paradas en esta carga</string>
+    <string name="load_detail_photos_scans">Fotos y escaneos</string>
+    <string name="load_detail_chip_add_miles">Añadir millas</string>
+    <string name="load_detail_chip_deadhead_value">Deadhead %1$s</string>
+    <string name="load_detail_chip_complete">Completar carga</string>
+    <string name="load_detail_chip_delivered">Entregado</string>
+    <string name="load_detail_chip_add_dispute">Añadir disputa</string>
+    <string name="load_detail_chip_dispute_open">Disputa abierta</string>
 
     <!-- Parsing -->
     <string name="load_added">✅ Nueva carga agregada: %1$s</string>
@@ -1269,6 +1281,25 @@
     <string name="maintenance_days_left">Quedan %1$d días</string>
     <string name="maintenance_overdue_days">%1$d días de retraso</string>
     <string name="maintenance_mark_done">Listo</string>
+    <string name="maintenance_repeat_days">Repetir cada (días)</string>
+    <string name="maintenance_repeat_days_hint">Vacío significa una sola vez</string>
+    <string name="maintenance_error_repeat">Escribe un número entero de días</string>
+    <string name="maintenance_reminder_action_done">Listo</string>
+    <string name="maintenance_reminder_action_snooze">Posponer</string>
+    <string name="maintenance_reminder_channel_name">Alarmas de mantenimiento</string>
+    <string name="maintenance_reminder_channel_desc">Recordatorios fuertes para el cambio de aceite y otros servicios</string>
+    <string name="maintenance_notif_permission_title">Permitir notificaciones</string>
+    <string name="maintenance_notif_permission_body">Los recordatorios de cambio de aceite y servicio necesitan permiso de notificaciones para sonar.</string>
+    <string name="maintenance_notif_permission_denied">Las notificaciones están desactivadas, así que los recordatorios de mantenimiento no suenan. Actívalas en los ajustes del sistema.</string>
+    <string name="maintenance_notif_open_settings">Ajustes de notificaciones</string>
+    <string name="maintenance_exact_alarm_title">Permitir alarmas exactas</string>
+    <string name="maintenance_exact_alarm_body">Android está bloqueando las alarmas exactas, así que un recordatorio puede llegar tarde. Permítelas para TruckoRig. Hasta entonces sigue habiendo una comprobación de respaldo.</string>
+    <string name="maintenance_exact_alarm_settings">Ajustes de alarmas exactas</string>
+    <string name="maintenance_exact_alarm_banner">Las alarmas exactas están desactivadas. Los recordatorios pueden llegar tarde hasta que las permitas.</string>
+    <string name="maintenance_battery_title">Para que el recordatorio suene a tiempo</string>
+    <string name="maintenance_battery_body">La optimización de batería puede retrasar la comprobación de respaldo, y algunos teléfonos también retrasan las alarmas. Permite el uso sin restricciones para que el cambio de aceite suene a tiempo.</string>
+    <string name="maintenance_battery_allow">Permitir</string>
+    <string name="maintenance_battery_later">Ahora no</string>
     <string name="maintenance_ocr_processing">Leyendo recibo…</string>
     <string name="maintenance_retake_photo">Elegir otra foto</string>
     <string name="maintenance_scan_source_title">Escanear recibo</string>

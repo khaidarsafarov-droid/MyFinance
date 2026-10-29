@@ -141,6 +141,21 @@
             </intent-filter>
         </receiver>
         <receiver
+            android:name=".sync.MaintenanceReminderReceiver"
+            android:directBootAware="true"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+                <action android:name="android.intent.action.TIME_SET" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+                <action android:name="com.truckorig.action.MAINTENANCE_REMINDER" />
+                <action android:name="com.truckorig.action.MAINTENANCE_REMINDER_DONE" />
+                <action android:name="com.truckorig.action.MAINTENANCE_REMINDER_SNOOZE" />
+            </intent-filter>
+        </receiver>
+        <receiver
             android:name=".sync.LoadAlarmReceiver"
             android:exported="false">
             <intent-filter>

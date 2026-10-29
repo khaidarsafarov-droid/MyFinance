@@ -3,11 +3,9 @@ package com.truckerload.presentation.screens.detail
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -24,86 +22,15 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
 import com.truckerload.domain.model.DeadheadMiles
-import com.truckerload.domain.model.Load
 import com.truckerload.domain.parser.DecimalInput
 import com.truckerload.domain.units.DisplayUnits
 import com.truckerload.domain.units.MeasurementUnits
-import com.truckerload.presentation.components.TlOutlinedButton
 import com.truckerload.presentation.components.dialogAboveIme
 import com.truckerload.presentation.components.dialogBodyScroll
-import com.truckerload.presentation.theme.BentoGlassCard
-import com.truckerload.presentation.theme.LocalTruckColors
 import java.util.Locale
 
 @Composable
-internal fun DeadheadSection(
-    load: Load,
-    onSave: (Double) -> Unit,
-) {
-    val tc = LocalTruckColors.current
-    var showEditor by rememberSaveable { mutableStateOf(false) }
-    val deadhead = load.deadheadMiles.coerceAtLeast(0.0)
-    BentoGlassCard(modifier = Modifier.fillMaxWidth()) {
-        Column(
-            modifier = Modifier.padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            Text(
-                stringResource(R.string.load_detail_deadhead_title),
-                style = MaterialTheme.typography.titleMedium,
-                color = tc.TextPrimary,
-            )
-            Text(
-                if (deadhead > 0.0) {
-                    if (DisplayUnits.isMetric) {
-                        stringResource(
-                            R.string.load_detail_deadhead_set_km,
-                            MeasurementUnits.displayDistance(deadhead),
-                            MeasurementUnits.displayDistance(load.totalMiles),
-                            MeasurementUnits.displayDistance(load.drivenMiles),
-                        )
-                    } else {
-                        stringResource(
-                            R.string.load_detail_deadhead_set,
-                            deadhead,
-                            load.totalMiles,
-                            load.drivenMiles,
-                        )
-                    }
-                } else {
-                    stringResource(R.string.load_detail_deadhead_none)
-                },
-                style = MaterialTheme.typography.bodyMedium,
-                color = tc.TextSecondary,
-            )
-            TlOutlinedButton(
-                onClick = { showEditor = true },
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text(
-                    if (deadhead > 0.0) {
-                        stringResource(R.string.load_detail_deadhead_edit)
-                    } else {
-                        stringResource(R.string.load_detail_deadhead_add)
-                    },
-                )
-            }
-        }
-    }
-    if (showEditor) {
-        DeadheadEditorDialog(
-            initialMiles = deadhead,
-            onDismiss = { showEditor = false },
-            onSave = { miles ->
-                showEditor = false
-                onSave(miles)
-            },
-        )
-    }
-}
-
-@Composable
-private fun DeadheadEditorDialog(
+internal fun DeadheadEditorDialog(
     initialMiles: Double,
     onDismiss: () -> Unit,
     onSave: (Double) -> Unit,

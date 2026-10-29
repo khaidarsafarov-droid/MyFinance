@@ -52,12 +52,16 @@ fun NavGraphBuilder.loadsNavGraph(
                 loadId = loadId,
                 onBack = { navController.popBackStack() },
                 onEdit = { navController.navigate(Routes.editLoad(loadId)) },
+                onEditMiles = { navController.navigate(Routes.editLoad(loadId, focusMiles = true)) },
                 onEditFinish = { navController.navigate(Routes.editLoad(loadId, focusFinish = true)) },
                 onDelete = { navController.popBackStack() },
                 onPhotoClick = { navController.navigate(Routes.photoDetail(it)) },
                 onScanClick = { navController.navigate(Routes.scanDetail(it)) },
                 onCamera = { id, tripId, loadDate ->
                     navController.navigate(Routes.cameraForLoad(id, tripId, loadDate))
+                },
+                onScanner = { id, tripId, loadDate ->
+                    navController.navigate(Routes.scannerForLoad(id, tripId, loadDate))
                 },
                 onOpenPrivacy = { navController.navigate(Routes.PRIVACY_SETTINGS) },
             )
@@ -96,6 +100,10 @@ fun NavGraphBuilder.loadsNavGraph(
                 type = NavType.BoolType
                 defaultValue = false
             },
+            navArgument("focusMiles") {
+                type = NavType.BoolType
+                defaultValue = false
+            },
         ),
         enterTransition = { navForwardEnter(reduceMotion) },
         exitTransition = { navForwardExit(reduceMotion) },
@@ -104,6 +112,7 @@ fun NavGraphBuilder.loadsNavGraph(
     ) { editBackStackEntry ->
         val loadId = Uri.decode(editBackStackEntry.arguments?.getString("loadId").orEmpty())
         val focusFinish = editBackStackEntry.arguments?.getBoolean("focusFinish") == true
+        val focusMiles = editBackStackEntry.arguments?.getBoolean("focusMiles") == true
         val homeEntry = remember(editBackStackEntry) {
             runCatching { navController.getBackStackEntry(Routes.HOME) }.getOrNull()
         }
@@ -113,6 +122,7 @@ fun NavGraphBuilder.loadsNavGraph(
         EditLoadScreen(
             loadId = loadId,
             focusFinish = focusFinish,
+            focusMiles = focusMiles,
             onSaved = { navController.popBackStack() },
             onBack = { navController.popBackStack() },
             onOptimisticUpdate = homeViewModel?.let { { load -> it.applyOptimisticUpdate(load) } },

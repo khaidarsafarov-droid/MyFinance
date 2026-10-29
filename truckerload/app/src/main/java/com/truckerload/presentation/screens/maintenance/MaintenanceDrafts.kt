@@ -15,6 +15,7 @@ data class TaskDraft(
     val intervalMiles: String = "",
     val odometerAtStart: String = "",
     val dueDate: String = LocalDate.now().plusMonths(1).format(DateTimeFormatter.ISO_LOCAL_DATE),
+    val repeatEveryDays: String = "",
 )
 
 data class ArchiveLineDraft(

@@ -16,9 +16,12 @@ import com.truckerload.domain.parser.ServiceReceiptTextParser
 import com.truckerload.utils.OCRService
 import com.truckerload.utils.runCatchingCancellable
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
@@ -55,6 +58,9 @@ class MaintenanceViewModel @Inject constructor(
 
     private val _formState = MutableStateFlow(MaintenanceUiState())
     val formState: StateFlow<MaintenanceUiState> = _formState.asStateFlow()
+
+    private val _taskSaved = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+    val taskSaved: SharedFlow<Unit> = _taskSaved.asSharedFlow()
 
     val uiState: StateFlow<MaintenanceUiState> = combine(
         repository.watchActiveProgress(),
@@ -129,6 +135,16 @@ class MaintenanceViewModel @Inject constructor(
                     _formState.update { it.copy(errorMessage = "invalid_due_date") }
                     return
                 }
+                val repeatRaw = draft.repeatEveryDays.trim()
+                val repeatDays = if (repeatRaw.isEmpty()) {
+                    null
+                } else {
+                    repeatRaw.toIntOrNull()?.takeIf { it in 1..3_650 }
+                }
+                if (repeatRaw.isNotEmpty() && repeatDays == null) {
+                    _formState.update { it.copy(errorMessage = "invalid_repeat") }
+                    return
+                }
                 val odo = DecimalInput.parse(draft.odometerAtStart)?.let {
                     com.truckerload.domain.units.MeasurementUnits.storedDistance(it)
                 }
@@ -138,6 +154,7 @@ class MaintenanceViewModel @Inject constructor(
                         startDate = draft.startDate,
                         reminderType = MaintenanceReminderType.DATE,
                         dueDate = draft.dueDate,
+                        repeatIntervalDays = repeatDays,
                         odometerAtStart = odo,
                     ),
                 )
@@ -159,6 +176,7 @@ class MaintenanceViewModel @Inject constructor(
                     _formState.update {
                         it.copy(isSaving = false, showAddTask = false, taskDraft = TaskDraft())
                     }
+                    _taskSaved.tryEmit(Unit)
                 }
                 .onFailure { e ->
                     _formState.update {

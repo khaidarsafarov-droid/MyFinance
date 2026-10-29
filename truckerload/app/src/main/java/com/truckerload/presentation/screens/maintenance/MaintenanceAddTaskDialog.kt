@@ -141,6 +141,18 @@ internal fun AddTaskDialog(
                             Text(stringResource(R.string.common_edit))
                         }
                     }
+                    OutlinedTextField(
+                        value = draft.repeatEveryDays,
+                        onValueChange = { value ->
+                            onChange { it.copy(repeatEveryDays = value.filter { ch -> ch.isDigit() }.take(4)) }
+                        },
+                        label = { Text(stringResource(R.string.maintenance_repeat_days)) },
+                        placeholder = { Text(stringResource(R.string.maintenance_repeat_days_hint)) },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        colors = fieldColors,
+                    )
                 }
                 OutlinedTextField(
                     value = draft.odometerAtStart,

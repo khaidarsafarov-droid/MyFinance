@@ -23,7 +23,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -55,6 +54,7 @@ import com.truckerload.presentation.components.SoftAppPageScaffold
 import com.truckerload.presentation.di.LocalScanRepository
 import com.truckerload.presentation.icons.AppIcons
 import com.truckerload.presentation.theme.AppFilterChip
+import com.truckerload.presentation.theme.AppTextFieldDefaults
 import com.truckerload.presentation.theme.LocalBrandPalette
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.theme.BentoGlassClickableCard
@@ -280,8 +280,6 @@ private fun GallerySearchField(
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val tc = LocalTruckColors.current
-    val brand = LocalBrandPalette.current
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
@@ -291,32 +289,21 @@ private fun GallerySearchField(
         placeholder = {
             Text(
                 text = stringResource(R.string.gallery_search_hint),
-                color = tc.TextSecondary,
+                color = AppTextFieldDefaults.hintColor(),
             )
         },
         leadingIcon = {
             Icon(
                 AppIcons.Search,
                 contentDescription = stringResource(R.string.common_search),
-                tint = tc.TextPrimary,
+                tint = AppTextFieldDefaults.iconColor(),
             )
         },
         singleLine = true,
-        textStyle = MaterialTheme.typography.bodyLarge.copy(color = tc.TextPrimary),
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedTextColor = tc.TextPrimary,
-            unfocusedTextColor = tc.TextPrimary,
-            disabledTextColor = tc.TextSecondary,
-            cursorColor = brand.primary,
-            focusedBorderColor = brand.primary,
-            unfocusedBorderColor = tc.TextSecondary,
-            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-            focusedPlaceholderColor = tc.TextSecondary,
-            unfocusedPlaceholderColor = tc.TextSecondary,
-            focusedLeadingIconColor = tc.TextPrimary,
-            unfocusedLeadingIconColor = tc.TextPrimary,
+        textStyle = MaterialTheme.typography.bodyLarge.copy(
+            color = AppTextFieldDefaults.inputColor(),
         ),
+        colors = AppTextFieldDefaults.outlined(),
     )
 }
 
