@@ -29,7 +29,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -43,11 +42,9 @@ import com.truckerload.presentation.theme.focusAfterNavigate
 import com.truckerload.presentation.di.LocalPhotoRepository
 import com.truckerload.presentation.di.LocalScanRepository
 import com.truckerload.presentation.screens.privacy.PrivacyTrustBadge
-import com.truckerload.utils.ShareHelper
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.theme.UiDimens
-import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -59,12 +56,12 @@ fun LoadDetailScreen(
     onEditFinish: () -> Unit,
     onDelete: () -> Unit,
     onPhotoClick: (String) -> Unit = {},
+    onScanClick: (String) -> Unit = {},
     onCamera: (loadId: String, tripId: String, loadDate: String) -> Unit = { _, _, _ -> },
     onScanner: (loadId: String, tripId: String, loadDate: String) -> Unit = { _, _, _ -> },
     onOpenPrivacy: () -> Unit = {},
 ) {
     val tc = LocalTruckColors.current
-    val context = LocalContext.current
     val photoRepository = LocalPhotoRepository.current
     val scanRepository = LocalScanRepository.current
     val viewModel: LoadDetailViewModel = hiltViewModel()
@@ -167,7 +164,7 @@ fun LoadDetailScreen(
                     onPhotoClick = onPhotoClick,
                     onCamera = { onCamera(l.id, l.tripId, l.date) },
                     onScanner = { onScanner(l.id, l.tripId, l.date) },
-                    onScanClick = { scan -> ShareHelper(context).sharePdf(File(scan.filePath)) },
+                    onScanClick = { scan -> onScanClick(scan.id) },
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(padding)

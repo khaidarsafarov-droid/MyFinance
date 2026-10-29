@@ -107,7 +107,11 @@ internal fun isImmersivePhoneRoute(route: String): Boolean =
         route.startsWith("attach_pick") ||
         route == Routes.SCAN_GALLERY ||
         route == Routes.PHOTO_GALLERY ||
+        route == Routes.GALLERY ||
+        route == Routes.GALLERY_LOAD ||
+        route == Routes.GALLERY_VIEWER ||
         route.startsWith("photo_detail") ||
+        route.startsWith("scan_detail") ||
         route == Routes.ADD_PAYCHECK ||
         route.startsWith(Routes.ADD_DIESEL) ||
         route == Routes.MISC_EXPENSES

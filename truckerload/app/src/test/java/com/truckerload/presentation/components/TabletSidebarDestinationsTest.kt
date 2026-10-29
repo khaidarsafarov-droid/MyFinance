@@ -1,6 +1,7 @@
 package com.truckerload.presentation.components
 
 import com.truckerload.presentation.navigation.Routes
+import com.truckerload.presentation.components.isImmersivePhoneRoute
 import java.io.File
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -56,6 +57,13 @@ class TabletSidebarDestinationsTest {
         assertFalse(isDrawerDestinationSelected(Routes.SCANNER, DrawerDestination.DOCUMENTS))
         assertTrue(isDrawerDestinationSelected(Routes.SCANNER, DrawerDestination.SCANNER))
         assertTrue(isDrawerDestinationSelected(Routes.SCAN_GALLERY, DrawerDestination.DOCUMENTS))
+        assertTrue(isDrawerDestinationSelected(Routes.GALLERY, DrawerDestination.DOCUMENTS))
+        assertTrue(isDrawerDestinationSelected(Routes.GALLERY_LOAD, DrawerDestination.DOCUMENTS))
+        assertTrue(isDrawerDestinationSelected(Routes.GALLERY_VIEWER, DrawerDestination.DOCUMENTS))
+        assertTrue(isImmersivePhoneRoute(Routes.GALLERY))
+        assertTrue(isImmersivePhoneRoute(Routes.GALLERY_LOAD))
+        assertTrue(isImmersivePhoneRoute(Routes.GALLERY_VIEWER))
+        assertTrue(isImmersivePhoneRoute(Routes.SCAN_DETAIL))
     }
 
     @Test

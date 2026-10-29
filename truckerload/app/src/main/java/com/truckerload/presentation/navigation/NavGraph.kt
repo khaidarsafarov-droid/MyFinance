@@ -226,7 +226,7 @@ fun NavGraph(
                 DrawerDestination.SETTINGS -> navController.navigate(Routes.SETTINGS) { launchSingleTop = true }
                 DrawerDestination.REPORTS -> navController.navigate(Routes.ANALYTICS) { launchSingleTop = true }
                 DrawerDestination.MAP -> navController.navigate(Routes.MAP) { launchSingleTop = true }
-                DrawerDestination.DOCUMENTS -> navController.navigate(Routes.SCAN_GALLERY) { launchSingleTop = true }
+                DrawerDestination.DOCUMENTS -> navController.navigate(Routes.galleryPhotos()) { launchSingleTop = true }
                 DrawerDestination.MAINTENANCE -> navController.navigate(Routes.MAINTENANCE) { launchSingleTop = true }
                 DrawerDestination.TAX_TRACKER -> navController.navigate(Routes.TAX_TRACKER) { launchSingleTop = true }
                 DrawerDestination.PAYCHECK -> navController.navigate(Routes.PAYCHECK) { launchSingleTop = true }

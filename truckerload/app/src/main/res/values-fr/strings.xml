@@ -225,7 +225,7 @@
     <string name="nav_logbook">Chargements</string>
     <string name="drawer_reports">Rapports</string>
     <string name="drawer_map">Carte</string>
-    <string name="drawer_documents">Documents</string>
+    <string name="drawer_documents">Galerie</string>
     <string name="drawer_tools">Outils</string>
     <string name="drawer_about">À propos</string>
     <string name="drawer_improve">Quoi améliorer</string>
@@ -252,8 +252,8 @@
     <string name="about_guide_reports_body">Menu → Rapports : revenu hebdomadaire et par trajet, paie et diesel côte à côte en couleur (sans soustraction), et exportation CSV.</string>
     <string name="about_guide_map_title">9. Carte</string>
     <string name="about_guide_map_body">Menu → Carte : votre RPM par État d\'origine pour la semaine, le mois ou l\'année. Appuyez sur un État pour les tarifs récents et les meilleures liaisons.</string>
-    <string name="about_guide_docs_title">10. Documents, caméra et numériseur</string>
-    <string name="about_guide_docs_body">Documents est la galerie des numérisations — ouvrir, partager ou supprimer. Depuis une fiche de chargement ou le widget, vous pouvez prendre une photo ou numériser un document et le joindre à un chargement de cette semaine.</string>
+    <string name="about_guide_docs_title">10. Galerie, caméra et numériseur</string>
+    <string name="about_guide_docs_body">Galerie regroupe les photos et les numérisations de chaque chargement — ouvrir, partager ou supprimer. Depuis une fiche de chargement ou le widget, vous pouvez prendre une photo ou numériser un document et le joindre à un chargement de cette semaine.</string>
     <string name="about_guide_tools_title">11. Entretien</string>
     <string name="about_guide_tools_body">Menu → Entretien : rappels par miles ou par date (vidange et autres) et services terminés — ajoutez plusieurs lignes avec prix à la main ou photographiez un reçu; l\'application sépare chaque travail et le total.</string>
     <string name="about_guide_widget_title">12. Widget</string>
@@ -342,7 +342,7 @@
     <string name="load_delete_confirm_title">Supprimer le chargement ?</string>
     <string name="load_delete_confirm_message">Le chargement et les photos ou numérisations liées seront supprimés.</string>
     <string name="load_deleted_undo_message">Chargement retiré</string>
-    <string name="photo_gallery">Galerie de photos</string>
+    <string name="photo_gallery">Galerie</string>
     <string name="no_photos">📭 Aucune photo enregistrée</string>
     <string name="photo_linked">✅ Photo liée au chargement</string>
     <string name="photo_unlinked">Photo détachée du chargement</string>
@@ -365,6 +365,25 @@
     <string name="filter_this_week">Cette semaine</string>
     <string name="filter_by_load">Par chargement</string>
     <string name="filter_unlinked">Non liées</string>
+
+    <string name="gallery_tab_photos">Photos</string>
+    <string name="gallery_tab_scans">Numérisations</string>
+    <string name="gallery_search_hint">Trip ID ou trajet</string>
+    <string name="gallery_empty_photos">Aucune photo enregistrée</string>
+    <string name="gallery_empty_scans">Aucune numérisation enregistrée</string>
+    <string name="gallery_empty_scans_body">Les numérisations d\'un chargement apparaissent ici.</string>
+    <string name="gallery_empty_filter">Rien pour ce filtre</string>
+    <string name="gallery_select">Sélectionner</string>
+    <string name="gallery_selected">%1$d sélectionnés</string>
+    <string name="gallery_page">%1$d / %2$d</string>
+    <plurals name="gallery_photo_count">
+        <item quantity="one">%d photo</item>
+        <item quantity="other">%d photos</item>
+    </plurals>
+    <plurals name="gallery_scan_count">
+        <item quantity="one">%d numérisation</item>
+        <item quantity="other">%d numérisations</item>
+    </plurals>
     <string name="load_detail_photos">Photos du chargement</string>
     <string name="load_detail_scans">Numérisations du chargement</string>
     <string name="retake">🔄 Reprendre</string>
@@ -396,7 +415,7 @@
     <string name="save_to_app">Enregistrer dans l\'application</string>
     <string name="save_to_phone">Enregistrer sur le téléphone</string>
     <string name="send_to">Partager</string>
-    <string name="scans_gallery">Documents</string>
+    <string name="scans_gallery">Galerie</string>
     <string name="scan_gallery_subtitle">Trouver un document par catégorie</string>
     <string name="no_scans">Aucun document enregistré</string>
     <string name="no_scans_in_filter">Rien dans cette catégorie</string>

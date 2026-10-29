@@ -95,7 +95,12 @@ internal fun isDrawerDestinationSelected(
         DrawerDestination.DOCUMENTS ->
             currentRoute == Routes.SCAN_GALLERY ||
                 currentRoute == Routes.PHOTO_GALLERY ||
-                currentRoute.startsWith("photo_detail")
+                currentRoute == Routes.GALLERY ||
+                currentRoute == Routes.GALLERY_LOAD ||
+                currentRoute == Routes.GALLERY_VIEWER ||
+                currentRoute.startsWith("gallery") ||
+                currentRoute.startsWith("photo_detail") ||
+                currentRoute.startsWith("scan_detail")
         DrawerDestination.MAINTENANCE -> currentRoute == Routes.MAINTENANCE
         DrawerDestination.TAX_TRACKER -> currentRoute == Routes.TAX_TRACKER
         DrawerDestination.PAYCHECK ->

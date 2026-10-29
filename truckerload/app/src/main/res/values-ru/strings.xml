@@ -225,7 +225,7 @@
     <string name="drawer_reports">Отчёты</string>
     <string name="drawer_map">Карта</string>
     
-<string name="drawer_documents">Документы</string>
+<string name="drawer_documents">Галерея</string>
     <string name="drawer_tools">Инструменты</string>
     <string name="drawer_about">О приложении</string>
     <string name="drawer_improve">Что улучшить</string>
@@ -252,8 +252,8 @@
     <string name="about_guide_reports_body">Меню → «Отчёты»: доход по неделям и маршрутам, зарплата и дизель рядом по цветам (без вычета), экспорт CSV.</string>
     <string name="about_guide_map_title">9. Карта</string>
     <string name="about_guide_map_body">Меню → «Карта»: ваши RPM по штатам за неделю, месяц или год (откуда уехал груз). Нажмите штат — свежие ставки и топ-направления.</string>
-    <string name="about_guide_docs_title">10. Документы, камера и сканер</string>
-    <string name="about_guide_docs_body">«Документы» — галерея сканов: открыть, поделиться или удалить. С карточки груза или виджета можно сразу сфотографировать или отсканировать документ и привязать его к грузу этой недели.</string>
+    <string name="about_guide_docs_title">10. Галерея, камера и сканер</string>
+    <string name="about_guide_docs_body">«Галерея» хранит фото и сканы по каждому грузу: открыть, поделиться или удалить. С карточки груза или виджета можно сразу сфотографировать или отсканировать документ и привязать его к грузу этой недели.</string>
     <string name="about_guide_tools_title">11. ТО</string>
     <string name="about_guide_tools_body">Меню → «ТО»: напоминания по милям или дате (например, замена масла) и выполненные сервисы — добавьте несколько позиций с ценами вручную или сфотографируйте чек, приложение разберёт каждую работу и итог.</string>
     <string name="about_guide_widget_title">12. Виджет</string>
@@ -342,7 +342,7 @@
     <string name="load_delete_confirm_title">Удалить груз?</string>
     <string name="load_delete_confirm_message">Груз и связанные фото/сканы будут удалены.</string>
     <string name="load_deleted_undo_message">Груз удалён</string>
-    <string name="photo_gallery">Галерея фото</string>
+    <string name="photo_gallery">Галерея</string>
     <string name="no_photos">📭 Нет сохранённых фото</string>
     <string name="photo_linked">✅ Фото привязано к грузу</string>
     <string name="photo_unlinked">Фото отвязано от груза</string>
@@ -365,6 +365,29 @@
     <string name="filter_this_week">Эта неделя</string>
     <string name="filter_by_load">По грузу</string>
     <string name="filter_unlinked">Без привязки</string>
+
+    <string name="gallery_tab_photos">Фото</string>
+    <string name="gallery_tab_scans">Сканы</string>
+    <string name="gallery_search_hint">Trip ID или маршрут</string>
+    <string name="gallery_empty_photos">Нет сохранённых фото</string>
+    <string name="gallery_empty_scans">Нет сохранённых сканов</string>
+    <string name="gallery_empty_scans_body">Сканы груза появятся здесь.</string>
+    <string name="gallery_empty_filter">Ничего по этому фильтру</string>
+    <string name="gallery_select">Выбрать</string>
+    <string name="gallery_selected">Выбрано: %1$d</string>
+    <string name="gallery_page">%1$d / %2$d</string>
+    <plurals name="gallery_photo_count">
+        <item quantity="one">%d фото</item>
+        <item quantity="few">%d фото</item>
+        <item quantity="many">%d фото</item>
+        <item quantity="other">%d фото</item>
+    </plurals>
+    <plurals name="gallery_scan_count">
+        <item quantity="one">%d скан</item>
+        <item quantity="few">%d скана</item>
+        <item quantity="many">%d сканов</item>
+        <item quantity="other">%d скана</item>
+    </plurals>
     <string name="load_detail_photos">Фото груза</string>
     <string name="load_detail_scans">Сканы груза</string>
     <string name="retake">🔄 Переснять</string>
@@ -396,7 +419,7 @@
     <string name="save_to_app">Сохранить в приложение</string>
     <string name="save_to_phone">Сохранить на телефон</string>
     <string name="send_to">Отправить</string>
-    <string name="scans_gallery">Документы</string>
+    <string name="scans_gallery">Галерея</string>
     <string name="scan_gallery_subtitle">Найдите бумагу по категории</string>
     <string name="no_scans">Нет сохранённых документов</string>
     <string name="no_scans_in_filter">В этой категории ничего нет</string>

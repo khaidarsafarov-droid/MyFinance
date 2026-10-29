@@ -40,12 +40,24 @@ object Routes {
     const val ATTACH_PICK = "attach_pick/{mode}"
     const val SCAN_GALLERY = "scan_gallery"
     const val PHOTO_GALLERY = "photo_gallery"
+    const val GALLERY = "gallery/{tab}"
+    const val GALLERY_LOAD = "gallery_load/{kind}/{loadKey}"
+    const val GALLERY_VIEWER = "gallery_viewer/{kind}/{loadKey}/{startId}"
     const val PHOTO_DETAIL = "photo_detail/{photoId}"
+    const val SCAN_DETAIL = "scan_detail/{scanId}"
 
     fun loadDetail(loadId: String) = "load_detail/${encodePathSegment(loadId)}"
     fun editLoad(loadId: String, focusFinish: Boolean = false, focusMiles: Boolean = false) =
         "edit_load/${encodePathSegment(loadId)}?focusFinish=$focusFinish&focusMiles=$focusMiles"
     fun photoDetail(photoId: String) = "photo_detail/${encodePathSegment(photoId)}"
+    fun scanDetail(scanId: String) = "scan_detail/${encodePathSegment(scanId)}"
+    fun gallery(tab: String) = "gallery/${encodePathSegment(tab)}"
+    fun galleryPhotos() = gallery("photos")
+    fun galleryScans() = gallery("scans")
+    fun galleryLoad(kind: String, loadKey: String) =
+        "gallery_load/${encodePathSegment(kind)}/${encodePathSegment(loadKey)}"
+    fun galleryViewer(kind: String, loadKey: String, startId: String) =
+        "gallery_viewer/${encodePathSegment(kind)}/${encodePathSegment(loadKey)}/${encodePathSegment(startId)}"
     fun cameraForLoad(loadId: String, tripId: String, loadDate: String): String {
         return "camera_load/${encodePathSegment(loadId)}/${encodePathSegment(tripId)}/${encodePathSegment(loadDate)}"
     }

@@ -225,7 +225,7 @@
     <string name="drawer_reports">Reports</string>
     <string name="drawer_map">Map</string>
     
-<string name="drawer_documents">Documents</string>
+<string name="drawer_documents">Gallery</string>
     <string name="drawer_tools">Tools</string>
     <string name="drawer_about">About app</string>
     <string name="drawer_improve">What to improve</string>
@@ -252,8 +252,8 @@
     <string name="about_guide_reports_body">Menu → Reports: weekly and route income, paycheck and diesel side by side in color (no subtraction), and CSV export.</string>
     <string name="about_guide_map_title">9. Map</string>
     <string name="about_guide_map_body">Menu → Map: your RPM by origin state for the week, month, or year. Tap a state for recent rates and top lanes.</string>
-    <string name="about_guide_docs_title">10. Documents, camera, and scanner</string>
-    <string name="about_guide_docs_body">Documents is the scan gallery — open, share, or delete. From a load card or the widget you can take a photo or scan a document and attach it to a load from this week.</string>
+    <string name="about_guide_docs_title">10. Gallery, camera, and scanner</string>
+    <string name="about_guide_docs_body">Gallery holds photos and scans for each load — open, share, or delete. From a load card or the widget you can take a photo or scan a document and attach it to a load from this week.</string>
     <string name="about_guide_tools_title">11. Maintenance</string>
     <string name="about_guide_tools_body">Menu → Maintenance: reminders by miles or date (oil change and the like) and completed services — add several priced line items by hand or photograph a receipt; the app splits each job and the total.</string>
     <string name="about_guide_widget_title">12. Widget</string>
@@ -342,7 +342,7 @@
     <string name="load_delete_confirm_title">Delete load?</string>
     <string name="load_delete_confirm_message">The load and linked photos/scans will be deleted.</string>
     <string name="load_deleted_undo_message">Load removed</string>
-    <string name="photo_gallery">Photo gallery</string>
+    <string name="photo_gallery">Gallery</string>
     <string name="no_photos">📭 No saved photos</string>
     <string name="photo_linked">✅ Photo linked to load</string>
     <string name="photo_unlinked">Photo unlinked from load</string>
@@ -365,6 +365,25 @@
     <string name="filter_this_week">This week</string>
     <string name="filter_by_load">By load</string>
     <string name="filter_unlinked">Unlinked</string>
+
+    <string name="gallery_tab_photos">Photos</string>
+    <string name="gallery_tab_scans">Scans</string>
+    <string name="gallery_search_hint">Trip ID or route</string>
+    <string name="gallery_empty_photos">No saved photos</string>
+    <string name="gallery_empty_scans">No saved scans</string>
+    <string name="gallery_empty_scans_body">Scans you save for a load show up here.</string>
+    <string name="gallery_empty_filter">Nothing for this filter</string>
+    <string name="gallery_select">Select</string>
+    <string name="gallery_selected">%1$d selected</string>
+    <string name="gallery_page">%1$d / %2$d</string>
+    <plurals name="gallery_photo_count">
+        <item quantity="one">%d photo</item>
+        <item quantity="other">%d photos</item>
+    </plurals>
+    <plurals name="gallery_scan_count">
+        <item quantity="one">%d scan</item>
+        <item quantity="other">%d scans</item>
+    </plurals>
     <string name="load_detail_photos">Load photos</string>
     <string name="load_detail_scans">Load scans</string>
     <string name="retake">🔄 Retake</string>
@@ -396,7 +415,7 @@
     <string name="save_to_app">Save to app</string>
     <string name="save_to_phone">Save to phone</string>
     <string name="send_to">Share</string>
-    <string name="scans_gallery">Documents</string>
+    <string name="scans_gallery">Gallery</string>
     <string name="scan_gallery_subtitle">Find a paper by category</string>
     <string name="no_scans">No saved documents</string>
     <string name="no_scans_in_filter">Nothing in this category</string>
