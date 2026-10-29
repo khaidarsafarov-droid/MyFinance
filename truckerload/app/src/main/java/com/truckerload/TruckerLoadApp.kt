@@ -3,6 +3,9 @@ package com.truckerload
 import android.app.Application
 import android.content.Context
 import android.util.Log
+import com.truckerload.sync.MaintenanceReminderCoordinator
+import com.truckerload.utils.DirectBoot
+import java.util.concurrent.atomic.AtomicBoolean
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
@@ -78,6 +81,9 @@ class TruckerLoadApp : Application(), Configuration.Provider {
             .build()
 
     private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    private val unlockedStart = AtomicBoolean(false)
+
+    fun isUnlockStartDone(): Boolean = unlockedStart.get()
 
     override fun attachBaseContext(base: Context) {
         // Arm before super so a content provider cannot open SQLCipher first.
@@ -85,11 +91,22 @@ class TruckerLoadApp : Application(), Configuration.Provider {
         if (!DatabasePassphraseStore.isRobolectric()) {
             JournalRecoveryGate.arm()
         }
-        super.attachBaseContext(AppLocale.wrap(base))
+        val wrapped = if (DirectBoot.isUserUnlocked(base)) AppLocale.wrap(base) else base
+        super.attachBaseContext(wrapped)
     }
 
     override fun onCreate() {
         super.onCreate()
+        if (DirectBoot.isUserUnlocked(this)) {
+            startAfterUnlock()
+        }
+    }
+
+    /** Runs once, on the main thread, after the user unlocks credential storage. */
+    fun startAfterUnlock() {
+        if (!unlockedStart.compareAndSet(false, true)) return
+        userComponentManager.onUserUnlocked()
+        authStore.retryBootstrapAfterUnlock()
         // Before Room opens: an update can leave the session on an empty profile
         // while the previous journal is still on disk. Production runs this on IO.
         if (DatabasePassphraseStore.isRobolectric()) {
@@ -144,6 +161,7 @@ class TruckerLoadApp : Application(), Configuration.Provider {
                 WidgetRefresh.flushForHomeScreen(this@TruckerLoadApp)
             }
         })
+        MaintenanceReminderCoordinator.enqueue(this)
     }
 
     private suspend fun readStartupChrome(): StartupChrome {

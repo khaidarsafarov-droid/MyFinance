@@ -1245,6 +1245,25 @@
     <string name="maintenance_days_left">%1$d jours restants</string>
     <string name="maintenance_overdue_days">%1$d jours de retard</string>
     <string name="maintenance_mark_done">Terminé</string>
+    <string name="maintenance_repeat_days">Répéter tous les (jours)</string>
+    <string name="maintenance_repeat_days_hint">Vide = une seule fois</string>
+    <string name="maintenance_error_repeat">Entrez un nombre entier de jours</string>
+    <string name="maintenance_reminder_action_done">Terminé</string>
+    <string name="maintenance_reminder_action_snooze">Reporter</string>
+    <string name="maintenance_reminder_channel_name">Alarmes d\'entretien</string>
+    <string name="maintenance_reminder_channel_desc">Rappels forts pour la vidange et les autres entretiens</string>
+    <string name="maintenance_notif_permission_title">Autoriser les notifications</string>
+    <string name="maintenance_notif_permission_body">Les rappels de vidange et d\'entretien ont besoin de l\'autorisation de notification pour sonner.</string>
+    <string name="maintenance_notif_permission_denied">Les notifications sont coupées, donc les rappels d\'entretien restent silencieux. Activez-les dans les réglages du système.</string>
+    <string name="maintenance_notif_open_settings">Réglages des notifications</string>
+    <string name="maintenance_exact_alarm_title">Autoriser les alarmes exactes</string>
+    <string name="maintenance_exact_alarm_body">Android bloque les alarmes exactes, donc un rappel peut arriver en retard. Autorisez-les pour TruckoRig. Une vérification de secours continue en attendant.</string>
+    <string name="maintenance_exact_alarm_settings">Réglages des alarmes exactes</string>
+    <string name="maintenance_exact_alarm_banner">Les alarmes exactes sont coupées. Les rappels peuvent arriver en retard tant que vous ne les autorisez pas.</string>
+    <string name="maintenance_battery_title">Pour que le rappel sonne à l\'heure</string>
+    <string name="maintenance_battery_body">L\'optimisation de la batterie peut retarder la vérification de secours, et certains téléphones retardent aussi les alarmes. Autorisez l\'usage sans restriction pour que la vidange sonne quand même à l\'heure.</string>
+    <string name="maintenance_battery_allow">Autoriser</string>
+    <string name="maintenance_battery_later">Pas maintenant</string>
     <string name="maintenance_ocr_processing">Lecture du reçu…</string>
     <string name="maintenance_retake_photo">Choisir une autre photo</string>
     <string name="maintenance_scan_source_title">Numériser le reçu</string>

@@ -24,6 +24,7 @@ import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.Stop
 import com.truckerload.domain.model.normalizeTripId
 import com.truckerload.domain.parser.StopsHasher
+import com.truckerload.sync.MaintenanceReminderCoordinator
 import com.truckerload.utils.dateStringToEndOfDayMillis
 import com.truckerload.utils.dateStringToStartOfDayMillis
 import com.truckerload.utils.TruckingWeekTicker
@@ -518,7 +519,10 @@ class LoadRepository(
 
     private fun scheduleAutoBackup() {
         if (writeBatchDepth.get() > 0) return
-        AppDatabase.applicationContext()?.let { BackupService.scheduleCreateAutoBackup(it) }
+        AppDatabase.applicationContext()?.let { context ->
+            BackupService.scheduleCreateAutoBackup(context)
+            MaintenanceReminderCoordinator.enqueue(context)
+        }
     }
 
     /**

@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.os.Looper
 import android.util.Log
+import com.truckerload.utils.DirectBoot
 import androidx.core.content.edit
 import com.truckerload.data.local.DatabasePassphraseStore
 import com.truckerload.data.local.JournalRecoveryGate
@@ -77,18 +78,15 @@ class AuthStore internal constructor(
     val email: StateFlow<String> = _email.asStateFlow()
     val sessionHealth: StateFlow<AuthSessionHealth> = _sessionHealth.asStateFlow()
 
-    /**
-     * False until encrypted prefs have been read and journal recovery has published
-     * the result. Callers must not treat a missing user id as signed-out while this is false.
-     */
     val sessionKnown: StateFlow<Boolean> = _sessionKnown.asStateFlow()
 
-    /**
-     * Disk snapshot, including a login recovery already applied, without waiting for
-     * [sessionKnown]. Recovery calls this so it does not deadlock on its own publish.
-     */
     internal fun peekedUserIdOrNull(): String? = synchronized(lock) {
         liveUserId?.takeIf { liveLoggedIn && it.isNotBlank() }
+    }
+
+    fun retryBootstrapAfterUnlock() {
+        if (!DirectBoot.isUserUnlocked(appContext)) return
+        scheduleBootstrap(appContext)
     }
 
     fun currentUserIdOrNull(): String? {
@@ -469,6 +467,7 @@ class AuthStore internal constructor(
             lastBootstrapModeForTests = "async"
             bootstrapJob = bootstrapScope.launch(bootstrapDispatcher()) {
                 if (isStaleRobolectricApplication(context)) return@launch
+                if (!DirectBoot.isUserUnlocked(context)) return@launch
                 runCatching { AuthKeystoreOpen.openWithFallback(context) }
                     .onSuccess { prefs ->
                         if (isStaleRobolectricApplication(context)) return@onSuccess

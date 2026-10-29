@@ -20,6 +20,7 @@ data class MaintenanceTaskEntity(
     val intervalMiles: Double?,
     val odometerAtStart: Double?,
     val dueDate: String?,
+    val repeatIntervalDays: Int? = null,
     val isCompleted: Boolean,
     val completedAt: Long?,
     val notifiedAt: Long?,

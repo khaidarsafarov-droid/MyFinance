@@ -21,6 +21,7 @@ import com.truckerload.data.local.AppDatabase
 import com.truckerload.data.local.DeletedLoadLedger
 import com.truckerload.data.preferences.AccountIds
 import com.truckerload.data.preferences.AuthStore
+import com.truckerload.sync.MaintenanceReminderCoordinator
 import com.truckerload.widget.WidgetDataUpdater
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -418,6 +419,7 @@ object BackupService {
             }
             BackupRoomApplier.pruneOrphanMedia(db)
             BackupPrefsApplier.apply(app, backup.appSettings)
+            runCatching { MaintenanceReminderCoordinator.syncBlocking(app) }
             Result.success(backup)
         } catch (e: CancellationException) {
             throw e
@@ -426,6 +428,7 @@ object BackupService {
             runCatching {
                 BackupRoomApplier.applyFullReplace(db, snapshot)
                 BackupPrefsApplier.apply(app, snapshot.appSettings)
+                MaintenanceReminderCoordinator.syncBlocking(app)
             }.onFailure { rollback ->
                 if (rollback is CancellationException) throw rollback
                 Log.e(TAG, "restore rollback failed: ${rollback.javaClass.simpleName}")
@@ -437,6 +440,7 @@ object BackupService {
             runCatching {
                 BackupRoomApplier.applyFullReplace(db, snapshot)
                 BackupPrefsApplier.apply(app, snapshot.appSettings)
+                MaintenanceReminderCoordinator.syncBlocking(app)
             }.onFailure { rollback ->
                 if (rollback is CancellationException) throw rollback
                 Log.e(TAG, "restore rollback failed: ${rollback.javaClass.simpleName}")
@@ -448,6 +452,7 @@ object BackupService {
             runCatching {
                 BackupRoomApplier.applyFullReplace(db, snapshot)
                 BackupPrefsApplier.apply(app, snapshot.appSettings)
+                MaintenanceReminderCoordinator.syncBlocking(app)
             }.onFailure { rollback ->
                 if (rollback is CancellationException) throw rollback
                 Log.e(TAG, "restore rollback failed: ${rollback.javaClass.simpleName}")
@@ -459,6 +464,7 @@ object BackupService {
             runCatching {
                 BackupRoomApplier.applyFullReplace(db, snapshot)
                 BackupPrefsApplier.apply(app, snapshot.appSettings)
+                MaintenanceReminderCoordinator.syncBlocking(app)
             }.onFailure { rollback ->
                 if (rollback is CancellationException) throw rollback
                 Log.e(TAG, "restore rollback failed: ${rollback.javaClass.simpleName}")
