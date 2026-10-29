@@ -4,187 +4,173 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.ui.unit.sp
 import com.truckerload.R
 import com.truckerload.domain.model.Load
-import com.truckerload.domain.model.StopType
-import com.truckerload.presentation.components.LoadRouteBlock
-import com.truckerload.presentation.components.RpmValueBadge
+import com.truckerload.domain.units.DisplayUnits
 import com.truckerload.presentation.components.formatJournalDate
 import com.truckerload.presentation.components.formatRpm
-import com.truckerload.presentation.components.rpmTier
-import com.truckerload.presentation.di.LocalRpmThresholdsStore
-import com.truckerload.presentation.screens.add.labelRes
 import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.loadSharedBounds
-import com.truckerload.domain.units.DisplayUnits
 import com.truckerload.presentation.utils.MoneyFormat
 import kotlin.math.ceil
 
 @Composable
-internal fun LoadDetailSummary(load: Load) {
-    val thresholds by LocalRpmThresholdsStore.current.thresholds.collectAsStateWithLifecycle()
-    val milesLabel = MoneyFormat.formatDistanceNumber(load.drivenMiles)
-    val rpmValue = if (load.drivenMiles > 0) {
-        load.totalRate.cents / 100.0 / load.drivenMiles
+internal fun LoadDetailSummary(
+    load: Load,
+    modifier: Modifier = Modifier,
+) {
+    val milesLabel = stringResource(
+        if (DisplayUnits.isMetric) R.string.load_detail_stat_miles_km else R.string.load_detail_stat_miles,
+    )
+    val gross = if (load.totalRate.cents % 100L == 0L) {
+        MoneyFormat.formatCurrency(load.totalRate, decimals = 0)
     } else {
-        null
+        MoneyFormat.formatCurrency(load.totalRate, decimals = 2)
     }
-    val tier = rpmTier(rpmValue, thresholds.minProfit, thresholds.targetProfit)
-    val equipment = load.equipmentType?.let { stringResource(it.labelRes()) }
+    val miles = MoneyFormat.formatDistanceNumber(load.drivenMiles)
+    val rpm = formatRpm(
+        load.totalRate,
+        load.drivenMiles,
+        stringResource(R.string.rpm_per_mile_format),
+    )
+    val duration = if (load.durationDays > 0) {
+        val days = ceil(load.durationDays).toInt().coerceAtLeast(1)
+        pluralStringResource(R.plurals.load_card_duration_days, days, days)
+    } else {
+        "—"
+    }
+    val pace = if (load.pace.isPositive()) {
+        val decimals = if (load.pace.cents % 100L == 0L) 0 else 2
+        stringResource(
+            R.string.load_card_per_day,
+            MoneyFormat.formatCurrency(load.pace, decimals = decimals),
+        )
+    } else {
+        "—"
+    }
+    val stops = (load.stopCount.takeIf { it > 0 } ?: (load.puCount + load.delCount)).toString()
     BentoGlassCard(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .loadSharedBounds(load.id),
     ) {
-        LoadRouteBlock(
-            dateLabel = formatJournalDate(load.date),
-            tripLabel = "",
-            origin = load.pointA.ifBlank { "—" },
-            destination = load.pointB.ifBlank { "—" },
-            rate = MoneyFormat.formatCurrency(load.totalRate),
-            meta = "",
-            equipment = equipment,
-            modifier = Modifier.padding(20.dp),
-            trailing = {
-                if (tier != null) {
-                    RpmValueBadge(
-                        rpmText = formatRpm(
-                            load.totalRate,
-                            load.drivenMiles,
-                            stringResource(R.string.rpm_per_mile_format),
-                        ),
-                        tier = tier,
-                    )
-                }
-            },
-        )
-    }
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        MetricTile(
-            label = stringResource(
-                if (DisplayUnits.isMetric) R.string.load_detail_stat_miles_km else R.string.load_detail_stat_miles,
-            ),
-            value = milesLabel,
-            caption = if (load.deadheadMiles > 0.0) {
-                "${MoneyFormat.formatDistanceNumber(load.totalMiles)} ${stringResource(R.string.load_detail_miles_loaded)}"
-            } else {
-                null
-            },
-            modifier = Modifier.weight(1f),
-        )
-        MetricTile(
-            label = stringResource(R.string.load_detail_stat_duration),
-            value = if (load.durationDays > 0) {
-                val days = ceil(load.durationDays).toInt().coerceAtLeast(1)
-                pluralStringResource(R.plurals.load_card_duration_days, days, days)
-            } else {
-                "—"
-            },
-            modifier = Modifier.weight(1f),
-        )
-        MetricTile(
-            label = stringResource(R.string.load_detail_stat_pace),
-            value = if (load.pace.isPositive()) {
-                stringResource(
-                    R.string.load_card_per_day,
-                    MoneyFormat.formatCurrency(load.pace, decimals = 2),
-                )
-            } else {
-                "—"
-            },
-            modifier = Modifier.weight(1f),
-        )
-    }
-    val (puValue, puCaption) = stopPrimary(load, StopType.PU)
-    val (delValue, delCaption) = stopPrimary(load, StopType.DEL)
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        MetricTile(
-            label = stringResource(R.string.load_detail_stat_pu),
-            value = puValue,
-            caption = puCaption,
-            modifier = Modifier.weight(1f),
-        )
-        MetricTile(
-            label = stringResource(R.string.load_detail_stat_del),
-            value = delValue,
-            caption = delCaption,
-            modifier = Modifier.weight(1f),
-        )
-    }
-}
-
-@Composable
-private fun MetricTile(
-    label: String,
-    value: String,
-    modifier: Modifier = Modifier,
-    caption: String? = null,
-) {
-    val cs = MaterialTheme.colorScheme
-    Surface(
-        modifier = modifier.heightIn(min = 84.dp),
-        shape = RoundedCornerShape(16.dp),
-        color = cs.surfaceVariant.copy(alpha = 0.55f),
-    ) {
         Column(
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(2.dp),
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelMedium,
-                color = cs.onSurfaceVariant,
-            )
-            Text(
-                text = value,
-                style = MaterialTheme.typography.titleMedium.copy(
-                    fontWeight = FontWeight.Bold,
-                    fontFeatureSettings = "tnum",
-                ),
-                color = cs.onSurface,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-            )
-            if (!caption.isNullOrBlank()) {
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(
-                    text = caption,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = cs.onSurfaceVariant,
+                    text = stringResource(
+                        R.string.load_detail_route,
+                        load.pointA.ifBlank { "—" },
+                        load.pointB.ifBlank { "—" },
+                    ),
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Text(
+                    text = formatJournalDate(load.date),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
+            }
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    DetailMetricCell(
+                        label = stringResource(R.string.load_detail_stat_gross),
+                        value = gross,
+                        modifier = Modifier.weight(1f),
+                    )
+                    DetailMetricCell(
+                        label = milesLabel,
+                        value = miles,
+                        modifier = Modifier.weight(1f),
+                    )
+                    DetailMetricCell(
+                        label = stringResource(R.string.load_detail_stat_rpm),
+                        value = rpm,
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    DetailMetricCell(
+                        label = stringResource(R.string.load_detail_stat_duration),
+                        value = duration,
+                        modifier = Modifier.weight(1f),
+                    )
+                    DetailMetricCell(
+                        label = stringResource(R.string.load_detail_stat_pace),
+                        value = pace,
+                        modifier = Modifier.weight(1f),
+                    )
+                    DetailMetricCell(
+                        label = stringResource(R.string.load_detail_stat_stops),
+                        value = stops,
+                        modifier = Modifier.weight(1f),
+                    )
+                }
             }
         }
     }
 }
 
-private fun stopPrimary(load: Load, type: StopType): Pair<String, String?> {
-    val matches = load.stops.filter { it.type == type }
-    val stop = if (type == StopType.PU) matches.firstOrNull() else matches.lastOrNull()
-    val time = stop?.scheduledTime?.trim().orEmpty()
-    val count = matches.size.coerceAtLeast(
-        if (type == StopType.PU) load.puCount else load.delCount,
-    ).toString()
-    return if (time.isNotBlank()) time to count else count to null
+@Composable
+private fun DetailMetricCell(
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier,
+) {
+    val cs = MaterialTheme.colorScheme
+    Surface(
+        modifier = modifier.heightIn(min = 64.dp),
+        shape = RoundedCornerShape(16.dp),
+        color = cs.surface,
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(2.dp),
+        ) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp, lineHeight = 13.sp),
+                color = cs.onSurfaceVariant,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Text(
+                text = value,
+                style = MaterialTheme.typography.titleSmall.copy(
+                    fontWeight = FontWeight.Bold,
+                    fontFeatureSettings = "tnum",
+                    color = cs.primary,
+                ),
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+    }
 }

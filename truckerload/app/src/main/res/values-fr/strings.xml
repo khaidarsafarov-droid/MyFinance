@@ -924,6 +924,18 @@
     <string name="load_card_attach_photo">Prendre une photo pour le chargement</string>
     <string name="load_card_attach_scan">Numériser un document pour le chargement</string>
     <string name="load_detail_stops">Arrêts</string>
+    <string name="load_detail_route">%1$s → %2$s</string>
+    <string name="load_detail_stat_gross">Brut</string>
+    <string name="load_detail_stat_stops">Arrêts</string>
+    <string name="load_detail_stops_section">Arrêts</string>
+    <string name="load_detail_stops_empty">Aucun arrêt sur ce chargement</string>
+    <string name="load_detail_photos_scans">Photos et numérisations</string>
+    <string name="load_detail_chip_add_miles">Ajouter des miles</string>
+    <string name="load_detail_chip_deadhead_value">Deadhead %1$s</string>
+    <string name="load_detail_chip_complete">Terminer le chargement</string>
+    <string name="load_detail_chip_delivered">Livré</string>
+    <string name="load_detail_chip_add_dispute">Ajouter un litige</string>
+    <string name="load_detail_chip_dispute_open">Litige ouvert</string>
 
     <!-- Analyse -->
     <string name="load_added">✅ Nouveau chargement ajouté : %1$s</string>
