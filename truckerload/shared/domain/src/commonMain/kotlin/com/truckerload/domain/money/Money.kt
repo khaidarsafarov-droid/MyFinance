@@ -41,6 +41,9 @@ value class Money(val cents: Long) : Comparable<Money> {
 
     fun isPositive(): Boolean = cents > 0L
 
+    /** Plain decimal dollars. String templates must not print `Money(cents=…)`. */
+    override fun toString(): String = formatPlain()
+
     /** US dollar text with exactly two decimals, no thousands separator. */
     fun formatPlain(): String {
         val negative = cents < 0

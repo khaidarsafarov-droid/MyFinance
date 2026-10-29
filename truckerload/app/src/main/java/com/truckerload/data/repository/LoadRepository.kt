@@ -371,8 +371,22 @@ class LoadRepository(
         }
     }
 
-    suspend fun updateLoad(load: Load) {
-        val normalized = load.copy(tripId = normalizeTripId(load.tripId)).withReportingWeek().withRouteMetrics()
+    /**
+     * @param recomputeDerived when false, writes [load] as given. The edit screen
+     * uses that so an untouched field is not reformatted by route or week math.
+     */
+    suspend fun updateLoad(load: Load, recomputeDerived: Boolean = true) {
+        val normalized = if (recomputeDerived) {
+            load.copy(tripId = normalizeTripId(load.tripId)).withReportingWeek().withRouteMetrics()
+        } else {
+            load
+        }
+        val deadheadMiles = if (recomputeDerived) {
+            com.truckerload.domain.model.DeadheadMiles.normalize(normalized.deadheadMiles)
+        } else {
+            normalized.deadheadMiles
+        }
+        val updatedAt = if (recomputeDerived) System.currentTimeMillis() else normalized.updatedAt
         db.withTransaction {
             loadDao.update(
                 loadId = normalized.id,
@@ -380,7 +394,7 @@ class LoadRepository(
                 loadDate = normalized.date,
                 totalRate = normalized.totalRate.cents,
                 totalMiles = normalized.totalMiles,
-                deadheadMiles = com.truckerload.domain.model.DeadheadMiles.normalize(normalized.deadheadMiles),
+                deadheadMiles = deadheadMiles,
                 pointA = normalized.pointA,
                 pointB = normalized.pointB,
                 puCount = normalized.puCount,
@@ -388,7 +402,7 @@ class LoadRepository(
                 weekNumber = normalized.weekNumber,
                 year = normalized.year,
                 rawMessage = normalized.rawMessage,
-                updatedAt = System.currentTimeMillis(),
+                updatedAt = updatedAt,
                 firstPuMillis = getFirstPickUpMillis(normalized),
                 lastDelMillis = LoadYieldCalculator.resolveFinishMillis(normalized)
                     ?: getLastDeliveryMillis(normalized),

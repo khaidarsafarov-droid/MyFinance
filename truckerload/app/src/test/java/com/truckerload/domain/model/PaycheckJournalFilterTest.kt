@@ -38,6 +38,13 @@ class PaycheckJournalFilterTest {
         assertEquals(listOf(1, 2), PaycheckJournalFilter.matching(paychecks, "").map { it.id })
     }
 
+    @Test
+    fun matching_findsPlainDollarsNotDebugMoney() {
+        val paycheck = sample(id = 1).copy(netAmount = Money.fromCents(211_172))
+        assertEquals(listOf(1), PaycheckJournalFilter.matching(listOf(paycheck), "2111.72").map { it.id })
+        assertEquals(emptyList<Int>(), PaycheckJournalFilter.matching(listOf(paycheck), "money(cents").map { it.id })
+    }
+
     private fun sample(
         id: Int,
         week: Int = 35,

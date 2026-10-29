@@ -44,7 +44,7 @@ object LoadChangeDetector {
     fun detectChanges(old: Load, new: Load): List<String> {
         val changes = mutableListOf<String>()
         if (isRateChanged(old.totalRate, new.totalRate)) {
-            changes.add("totalRate: ${old.totalRate} → ${new.totalRate}")
+            changes.add("totalRate: ${old.totalRate.formatPlain()} → ${new.totalRate.formatPlain()}")
         }
         if (isMilesChanged(old.totalMiles, new.totalMiles)) {
             changes.add("totalMiles: ${old.totalMiles} → ${new.totalMiles}")
