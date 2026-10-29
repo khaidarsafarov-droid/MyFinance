@@ -15,6 +15,8 @@ data class MaintenanceTask(
     val intervalMiles: Double? = null,
     val odometerAtStart: Double? = null,
     val dueDate: String? = null,
+    /** Days between occurrences. Null or 0 is a one-shot date reminder. */
+    val repeatIntervalDays: Int? = null,
     val isCompleted: Boolean = false,
     val completedAt: Long? = null,
     val notifiedAt: Long? = null,

@@ -44,7 +44,6 @@ class SmartNotificationWorker @AssistedInject constructor(
         private const val KEY_MISSING_WEEK = "missing_notified_week"
         private const val ID_PAYCHECK = 1
         private const val ID_DIESEL = 2
-        private const val ID_MAINTENANCE_BUNDLE = 100
         private const val LEGACY_MAINTENANCE_ID_START = 100
         private const val LEGACY_MAINTENANCE_ID_END = 130
     }
@@ -54,7 +53,6 @@ class SmartNotificationWorker @AssistedInject constructor(
         val session = userComponentManager.startSession(userId)
         val paycheckRepo = session.paycheckRepository
         val dieselRepo = session.dieselRepository
-        val maintenanceRepo = session.maintenanceRepository
 
         val quietEnabled = settingsDataStore.getQuietHoursEnabledOnce()
         val quietStart = settingsDataStore.getQuietHoursStartOnce()
@@ -65,7 +63,6 @@ class SmartNotificationWorker @AssistedInject constructor(
         }
 
         val allowMissingWeek = settingsDataStore.getNotifyMissingWeekOnce()
-        val allowMaintenance = settingsDataStore.getNotifyMaintenanceOnce()
 
         createChannels()
         cancelLegacyPerTaskMaintenanceAlerts()
@@ -86,15 +83,12 @@ class SmartNotificationWorker @AssistedInject constructor(
             block = {
             val paycheck = paycheckRepo.getPaycheckForWeek(lastWeek, lastYear)
             val diesel = dieselRepo.getDieselForWeek(lastDieselWeek, lastDieselYear).first()
-            val dueMaintenance = if (allowMaintenance) {
-                maintenanceRepo.getDueProgressForNotifications()
-            } else {
-                emptyList()
-            }
+            // Maintenance rings on its own exact-alarm channel. This worker used to
+            // bundle it into a default-importance alert that Doze could delay and mute.
             val plan = SmartNotificationPlanner.plan(
                 hasPaycheckForLastWeek = paycheck != null,
                 dieselEntriesLastWeek = diesel.size,
-                maintenanceDueTitles = dueMaintenance.map { it.task.title },
+                maintenanceDueTitles = emptyList(),
                 alreadyNotifiedMissingWeek = alreadyNotifiedMissing || !allowMissingWeek,
             )
             if (allowMissingWeek && plan.notifyMissingPaycheck) {
@@ -117,30 +111,6 @@ class SmartNotificationWorker @AssistedInject constructor(
             }
             if (allowMissingWeek && (plan.notifyMissingPaycheck || plan.notifyMissingDiesel)) {
                 prefs.edit { putString(KEY_MISSING_WEEK, weekKey) }
-            }
-            if (plan.maintenanceDueTitles.isNotEmpty()) {
-                val body = if (plan.maintenanceDueTitles.size == 1) {
-                    applicationContext.getString(
-                        R.string.notify_maintenance_body,
-                        plan.maintenanceDueTitles.first(),
-                    )
-                } else {
-                    applicationContext.getString(
-                        R.string.notify_maintenance_body_multi,
-                        plan.maintenanceDueTitles.size,
-                        plan.maintenanceSummaryBody(),
-                    )
-                }
-                notify(
-                    applicationContext,
-                    ID_MAINTENANCE_BUNDLE,
-                    CHANNEL_ALERTS,
-                    applicationContext.getString(R.string.notify_maintenance_title),
-                    body,
-                )
-            }
-            dueMaintenance.forEach { progress ->
-                maintenanceRepo.markNotified(progress.task.id)
             }
             Result.success()
             },

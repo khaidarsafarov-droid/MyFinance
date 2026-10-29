@@ -117,6 +117,7 @@ fun MaintenanceScreen(onBack: () -> Unit) {
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
+            MaintenanceReminderHost(taskSaved = viewModel.taskSaved)
             MaintenanceTasksSection(
                 activeProgress = uiState.activeProgress,
                 completedTasks = uiState.completedTasks,

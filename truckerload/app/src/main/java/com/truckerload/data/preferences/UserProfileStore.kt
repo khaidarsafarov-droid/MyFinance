@@ -3,6 +3,7 @@ package com.truckerload.data.preferences
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.core.content.edit
+import com.truckerload.utils.DirectBoot
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -34,8 +35,8 @@ data class UserProfile(
 class UserProfileStore(context: Context) {
     private val appContext = context.applicationContext
     private var boundUserId: String? = null
-    private var prefs: SharedPreferences =
-        appContext.getSharedPreferences(LEGACY_PREFS_NAME, Context.MODE_PRIVATE)
+    private var openedDeviceProtected = false
+    private var prefs: SharedPreferences = openInitial(appContext)
 
     private val _profile = MutableStateFlow<UserProfile?>(null)
     val profile: StateFlow<UserProfile?> = _profile.asStateFlow()
@@ -44,6 +45,27 @@ class UserProfileStore(context: Context) {
     val setupComplete: StateFlow<Boolean> = _setupComplete.asStateFlow()
 
     val boundUserIdOrNull: String? get() = boundUserId
+
+    /** Switch from the device-protected stub to credential storage after unlock. */
+    fun reopenCredentialStorage() {
+        if (!openedDeviceProtected || !DirectBoot.isUserUnlocked(appContext)) return
+        openedDeviceProtected = false
+        val name = boundUserId?.let { prefsName(it) } ?: LEGACY_PREFS_NAME
+        prefs = appContext.getSharedPreferences(name, Context.MODE_PRIVATE)
+        if (boundUserId != null) {
+            _profile.value = loadProfile()
+            _setupComplete.value = prefs.getBoolean(KEY_SETUP_COMPLETE, false)
+        }
+    }
+
+    private fun openInitial(context: Context): SharedPreferences {
+        if (DirectBoot.isUserUnlocked(context)) {
+            return context.getSharedPreferences(LEGACY_PREFS_NAME, Context.MODE_PRIVATE)
+        }
+        openedDeviceProtected = true
+        return context.createDeviceProtectedStorageContext()
+            .getSharedPreferences(LEGACY_PREFS_NAME, Context.MODE_PRIVATE)
+    }
 
     fun bindUser(userId: String) {
         val id = userId.trim()

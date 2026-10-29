@@ -8,6 +8,7 @@ import com.truckerload.domain.maintenance.MaintenanceProgressCalculator
 import com.truckerload.domain.model.MaintenanceArchiveEntry
 import com.truckerload.domain.model.MaintenanceProgress
 import com.truckerload.domain.model.MaintenanceTask
+import com.truckerload.sync.MaintenanceReminderCoordinator
 import com.truckerload.utils.BackupService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -132,6 +133,9 @@ class MaintenanceRepository(
     }
 
     private fun scheduleAutoBackup() {
-        AppDatabase.applicationContext()?.let { BackupService.scheduleCreateAutoBackup(it) }
+        AppDatabase.applicationContext()?.let { context ->
+            BackupService.scheduleCreateAutoBackup(context)
+            MaintenanceReminderCoordinator.enqueue(context)
+        }
     }
 }

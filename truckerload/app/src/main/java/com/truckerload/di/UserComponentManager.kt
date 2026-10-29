@@ -41,6 +41,10 @@ class UserComponentManager @Inject constructor(
         }
     }
 
+    fun onUserUnlocked() {
+        userProfileStore.reopenCredentialStorage()
+    }
+
     /** Full data erase: drop graph, close Room, unbind profile. */
     fun endSession() {
         synchronized(lock) {
