@@ -5,7 +5,7 @@ import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.DocumentScanner
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Folder
+import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.LocalGasStation
 import androidx.compose.material.icons.filled.Map
@@ -18,7 +18,7 @@ import androidx.compose.material.icons.outlined.BarChart as BarChartOutlined
 import androidx.compose.material.icons.outlined.Build as BuildOutlined
 import androidx.compose.material.icons.outlined.DocumentScanner as DocumentScannerOutlined
 import androidx.compose.material.icons.outlined.Edit as EditOutlined
-import androidx.compose.material.icons.outlined.Folder as FolderOutlined
+import androidx.compose.material.icons.outlined.PhotoLibrary as PhotoLibraryOutlined
 import androidx.compose.material.icons.outlined.Info as InfoOutlined
 import androidx.compose.material.icons.outlined.LocalGasStation as GasOutlined
 import androidx.compose.material.icons.outlined.Map as MapOutlined
@@ -74,8 +74,8 @@ internal fun drawerIcon(destination: DrawerDestination, selected: Boolean): Imag
             outlined = Icons.Outlined.BuildOutlined
         }
         DrawerDestination.DOCUMENTS -> {
-            filled = Icons.Filled.Folder
-            outlined = Icons.Outlined.FolderOutlined
+            filled = Icons.Filled.PhotoLibrary
+            outlined = Icons.Outlined.PhotoLibraryOutlined
         }
         DrawerDestination.SETTINGS -> {
             filled = Icons.Filled.Settings

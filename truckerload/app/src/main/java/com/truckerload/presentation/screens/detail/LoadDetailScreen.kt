@@ -40,7 +40,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.layout.height
@@ -75,7 +74,6 @@ import com.truckerload.presentation.theme.focusAfterNavigate
 import com.truckerload.presentation.di.LocalPhotoRepository
 import com.truckerload.presentation.di.LocalScanRepository
 import com.truckerload.presentation.screens.privacy.PrivacyTrustBadge
-import com.truckerload.utils.ShareHelper
 import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.LocalTruckColors
@@ -93,11 +91,11 @@ fun LoadDetailScreen(
     onEditFinish: () -> Unit,
     onDelete: () -> Unit,
     onPhotoClick: (String) -> Unit = {},
+    onScanClick: (String) -> Unit = {},
     onCamera: (loadId: String, tripId: String, loadDate: String) -> Unit = { _, _, _ -> },
     onOpenPrivacy: () -> Unit = {},
 ) {
     val tc = LocalTruckColors.current
-    val context = LocalContext.current
     val photoRepository = LocalPhotoRepository.current
     val scanRepository = LocalScanRepository.current
     val viewModel: LoadDetailViewModel = hiltViewModel()
@@ -292,9 +290,7 @@ fun LoadDetailScreen(
                                         color = tc.TextPrimary,
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .clickable {
-                                                ShareHelper(context).sharePdf(java.io.File(scan.filePath))
-                                            }
+                                            .clickable { onScanClick(scan.id) }
                                             .padding(vertical = 6.dp),
                                     )
                                 }

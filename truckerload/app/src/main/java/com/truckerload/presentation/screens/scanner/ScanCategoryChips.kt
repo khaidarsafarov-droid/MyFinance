@@ -24,36 +24,6 @@ fun ScanDocumentCategory.labelRes(): Int = when (this) {
 
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
-fun ScanCategoryFilterChips(
-    selected: ScanDocumentCategory?,
-    counts: Map<ScanDocumentCategory, Int>,
-    totalCount: Int,
-    onSelect: (ScanDocumentCategory?) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    FlowRow(
-        modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
-        verticalArrangement = Arrangement.spacedBy(6.dp),
-    ) {
-        AppFilterChip(
-            selected = selected == null,
-            onClick = { onSelect(null) },
-            label = { Text(stringResource(R.string.scan_category_all, totalCount)) },
-        )
-        ScanDocumentCategory.entries.forEach { category ->
-            val count = counts[category] ?: 0
-            AppFilterChip(
-                selected = selected == category,
-                onClick = { onSelect(category) },
-                label = { Text("${stringResource(category.labelRes())} $count") },
-            )
-        }
-    }
-}
-
-@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
-@Composable
 fun ScanCategoryPickerChips(
     selected: ScanDocumentCategory,
     onSelect: (ScanDocumentCategory) -> Unit,

@@ -101,6 +101,7 @@ fun JournalListDetailHost(
                             detailNavController.popBackStack(PANE_EMPTY, inclusive = false)
                         },
                         onPhotoClick = { navController.navigate(Routes.photoDetail(it)) },
+                        onScanClick = { navController.navigate(Routes.scanDetail(it)) },
                         onCamera = { id, tripId, loadDate ->
                             navController.navigate(Routes.cameraForLoad(id, tripId, loadDate))
                         },

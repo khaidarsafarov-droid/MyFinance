@@ -55,6 +55,7 @@ fun NavGraphBuilder.loadsNavGraph(
                 onEditFinish = { navController.navigate(Routes.editLoad(loadId, focusFinish = true)) },
                 onDelete = { navController.popBackStack() },
                 onPhotoClick = { navController.navigate(Routes.photoDetail(it)) },
+                onScanClick = { navController.navigate(Routes.scanDetail(it)) },
                 onCamera = { id, tripId, loadDate ->
                     navController.navigate(Routes.cameraForLoad(id, tripId, loadDate))
                 },

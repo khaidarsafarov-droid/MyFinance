@@ -17,12 +17,13 @@ import com.truckerload.presentation.screens.analytics.AnalyticsScreen
 import com.truckerload.presentation.screens.attach.AttachLoadPickScreen
 import com.truckerload.presentation.screens.attach.AttachPickMode
 import com.truckerload.presentation.screens.camera.CameraFlowScreen
-import com.truckerload.presentation.screens.gallery.PhotoDetailScreen
-import com.truckerload.presentation.screens.gallery.PhotoGalleryScreen
+import com.truckerload.presentation.screens.gallery.GalleryKind
+import com.truckerload.presentation.screens.gallery.GalleryLoadScreen
+import com.truckerload.presentation.screens.gallery.GalleryScreen
+import com.truckerload.presentation.screens.gallery.GalleryViewerScreen
 import com.truckerload.presentation.screens.goal.WeeklyGoalScreen
 import com.truckerload.presentation.screens.maintenance.MaintenanceScreen
 import com.truckerload.presentation.screens.map.MapScreen
-import com.truckerload.presentation.screens.scanner.ScanGalleryScreen
 import com.truckerload.presentation.screens.scanner.ScannerFlowScreen
 import com.truckerload.presentation.screens.privacy.PrivacySettingsScreen
 import com.truckerload.presentation.screens.settings.DistanceUnitScreen
@@ -260,7 +261,7 @@ fun NavGraphBuilder.toolsNavGraph(
         PremiumGate(PremiumFeature.CAMERA, onBack = { navController.popBackStack() }) {
         CameraFlowScreen(
             onFinished = { navController.popBackStack() },
-            onOpenGallery = { navController.navigate(Routes.PHOTO_GALLERY) },
+            onOpenGallery = { navController.navigate(Routes.galleryPhotos()) },
         )
         }
     }
@@ -292,7 +293,7 @@ fun NavGraphBuilder.toolsNavGraph(
                     navController.popBackStack()
                 }
             },
-            onOpenGallery = { navController.navigate(Routes.PHOTO_GALLERY) },
+            onOpenGallery = { navController.navigate(Routes.galleryPhotos()) },
             attachLoadId = loadId.takeIf { it.isNotBlank() && it != "_" },
             attachTripId = tripId.takeIf { it.isNotBlank() && it != "_" },
             attachLoadDate = loadDate,
@@ -309,7 +310,7 @@ fun NavGraphBuilder.toolsNavGraph(
         PremiumGate(PremiumFeature.SCANNER, onBack = { navController.popBackStack() }) {
         ScannerFlowScreen(
             onFinished = { navController.popBackStack() },
-            onOpenGallery = { navController.navigate(Routes.SCAN_GALLERY) },
+            onOpenGallery = { navController.navigate(Routes.galleryScans()) },
             onCameraFallback = {
                 navController.popBackStack()
                 navController.navigate(Routes.CAMERA) { launchSingleTop = true }
@@ -336,7 +337,7 @@ fun NavGraphBuilder.toolsNavGraph(
         PremiumGate(PremiumFeature.SCANNER, onBack = { navController.popBackStack() }) {
         ScannerFlowScreen(
             onFinished = { navController.popBackStack() },
-            onOpenGallery = { navController.navigate(Routes.SCAN_GALLERY) },
+            onOpenGallery = { navController.navigate(Routes.galleryScans()) },
             onCameraFallback = {
                 navController.popBackStack()
                 if (loadId.isNotBlank() && loadId != "_") {
@@ -354,13 +355,40 @@ fun NavGraphBuilder.toolsNavGraph(
         }
     }
     composable(
+        route = Routes.GALLERY,
+        arguments = listOf(navArgument("tab") { type = NavType.StringType }),
+        enterTransition = { navModalEnter(reduceMotion) },
+        exitTransition = { navModalExit(reduceMotion) },
+        popEnterTransition = { navModalPopEnter(reduceMotion) },
+        popExitTransition = { navModalPopExit(reduceMotion) },
+    ) { entry ->
+        val tab = GalleryKind.fromRoute(Uri.decode(entry.arguments?.getString("tab").orEmpty()))
+        GalleryScreen(
+            initialTab = tab,
+            onBack = { navController.popBackStack() },
+            onOpenLoad = { kind, loadKey ->
+                navController.navigate(Routes.galleryLoad(kind.route, loadKey))
+            },
+            onTakePhoto = { navController.navigate(Routes.CAMERA) { launchSingleTop = true } },
+            onScan = { navController.navigate(Routes.SCANNER) { launchSingleTop = true } },
+        )
+    }
+    composable(
         route = Routes.SCAN_GALLERY,
         enterTransition = { navModalEnter(reduceMotion) },
         exitTransition = { navModalExit(reduceMotion) },
         popEnterTransition = { navModalPopEnter(reduceMotion) },
         popExitTransition = { navModalPopExit(reduceMotion) },
     ) {
-        ScanGalleryScreen(onBack = { navController.popBackStack() })
+        GalleryScreen(
+            initialTab = GalleryKind.SCANS,
+            onBack = { navController.popBackStack() },
+            onOpenLoad = { kind, loadKey ->
+                navController.navigate(Routes.galleryLoad(kind.route, loadKey))
+            },
+            onTakePhoto = { navController.navigate(Routes.CAMERA) { launchSingleTop = true } },
+            onScan = { navController.navigate(Routes.SCANNER) { launchSingleTop = true } },
+        )
     }
     composable(
         route = Routes.PHOTO_GALLERY,
@@ -369,11 +397,49 @@ fun NavGraphBuilder.toolsNavGraph(
         popEnterTransition = { navModalPopEnter(reduceMotion) },
         popExitTransition = { navModalPopExit(reduceMotion) },
     ) {
-        PhotoGalleryScreen(
+        GalleryScreen(
+            initialTab = GalleryKind.PHOTOS,
             onBack = { navController.popBackStack() },
-            onPhotoClick = { navController.navigate(Routes.photoDetail(it)) },
-            onTakePhoto = { navController.navigate(Routes.CAMERA) },
+            onOpenLoad = { kind, loadKey ->
+                navController.navigate(Routes.galleryLoad(kind.route, loadKey))
+            },
+            onTakePhoto = { navController.navigate(Routes.CAMERA) { launchSingleTop = true } },
+            onScan = { navController.navigate(Routes.SCANNER) { launchSingleTop = true } },
         )
+    }
+    composable(
+        route = Routes.GALLERY_LOAD,
+        arguments = listOf(
+            navArgument("kind") { type = NavType.StringType },
+            navArgument("loadKey") { type = NavType.StringType },
+        ),
+        enterTransition = { navModalEnter(reduceMotion) },
+        exitTransition = { navModalExit(reduceMotion) },
+        popEnterTransition = { navModalPopEnter(reduceMotion) },
+        popExitTransition = { navModalPopExit(reduceMotion) },
+    ) { entry ->
+        val kind = GalleryKind.fromRoute(Uri.decode(entry.arguments?.getString("kind").orEmpty()))
+        val loadKey = Uri.decode(entry.arguments?.getString("loadKey").orEmpty())
+        GalleryLoadScreen(
+            onBack = { navController.popBackStack() },
+            onOpenItem = { itemId ->
+                navController.navigate(Routes.galleryViewer(kind.route, loadKey, itemId))
+            },
+        )
+    }
+    composable(
+        route = Routes.GALLERY_VIEWER,
+        arguments = listOf(
+            navArgument("kind") { type = NavType.StringType },
+            navArgument("loadKey") { type = NavType.StringType },
+            navArgument("startId") { type = NavType.StringType },
+        ),
+        enterTransition = { navModalEnter(reduceMotion) },
+        exitTransition = { navModalExit(reduceMotion) },
+        popEnterTransition = { navModalPopEnter(reduceMotion) },
+        popExitTransition = { navModalPopExit(reduceMotion) },
+    ) {
+        GalleryViewerScreen(onBack = { navController.popBackStack() })
     }
     composable(
         route = Routes.PHOTO_DETAIL,
@@ -382,12 +448,18 @@ fun NavGraphBuilder.toolsNavGraph(
         exitTransition = { navModalExit(reduceMotion) },
         popEnterTransition = { navModalPopEnter(reduceMotion) },
         popExitTransition = { navModalPopExit(reduceMotion) },
-    ) { backStackEntry ->
-        val photoId = backStackEntry.arguments?.getString("photoId").orEmpty()
-        PhotoDetailScreen(
-            photoId = photoId,
-            onBack = { navController.popBackStack() },
-        )
+    ) {
+        GalleryViewerScreen(onBack = { navController.popBackStack() })
+    }
+    composable(
+        route = Routes.SCAN_DETAIL,
+        arguments = listOf(navArgument("scanId") { type = NavType.StringType }),
+        enterTransition = { navModalEnter(reduceMotion) },
+        exitTransition = { navModalExit(reduceMotion) },
+        popEnterTransition = { navModalPopEnter(reduceMotion) },
+        popExitTransition = { navModalPopExit(reduceMotion) },
+    ) {
+        GalleryViewerScreen(onBack = { navController.popBackStack() })
     }
     composable(
         route = Routes.PAYWALL,

@@ -225,7 +225,7 @@
     <string name="drawer_reports">Informes</string>
     <string name="drawer_map">Mapa</string>
     
-<string name="drawer_documents">Documentos</string>
+<string name="drawer_documents">Galería</string>
     <string name="drawer_tools">Herramientas</string>
     <string name="drawer_about">Acerca de la app</string>
     <string name="drawer_improve">Qué mejorar</string>
@@ -252,8 +252,8 @@
     <string name="about_guide_reports_body">Menú → Informes: ingresos por semana y ruta, pago y diésel lado a lado a color (sin restar) y exportación CSV.</string>
     <string name="about_guide_map_title">9. Mapa</string>
     <string name="about_guide_map_body">Menú → Mapa: tu RPM por estado de origen de la semana, mes o año. Toca un estado para ver tarifas recientes y las mejores lanes.</string>
-    <string name="about_guide_docs_title">10. Documentos, cámara y escáner</string>
-    <string name="about_guide_docs_body">Documentos es la galería de escaneos: abre, comparte o elimina. Desde una tarjeta de carga o el widget puedes tomar una foto o escanear un documento y adjuntarlo a una carga de esta semana.</string>
+    <string name="about_guide_docs_title">10. Galería, cámara y escáner</string>
+    <string name="about_guide_docs_body">Galería guarda las fotos y los escaneos de cada carga: abrir, compartir o eliminar. Desde una tarjeta de carga o el widget puedes tomar una foto o escanear un documento y adjuntarlo a una carga de esta semana.</string>
     <string name="about_guide_tools_title">11. Mantenimiento</string>
     <string name="about_guide_tools_body">Menú → Mantenimiento: recordatorios por millas o fecha (cambio de aceite y similares) y servicios completados: agrega varias líneas con precio a mano o fotografía un recibo; la app separa cada trabajo y el total.</string>
     <string name="about_guide_widget_title">12. Widget</string>
@@ -342,7 +342,7 @@
     <string name="load_delete_confirm_title">¿Eliminar carga?</string>
     <string name="load_delete_confirm_message">Se eliminarán la carga y las fotos/escaneos vinculados.</string>
     <string name="load_deleted_undo_message">Carga eliminada</string>
-    <string name="photo_gallery">Galería de fotos</string>
+    <string name="photo_gallery">Galería</string>
     <string name="no_photos">📭 No hay fotos guardadas</string>
     <string name="photo_linked">✅ Foto vinculada a la carga</string>
     <string name="photo_unlinked">Foto desvinculada de la carga</string>
@@ -365,6 +365,25 @@
     <string name="filter_this_week">Esta semana</string>
     <string name="filter_by_load">Por carga</string>
     <string name="filter_unlinked">Sin vincular</string>
+
+    <string name="gallery_tab_photos">Fotos</string>
+    <string name="gallery_tab_scans">Escaneos</string>
+    <string name="gallery_search_hint">Trip ID o ruta</string>
+    <string name="gallery_empty_photos">No hay fotos guardadas</string>
+    <string name="gallery_empty_scans">No hay escaneos guardados</string>
+    <string name="gallery_empty_scans_body">Los escaneos de una carga aparecen aquí.</string>
+    <string name="gallery_empty_filter">Nada para este filtro</string>
+    <string name="gallery_select">Seleccionar</string>
+    <string name="gallery_selected">%1$d seleccionados</string>
+    <string name="gallery_page">%1$d / %2$d</string>
+    <plurals name="gallery_photo_count">
+        <item quantity="one">%d foto</item>
+        <item quantity="other">%d fotos</item>
+    </plurals>
+    <plurals name="gallery_scan_count">
+        <item quantity="one">%d escaneo</item>
+        <item quantity="other">%d escaneos</item>
+    </plurals>
     <string name="load_detail_photos">Fotos de la carga</string>
     <string name="load_detail_scans">Escaneos de la carga</string>
     <string name="retake">🔄 Repetir</string>
@@ -396,7 +415,7 @@
     <string name="save_to_app">Guardar en la app</string>
     <string name="save_to_phone">Guardar en el teléfono</string>
     <string name="send_to">Compartir</string>
-    <string name="scans_gallery">Documentos</string>
+    <string name="scans_gallery">Galería</string>
     <string name="scan_gallery_subtitle">Busca un papel por categoría</string>
     <string name="no_scans">No hay documentos guardados</string>
     <string name="no_scans_in_filter">Nada en esta categoría</string>
