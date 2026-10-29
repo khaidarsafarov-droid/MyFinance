@@ -84,7 +84,12 @@ fun CountryPickerField(
                     OutlinedTextField(
                         value = query,
                         onValueChange = { query = it },
-                        label = { Text(stringResource(R.string.common_search)) },
+                        label = {
+                            Text(
+                                text = stringResource(R.string.common_search),
+                                color = AppTextFieldDefaults.hintColor(),
+                            )
+                        },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
                         colors = AppTextFieldDefaults.outlined(),
@@ -191,7 +196,12 @@ fun PhoneWithCountryField(
                     OutlinedTextField(
                         value = query,
                         onValueChange = { query = it },
-                        label = { Text(stringResource(R.string.common_search)) },
+                        label = {
+                            Text(
+                                text = stringResource(R.string.common_search),
+                                color = AppTextFieldDefaults.hintColor(),
+                            )
+                        },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
                         colors = AppTextFieldDefaults.outlined(),

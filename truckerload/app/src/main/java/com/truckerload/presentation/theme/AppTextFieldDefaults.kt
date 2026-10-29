@@ -14,24 +14,74 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 
 object AppTextFieldDefaults {
+    /** Typed text. Ivory on the midnight field, near-black on the light field. */
+    @Composable
+    fun inputColor(): Color = MaterialTheme.colorScheme.onSurface
+
+    /** Champagne gold in the dark cabin, indigo in the light cabin. */
+    @Composable
+    fun cursorColor(): Color = MaterialTheme.colorScheme.primary
+
+    /**
+     * Hint on the field fill. Dark mode uses the muted gold hero text when it
+     * clears WCAG AA; light mode falls back to secondary text. Never outline:
+     * that token is the navy border and disappears on the navy field.
+     */
+    @Composable
+    fun hintColor(): Color {
+        val scheme = MaterialTheme.colorScheme
+        val brand = LocalBrandPalette.current
+        return readableOnField(
+            field = scheme.surfaceVariant,
+            candidates = listOf(brand.heroTextMuted, scheme.onSurfaceVariant),
+            fallback = scheme.onSurface,
+        )
+    }
+
+    /** Search and adornment icons. Gold when it clears AA on the field fill. */
+    @Composable
+    fun iconColor(): Color {
+        val scheme = MaterialTheme.colorScheme
+        val brand = LocalBrandPalette.current
+        return readableOnField(
+            field = scheme.surfaceVariant,
+            candidates = listOf(scheme.primary, brand.heroTextMuted, scheme.onSurface),
+            fallback = scheme.onSurface,
+        )
+    }
+
     @Composable
     fun outlined() = OutlinedTextFieldDefaults.colors(
-        focusedTextColor = MaterialTheme.colorScheme.onSurface,
-        unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+        focusedTextColor = inputColor(),
+        unfocusedTextColor = inputColor(),
         disabledTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
-        cursorColor = MaterialTheme.colorScheme.primary,
+        cursorColor = cursorColor(),
         focusedBorderColor = MaterialTheme.colorScheme.primary,
         unfocusedBorderColor = MaterialTheme.colorScheme.outline,
         focusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
         unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-        focusedPlaceholderColor = MaterialTheme.colorScheme.outline,
-        unfocusedPlaceholderColor = MaterialTheme.colorScheme.outline,
+        focusedPlaceholderColor = hintColor(),
+        unfocusedPlaceholderColor = hintColor(),
+        disabledPlaceholderColor = hintColor(),
+        focusedLeadingIconColor = iconColor(),
+        unfocusedLeadingIconColor = iconColor(),
+        disabledLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+        focusedTrailingIconColor = iconColor(),
+        unfocusedTrailingIconColor = iconColor(),
+        disabledTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
         focusedPrefixColor = MaterialTheme.colorScheme.onSurfaceVariant,
         unfocusedPrefixColor = MaterialTheme.colorScheme.onSurfaceVariant,
         focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
         unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
     )
 }
+
+/**
+ * First candidate that clears WCAG AA on [field], or [fallback] when none do.
+ * Used for search hints and icons so a border token cannot be painted as text.
+ */
+internal fun readableOnField(field: Color, candidates: List<Color>, fallback: Color): Color =
+    candidates.firstOrNull { ContrastRatios.passesAa(it, field) } ?: fallback
 
 /** Min height 48dp for comfortable tablet / finger input. */
 fun Modifier.appFormField(): Modifier =
