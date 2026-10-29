@@ -169,7 +169,15 @@ fun PaycheckJournalScreen(
                         onValueChange = viewModel::setSearchQuery,
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
-                        label = { Text(stringResource(R.string.paycheck_search_hint)) },
+                        textStyle = MaterialTheme.typography.bodyLarge.copy(
+                            color = AppTextFieldDefaults.inputColor(),
+                        ),
+                        label = {
+                            Text(
+                                text = stringResource(R.string.paycheck_search_hint),
+                                color = AppTextFieldDefaults.hintColor(),
+                            )
+                        },
                         shape = RoundedCornerShape(14.dp),
                         colors = AppTextFieldDefaults.outlined(),
                     )

@@ -13,7 +13,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -39,10 +38,8 @@ import com.truckerload.presentation.components.TlTextButton as TextButton
 import com.truckerload.presentation.di.LocalLoadRepository
 import com.truckerload.presentation.di.LocalScanRepository
 import com.truckerload.presentation.icons.AppIcons
-import com.truckerload.presentation.theme.AppTextFieldDefaults
 import com.truckerload.presentation.theme.BentoGlassClickableCard
 import com.truckerload.presentation.theme.LocalTruckColors
-import com.truckerload.presentation.theme.appFormField
 import com.truckerload.utils.ShareHelper
 import java.io.File
 import kotlinx.coroutines.Dispatchers
@@ -134,19 +131,10 @@ fun ScanGalleryScreen(
                     .fillMaxSize()
                     .padding(padding),
             ) {
-                OutlinedTextField(
+                DocumentSearchField(
                     value = query,
                     onValueChange = { query = it },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
-                        .appFormField(),
-                    placeholder = { Text(stringResource(R.string.scan_search_hint)) },
-                    leadingIcon = {
-                        Icon(AppIcons.Search, contentDescription = stringResource(R.string.common_search))
-                    },
-                    singleLine = true,
-                    colors = AppTextFieldDefaults.outlined(),
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                 )
                 ScanCategoryFilterChips(
                     selected = filter,

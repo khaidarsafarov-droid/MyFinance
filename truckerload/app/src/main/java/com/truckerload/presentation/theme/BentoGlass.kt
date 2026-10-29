@@ -161,6 +161,8 @@ fun BentoGlassSearchField(
     modifier: Modifier = Modifier,
 ) {
     val cs = MaterialTheme.colorScheme
+    val hint = AppTextFieldDefaults.hintColor()
+    val input = AppTextFieldDefaults.inputColor()
     BasicTextField(
         value = value,
         onValueChange = onValueChange,
@@ -168,8 +170,8 @@ fun BentoGlassSearchField(
             .fillMaxWidth()
             .defaultMinSize(minHeight = UiDimens.InputMinHeight),
         singleLine = true,
-        textStyle = AppTypography.Body,
-        cursorBrush = SolidColor(cs.primary),
+        textStyle = AppTypography.Body.copy(color = input),
+        cursorBrush = SolidColor(AppTextFieldDefaults.cursorColor()),
         decorationBox = { inner ->
             Surface(
                 modifier = Modifier.fillMaxWidth(),
@@ -181,7 +183,7 @@ fun BentoGlassSearchField(
                     modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp),
                 ) {
                     if (value.isEmpty()) {
-                        Text(placeholder, style = AppTypography.Body.copy(color = cs.onSurfaceVariant))
+                        Text(placeholder, style = AppTypography.Body.copy(color = hint))
                     }
                     inner()
                 }
