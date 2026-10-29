@@ -62,6 +62,7 @@ import com.truckerload.presentation.theme.focusAfterNavigate
 fun EditLoadScreen(
     loadId: String,
     focusFinish: Boolean = false,
+    focusMiles: Boolean = false,
     onSaved: () -> Unit,
     onBack: () -> Unit,
     onOptimisticUpdate: ((Load) -> Unit)? = null,
@@ -122,6 +123,11 @@ fun EditLoadScreen(
         if (uiState.focusFinish && !uiState.isLoading && uiState.original != null) {
             scrollState.animateScrollTo(0)
             runCatching { finishFocusRequester.requestFocus() }
+        }
+    }
+    LaunchedEffect(focusMiles, uiState.focusMiles, uiState.isLoading, uiState.original) {
+        if ((focusMiles || uiState.focusMiles) && !uiState.isLoading && uiState.original != null) {
+            runCatching { milesFocus.requestFocus() }
         }
     }
 

@@ -926,6 +926,18 @@
     <string name="load_card_attach_photo">Take photo for load</string>
     <string name="load_card_attach_scan">Scan document for load</string>
     <string name="load_detail_stops">Stops</string>
+    <string name="load_detail_route">%1$s → %2$s</string>
+    <string name="load_detail_stat_gross">Gross</string>
+    <string name="load_detail_stat_stops">Stops</string>
+    <string name="load_detail_stops_section">Stops</string>
+    <string name="load_detail_stops_empty">No stops on this load</string>
+    <string name="load_detail_photos_scans">Photos &amp; scans</string>
+    <string name="load_detail_chip_add_miles">Add miles</string>
+    <string name="load_detail_chip_deadhead_value">Deadhead %1$s</string>
+    <string name="load_detail_chip_complete">Complete load</string>
+    <string name="load_detail_chip_delivered">Delivered</string>
+    <string name="load_detail_chip_add_dispute">Add dispute</string>
+    <string name="load_detail_chip_dispute_open">Dispute open</string>
 
     <!-- Parsing -->
     <string name="load_added">✅ New load added: %1$s</string>

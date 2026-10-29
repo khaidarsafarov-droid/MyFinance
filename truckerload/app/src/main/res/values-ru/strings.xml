@@ -767,7 +767,7 @@
     <string name="load_detail_cd_edit">Редактировать</string>
     <string name="load_detail_cd_delete">Удалить</string>
     <string name="load_detail_stat_total_rate">Total Rate</string>
-    <string name="load_detail_stat_miles">Miles</string>
+    <string name="load_detail_stat_miles">Мили</string>
     <string name="load_detail_deadhead_title">Deadhead</string>
     <string name="load_detail_deadhead_none">Порожние мили до этого заказа. Они прибавляются к пробегу груза.</string>
     <string name="load_detail_deadhead_set">%1$.0f mi deadhead · %2$.0f груз + %1$.0f = %3$.0f mi</string>
@@ -919,6 +919,18 @@
     <string name="load_card_attach_photo">Сфотографировать для груза</string>
     <string name="load_card_attach_scan">Сканировать для груза</string>
     <string name="load_detail_stops">Стопы</string>
+    <string name="load_detail_route">%1$s → %2$s</string>
+    <string name="load_detail_stat_gross">Валовая</string>
+    <string name="load_detail_stat_stops">Стопы</string>
+    <string name="load_detail_stops_section">Остановки</string>
+    <string name="load_detail_stops_empty">На этом рейсе нет остановок</string>
+    <string name="load_detail_photos_scans">Фото и сканы</string>
+    <string name="load_detail_chip_add_miles">Добавить мили</string>
+    <string name="load_detail_chip_deadhead_value">Deadhead %1$s</string>
+    <string name="load_detail_chip_complete">Завершить груз</string>
+    <string name="load_detail_chip_delivered">Доставлен</string>
+    <string name="load_detail_chip_add_dispute">Добавить диспут</string>
+    <string name="load_detail_chip_dispute_open">Диспут открыт</string>
     <string name="dispute_section_title">Диспют</string>
     <string name="dispute_checkbox_label">Dispute</string>
     <string name="dispute_active">На диспюте</string>

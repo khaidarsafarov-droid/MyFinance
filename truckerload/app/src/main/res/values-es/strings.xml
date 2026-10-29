@@ -926,6 +926,18 @@
     <string name="load_card_attach_photo">Tomar foto de la carga</string>
     <string name="load_card_attach_scan">Escanear documento de la carga</string>
     <string name="load_detail_stops">Paradas</string>
+    <string name="load_detail_route">%1$s → %2$s</string>
+    <string name="load_detail_stat_gross">Bruto</string>
+    <string name="load_detail_stat_stops">Paradas</string>
+    <string name="load_detail_stops_section">Paradas</string>
+    <string name="load_detail_stops_empty">No hay paradas en esta carga</string>
+    <string name="load_detail_photos_scans">Fotos y escaneos</string>
+    <string name="load_detail_chip_add_miles">Añadir millas</string>
+    <string name="load_detail_chip_deadhead_value">Deadhead %1$s</string>
+    <string name="load_detail_chip_complete">Completar carga</string>
+    <string name="load_detail_chip_delivered">Entregado</string>
+    <string name="load_detail_chip_add_dispute">Añadir disputa</string>
+    <string name="load_detail_chip_dispute_open">Disputa abierta</string>
 
     <!-- Parsing -->
     <string name="load_added">✅ Nueva carga agregada: %1$s</string>

@@ -94,6 +94,7 @@ fun JournalListDetailHost(
                             detailNavController.popBackStack(PANE_EMPTY, inclusive = false)
                         },
                         onEdit = { navController.navigate(Routes.editLoad(loadId)) },
+                        onEditMiles = { navController.navigate(Routes.editLoad(loadId, focusMiles = true)) },
                         onEditFinish = {
                             navController.navigate(Routes.editLoad(loadId, focusFinish = true))
                         },
@@ -103,6 +104,9 @@ fun JournalListDetailHost(
                         onPhotoClick = { navController.navigate(Routes.photoDetail(it)) },
                         onCamera = { id, tripId, loadDate ->
                             navController.navigate(Routes.cameraForLoad(id, tripId, loadDate))
+                        },
+                        onScanner = { id, tripId, loadDate ->
+                            navController.navigate(Routes.scannerForLoad(id, tripId, loadDate))
                         },
                         onOpenPrivacy = { navController.navigate(Routes.PRIVACY_SETTINGS) },
                     )

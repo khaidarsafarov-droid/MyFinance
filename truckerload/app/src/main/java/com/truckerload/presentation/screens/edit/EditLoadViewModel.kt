@@ -48,6 +48,7 @@ data class EditLoadUiState(
     val equipmentType: EquipmentType? = null,
     val disputeLoad: Load? = null,
     val focusFinish: Boolean = false,
+    val focusMiles: Boolean = false,
     val isSaving: Boolean = false,
     val saveError: String? = null,
     val saved: Boolean = false,
@@ -81,8 +82,11 @@ class EditLoadViewModel @Inject constructor(
 
     private val loadId = Uri.decode(savedStateHandle.get<String>("loadId").orEmpty())
     private val focusFinish = savedStateHandle.get<Boolean>("focusFinish") ?: false
+    private val focusMiles = savedStateHandle.get<Boolean>("focusMiles") ?: false
 
-    private val _uiState = MutableStateFlow(EditLoadUiState(focusFinish = focusFinish))
+    private val _uiState = MutableStateFlow(
+        EditLoadUiState(focusFinish = focusFinish, focusMiles = focusMiles),
+    )
     val uiState: StateFlow<EditLoadUiState> = _uiState.asStateFlow()
     private var loadJob: Job? = null
     private var loadGeneration = 0
