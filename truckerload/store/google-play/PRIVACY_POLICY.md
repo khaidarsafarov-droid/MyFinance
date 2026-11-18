@@ -57,7 +57,7 @@ TruckoRig is not directed at children under 13.
 
 ## Contact
 
-Khaidar Safarov — khaidar.safarov@gmail.com  
+Khaidar Safarov — truckorig@gmail.com  
 Or in-app Settings feedback.
 
 ## Changes

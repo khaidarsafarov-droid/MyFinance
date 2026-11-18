@@ -24,6 +24,6 @@ GETTING STARTED
 2. Add your first load (paste a Relay message or enter manually)
 3. Optionally link Telegram or Google Drive in Settings
 
-Support: use in-app Settings → About / feedback, or the contact email listed on this Play Store page.
+Support: use in-app Settings → About / feedback, or truckorig@gmail.com.
 
 Package: com.truckorig

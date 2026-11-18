@@ -47,7 +47,8 @@ Confirm:
 
 | Field | Source file |
 | --- | --- |
-| App name | `store/google-play/listing/*/title.txt` |
+| App name | English: **TruckoRig: Driver Logbook** (25 characters; Play max 30) in `listing/en-US/title.txt`. Russian: `listing/ru-RU/title.txt` |
+| Support email | `truckorig@gmail.com` (Play Console contact email) |
 | Short description | `…/short-description.txt` |
 | Full description | `…/full-description.txt` |
 | High-res icon | `store/google-play/high-res-icon.png` |
@@ -111,7 +112,7 @@ The app asks Play for this product, prefers the offer tagged `free-month`, and s
 
 **Manage / cancel:** Settings → Premium → “Manage subscription in Google Play”, or Play → Payments and subscriptions.
 
-Republish the privacy policy (payments section dated 2026-10-13) at https://rentry.co/truckorig-privacy-policy so the Play URL matches the draft.
+Republish the privacy policy by hand at https://rentry.co/truckorig-privacy-policy so the live page matches this draft, including the support email `truckorig@gmail.com` and the payments section dated 2026-10-13. The repo cannot update rentry.
 
 ## 5) Post-upload
 
