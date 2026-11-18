@@ -33,6 +33,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -61,7 +62,6 @@ import com.truckerload.presentation.theme.BentoGlassClickableCard
 import com.truckerload.presentation.theme.appFormField
 import java.io.File
 import java.util.Calendar
-import java.util.Locale
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -85,7 +85,7 @@ fun GalleryScreen(
         }
     }
     val unlinked = stringResource(R.string.filter_unlinked)
-    val locale = Locale.getDefault()
+    val locale = LocalConfiguration.current.locales[0]
     val cards = remember(uiState.items, uiState.loads, uiState.filter, uiState.query, unlinked, locale) {
         GalleryCatalog.buildCards(
             items = uiState.items,
