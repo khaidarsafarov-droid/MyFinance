@@ -36,8 +36,6 @@ jobs:
           distribution: temurin
           java-version: "21"
       - uses: gradle/actions/setup-gradle@v4
-        with:
-          cache-read-only: ${{ github.event_name == 'pull_request' }}
       - run: sh ./gradlew -Dorg.gradle.java.home="$JAVA_HOME" :shared:jvmTest :shared:contract:jvmTest :shared:domain:jvmTest --no-daemon
       - name: Upload contract test reports
         if: always()
@@ -65,8 +63,6 @@ jobs:
           distribution: temurin
           java-version: "21"
       - uses: gradle/actions/setup-gradle@v4
-        with:
-          cache-read-only: ${{ github.event_name == 'pull_request' }}
       - run: sh ./gradlew -Dorg.gradle.java.home="$JAVA_HOME" :app:testDebugUnitTest --no-daemon
       - name: Kotlin file-size gate (600 LOC soft limit)
         run: sh ./gradlew -Dorg.gradle.java.home="$JAVA_HOME" :app:checkKotlinFileSize --no-daemon
@@ -92,9 +88,20 @@ jobs:
           distribution: temurin
           java-version: "21"
       - uses: gradle/actions/setup-gradle@v4
-        with:
-          cache-read-only: ${{ github.event_name == 'pull_request' }}
-      - run: sh ./gradlew -Dorg.gradle.java.home="$JAVA_HOME" :app:assembleDebug --no-daemon
+      - name: Assemble debug APK
+        run: |
+          set -euo pipefail
+          args=(-Dorg.gradle.java.home="$JAVA_HOME" :app:assembleDebug --no-daemon)
+          log="$(mktemp)"
+          if sh ./gradlew "${args[@]}" 2>&1 | tee "$log"; then
+            exit 0
+          fi
+          if ! grep -q "org.jetbrains.kotlin.plugin.compose" "$log"; then
+            exit 1
+          fi
+          echo "Compose plugin lookup failed on a cold Gradle cache; retrying once."
+          sleep 15
+          sh ./gradlew "${args[@]}" --refresh-dependencies
       - name: Verify release BuildConfig has no bot/API secrets
         run: sh ./gradlew -Dorg.gradle.java.home="$JAVA_HOME" :app:verifyReleaseSecretsEmpty --no-daemon
       - name: Upload debug APK
@@ -117,8 +124,6 @@ jobs:
           distribution: temurin
           java-version: "21"
       - uses: gradle/actions/setup-gradle@v4
-        with:
-          cache-read-only: ${{ github.event_name == 'pull_request' }}
       - run: sh ./gradlew -Dorg.gradle.java.home="$JAVA_HOME" :app:lintDebug --no-daemon
 
   android-release:
@@ -132,6 +137,4 @@ jobs:
           distribution: temurin
           java-version: "21"
       - uses: gradle/actions/setup-gradle@v4
-        with:
-          cache-read-only: ${{ github.event_name == 'pull_request' }}
       - run: sh ./gradlew -Dorg.gradle.java.home="$JAVA_HOME" :app:assembleRelease --no-daemon

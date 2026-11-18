@@ -1,6 +1,6 @@
 # Google Play release runbook — TruckoRig (`com.truckorig`)
 
-Ship checklist for version **1.5.11** (`versionCode` **16**, `targetSdk` **36**).
+Ship checklist for version **1.6.0** (`versionCode` **18**, `targetSdk` **36**).
 
 ## 0) Prerequisites (you must do once)
 
@@ -39,7 +39,7 @@ Confirm:
 
 - [ ] `verifyReleaseSecretsEmpty` passed (bot token empty)  
 - [ ] AAB is **signed** (keystore.properties present)  
-- [ ] `versionName=1.5.11`, `versionCode=16`
+- [ ] `versionName=1.6.0`, `versionCode=18`
 
 ## 2) Play Console — create / update listing
 
@@ -47,14 +47,15 @@ Confirm:
 
 | Field | Source file |
 | --- | --- |
-| App name | `store/google-play/listing/*/title.txt` |
+| App name | English: **TruckoRig: Driver Logbook** (25 characters; Play max 30) in `listing/en-US/title.txt`. Russian: `listing/ru-RU/title.txt` |
+| Support email | `truckorig@gmail.com` (Play Console contact email) |
 | Short description | `…/short-description.txt` |
 | Full description | `…/full-description.txt` |
 | High-res icon | `store/google-play/high-res-icon.png` |
 | Feature graphic | `feature-graphic-en.png` / `feature-graphic-ru.png` |
 | Phone screenshots | `phone-en/` (7) · `phone-ru/` (8) · same English frames in `docs/play-store-screenshots-en/` |
 | Tablet | `tablet-10-en/` · `tablet-10-ru/` |
-| What’s new | `RELEASE_NOTES_1.5.11.md` (user-facing section) |
+| What’s new | `RELEASE_NOTES_1.6.0.md` (user-facing section) |
 
 ## 3) App content / policy forms
 
@@ -111,7 +112,7 @@ The app asks Play for this product, prefers the offer tagged `free-month`, and s
 
 **Manage / cancel:** Settings → Premium → “Manage subscription in Google Play”, or Play → Payments and subscriptions.
 
-Republish the privacy policy (payments section dated 2026-10-13) at https://rentry.co/truckorig-privacy-policy so the Play URL matches the draft.
+Republish the privacy policy by hand at https://rentry.co/truckorig-privacy-policy so the live page matches this draft, including the support email `truckorig@gmail.com` and the payments section dated 2026-10-13. The repo cannot update rentry.
 
 ## 5) Post-upload
 
