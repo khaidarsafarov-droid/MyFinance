@@ -1,5 +1,6 @@
 package com.truckerload.domain.paycheck
 
+import com.truckerload.domain.money.Money
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
@@ -31,5 +32,8 @@ class PaycheckSalaryFieldsTest {
     fun formatAmount_stripsTrailingZeros() {
         assertEquals("2750", PaycheckSalaryFields.formatAmount(2750.0))
         assertEquals("2750.25", PaycheckSalaryFields.formatAmount(2750.25))
+        assertEquals("2750", PaycheckSalaryFields.formatAmount(Money.fromCents(275_000)))
+        assertEquals("2111.72", PaycheckSalaryFields.formatAmount(Money.fromCents(211_172)))
+        assertEquals("0.05", PaycheckSalaryFields.formatAmount(Money.fromCents(5)))
     }
 }

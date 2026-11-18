@@ -12,7 +12,13 @@ package com.truckerload.domain.parser
  */
 object DecimalInput {
 
-    fun parse(raw: String?): Double? {
+    fun parse(raw: String?): Double? = canonical(raw)?.toDoubleOrNull()
+
+    /**
+     * Same cleaning as [parse], kept as text so money can be read in cents
+     * without a [Double] round trip.
+     */
+    fun canonical(raw: String?): String? {
         if (raw == null) return null
         val compact = raw.trim()
             .replace("USD", "", ignoreCase = true)
@@ -22,8 +28,8 @@ object DecimalInput {
         val body = compact.removePrefix("-")
         if (body.isEmpty() || body.any { !it.isDigit() && it != ',' && it != '.' }) return null
         val normalized = normalizeSeparators(body) ?: return null
-        val value = normalized.toDoubleOrNull() ?: return null
-        return if (negative) -value else value
+        if (normalized.toDoubleOrNull() == null) return null
+        return if (negative) "-$normalized" else normalized
     }
 
     private fun normalizeSeparators(body: String): String? {

@@ -39,14 +39,13 @@ import androidx.compose.ui.unit.dp
 import com.truckerload.R
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.money.Money
+import com.truckerload.domain.money.MoneyInput
 import com.truckerload.presentation.theme.AppTextFieldDefaults
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.utils.dateStringToUtcDatePickerMillis
 import com.truckerload.utils.utcDatePickerMillisToDateString
 import java.util.Calendar
 import java.util.Locale
-import kotlin.math.abs
-import com.truckerload.domain.parser.DecimalInput
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -323,7 +322,7 @@ fun DisputeBadge(
 }
 
 internal fun parseDisputeMoney(raw: String): Money? =
-    DecimalInput.parse(raw)?.takeIf { it >= 0.0 }?.let(Money::fromDollars)
+    MoneyInput.parse(raw)?.takeIf { it.cents >= 0L }
 
 internal fun formatDisputeAmountInput(amount: Money?): String {
     if (amount == null) return ""
@@ -334,21 +333,9 @@ internal fun formatDisputeAmountInput(amount: Money?): String {
     }
 }
 
-internal fun formatDisputeAmountInput(amount: Double?): String {
-    if (amount == null) return ""
-    return if (abs(amount - amount.toLong()) < 0.0001) {
-        amount.toLong().toString()
-    } else {
-        amount.toString()
-    }
-}
-
 internal fun formatDisputeUsd(amount: Money): String =
-    formatDisputeUsd(amount.cents / 100.0)
-
-internal fun formatDisputeUsd(amount: Double): String =
-    if (abs(amount - amount.toLong()) < 0.005) {
-        "$${amount.toLong()}"
+    if (amount.cents % 100L == 0L) {
+        "$${amount.cents / 100L}"
     } else {
-        String.format(Locale.US, "$%.2f", amount)
+        "$${amount.formatPlain()}"
     }

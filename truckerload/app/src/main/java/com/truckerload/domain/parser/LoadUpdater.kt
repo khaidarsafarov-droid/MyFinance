@@ -57,8 +57,8 @@ class LoadUpdater(
                 LoadHistory(
                     loadId = oldLoad.id,
                     field = "totalRate",
-                    oldValue = oldLoad.totalRate.toString(),
-                    newValue = newData.totalRate.toString(),
+                    oldValue = oldLoad.totalRate.formatPlain(),
+                    newValue = newData.totalRate.formatPlain(),
                     timestamp = timestamp,
                 )
             )

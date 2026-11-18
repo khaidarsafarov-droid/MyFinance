@@ -13,7 +13,7 @@ class LoadValidator {
             errors.add("Invalid Trip ID: ${load.tripId}")
         }
         if (!load.totalRate.isPositive()) {
-            errors.add("Invalid rate: ${load.totalRate}")
+            errors.add("Invalid rate: ${load.totalRate.formatPlain()}")
         }
         if (!hasValidDate(load.date)) {
             errors.add("Missing or invalid load date: '${load.date}'")

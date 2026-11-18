@@ -23,8 +23,8 @@ object PaycheckJournalFilter {
                 paycheck.year.toString().contains(q) ||
                 paycheck.driverName.orEmpty().lowercase().contains(q) ||
                 paycheck.sourceFileName.orEmpty().lowercase().contains(q) ||
-                paycheck.netAmount.toString().contains(q) ||
-                paycheck.grossAmount?.toString()?.contains(q) == true
+                paycheck.netAmount.formatPlain().contains(q) ||
+                paycheck.grossAmount?.formatPlain()?.contains(q) == true
         }
     }
 }

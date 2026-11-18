@@ -14,15 +14,12 @@ import com.truckerload.R
 import com.truckerload.data.preferences.SettingsDataStore
 import com.truckerload.data.repository.LoadRepository
 import com.truckerload.domain.model.ActualFinishDate
-import com.truckerload.domain.model.DisputePayout
 import com.truckerload.domain.model.EquipmentType
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.lastDelDateFromStops
 import com.truckerload.domain.model.lastDelDateTimeFromStops
-import com.truckerload.domain.model.withRouteMetrics
-import com.truckerload.domain.parser.DecimalInput
+import com.truckerload.domain.units.DisplayUnits
 import com.truckerload.presentation.screens.add.FormDraft
-import com.truckerload.utils.FieldErrors
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -171,10 +168,23 @@ class EditLoadViewModel @Inject constructor(
         val state = _uiState.value
         val original = state.original ?: return
         if (state.isSaving) return
-        val parsedRate = DecimalInput.parse(state.totalRate)
-        val parsedMiles = DecimalInput.parse(state.totalMiles)
-        val rateInvalid = FieldErrors.amountRes(state.totalRate) != null
-        if (parsedRate == null || parsedMiles == null || parsedMiles < 0.0 || rateInvalid) {
+        val updated = EditLoadForm.apply(
+            original = original,
+            form = EditLoadFormState(
+                tripId = state.tripId,
+                loadDate = state.loadDate,
+                finishDate = state.finishDate,
+                totalRate = state.totalRate,
+                totalMiles = state.totalMiles,
+                pointA = state.pointA,
+                pointB = state.pointB,
+                equipmentType = state.equipmentType,
+                disputeLoad = state.disputeLoad ?: original,
+            ),
+            metric = DisplayUnits.isMetric,
+            nowMillis = System.currentTimeMillis(),
+        )
+        if (updated == null) {
             _uiState.update {
                 it.copy(
                     saveError = getApplication<Application>().getString(R.string.edit_load_invalid_number),
@@ -184,25 +194,16 @@ class EditLoadViewModel @Inject constructor(
             }
             return
         }
-        val actualFinish = ActualFinishDate.normalize(state.finishDate)
-        val merged = (state.disputeLoad ?: original).copy(
-            tripId = state.tripId.ifBlank { original.tripId },
-            date = state.loadDate.ifBlank { original.date },
-            totalRate = com.truckerload.domain.money.Money.fromDollars(parsedRate),
-            totalMiles = com.truckerload.domain.units.MeasurementUnits.storedDistance(parsedMiles),
-            pointA = state.pointA,
-            pointB = state.pointB,
-            equipmentType = state.equipmentType,
-            actualFinishDate = actualFinish,
-            updatedAt = System.currentTimeMillis(),
-        )
-        val updated = DisputePayout.settleFrom(original, merged).withRouteMetrics()
+        if (updated == original) {
+            _uiState.update { it.copy(saved = true, saveError = null) }
+            return
+        }
         _uiState.update { it.copy(isSaving = true, saveError = null) }
         viewModelScope.launch {
             try {
-                loadRepository.updateLoad(updated)
+                loadRepository.updateLoad(updated, recomputeDerived = false)
                 updated.equipmentType?.let { settingsDataStore.saveLastEquipmentType(it) }
-                val reloaded = loadRepository.getLoadById(loadId)?.withRouteMetrics() ?: updated
+                val reloaded = loadRepository.getLoadById(loadId) ?: updated
                 onOptimisticUpdate?.invoke(reloaded)
                 _uiState.update {
                     it.copy(
@@ -257,7 +258,7 @@ class EditLoadViewModel @Inject constructor(
         val generation = ++loadGeneration
         loadJob = viewModelScope.launch {
             try {
-                val loaded = loadRepository.getLoadById(loadId)?.withRouteMetrics()
+                val loaded = loadRepository.getLoadById(loadId)
                 if (generation != loadGeneration) return@launch
                 if (loaded == null) {
                     _uiState.update {
@@ -272,26 +273,10 @@ class EditLoadViewModel @Inject constructor(
                 val tripId = savedStateHandle[KEY_TRIP] ?: loaded.tripId
                 val loadDate = savedStateHandle[KEY_DATE] ?: loaded.date
                 val finishDate = savedStateHandle[KEY_FINISH]
-                    ?: ActualFinishDate.normalize(loaded.actualFinishDate)
-                    ?: run {
-                        val fromStops = loaded.lastDelDateTimeFromStops().orEmpty()
-                        if (focusFinish && fromStops.length == 10) {
-                            // «When did you finish?» — default clock to now on that day.
-                            ActualFinishDate.combineNow(fromStops)
-                        } else if (focusFinish && fromStops.isBlank()) {
-                            ActualFinishDate.combineNow(LocalDate.now().toString())
-                        } else {
-                            fromStops
-                        }
-                    }
-                val totalRate = savedStateHandle[KEY_RATE] ?: loaded.totalRate.toString()
-                val totalMiles = savedStateHandle[KEY_MILES] ?: if (com.truckerload.domain.units.DisplayUnits.isMetric) {
-                    com.truckerload.domain.units.MeasurementUnits.formatInput(
-                        com.truckerload.domain.units.MeasurementUnits.displayDistance(loaded.totalMiles),
-                    )
-                } else {
-                    loaded.totalMiles.toString()
-                }
+                    ?: EditLoadForm.finishText(loaded, focusFinish, System.currentTimeMillis())
+                val totalRate = EditLoadForm.rateField(savedStateHandle[KEY_RATE], loaded.totalRate)
+                val totalMiles = savedStateHandle[KEY_MILES]
+                    ?: EditLoadForm.milesText(loaded.totalMiles, DisplayUnits.isMetric)
                 val pointA = savedStateHandle[KEY_A] ?: loaded.pointA
                 val pointB = savedStateHandle[KEY_B] ?: loaded.pointB
                 _uiState.update { state ->

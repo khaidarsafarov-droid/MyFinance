@@ -96,7 +96,7 @@ object FormDraft {
             listOf(
                 it.isDispute,
                 it.disputeCompleted,
-                it.disputeAmount,
+                it.disputeAmount?.formatPlain().orEmpty(),
                 it.disputeApplyToLoad,
                 it.disputeAmountApplied,
                 it.disputeResponseDate,
