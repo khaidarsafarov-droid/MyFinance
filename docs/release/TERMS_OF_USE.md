@@ -3,7 +3,7 @@
 **Terms of Use · TruckoRig**  
 Android package / iOS bundle ID: `com.truckorig`  
 Разработчик / Developer: Khaidar Safarov  
-Контакт / Contact: [khaidar.safarov@gmail.com](mailto:khaidar.safarov@gmail.com)  
+Контакт / Contact: [truckorig@gmail.com](mailto:truckorig@gmail.com)  
 Дата вступления в силу / Effective date: 18 ноября 2026 / 18 November 2026  
 Последнее обновление / Last updated: 18 ноября 2026 / 18 November 2026
 
@@ -87,15 +87,11 @@ TruckoRig — локальный журнал для водителей: гру�
 
 ### 12. Применимое право
 
-**TODO for K S:** укажите штат или страну, чьё право применяется, и место разрешения споров. Предлагаемый текст, если вы живёте в Нью-Джерси, США:
-
-> Эти Условия регулируются законами штата Нью-Джерси, США, без учёта коллизионных норм. Споры подлежат рассмотрению в судах штата Нью-Джерси, если иное не предусмотрено императивными нормами защиты потребителей по вашему месту жительства.
-
-Не публикуйте эту страницу, пока абзац выше не будет подтверждён или заменён.
+Эти Условия регулируются законами Содружества Пенсильвании, США (Commonwealth of Pennsylvania, USA), без учёта коллизионных норм. Споры подлежат рассмотрению в судах Содружества Пенсильвании, если иное не предусмотрено императивными нормами защиты потребителей по вашему месту жительства.
 
 ### 13. Контакты
 
-Khaidar Safarov — [khaidar.safarov@gmail.com](mailto:khaidar.safarov@gmail.com)
+Khaidar Safarov — [truckorig@gmail.com](mailto:truckorig@gmail.com)
 
 ---
 
@@ -177,12 +173,8 @@ You may stop using the app and uninstall it at any time. We may discontinue the 
 
 ### 12. Governing law
 
-**TODO for K S:** name the state or country whose laws apply, and where disputes are heard. Suggested text if you live in New Jersey, USA:
-
-> These Terms are governed by the laws of the State of New Jersey, USA, without regard to conflict-of-law rules. Disputes shall be brought in the courts of the State of New Jersey, except where mandatory consumer-protection rules in your place of residence require otherwise.
-
-Do not publish this page until the paragraph above is confirmed or replaced.
+These Terms are governed by the laws of the Commonwealth of Pennsylvania, USA, without regard to conflict-of-law rules. Disputes shall be brought in the courts of the Commonwealth of Pennsylvania, except where mandatory consumer-protection rules in your place of residence require otherwise.
 
 ### 13. Contact
 
-Khaidar Safarov — [khaidar.safarov@gmail.com](mailto:khaidar.safarov@gmail.com)
+Khaidar Safarov — [truckorig@gmail.com](mailto:truckorig@gmail.com)

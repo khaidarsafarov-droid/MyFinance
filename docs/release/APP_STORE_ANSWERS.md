@@ -15,12 +15,12 @@ This is not legal advice. Confirm every **TODO for K S** before submitting. Do n
 | iCloud, App Group, widget | Present in entitlements and code | If the first TestFlight or App Store build ships **without** iCloud, the widget, or App Groups, remove those capabilities from the App ID and trim the privacy policy / this worksheet until they ship |
 | Marketing version | 1.5.7 (1) | **Bump** before submission (for example 1.6.0 to align with Android, or 1.0.0 if this is the first public iOS release) |
 | Privacy policy URL | Draft only | Host `docs/release/privacy/index.html` on HTTPS and paste the URL |
-| Terms URL | Draft only; governing law is unfinished | Host after you fill governing law |
+| Terms URL | Draft; governing law is the Commonwealth of Pennsylvania, USA | Host `docs/release/terms/index.html` on HTTPS |
 | Subscription | Local StoreKit config only | Create the product in App Store Connect before the Subscribe button can charge |
 | Screenshots | 2 frames (Premium, Analytics) in `store/app-store/` for 6.5" and 6.9" | Apple asks for at least **3** screenshots per required size. Add at least one more (journal / home) for 6.9" and 6.5" (and 6.7" if Console still lists it) |
-| Support email | Policy uses `khaidar.safarov@gmail.com` | In-app Android feedback still mails `Truckorig@gmail.com`. Pick one official address. |
+| Support email | `truckorig@gmail.com` | Decided. Use this address in App Store Connect. |
 
-Contact for App Store Connect: Khaidar Safarov, `khaidar.safarov@gmail.com`.
+Contact for App Store Connect: Khaidar Safarov, `truckorig@gmail.com`.
 
 **TODO for K S:** phone number for App Review contact, if Connect requires one.
 
@@ -197,7 +197,7 @@ GETTING STARTED
 2. Add your first load (paste a Relay message or enter it manually)
 3. Optionally connect Telegram or iCloud in Settings
 
-Support: khaidar.safarov@gmail.com
+Support: truckorig@gmail.com
 ```
 
 A Russian (and Spanish / French) localization can use the same structure; RU Play copy is in `PLAY_CONSOLE_ANSWERS.md` and can be adapted (replace Drive with iCloud, Google Play with App Store). **TODO for K S:** decide whether to upload RU / ES / FR store localizations in the first submission (the app already localizes UI to EN, ES, FR, and RU).
@@ -235,7 +235,7 @@ Camera, photo library, and location (When In Use) are optional and are used for 
 
 There are no ads and no in-app user-to-user chat.
 
-Support: khaidar.safarov@gmail.com
+Support: truckorig@gmail.com
 ```
 
 If iCloud or the widget is disabled in the uploaded build, add one sentence saying so.
@@ -247,7 +247,7 @@ If iCloud or the widget is disabled in the uploaded build, add one sentence sayi
 - [ ] Paid Apple Developer account approved
 - [ ] Bundle ID, iCloud container, and App Group registered to match the build you actually upload
 - [ ] Marketing version bumped from 1.5.7
-- [ ] Privacy policy hosted; Terms hosted after governing law is filled
+- [ ] Privacy policy and terms hosted (governing law: Commonwealth of Pennsylvania, USA)
 - [ ] App Privacy form matches `PrivacyInfo.xcprivacy` (and the Maps SDK review)
 - [ ] Age rating submitted
 - [ ] Export compliance left as exempt / `ITSAppUsesNonExemptEncryption` = false

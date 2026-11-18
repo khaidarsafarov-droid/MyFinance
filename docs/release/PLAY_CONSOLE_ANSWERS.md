@@ -13,11 +13,9 @@ Source of truth in code (Android `main` at `b431f9b`): `versionCode` **18**, `ve
 | Field | Value |
 | --- | --- |
 | Privacy policy URL | **TODO for K S:** public HTTPS URL of `docs/release/privacy/index.html` (GitHub Pages or another host). Until then, do not submit the policy form. The live rentry page (3 Sep 2026) is outdated — it is missing payments, iOS, and iCloud. |
-| Terms of use URL (if asked) | **TODO for K S:** public HTTPS URL of `docs/release/terms/index.html`, after you fill in governing law. |
+| Terms of use URL (if asked) | **TODO for K S:** public HTTPS URL of `docs/release/terms/index.html`. Governing law is the Commonwealth of Pennsylvania, USA. |
 
-Support email on the policy and this worksheet: `khaidar.safarov@gmail.com`.
-
-**TODO for K S:** in-app improvement feedback currently opens mail to `Truckorig@gmail.com`. Pick one official address and use it in Console, the policy, and the app.
+Support email on the policy and this worksheet: `truckorig@gmail.com`.
 
 ---
 
@@ -113,7 +111,7 @@ There is no ads SDK. Monetization is an optional Play subscription only.
 
 Start the IARC questionnaire. Category type: **All other app types** (this is not a social or chat app).
 
-**TODO for K S:** IARC correspondence email — use `khaidar.safarov@gmail.com` unless you prefer another address. **TODO for K S:** Play app category is not fixed in the repo; suggested **Business** or **Auto & Vehicles** (productivity / driver journal, not a bank).
+IARC correspondence email (decided): `truckorig@gmail.com`. **TODO for K S:** Play app category is not fixed in the repo; suggested **Business** or **Auto & Vehicles** (productivity / driver journal, not a bank).
 
 Answer about what users can see or do **in the app**, including optional features. Recommended answers:
 
@@ -182,17 +180,17 @@ Activate the offer, the base plan, and the subscription. License testers: add yo
 
 ## 8) Store listing — use these, not the outdated files as-is
 
-Repo files live in `truckerload/store/google-play/listing/`. Two problems to fix when you paste into Console:
+Repo files live in `truckerload/store/google-play/listing/`. Fix these when you paste into Console:
 
-1. **Title length.** Current EN title is 40 characters and current RU title is 31; Play’s limit is **30**.
+1. **Title length.** Play’s limit is **30**. The en-US title is **decided:** `TruckoRig: Driver Logbook` (25 characters). The current repo EN title is 40 characters and the current RU title is 31; the suggested RU title is in the table.
 2. **Getting started** in the full description still says “Sign in with Google or continue with email.” That is outdated. Journal login is a local first-run name; Google is only for optional Drive backup.
 
 ### Title (max 30)
 
-| Locale | Paste this | Length |
-| --- | --- | --- |
-| en-US | `TruckoRig: Driver Logbook` | 25 |
-| ru-RU | `TruckoRig — журнал водителя` | 27 |
+| Locale | Paste this | Length | Status |
+| --- | --- | --- | --- |
+| en-US | `TruckoRig: Driver Logbook` | 25 | Decided |
+| ru-RU | `TruckoRig — журнал водителя` | 27 | Suggested |
 
 ### Short description (max 80) — existing text is within the limit
 
@@ -230,7 +228,7 @@ GETTING STARTED
 2. Add your first load (paste a Relay message or enter it manually)
 3. Optionally link Telegram or Google Drive in Settings
 
-Support: in-app Settings feedback, or khaidar.safarov@gmail.com
+Support: in-app Settings feedback, or truckorig@gmail.com
 
 Package: com.truckorig
 ```
@@ -265,7 +263,7 @@ TruckoRig Premium — по желанию: первый месяц беспла�
 2. Добавьте первый лоуд (вставьте сообщение Relay или введите вручную)
 3. При необходимости подключите Telegram или Drive в Настройках
 
-Поддержка: обратная связь в Настройках или khaidar.safarov@gmail.com
+Поддержка: обратная связь в Настройках или truckorig@gmail.com
 
 Пакет: com.truckorig
 ```
@@ -307,11 +305,12 @@ User-facing notes for Play, covering work since 1.5.11 (versionCode 16) through 
 ## 10) TODO checklist before you click Submit
 
 - [ ] Host privacy policy and terms; paste HTTPS URLs
-- [ ] Confirm governing law in the Terms
-- [ ] Confirm support email (`khaidar.safarov@gmail.com` vs `Truckorig@gmail.com`)
+- [x] Governing law: Commonwealth of Pennsylvania, USA
+- [x] Support email: `truckorig@gmail.com`
 - [ ] Confirm the release AAB has no `google-services.json`
 - [ ] Review Maps / Billing / Auth / ML Kit / Location Data safety disclosures
-- [ ] Paste the 30-character titles and the corrected full descriptions
+- [x] EN listing title: `TruckoRig: Driver Logbook`
+- [ ] Paste that title, the suggested RU title, and the corrected full descriptions
 - [ ] Create and activate the subscription product and free-month offer
 - [ ] Complete trader status when it applies to you
 - [ ] Start Closed testing (12 testers / 14 days) if your account requires it; internal testing is not enough

@@ -3,7 +3,7 @@
 **Privacy Policy · TruckoRig**  
 Android package / iOS bundle ID: `com.truckorig`  
 Разработчик / Developer: Khaidar Safarov  
-Контакт / Contact: [khaidar.safarov@gmail.com](mailto:khaidar.safarov@gmail.com)  
+Контакт / Contact: [truckorig@gmail.com](mailto:truckorig@gmail.com)  
 Дата вступления в силу / Effective date: 18 ноября 2026 / 18 November 2026  
 Последнее обновление / Last updated: 18 ноября 2026 / 18 November 2026
 
@@ -24,7 +24,7 @@ TruckoRig — локальный журнал для водителей. Раз�
 ### Кто мы
 
 Приложение TruckoRig (`com.truckorig`) публикуется разработчиком Khaidar Safarov.  
-Контакт: [khaidar.safarov@gmail.com](mailto:khaidar.safarov@gmail.com), либо обратная связь в Настройках приложения.
+Контакт: [truckorig@gmail.com](mailto:truckorig@gmail.com), либо обратная связь в Настройках приложения.
 
 ### Какие данные обрабатываются на устройстве
 
@@ -119,7 +119,7 @@ TruckoRig бесплатен в установке. Грузы, дизель, з
 
 ### Контакты
 
-Вопросы по конфиденциальности: [khaidar.safarov@gmail.com](mailto:khaidar.safarov@gmail.com) или обратная связь в Настройках приложения.
+Вопросы по конфиденциальности: [truckorig@gmail.com](mailto:truckorig@gmail.com) или обратная связь в Настройках приложения.
 
 ---
 
@@ -136,7 +136,7 @@ Optional TruckoRig Premium is billed by Google Play (Android) or the App Store (
 ### Who we are
 
 TruckoRig (package and bundle ID `com.truckorig`) is published by Khaidar Safarov.  
-Contact: [khaidar.safarov@gmail.com](mailto:khaidar.safarov@gmail.com), or in-app Settings feedback.
+Contact: [truckorig@gmail.com](mailto:truckorig@gmail.com), or in-app Settings feedback.
 
 ### Data processed on the device
 
@@ -231,4 +231,4 @@ We may update this policy. The effective date at the top will change. The curren
 
 ### Contact
 
-Privacy questions: [khaidar.safarov@gmail.com](mailto:khaidar.safarov@gmail.com) or in-app Settings feedback.
+Privacy questions: [truckorig@gmail.com](mailto:truckorig@gmail.com) or in-app Settings feedback.
