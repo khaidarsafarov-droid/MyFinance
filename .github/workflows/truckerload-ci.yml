@@ -130,6 +130,11 @@ jobs:
     name: Assemble release
     runs-on: ubuntu-latest
     timeout-minutes: 40
+    env:
+      # Owner: add a repository Actions secret named MAPS_API_KEY (Settings →
+      # Secrets and variables → Actions). A blank secret keeps the placeholder in
+      # truckerload/local.defaults.properties. bundleRelease reads the same variable.
+      MAPS_API_KEY: ${{ secrets.MAPS_API_KEY }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4

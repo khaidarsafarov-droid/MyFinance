@@ -26,8 +26,9 @@ Ship checklist for version **1.6.0** (`versionCode` **18**, `targetSdk` **36**).
 cd truckerload
 # Production-oriented local.properties (gitignored):
 #   LOCAL_ONLY_MODE=false
-#   GOOGLE_MAPS_API_KEY=...   # optional but needed for maps
+#   MAPS_API_KEY=...          # needed for the in-app map; see docs/MAPS_API_KEY.md
 # Never put TELEGRAM_BOT_TOKEN in release (forced empty).
+# CI passes the GitHub Actions secret MAPS_API_KEY into the release build environment.
 
 sh ./gradlew :app:bundleRelease
 # Output: app/build/outputs/bundle/release/app-release.aab

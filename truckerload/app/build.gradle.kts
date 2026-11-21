@@ -1,3 +1,6 @@
+import com.android.build.api.variant.BuildConfigField
+import com.android.build.api.variant.TestComponent
+import com.google.android.libraries.mapsplatform.secrets_gradle_plugin.SecretsPluginExtension
 import java.util.Properties
 
 plugins {
@@ -7,7 +10,46 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
     alias(libs.plugins.androidx.baselineprofile)
+    alias(libs.plugins.secrets)
 }
+
+// Secrets Gradle Plugin reads local.properties (gitignored) and fills ${MAPS_API_KEY}.
+// local.properties also holds sdk.dir and other BuildConfig keys; inject only MAPS_API_KEY.
+// The negative lookahead is anchored so the plugin's containsMatchIn keeps this one key.
+configure<SecretsPluginExtension> {
+    propertiesFileName = "local.properties"
+    defaultPropertiesFileName = "local.defaults.properties"
+    ignoreList.add("^(?!MAPS_API_KEY$).*")
+}
+
+/**
+ * Maps SDK key for `com.google.android.geo.API_KEY`.
+ * Env `MAPS_API_KEY` wins, then gitignored `local.properties`, then the committed placeholder.
+ */
+fun resolveMapsApiKey(): String {
+    fun read(fileName: String): String {
+        val file = rootProject.file(fileName)
+        if (!file.isFile) return ""
+        val props = Properties()
+        file.inputStream().use { props.load(it) }
+        return props.getProperty("MAPS_API_KEY").orEmpty().trim().removeSurrounding("\"")
+    }
+    val fromEnv = System.getenv("MAPS_API_KEY").orEmpty().trim()
+    if (fromEnv.isNotEmpty()) return fromEnv
+    val fromLocal = read("local.properties")
+    if (fromLocal.isNotEmpty()) return fromLocal
+    val fromDefaults = read("local.defaults.properties")
+    check(fromDefaults.isNotEmpty()) {
+        "MAPS_API_KEY is missing from the environment, local.properties, and local.defaults.properties"
+    }
+    return fromDefaults
+}
+
+fun String.escapeForBuildConfigString(): String =
+    replace("\\", "\\\\")
+        .replace("\"", "\\\"")
+        .replace("\r", "")
+        .replace("\n", "")
 
 val firebaseConfigured = file("google-services.json").isFile
 if (firebaseConfigured) {
@@ -43,10 +85,9 @@ android {
         val localOnly = localProps.getProperty("LOCAL_ONLY_MODE", "false").equals("true", ignoreCase = true)
         buildConfigField("boolean", "LOCAL_ONLY_MODE", if (localOnly) "true" else "false")
         buildConfigField("boolean", "FIREBASE_CONFIGURED", firebaseConfigured.toString())
-        val googleMapsApiKey = localProps.getProperty("GOOGLE_MAPS_API_KEY", "")
-            .replace("\\", "\\\\")
-            .replace("\"", "\\\"")
-        buildConfigField("String", "GOOGLE_MAPS_API_KEY", "\"$googleMapsApiKey\"")
+        // Also set on each variant below. defaultConfig covers AGP 9 unit-test manifest merge,
+        // which does not inherit placeholders the Secrets plugin adds only on the main variant.
+        manifestPlaceholders["MAPS_API_KEY"] = resolveMapsApiKey()
         val googleDriveApiKey = (
             System.getenv("GOOGLE_DRIVE_API_KEY")
                 ?: localProps.getProperty("GOOGLE_DRIVE_API_KEY", "")
@@ -55,13 +96,11 @@ android {
             .replace("\\", "\\\\")
             .replace("\"", "\\\"")
         buildConfigField("String", "GOOGLE_DRIVE_API_KEY", "\"$googleDriveApiKey\"")
-        // Optional separate key for Directions REST (Android-restricted Maps keys often
-        // work for tiles but deny HTTPS Directions). Falls back to GOOGLE_MAPS_API_KEY.
+        // Optional separate key for Directions REST. The map screen does not call Directions.
         val googleDirectionsApiKey = localProps.getProperty("GOOGLE_DIRECTIONS_API_KEY", "")
             .replace("\\", "\\\\")
             .replace("\"", "\\\"")
         buildConfigField("String", "GOOGLE_DIRECTIONS_API_KEY", "\"$googleDirectionsApiKey\"")
-        manifestPlaceholders["GOOGLE_MAPS_API_KEY"] = localProps.getProperty("GOOGLE_MAPS_API_KEY", "")
         // Optional NDK ABI filter, e.g. -PabiFilters=arm64-v8a,armeabi-v7a
         val abiFiltersProp = (project.findProperty("abiFilters") as? String)
             ?.split(',')
@@ -170,6 +209,24 @@ android {
     }
     sourceSets {
         getByName("androidTest").assets.srcDir("$projectDir/schemas")
+    }
+}
+
+// Env MAPS_API_KEY overrides the Secrets plugin (it only reads properties files).
+// Registered after the plugin so this callback runs last and wins on the main variant.
+androidComponents {
+    onVariants { variant ->
+        val mapsApiKey = resolveMapsApiKey()
+        variant.manifestPlaceholders.put("MAPS_API_KEY", mapsApiKey)
+        // AGP 9 validates ${MAPS_API_KEY} in unit-test and android-test manifests too.
+        // ApplicationVariant.unitTest clashes with the legacy accessor, so use nested tests.
+        variant.nestedComponents.filterIsInstance<TestComponent>().forEach { testComponent ->
+            testComponent.manifestPlaceholders.put("MAPS_API_KEY", mapsApiKey)
+        }
+        variant.buildConfigFields?.put(
+            "MAPS_API_KEY",
+            BuildConfigField("String", "\"${mapsApiKey.escapeForBuildConfigString()}\"", null),
+        )
     }
 }
 
@@ -412,8 +469,26 @@ tasks.register("verifyReleaseSecretsEmpty") {
         check(suppliedDriveKey.isNotBlank() || driveKey.isEmpty()) {
             "Release BuildConfig contains a Drive API key that is not supplied outside the repo"
         }
+        check(manifest.contains("android:value=\"\${MAPS_API_KEY}\"")) {
+            "AndroidManifest must expose the Maps SDK key as \${MAPS_API_KEY}"
+        }
+        check(!manifest.contains("GOOGLE_MAPS_API_KEY")) {
+            "AndroidManifest must not keep the old GOOGLE_MAPS_API_KEY placeholder"
+        }
+        val defaultsFile = rootProject.file("local.defaults.properties")
+        check(defaultsFile.isFile) { "Commit local.defaults.properties with a Maps key placeholder" }
+        val defaultsText = defaultsFile.readText()
+        check(!Regex("""AIza[0-9A-Za-z_\-]{10,}""").containsMatchIn(defaultsText)) {
+            "local.defaults.properties must not contain a real Google API key"
+        }
+        val mapsKey = fieldValue("MAPS_API_KEY")
+        check(mapsKey == resolveMapsApiKey()) {
+            "Release MAPS_API_KEY does not match MAPS_API_KEY env, local.properties, or local.defaults.properties"
+        }
+        check(mapsKey.isNotEmpty()) { "Release MAPS_API_KEY must not be empty" }
         logger.lifecycle(
             "verifyReleaseSecretsEmpty: OK (telegram empty; Drive key not hardcoded; " +
+                "Maps key from env, local.properties, or local.defaults.properties; " +
                 "minify, backup, cleartext, and schema export unchanged)",
         )
     }
