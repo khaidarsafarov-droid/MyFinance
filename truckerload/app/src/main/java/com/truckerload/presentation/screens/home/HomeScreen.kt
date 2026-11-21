@@ -203,6 +203,7 @@ fun HomeScreen(
     }
 
     val tabletChrome = com.truckerload.presentation.utils.useNavigationRail()
+    val onSharePeriod = HomePeriodShare(uiState, welcomeName)
 
     Scaffold(
         containerColor = BentoGlassTheme.ScreenBackground,
@@ -216,6 +217,7 @@ fun HomeScreen(
                     onSearchToggle = { viewModel.setSearchExpanded(!uiState.isSearchExpanded) },
                     onOpenPrivacy = onOpenPrivacy,
                     onAvatar = onAvatar,
+                    onShare = onSharePeriod,
                 )
             }
         },
@@ -270,6 +272,7 @@ fun HomeScreen(
                         onOpenProfile = onSettings,
                         periodTotals = totals,
                         onOpenPrivacy = onOpenPrivacy,
+                        onSharePeriod = onSharePeriod,
                         modifier = Modifier.weight(1f),
                     )
                 }

@@ -49,6 +49,7 @@ internal fun TabletHomeDashboard(
     onOpenWeeklyGoal: () -> Unit,
     onOpenCalendar: () -> Unit,
     onOpenMonthPicker: () -> Unit,
+    onSharePeriod: () -> Unit = {},
 ) {
     val tc = LocalTruckColors.current
     val goalStore = LocalWeeklyProfitGoalStore.current
@@ -90,6 +91,7 @@ internal fun TabletHomeDashboard(
                         color = tc.TextPrimary,
                         modifier = Modifier.weight(1f),
                     )
+                    HomePeriodShareButton(onClick = onSharePeriod)
                     Box(modifier = Modifier.widthIn(min = 200.dp, max = 360.dp)) {
                         HomeJournalSearchField(
                             viewModel = viewModel,
@@ -102,11 +104,18 @@ internal fun TabletHomeDashboard(
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    Text(
-                        text = stringResource(R.string.nav_logbook),
-                        style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
-                        color = tc.TextPrimary,
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            text = stringResource(R.string.nav_logbook),
+                            style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
+                            color = tc.TextPrimary,
+                            modifier = Modifier.weight(1f),
+                        )
+                        HomePeriodShareButton(onClick = onSharePeriod)
+                    }
                     HomeJournalSearchField(
                         viewModel = viewModel,
                         placeholder = stringResource(R.string.tablet_home_search_hint),
