@@ -47,7 +47,6 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import java.util.Calendar
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -67,7 +66,6 @@ import com.truckerload.presentation.components.rememberLoadCards
 import com.truckerload.presentation.theme.BentoGlassScreenBackground
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.theme.UiDimens
-import com.truckerload.presentation.utils.adaptiveHorizontalPadding
 import com.truckerload.presentation.utils.adaptiveLoadColumns
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -97,6 +95,7 @@ internal fun HomeScreenContent(
     onOpenProfile: () -> Unit = {},
     periodTotals: com.truckerload.domain.filter.LoadFilterUseCase.Totals? = null,
     onOpenPrivacy: () -> Unit = {},
+    onSharePeriod: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val tc = LocalTruckColors.current
@@ -171,6 +170,7 @@ internal fun HomeScreenContent(
                     onOpenWeeklyGoal = onOpenWeeklyGoal,
                     onOpenCalendar = onOpenCalendar,
                     onOpenMonthPicker = { showMonthPicker = true },
+                    onSharePeriod = onSharePeriod,
                 )
                 PullToRefreshDefaults.Indicator(
                     modifier = Modifier.align(Alignment.TopCenter),
@@ -259,6 +259,9 @@ internal fun HomeScreenContent(
                 )
             }
 
+            val hasLoads = (paging != null && paging.itemCount > 0) ||
+                (paging == null && listItems.isNotEmpty())
+            val showRecentHeader = hasLoads || periodSummary != null
             if (periodSummary == null) {
                 item(key = "period_filter", contentType = "filter") {
                     HomePeriodFilterDropdown(
@@ -275,37 +278,15 @@ internal fun HomeScreenContent(
                 }
             }
 
-            val hasLoads = (paging != null && paging.itemCount > 0) ||
-                (paging == null && listItems.isNotEmpty())
-            if (hasLoads || periodSummary != null) {
+            if (showRecentHeader) {
                 item(key = "recent_header", contentType = "header") {
-                    // Title and period field are stacked. The field is fillMaxWidth,
-                    // so a side-by-side Row collapses the title to one letter per line.
-                    Column(modifier = Modifier.fillMaxWidth()) {
-                        Text(
-                            text = stringResource(R.string.home_recent_loads),
-                            style = MaterialTheme.typography.titleLarge,
-                            color = MaterialTheme.colorScheme.onBackground,
-                            maxLines = 2,
-                            softWrap = true,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = adaptiveHorizontalPadding()),
-                        )
-                        if (periodSummary != null) {
-                            HomePeriodFilterDropdown(
-                                currentFilter = uiState.filter,
-                                selectedYear = uiState.selectedYear,
-                                selectedDateLabel = uiState.selectedDateLabel,
-                                selectedWeekLabel = uiState.selectedWeekLabel,
-                                selectedMonthLabel = uiState.selectedMonthLabel,
-                                onFilterSelected = viewModel::setFilter,
-                                onOpenCalendar = onOpenCalendar,
-                                onOpenMonthPicker = { showMonthPicker = true },
-                            )
-                        }
-                    }
+                    HomeRecentHeader(
+                        uiState = uiState,
+                        showFilter = periodSummary != null,
+                        onFilterSelected = viewModel::setFilter,
+                        onOpenCalendar = onOpenCalendar,
+                        onOpenMonthPicker = { showMonthPicker = true },
+                    )
                 }
             }
 
@@ -442,6 +423,7 @@ internal fun HomeScreenTopBar(
     onSearchToggle: () -> Unit,
     onOpenPrivacy: () -> Unit = {},
     onAvatar: () -> Unit = {},
+    onShare: () -> Unit = {},
 ) {
     val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
     val greeting = if (welcomeName.isBlank()) {
@@ -490,6 +472,7 @@ internal fun HomeScreenTopBar(
                         tint = MaterialTheme.colorScheme.onBackground,
                     )
                 }
+                HomePeriodShareButton(onClick = onShare)
                 HomeAvatarButton(name = welcomeName, onClick = onAvatar)
             },
         )
