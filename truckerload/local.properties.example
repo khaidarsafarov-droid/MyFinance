@@ -2,7 +2,10 @@
 # (silent local_dev). Production still uses FirstRunNameScreen, then local_dev.
 LOCAL_ONLY_MODE=false
 
-GOOGLE_MAPS_API_KEY=your_google_maps_api_key_here
+# Maps SDK for Android. Uncomment and set the real key, or export MAPS_API_KEY.
+# Never commit the key. See docs/MAPS_API_KEY.md. An empty or missing value uses
+# the placeholder in local.defaults.properties so the project still builds.
+# MAPS_API_KEY=
 # Free tier: enable only "Maps SDK for Android" in Google Cloud (not Directions API).
 # Bot secrets are NOT embedded into debug or release APKs by default.
 # For on-device Telegram debugging only:  ./gradlew :app:assembleDebug -PallowDebugSecrets=true
