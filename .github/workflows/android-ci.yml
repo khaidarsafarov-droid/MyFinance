@@ -27,7 +27,7 @@ jobs:
         with:
           distribution: temurin
           java-version: "21"
-      - uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a # v4.4.3
+      - uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
       - name: Run debug unit tests
         run: sh ./gradlew -Dorg.gradle.java.home="$JAVA_HOME" :app:testDebugUnitTest --no-daemon
       - name: Upload unit test reports
@@ -51,7 +51,7 @@ jobs:
         with:
           distribution: temurin
           java-version: "21"
-      - uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a # v4.4.3
+      - uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
       - name: Run shared JVM tests
         run: sh ./gradlew -Dorg.gradle.java.home="$JAVA_HOME" :shared:jvmTest --no-daemon
       - name: Upload shared test reports
@@ -75,7 +75,7 @@ jobs:
         with:
           distribution: temurin
           java-version: "21"
-      - uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a # v4.4.3
+      - uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
       - name: Check Kotlin file size
         run: sh ./gradlew -Dorg.gradle.java.home="$JAVA_HOME" :app:checkKotlinFileSize --no-daemon
 
@@ -89,7 +89,7 @@ jobs:
         with:
           distribution: temurin
           java-version: "21"
-      - uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a # v4.4.3
+      - uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
       - name: Run debug lint
         run: sh ./gradlew -Dorg.gradle.java.home="$JAVA_HOME" :app:lintDebug --no-daemon
       - name: Upload lint reports
@@ -114,6 +114,6 @@ jobs:
         with:
           distribution: temurin
           java-version: "21"
-      - uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a # v4.4.3
+      - uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
       - name: Assemble debug APK
         run: sh ./gradlew -Dorg.gradle.java.home="$JAVA_HOME" :app:assembleDebug --no-daemon
