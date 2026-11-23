@@ -14,7 +14,7 @@ import com.truckerload.domain.units.DisplayUnits
 import com.truckerload.domain.units.DistanceUnit
 import com.truckerload.domain.units.DistanceUnitPolicy
 import com.truckerload.domain.week.WeekStartDay
-import com.truckerload.domain.week.WeekStartRebinder
+import com.truckerload.data.repository.WeekStartRebind
 import com.truckerload.domain.week.WeekStartRuntime
 import com.truckerload.utils.AppLanguageManager
 
@@ -55,7 +55,7 @@ object BackupPrefsApplier {
             store.getLoadWeekStartDayOnce(),
             store.getDieselWeekStartDayOnce(),
         )
-        runCatching { WeekStartRebinder.rebindIfPossible(app) }
+        runCatching { WeekStartRebind.rebindIfPossible(app) }
         val explicitUnit = store.getExplicitDistanceUnitOnce()
         DisplayUnits.install(
             DistanceUnitPolicy.resolve(explicitUnit, AppLanguageManager.getCurrentLanguageCode()),

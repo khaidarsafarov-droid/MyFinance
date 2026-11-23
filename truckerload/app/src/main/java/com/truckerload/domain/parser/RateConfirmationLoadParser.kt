@@ -9,7 +9,7 @@ import java.util.Locale
  * not Amazon Relay blocks. Looks for PO / load ids, estimated rate, miles, and
  * pickup / delivery sections used by Integrity Express and other brokers.
  */
-object RateConfirmationLoadParser {
+internal object RateConfirmationLoadParser {
 
     private val loadDocMarkers = Regex(
         """rate[\s\-]*confirmation|load[\s\-]*confirmation|carrier[\s\-]*rate|""" +

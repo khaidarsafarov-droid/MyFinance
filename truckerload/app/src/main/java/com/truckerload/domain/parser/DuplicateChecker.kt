@@ -1,7 +1,7 @@
 package com.truckerload.domain.parser
 
-import com.truckerload.data.repository.LoadRepository
 import com.truckerload.domain.model.Load
+import com.truckerload.domain.store.LoadStore
 
 sealed class DuplicateResult {
     data class Found(val load: Load) : DuplicateResult()
@@ -17,15 +17,15 @@ sealed class DuplicateResult {
  * Aligns with [DuplicateAuditUseCase]: skip only when loads are effectively identical.
  */
 class DuplicateChecker(
-    private val loadRepository: LoadRepository,
+    private val loads: LoadStore,
 ) {
     suspend fun checkDuplicate(parsedLoad: Load): DuplicateResult {
-        val byTripId = loadRepository.getByTripId(parsedLoad.tripId)
+        val byTripId = loads.getByTripId(parsedLoad.tripId)
         if (byTripId != null) {
             return DuplicateResult.Found(byTripId)
         }
 
-        val byRouteAndDate = loadRepository.getByRouteAndDate(
+        val byRouteAndDate = loads.getByRouteAndDate(
             origin = parsedLoad.firstPuCityState.ifBlank { parsedLoad.pointA },
             destination = parsedLoad.lastDelCityState.ifBlank { parsedLoad.pointB },
             date = parsedLoad.date,
@@ -38,7 +38,7 @@ class DuplicateChecker(
             )
         }
 
-        val byStops = loadRepository.getByStops(
+        val byStops = loads.getByStops(
             stops = parsedLoad.stops,
             date = parsedLoad.date,
         )

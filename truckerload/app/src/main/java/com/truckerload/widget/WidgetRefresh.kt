@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import com.truckerload.data.local.DatabaseStartup
 import com.truckerload.utils.logFailure
 import com.truckerload.utils.runCatchingCancellable
 import kotlinx.coroutines.CoroutineScope
@@ -29,6 +30,7 @@ object WidgetRefresh {
      * actually paint instead of deferring until the next widget tap.
      */
     suspend fun refreshAndUpdate(context: Context) {
+        if (!DatabaseStartup.awaitReadyOrFalse()) return
         val appContext = context.applicationContext
         WidgetDataProvider.refresh(appContext)
         applyGlance(appContext)

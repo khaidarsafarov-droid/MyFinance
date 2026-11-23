@@ -7,6 +7,7 @@ import android.os.Looper
 import android.util.Log
 import com.truckerload.TruckerLoadApp
 import com.truckerload.data.local.AppDatabase
+import com.truckerload.data.local.DatabaseStartup
 import com.truckerload.data.local.toDomain
 import com.truckerload.data.local.toEntity
 import com.truckerload.data.preferences.AuthStore
@@ -127,6 +128,10 @@ object MaintenanceReminderCoordinator {
 
     private fun doSync(app: Context) {
         if (!DirectBoot.isUserUnlocked(app)) {
+            rearmFuture(app)
+            return
+        }
+        if (!DatabaseStartup.awaitReadyBlockingOrFalse()) {
             rearmFuture(app)
             return
         }

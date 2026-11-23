@@ -4,7 +4,9 @@ import com.truckerload.domain.model.DieselParseResult
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.PaycheckParseResult
 import com.truckerload.domain.parser.AmazonRelayParseResult
+import com.truckerload.domain.parser.LoadParsingEngine
 import com.truckerload.domain.parser.MessageParseService
+import com.truckerload.domain.parser.ParseInput
 
 /**
  * Facade for message parsing — no external AI providers.
@@ -22,10 +24,20 @@ class AiRepository(
     }
 
     suspend fun parseLoadFromMessage(rawMessage: String): Result<Load> =
-        messageParseService.parseLoadFromMessage(rawMessage)
+        LoadParsingEngine.parse(ParseInput.PlainText(rawMessage)).mapCatching { loads ->
+            loads.firstOrNull() ?: throw IllegalArgumentException("No valid load found in message")
+        }
 
     suspend fun parseLoadFromUserInput(rawMessage: String, fileName: String? = null): Result<Load> =
-        messageParseService.parseLoadFromUserInput(rawMessage, fileName = fileName)
+        LoadParsingEngine.parse(
+            if (fileName.isNullOrBlank()) {
+                ParseInput.PlainText(rawMessage)
+            } else {
+                ParseInput.ExtractedDocument(rawMessage, fileName = fileName)
+            },
+        ).mapCatching { loads ->
+            loads.firstOrNull() ?: throw IllegalArgumentException("No valid load found in message")
+        }
 
     fun extractLoadFields(rawMessage: String, fileName: String? = null) =
         messageParseService.extractLoadFields(rawMessage, fileName = fileName)
@@ -34,7 +46,7 @@ class AiRepository(
         messageParseService.parseAmazonRelayFromMessage(rawMessage)
 
     suspend fun parseLoadsFromMessage(rawMessage: String): Result<List<Load>> =
-        messageParseService.parseLoadsFromMessage(rawMessage)
+        LoadParsingEngine.parse(ParseInput.PlainText(rawMessage))
 
     suspend fun parsePaycheckFromText(text: String): Result<PaycheckParseResult> =
         messageParseService.parsePaycheckFromText(text)

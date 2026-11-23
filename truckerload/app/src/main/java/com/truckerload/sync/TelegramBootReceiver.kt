@@ -3,6 +3,7 @@ package com.truckerload.sync
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import com.truckerload.data.local.DatabaseStartup
 import com.truckerload.data.preferences.AuthStore
 import com.truckerload.data.preferences.TelegramTokenStore
 
@@ -14,7 +15,9 @@ class TelegramBootReceiver : BroadcastReceiver() {
         val appContext = context.applicationContext
         Thread {
             try {
-                // currentUserIdOrNull waits off the main thread until cold start publishes.
+                // Journal open and session restore finish off this thread. Boot work
+                // does not open Room on the main thread.
+                if (!DatabaseStartup.awaitReadyBlockingOrFalse()) return@Thread
                 LoadAlarmScheduler.rescheduleAll(appContext)
                 val userId = AuthStore(appContext).currentUserIdOrNull() ?: return@Thread
                 val tokenStore = TelegramTokenStore(appContext, userId)

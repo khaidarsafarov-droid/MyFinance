@@ -12,7 +12,8 @@ import kotlinx.coroutines.launch
  * Holds Room / SQLCipher open until installed-journal recovery finishes.
  *
  * Unarmed (Robolectric, and any process that never cold-starts recovery) is a no-op.
- * Background callers wait. The main thread never blocks and never opens the database early.
+ * Background callers wait on the latch. The main thread returns immediately and must
+ * not open the file; [RecoveryGatedOpenHelper] refuses a main-thread open.
  */
 internal object JournalRecoveryGate {
     private val lock = Any()
@@ -20,14 +21,8 @@ internal object JournalRecoveryGate {
     private var done: CompletableDeferred<Unit>? = null
     private val running = AtomicBoolean(false)
 
-    /** When set, Robolectric also waits. Production never sets this. */
+    /** When set, Robolectric also waits, and a main-thread open is refused. */
     internal var enforceForTests: Boolean = false
-
-    /**
-     * How long a main-thread open waits before it logs and keeps waiting on IO.
-     * The SQLCipher file still does not open until recovery releases the gate.
-     */
-    internal var mainOpenWaitMillis: Long = MAIN_OPEN_WAIT_MS
 
     fun arm() {
         synchronized(lock) {
@@ -74,8 +69,7 @@ internal object JournalRecoveryGate {
 
     /**
      * Blocks a background opener until recovery releases the gate.
-     * A main-thread caller returns immediately and does not throw; the open helper
-     * moves that wait onto [RecoveryOpenThreads].
+     * A main-thread caller returns immediately and does not open the file.
      */
     fun awaitBeforeOpen() {
         if (skipWait()) return
@@ -121,7 +115,6 @@ internal object JournalRecoveryGate {
             done = null
             running.set(false)
             enforceForTests = false
-            mainOpenWaitMillis = MAIN_OPEN_WAIT_MS
         }
     }
 
@@ -129,6 +122,4 @@ internal object JournalRecoveryGate {
         val main = Looper.getMainLooper() ?: return false
         return Looper.myLooper() == main
     }
-
-    private const val MAIN_OPEN_WAIT_MS = 2_000L
 }
