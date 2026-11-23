@@ -6,6 +6,8 @@ import android.util.Log
 import androidx.core.content.edit
 import com.truckerload.R
 import com.truckerload.data.local.AppDatabase
+import com.truckerload.data.local.DeletedLoadLookupImpl
+import com.truckerload.data.repository.RoomLoadStore
 import com.truckerload.data.preferences.SettingsDataStore
 import com.truckerload.data.remote.TelegramApi
 import com.truckerload.data.remote.TelegramUpdate
@@ -62,7 +64,10 @@ class TelegramMessageParser(
         val config = parserConfig()
         val useCase = ImportLoadsUseCase(
             loadRepository = importRepo,
-            loadProcessor = LoadProcessor(loadRepository),
+            loadProcessor = LoadProcessor(
+                RoomLoadStore(loadRepository),
+                DeletedLoadLookupImpl(context),
+            ),
             parserConfig = config,
         )
         val sessionManager = ImportSessionManager(prefs)
@@ -84,7 +89,10 @@ class TelegramMessageParser(
         val config = parserConfig()
         val useCase = ImportLoadsUseCase(
             loadRepository = importRepo,
-            loadProcessor = LoadProcessor(loadRepository),
+            loadProcessor = LoadProcessor(
+                RoomLoadStore(loadRepository),
+                DeletedLoadLookupImpl(context),
+            ),
             parserConfig = config,
         )
         return ImportDocumentHandler(
