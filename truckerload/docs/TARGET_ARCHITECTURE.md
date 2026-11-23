@@ -23,10 +23,10 @@ flowchart LR
   Optional Google Drive backup copies that journal to the user's own Drive
   App Data folder. Google Sign-In is not an app login.
 - Room is the source of truth. Drive is an opt-in backup, not a multi-device live sync.
-- The Telegram bot runs in an Android foreground service (long poll). There is no
-  server webhook mode.
-- Optional Firebase Crashlytics is enabled only when `app/google-services.json` is
-  present. There is no FCM cloud-sync wake-up.
+- The Telegram bot long-polls in the app process. It is not an Android foreground
+  service, and there is no server webhook mode.
+- Firebase Crashlytics is not included in debug or release builds, even if
+  `app/google-services.json` is present. There is no FCM cloud-sync wake-up.
 - Do not add Sign in with Apple or APNs credentials until the Apple Developer
   Program account is enrolled at publication. The SwiftUI shell in `ios/` already
   links `TruckerLoadShared`. See [KMP_IOS_ROADMAP.md](KMP_IOS_ROADMAP.md).

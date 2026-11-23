@@ -18,7 +18,6 @@ import androidx.work.WorkManager
 import androidx.work.Configuration
 import androidx.hilt.work.HiltWorkerFactory
 import com.truckerload.BuildConfig
-import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.truckerload.data.local.DatabasePassphraseStore
 import com.truckerload.data.local.DatabaseStartup
 import com.truckerload.data.local.InstalledJournalRecovery
@@ -244,15 +243,7 @@ class TruckerLoadApp : Application(), Configuration.Provider {
     }
 
     private fun initializeCrashReporting() {
-        if (!BuildConfig.FIREBASE_CONFIGURED) return
-        runCatching {
-            FirebaseCrashlytics.getInstance().apply {
-                setCustomKey("app_version", BuildConfig.VERSION_NAME)
-                setCustomKey("local_only", BuildConfig.LOCAL_ONLY_MODE)
-            }
-        }.onFailure { error ->
-            Log.w(TAG, "Crashlytics initialization failed: ${error.javaClass.simpleName}")
-        }
+        // No crash-reporting SDK is linked. FIREBASE_CONFIGURED stays false.
     }
 
     private fun scheduleTelegramSync() {

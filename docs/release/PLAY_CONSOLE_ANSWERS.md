@@ -23,49 +23,25 @@ Support email on the policy and this worksheet: `truckorig@gmail.com`.
 
 ### Recommended overview (current release posture)
 
-This matches `DATA_SAFETY.md` and the current code, **if** the Play AAB is built **without** `google-services.json`.
+The field-by-field sheet is `truckerload/store/google-play/DATA_SAFETY.md`. The overview answer is **Yes**. Do not answer No.
 
 | Question | Answer |
 | --- | --- |
-| Does your app collect or share any of the required user data types? | **No** |
-| Privacy policy URL | **TODO for K S:** paste the hosted URL |
+| Does your app collect or share any of the required user data types? | **Yes** |
+| Privacy policy URL | **TODO for K S:** paste the hosted URL after it matches `PRIVACY_POLICY.md` dated 23 November 2026. The live rentry page is stale until you paste it. |
 
-Rationale, so the answer stays consistent with the policy:
+Why Yes:
 
-- The journal stays on the device (SQLCipher / Room). Android auto-backup is off.
-- There is no TruckoRig backend and no developer-operated account.
-- First-run “login” is an optional local name (`local_dev`). Google Sign-In is **not** the journal login; it is used only if the driver later connects Google Drive.
-- Optional Drive backup, Telegram bot, file export, feedback email, and map tiles are **user-initiated** transfers to the user’s own Drive, the user’s own Telegram bot, a destination the user picks, or Google Maps — not to a TruckoRig server. Play’s user-initiated-action exception can apply when the user reasonably expects that transfer.
-- Play Billing talks to Google Play to check and acknowledge the subscription. The app does not send purchase tokens to a developer server. A local subscribed flag is stored on the device only (72-hour cache).
-- Crashlytics is compiled in only when `app/google-services.json` is present. **TODO for K S:** confirm the release AAB does **not** include that file. If it does, change this form to Yes and declare crash logs.
-- In-app “Analytics” and the leftover `ConsentStore.analyticsAccepted` flag do not send telemetry in the current code. The day-7 survey is a local banner; sending feedback uses the system mail app.
+- The journal stays on the device (SQLCipher / Room). Android auto-backup is off. There is no TruckoRig backend.
+- Google Maps SDK and ML Kit send diagnostics, identifiers, and (for Maps) SDK crash metrics to Google. That is collection under Play’s SDK rule. Directions API is not called.
+- Precise and approximate location are collected only as an ephemeral geocoder lookup when the user allows location. Photo GPS, date, and time stay on the device on purpose. Photo files are not in the Drive JSON.
+- Drive backup, Telegram, the share sheet, and Play card data are not ticked. The exemptions and the “if a review rejects this” fallback are in `DATA_SAFETY.md`.
+- Firebase Crashlytics is not in debug or release, even if `google-services.json` is present. The Crash logs row is still Yes because of the Maps SDK, not because of Firebase.
 
-### TODO for K S — third-party SDK review (do this before submitting)
+### Other declarations
 
-Play requires you to declare data that **libraries and SDKs** send off the device, even if it goes to Google and not to you. Review the official Data safety disclosures for:
-
-- Google Maps SDK / Play Services Maps, and Directions if used
-- Play Services Location
-- Play Billing Library
-- Play Services Auth (Drive OAuth)
-- ML Kit document scanner / text recognition
-
-If any of those SDKs collect diagnostics, advertising ID, or device data on their own, change the overview answer to **Yes** and declare those types (usually collected and/or shared, purpose App functionality, optional where the user can avoid the feature). Do not guess; use Google’s published SDK disclosures.
-
-### If you later enable Crashlytics or a backend
-
-Declare at least:
-
-| Data type | Collected? | Shared? | Purpose | Optional? | Encrypted in transit? |
-| --- | --- | --- | --- | --- | --- |
-| Crash logs | Yes, if `google-services.json` is in the AAB | Firebase (Google) | Analytics / app functionality (stability) | Build-dependent | Yes |
-
-And update the public privacy policy on the same day.
-
-### Other declarations (only if the overview becomes Yes)
-
-- Is all collected user data encrypted in transit? **Yes** (HTTPS) for optional network calls.
-- Users can request that data be deleted? **Yes** — clear app storage or uninstall; Drive / iCloud files in the user’s own account. There is no developer-held account to delete.
+- Is all collected user data encrypted in transit? **Yes** (HTTPS). Cleartext is blocked.
+- Users can request that data be deleted? **Yes** — in-app account delete, clear storage, uninstall, or `truckorig@gmail.com`. The Drive copy is a hidden app-data file; disconnect does not delete it.
 - Independent security review? **No**.
 - Play Families / designed for children? **No**.
 
@@ -76,7 +52,7 @@ Declare as required by the current Play forms, purpose **App functionality**:
 | Permission / form | Answer |
 | --- | --- |
 | Camera | Yes, used to capture load photos and document scans, only when the user takes or picks a picture. Not required for the core journal. |
-| Photos / videos | On-device attachments. They leave the device only if the user exports, backs up to Drive, or (on iOS) backs up to iCloud. |
+| Photos / videos | On-device. GPS, date, and time are kept on purpose (watermark and photo record). The Drive JSON does not include the image files. They leave the device only if the user shares or exports that file. |
 | Location | **Foreground only.** Photo geotag and map. The manifest does **not** request `ACCESS_BACKGROUND_LOCATION`. Approximate and precise location may both be requested. Optional; denying it does not block the journal. |
 | Notifications | Reminders (loads, maintenance, trial) and optional Telegram status. |
 | Foreground service | **Do not declare a data-sync FGS.** The current manifest removes `FOREGROUND_SERVICE` and `FOREGROUND_SERVICE_DATA_SYNC`. Telegram import no longer uses a persistent notification (see 1.5.11 notes). |

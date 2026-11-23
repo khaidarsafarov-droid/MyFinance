@@ -1289,8 +1289,8 @@
     <string name="push_notification_fallback_body">Une nouvelle mise à jour est offerte</string>
 
     <string name="settings_battery_title">Fonctionnement en arrière-plan</string>
-    <string name="settings_battery_desc">Pour que le bot réponde lorsque l\'application est fermée, désactivez l\'optimisation de la batterie pour TruckoRig.</string>
-    <string name="settings_battery_button">Désactiver l\'optimisation de la batterie</string>
+    <string name="settings_battery_desc">Pour que le bot réponde lorsque l\'application est fermée, ouvrez la liste de batterie, trouvez TruckoRig et choisissez « Ne pas optimiser » ou « Sans restriction ».</string>
+    <string name="settings_battery_button">Ouvrir la liste de batterie</string>
     <string name="settings_battery_ok">✅ Optimisation de la batterie désactivée — le bot fonctionne en arrière-plan</string>
     <string name="settings_logout_title">Déconnexion</string>
     <string name="settings_logout_desc">Déconnectez-vous et retournez à l\'écran de connexion. Toutes les données restent enregistrées.</string>
@@ -1352,8 +1352,8 @@
     <string name="maintenance_exact_alarm_settings">Réglages des alarmes exactes</string>
     <string name="maintenance_exact_alarm_banner">Les alarmes exactes sont coupées. Les rappels peuvent arriver en retard tant que vous ne les autorisez pas.</string>
     <string name="maintenance_battery_title">Pour que le rappel sonne à l\'heure</string>
-    <string name="maintenance_battery_body">L\'optimisation de la batterie peut retarder la vérification de secours, et certains téléphones retardent aussi les alarmes. Autorisez l\'usage sans restriction pour que la vidange sonne quand même à l\'heure.</string>
-    <string name="maintenance_battery_allow">Autoriser</string>
+    <string name="maintenance_battery_body">L\'optimisation de la batterie peut retarder la vérification de secours, et certains téléphones retardent aussi les alarmes. Dans la liste de batterie, trouvez TruckoRig et choisissez « Ne pas optimiser » ou « Sans restriction » pour que la vidange sonne quand même à l\'heure.</string>
+    <string name="maintenance_battery_allow">Ouvrir la liste de batterie</string>
     <string name="maintenance_battery_later">Pas maintenant</string>
     <string name="maintenance_ocr_processing">Lecture du reçu…</string>
     <string name="maintenance_retake_photo">Choisir une autre photo</string>
