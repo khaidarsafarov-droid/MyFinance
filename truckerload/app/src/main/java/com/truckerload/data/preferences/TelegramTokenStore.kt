@@ -71,31 +71,38 @@ class TelegramTokenStore(
         val meta = appContext.getSharedPreferences(META_PREFS, Context.MODE_PRIVATE)
         val flag = migratedFlag(storeName)
         if (meta.getBoolean(flag, false)) return
-        val legacy = readLegacyToken()
-        if (legacy.isNotBlank()) {
-            writeWrapped(legacy)
-            clearLegacyToken()
+        when (val legacy = readLegacyTokenState()) {
+            is LegacyToken.Found -> {
+                writeWrapped(legacy.value)
+                clearLegacyToken()
+                meta.edit { putBoolean(flag, true) }
+            }
+            LegacyToken.Empty -> meta.edit { putBoolean(flag, true) }
+            LegacyToken.Unreadable -> Unit
         }
-        meta.edit { putBoolean(flag, true) }
     }
 
-    private fun readLegacyToken(): String {
+    private fun readLegacyTokenState(): LegacyToken {
         val names = buildList {
             add(storeName)
             if (storeName != LEGACY_SECURE) add(LEGACY_SECURE)
         }
         for (name in names) {
             if (!legacyStoreExists(appContext, name)) continue
-            val token = SecurePreferences.open(appContext, name)
-                .getString(KEY_TOKEN, null)
-                ?.trim()
-                .orEmpty()
-            if (token.isNotBlank()) return token
+            val prefs = try {
+                SecurePreferences.open(appContext, name, secrets = true)
+            } catch (_: SecureStorageUnavailableException) {
+                return LegacyToken.Unreadable
+            }
+            val token = prefs.getString(KEY_TOKEN, null)?.trim().orEmpty()
+            if (token.isNotBlank()) return LegacyToken.Found(token)
         }
-        return appContext.getSharedPreferences(LEGACY_PLAIN, Context.MODE_PRIVATE)
+        val plain = appContext.getSharedPreferences(LEGACY_PLAIN, Context.MODE_PRIVATE)
             .getString(KEY_TOKEN, null)
             ?.trim()
             .orEmpty()
+        if (plain.isNotBlank()) return LegacyToken.Found(plain)
+        return LegacyToken.Empty
     }
 
     private fun clearLegacyToken() {
@@ -105,7 +112,12 @@ class TelegramTokenStore(
         }
         for (name in names) {
             if (!legacyStoreExists(appContext, name)) continue
-            SecurePreferences.open(appContext, name).edit { remove(KEY_TOKEN) }
+            val prefs = try {
+                SecurePreferences.open(appContext, name, secrets = true)
+            } catch (_: SecureStorageUnavailableException) {
+                continue
+            }
+            prefs.edit { remove(KEY_TOKEN) }
         }
         appContext.getSharedPreferences(LEGACY_PLAIN, Context.MODE_PRIVATE).edit {
             remove(KEY_TOKEN)
@@ -129,6 +141,12 @@ class TelegramTokenStore(
     }
 
     companion object {
+        private sealed class LegacyToken {
+            data class Found(val value: String) : LegacyToken()
+            data object Empty : LegacyToken()
+            data object Unreadable : LegacyToken()
+        }
+
         private const val LEGACY_SECURE = "telegram_token_enc"
         private const val LEGACY_PLAIN = "telegram_token"
         private const val KEY_TOKEN = "bot_token"

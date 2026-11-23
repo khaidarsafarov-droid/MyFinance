@@ -67,9 +67,9 @@ class MessageClassifierTest {
     @Test
     fun classify_brokerRateConfirmation_returnsLoad() {
         val text = """
-            Rate Confirmation IEL PO#: 2665704
-            Estimated Rate (To Truck): ${'$'}2,325.84
-            Miles: 742.50
+            Rate Confirmation IEL PO#: 4401901
+            Estimated Rate (To Truck): ${'$'}1,864.20
+            Miles: 512.25
         """.trimIndent()
         assertEquals(MessageType.LOAD, MessageClassifier.classify(text))
         assertTrue(MessageClassifier.isLoadLike(text))

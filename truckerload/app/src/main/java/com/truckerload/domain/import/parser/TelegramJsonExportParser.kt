@@ -5,6 +5,7 @@ import com.truckerload.domain.model.Load
 import com.truckerload.domain.parser.MessageClassifier
 import com.truckerload.domain.parser.TelegramMessageDate
 import com.truckerload.domain.parser.TelegramStyledTextNormalizer
+import com.truckerload.domain.parser.UntrustedJson
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
@@ -15,7 +16,7 @@ class TelegramJsonExportParser(
 ) : LoadParser {
 
     override fun parse(input: String): List<Load> {
-        val root = JSONObject(input)
+        val root = UntrustedJson.objectOrNull(input, UntrustedJson.MAX_EXPORT_CHARS) ?: return emptyList()
         val messages = root.optJSONArray("messages") ?: return emptyList()
         val loads = mutableListOf<Load>()
 
@@ -57,8 +58,8 @@ class TelegramJsonExportParser(
     private fun extractMessageText(msg: JSONObject): String {
         if (!msg.has("text") || msg.isNull("text")) return ""
         return when (val value = msg.opt("text")) {
-            is String -> value
-            is JSONArray -> flattenTextArray(value)
+            is String -> UntrustedJson.capMessage(value)
+            is JSONArray -> UntrustedJson.capMessage(flattenTextArray(value))
             else -> ""
         }
     }
@@ -74,7 +75,7 @@ class TelegramJsonExportParser(
 
     companion object {
         fun isTelegramJsonExport(json: String): Boolean = try {
-            val root = JSONObject(json.trim())
+            val root = UntrustedJson.objectOrNull(json, UntrustedJson.MAX_EXPORT_CHARS) ?: return false
             root.has("messages") &&
                 root.optJSONArray("messages") != null &&
                 (root.has("name") || root.has("type") || root.has("id"))

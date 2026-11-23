@@ -35,11 +35,13 @@ class StorageHelper(private val context: Context) {
         mimeType: String = "application/octet-stream",
         writeBlock: (OutputStream) -> Unit
     ): SaveResult? {
+        val safeName = StoredFileNames.sanitize(fileName)
+        val safeDir = StoredFileNames.downloadsRelativeDir(relativeSubDir)
         return try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                saveViaMediaStore(fileName, relativeSubDir, mimeType, writeBlock)
+                saveViaMediaStore(safeName, safeDir, mimeType, writeBlock)
             } else {
-                saveViaLegacyFile(fileName, relativeSubDir, writeBlock)
+                saveViaLegacyFile(safeName, safeDir, writeBlock)
             }
         } catch (e: SQLiteException) {
             logFailure("StorageHelper", "saveToPublicDownloads failed", e)
@@ -65,8 +67,13 @@ class StorageHelper(private val context: Context) {
     @Suppress("DEPRECATION")
     private fun saveViaLegacyFile(fileName: String, subDir: String, writeBlock: (OutputStream) -> Unit): SaveResult? {
         val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-        val targetDir = File(downloadsDir, subDir).apply { mkdirs() }
-        val file = File(targetDir, fileName)
+        val targetDir = File(downloadsDir, subDir)
+        val root = File(downloadsDir, BrandConstants.DOWNLOADS_FOLDER).canonicalFile
+        val canonicalDir = targetDir.canonicalFile
+        if (!canonicalDir.isInside(root)) return null
+        canonicalDir.mkdirs()
+        val file = File(canonicalDir, fileName)
+        if (!file.canonicalFile.isInside(root)) return null
         FileOutputStream(file).use { writeBlock(it) }
         val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
         val displayPath = "Downloads/$subDir/$fileName"
@@ -101,10 +108,20 @@ class StorageHelper(private val context: Context) {
      */
     fun saveToAppStorage(fileName: String, subDir: String = "exports", writeBlock: (OutputStream) -> Unit): File {
         val dir = context.getExternalFilesDir(null) ?: context.filesDir
-        val targetDir = File(dir, subDir).apply { mkdirs() }
-        val file = File(targetDir, fileName)
+        val safeSub = subDir.split('/', '\\')
+            .filter { it.isNotBlank() && it != "." && it != ".." }
+            .joinToString("/")
+            .ifBlank { "exports" }
+        val targetDir = File(dir, safeSub).apply { mkdirs() }
+        val file = File(targetDir, StoredFileNames.sanitize(fileName))
         FileOutputStream(file).use { writeBlock(it) }
         return file
+    }
+
+    private fun File.isInside(root: File): Boolean {
+        val childPath = path
+        val rootPath = root.path
+        return childPath == rootPath || childPath.startsWith(rootPath + File.separator)
     }
 
     /** Shareable URI for a file from app storage (via FileProvider). */
