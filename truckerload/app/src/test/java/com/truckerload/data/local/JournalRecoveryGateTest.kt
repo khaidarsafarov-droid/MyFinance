@@ -75,7 +75,22 @@ class JournalRecoveryGateTest {
         assertTrue("getInstance blocked the main thread for ${buildMs}ms", buildMs < 500)
         val thread = Thread {
             try {
-                db.openHelper.writableDatabase
+                // Another test can close the process-wide singleton in the gap
+                // before this thread reaches the gate. A closed helper is replaced;
+                // the new one still has to wait until recovery releases.
+                var database = db
+                var replaced = 0
+                while (true) {
+                    try {
+                        database.openHelper.writableDatabase
+                        break
+                    } catch (closed: IllegalStateException) {
+                        if (closed.message?.contains("closed") != true || replaced++ >= 8) {
+                            throw closed
+                        }
+                        database = AppDatabase.getInstance(context, "gate-before-open")
+                    }
+                }
                 order.add("db-open")
             } catch (t: Throwable) {
                 failure.set(t)
