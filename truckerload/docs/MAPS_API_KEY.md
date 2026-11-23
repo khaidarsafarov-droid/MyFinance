@@ -6,10 +6,10 @@
 
 Сборку делает Secrets Gradle Plugin
 (`com.google.android.libraries.mapsplatform.secrets-gradle-plugin`). Он читает
-`MAPS_API_KEY` из `truckerload/local.properties`. Если ключа там нет, берётся
-заглушка из `truckerload/local.defaults.properties` (`DEFAULT_API_KEY`).
-Переменная окружения `MAPS_API_KEY` перекрывает оба файла. Так CI подставляет
-секрет, не записывая его в репозиторий.
+`MAPS_API_KEY` из `truckerload/local.properties`. Если ключа там нет, значение
+пустое (`truckerload/local.defaults.properties`). Переменная окружения
+`MAPS_API_KEY` перекрывает оба файла. Так CI подставляет секрет, не записывая
+его в репозиторий.
 
 `local.properties` уже в `.gitignore` (и в корне репозитория, и в `truckerload/`).
 Его не коммитить.
@@ -27,7 +27,7 @@ MAPS_API_KEY=ваш_ключ
 пакетом `com.truckorig` и SHA-1 сертификата, которым подписывается приложение.
 
 Если строки `MAPS_API_KEY` нет, проект всё равно собирается: в манифест попадает
-`DEFAULT_API_KEY`. С этой заглушкой тайлы карты не загружаются.
+пустая строка. Без ключа тайлы карты не загружаются.
 
 Раньше сборка читала `GOOGLE_MAPS_API_KEY`. Это имя больше не используется:
 переименуйте строку в `local.properties` в `MAPS_API_KEY`.
@@ -46,7 +46,7 @@ env:
 ```
 
 `assembleRelease` и `bundleRelease` читают одну и ту же переменную. Пока секрета
-нет, CI собирается с заглушкой `DEFAULT_API_KEY`, и проверка не падает.
+нет, CI собирается с пустым ключом, и проверка не падает.
 
 Не вставляйте настоящий ключ в `local.defaults.properties`, workflow-файлы,
 исходники, коммиты и pull request.

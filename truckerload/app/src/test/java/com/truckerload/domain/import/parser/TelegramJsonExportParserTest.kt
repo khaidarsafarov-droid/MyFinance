@@ -1,5 +1,6 @@
 package com.truckerload.domain.import.parser
 
+import com.truckerload.domain.parser.UntrustedJson
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -19,6 +20,27 @@ class TelegramJsonExportParserTest {
             }
         """.trimIndent()
         assertTrue(TelegramJsonExportParser.isTelegramJsonExport(json))
+    }
+
+    @Test
+    fun parse_acceptsMultiMegabyteExport() {
+        val load = "Trip ID: T-BIGEXPORT1\nTotal Rate: 2500.00\nTotal Loaded Miles: 100 mi\n" +
+            "Pu-address: Austin, TX\nDel-address: Dallas, TX\n"
+        val text = load + "x".repeat(300_000)
+        val json = """
+            {
+              "name": "Desk",
+              "type": "personal_chat",
+              "id": 9,
+              "messages": [
+                {"id": 1, "type": "message", "date_unixtime": "1751113800", "text": ${'"'}${text.replace("\n", "\\n")}${'"'}}
+              ]
+            }
+        """.trimIndent()
+        assertTrue(json.length > UntrustedJson.MAX_CHARS)
+        val loads = parser.parse(json)
+        assertEquals(1, loads.size)
+        assertEquals("T-BIGEXPORT1", loads[0].tripId)
     }
 
     @Test

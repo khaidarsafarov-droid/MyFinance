@@ -38,11 +38,8 @@ fun resolveMapsApiKey(): String {
     if (fromEnv.isNotEmpty()) return fromEnv
     val fromLocal = read("local.properties")
     if (fromLocal.isNotEmpty()) return fromLocal
-    val fromDefaults = read("local.defaults.properties")
-    check(fromDefaults.isNotEmpty()) {
-        "MAPS_API_KEY is missing from the environment, local.properties, and local.defaults.properties"
-    }
-    return fromDefaults
+    // Empty when nobody supplied a key. The manifest placeholder stays blank.
+    return read("local.defaults.properties")
 }
 
 fun String.escapeForBuildConfigString(): String =
@@ -139,10 +136,10 @@ android {
     }
     signingConfigs {
         getByName("debug") {
-            when {
-                debugKeystorePropertiesFile.exists() -> applyKeystore(debugKeystoreProperties)
-                // Same SHA-1 as Play upload key so Google Drive OAuth matches.
-                keystorePropertiesFile.exists() -> applyKeystore(keystoreProperties)
+            // Debug never uses the Play upload keystore. A debuggable APK signed
+            // with that key would match the production OAuth and API restrictions.
+            if (debugKeystorePropertiesFile.exists()) {
+                applyKeystore(debugKeystoreProperties)
             }
         }
         create("release") {
@@ -154,7 +151,8 @@ android {
     buildTypes {
         debug {
             // Dev-only secrets may come from local.properties via defaultConfig.
-            // Uses the Play upload keystore when debug-keystore.properties is absent.
+            // Signing stays on the default debug keystore unless
+            // debug-keystore.properties is present.
         }
         release {
             isMinifyEnabled = true
@@ -163,9 +161,10 @@ android {
             ndk {
                 debugSymbolLevel = "SYMBOL_TABLE"
             }
-            // Never bake bot secrets into release APKs.
+            // Never bake bot secrets or the local-only bypass into release APKs.
             // Public client IDs (Google Web client) stay in defaultConfig.
             buildConfigField("String", "TELEGRAM_BOT_TOKEN", "\"\"")
+            buildConfigField("boolean", "LOCAL_ONLY_MODE", "false")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -432,6 +431,19 @@ tasks.register("verifyReleaseSecretsEmpty") {
         check(manifest.contains("""android:allowBackup="false"""")) {
             "android:allowBackup must stay false"
         }
+        check(manifest.contains("""android:dataExtractionRules="@xml/data_extraction_rules"""")) {
+            "android:dataExtractionRules must exclude backup and device transfer"
+        }
+        check(manifest.contains("""android:fullBackupContent="@xml/full_backup_content"""")) {
+            "android:fullBackupContent must exclude backup on Android 11 and lower"
+        }
+        val extraction = file("src/main/res/xml/data_extraction_rules.xml").readText()
+        check(extraction.contains("<cloud-backup>") && extraction.contains("<device-transfer>")) {
+            "data_extraction_rules.xml must cover cloud backup and device transfer"
+        }
+        check(extraction.contains("""<exclude domain="database" path="." />""")) {
+            "data_extraction_rules.xml must exclude the database domain"
+        }
         val network = file("src/main/res/xml/network_security_config.xml").readText()
         check(network.contains("""cleartextTrafficPermitted="false"""")) {
             "Cleartext traffic must stay blocked"
@@ -478,10 +490,16 @@ tasks.register("verifyReleaseSecretsEmpty") {
         check(mapsKey == resolveMapsApiKey()) {
             "Release MAPS_API_KEY does not match MAPS_API_KEY env, local.properties, or local.defaults.properties"
         }
-        check(mapsKey.isNotEmpty()) { "Release MAPS_API_KEY must not be empty" }
+        val localOnly = Regex("""boolean\s+LOCAL_ONLY_MODE\s*=\s*(true|false);""")
+            .find(text)?.groupValues?.get(1)
+            ?: error("BuildConfig field LOCAL_ONLY_MODE not found")
+        check(localOnly == "false") { "Release LOCAL_ONLY_MODE must be false" }
+        check(gradleSource.contains("""buildConfigField("boolean", "LOCAL_ONLY_MODE", "false")""")) {
+            "Release builds must force LOCAL_ONLY_MODE to false"
+        }
         logger.lifecycle(
-            "verifyReleaseSecretsEmpty: OK (telegram empty; Drive key not hardcoded; " +
-                "Maps key from env, local.properties, or local.defaults.properties; " +
+            "verifyReleaseSecretsEmpty: OK (telegram empty; LOCAL_ONLY_MODE false; " +
+                "Drive key not hardcoded; Maps key only from env or local.properties; " +
                 "minify, backup, cleartext, and schema export unchanged)",
         )
     }
@@ -538,4 +556,54 @@ tasks.matching {
     it.name == "assembleDebug" || it.name == "assembleRelease" || it.name == "bundleRelease"
 }.configureEach {
     dependsOn("verifyNoFirebaseCrashReporting")
+}
+
+/**
+ * Fails if a Google API key (AIza...) is committed in Gradle or example files.
+ * Real keys belong in gitignored local.properties or a CI secret.
+ */
+tasks.register("checkNoTrackedApiKeys") {
+    group = "verification"
+    description = "Fails if an AIza-style key is committed in Gradle or example files"
+    doLast {
+        // Real Google API keys are 39 characters. The LogRedactor unit-test
+        // fixture is shorter, and test sources are skipped as well.
+        val key = Regex("""AIza[0-9A-Za-z_\-]{35,}""")
+        val gitRoot = rootProject.projectDir.parentFile
+        val listed = ProcessBuilder("git", "-C", gitRoot.absolutePath, "ls-files", "-z")
+            .redirectErrorStream(true)
+            .start()
+            .let { process ->
+                val bytes = process.inputStream.readBytes()
+                val code = process.waitFor()
+                check(code == 0) { "git ls-files failed" }
+                bytes
+            }
+        val hits = mutableListOf<String>()
+        listed.decodeToString().split('\u0000').forEach { relative ->
+            if (relative.isBlank()) return@forEach
+            if (relative.contains("/src/test/") || relative.contains("/src/androidTest/")) return@forEach
+            val name = relative.substringAfterLast('/')
+            val watched = name.endsWith(".gradle") ||
+                name.endsWith(".gradle.kts") ||
+                name.endsWith(".example") ||
+                name == "local.defaults.properties"
+            if (!watched) return@forEach
+            val file = gitRoot.resolve(relative)
+            if (!file.isFile) return@forEach
+            val text = runCatching { file.readText() }.getOrNull() ?: return@forEach
+            if (key.containsMatchIn(text)) hits += relative
+        }
+        check(hits.isEmpty()) {
+            "Tracked Gradle or example file contains a Google API key: ${hits.joinToString()}"
+        }
+    }
+}
+
+tasks.named("check").configure {
+    dependsOn("checkNoTrackedApiKeys")
+}
+
+tasks.named("verifyReleaseSecretsEmpty").configure {
+    dependsOn("checkNoTrackedApiKeys")
 }

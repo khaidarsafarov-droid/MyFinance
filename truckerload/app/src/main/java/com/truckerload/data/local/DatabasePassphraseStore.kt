@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.Build
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
+import androidx.annotation.RequiresApi
 import java.io.File
 import java.security.KeyStore
 import java.security.SecureRandom
@@ -16,6 +17,17 @@ import javax.crypto.spec.GCMParameterSpec
  * A random 256-bit database passphrase. Only the AES-GCM wrapping of that
  * passphrase is written to disk. On a device the wrapping key stays inside
  * the Android Keystore.
+ *
+ * The key is not bound to fingerprint or PIN. [KeyGenParameterSpec.Builder.setUserAuthenticationRequired]
+ * would permanently invalidate the key if the lock screen changes, and Room
+ * opens this database at startup and from background workers with no auth
+ * prompt. Either outcome locks an existing journal. See docs/SECURITY.md.
+ *
+ * New keys on Android 15+ require the device to be unlocked
+ * ([KeyGenParameterSpec.Builder.setUnlockedDeviceRequired]). Android's own
+ * docs warn that this flag had data-loss bugs on Android 12 through 14, so
+ * those versions keep the previous key spec. An existing key is never
+ * regenerated, so an upgrade cannot lose the journal.
  */
 internal class DatabasePassphraseStore(
     private val wrappedFile: File,
@@ -107,17 +119,42 @@ internal class AndroidKeystorePassphraseCipher(
     private fun secretKey(): SecretKey {
         val existing = keyStore.getKey(alias, null) as? SecretKey
         if (existing != null) return existing
-        val generator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, ANDROID_KEY_STORE)
-        generator.init(
-            KeyGenParameterSpec.Builder(
-                alias,
-                KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT,
-            )
-                .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
-                .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
-                .setKeySize(256)
-                .build(),
+        // Android 15 fixed unlocked-device-required bugs that deleted keys on
+        // Android 12–14. Only new keys on API 35+ opt in. If generation fails,
+        // create the key without the flag so a new install is not bricked.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
+            try {
+                return generateUnlockedKey()
+            } catch (_: Exception) {
+                // A failed opt-in can leave a half-created alias. Drop it before
+                // the plain key, or the next generateKey hits "alias exists".
+                runCatching { keyStore.deleteEntry(alias) }
+            }
+        }
+        return generateKey()
+    }
+
+    @RequiresApi(Build.VERSION_CODES.P)
+    private fun generateUnlockedKey(): SecretKey {
+        val builder = keyBuilder()
+        builder.setUnlockedDeviceRequired(true)
+        return generate(builder)
+    }
+
+    private fun generateKey(): SecretKey = generate(keyBuilder())
+
+    private fun keyBuilder(): KeyGenParameterSpec.Builder =
+        KeyGenParameterSpec.Builder(
+            alias,
+            KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT,
         )
+            .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
+            .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
+            .setKeySize(256)
+
+    private fun generate(builder: KeyGenParameterSpec.Builder): SecretKey {
+        val generator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, ANDROID_KEY_STORE)
+        generator.init(builder.build())
         return generator.generateKey()
     }
 

@@ -287,27 +287,7 @@
             column="5"/>
     </issue>
 
-    <issue
-        id="IntentFilterUniqueDataAttributes"
-        message="Consider splitting data tag into multiple tags with individual attributes to avoid confusion"
-        errorLine1="                &lt;data android:scheme=&quot;truckerload&quot; android:host=&quot;app&quot; />"
-        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/AndroidManifest.xml"
-            line="121"
-            column="17"/>
-    </issue>
 
-    <issue
-        id="IntentFilterUniqueDataAttributes"
-        message="Consider splitting data tag into multiple tags with individual attributes to avoid confusion"
-        errorLine1="                &lt;data android:scheme=&quot;truckerload&quot; android:host=&quot;assistant&quot; />"
-        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/AndroidManifest.xml"
-            line="122"
-            column="17"/>
-    </issue>
 
     <issue
         id="NonObservableLocale"
@@ -397,38 +377,8 @@
             column="47"/>
     </issue>
 
-    <issue
-        id="AndroidGradlePluginVersion"
-        message="A newer version of Gradle than 9.5.0 is available: 9.9.1"
-        errorLine1="distributionUrl=https\://services.gradle.org/distributions/gradle-9.5.0-bin.zip"
-        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="../gradle/wrapper/gradle-wrapper.properties"
-            line="4"
-            column="17"/>
-    </issue>
 
-    <issue
-        id="AndroidGradlePluginVersion"
-        message="A newer version of com.android.application than 9.3.1 is available: 9.5.1. (There is also a newer version of 9.3.𝑥 available, if upgrading to 9.5.1 is difficult: 9.3.3)"
-        errorLine1="agp = &quot;9.3.1&quot;"
-        errorLine2="      ~~~~~~~">
-        <location
-            file="../gradle/libs.versions.toml"
-            line="2"
-            column="7"/>
-    </issue>
 
-    <issue
-        id="AndroidGradlePluginVersion"
-        message="A newer version of com.android.test than 9.3.1 is available: 9.5.1. (There is also a newer version of 9.3.𝑥 available, if upgrading to 9.5.1 is difficult: 9.3.3)"
-        errorLine1="agp = &quot;9.3.1&quot;"
-        errorLine2="      ~~~~~~~">
-        <location
-            file="../gradle/libs.versions.toml"
-            line="2"
-            column="7"/>
-    </issue>
 
     <issue
         id="GradleDependency"
@@ -474,49 +424,9 @@
             column="16"/>
     </issue>
 
-    <issue
-        id="GradleDependency"
-        message="A newer version of androidx.lifecycle:lifecycle-process than 2.9.4 is available: 2.11.0"
-        errorLine1="lifecycle = &quot;2.9.4&quot;"
-        errorLine2="            ~~~~~~~">
-        <location
-            file="../gradle/libs.versions.toml"
-            line="8"
-            column="13"/>
-    </issue>
 
-    <issue
-        id="GradleDependency"
-        message="A newer version of androidx.lifecycle:lifecycle-runtime-compose than 2.9.4 is available: 2.11.0"
-        errorLine1="lifecycle = &quot;2.9.4&quot;"
-        errorLine2="            ~~~~~~~">
-        <location
-            file="../gradle/libs.versions.toml"
-            line="8"
-            column="13"/>
-    </issue>
 
-    <issue
-        id="GradleDependency"
-        message="A newer version of androidx.lifecycle:lifecycle-runtime-ktx than 2.9.4 is available: 2.11.0"
-        errorLine1="lifecycle = &quot;2.9.4&quot;"
-        errorLine2="            ~~~~~~~">
-        <location
-            file="../gradle/libs.versions.toml"
-            line="8"
-            column="13"/>
-    </issue>
 
-    <issue
-        id="GradleDependency"
-        message="A newer version of androidx.lifecycle:lifecycle-viewmodel-compose than 2.9.4 is available: 2.11.0"
-        errorLine1="lifecycle = &quot;2.9.4&quot;"
-        errorLine2="            ~~~~~~~">
-        <location
-            file="../gradle/libs.versions.toml"
-            line="8"
-            column="13"/>
-    </issue>
 
     <issue
         id="GradleDependency"
@@ -529,16 +439,6 @@
             column="19"/>
     </issue>
 
-    <issue
-        id="GradleDependency"
-        message="A newer version of androidx.compose:compose-bom than 2026.06.01 is available: 2026.09.00"
-        errorLine1="composeBom = &quot;2026.06.01&quot;"
-        errorLine2="             ~~~~~~~~~~~~">
-        <location
-            file="../gradle/libs.versions.toml"
-            line="16"
-            column="14"/>
-    </issue>
 
     <issue
         id="GradleDependency"
@@ -815,38 +715,8 @@
             column="28"/>
     </issue>
 
-    <issue
-        id="GradleDependency"
-        message="A newer version of androidx.camera:camera-camera2 than 1.4.2 is available: 1.6.2"
-        errorLine1="cameraX = &quot;1.4.2&quot;"
-        errorLine2="          ~~~~~~~">
-        <location
-            file="../gradle/libs.versions.toml"
-            line="44"
-            column="11"/>
-    </issue>
 
-    <issue
-        id="GradleDependency"
-        message="A newer version of androidx.camera:camera-lifecycle than 1.4.2 is available: 1.6.2"
-        errorLine1="cameraX = &quot;1.4.2&quot;"
-        errorLine2="          ~~~~~~~">
-        <location
-            file="../gradle/libs.versions.toml"
-            line="44"
-            column="11"/>
-    </issue>
 
-    <issue
-        id="GradleDependency"
-        message="A newer version of androidx.camera:camera-view than 1.4.2 is available: 1.6.2"
-        errorLine1="cameraX = &quot;1.4.2&quot;"
-        errorLine2="          ~~~~~~~">
-        <location
-            file="../gradle/libs.versions.toml"
-            line="44"
-            column="11"/>
-    </issue>
 
     <issue
         id="GradleDependency"
@@ -1046,16 +916,6 @@
             column="15"/>
     </issue>
 
-    <issue
-        id="NewerVersionAvailable"
-        message="A newer version of com.google.maps.android:android-maps-utils than 3.8.2 is available: 7.0.0"
-        errorLine1="mapsUtils = &quot;3.8.2&quot;"
-        errorLine2="            ~~~~~~~">
-        <location
-            file="../gradle/libs.versions.toml"
-            line="43"
-            column="13"/>
-    </issue>
 
     <issue
         id="NewerVersionAvailable"
@@ -1134,16 +994,6 @@
             column="9"/>
     </issue>
 
-    <issue
-        id="NewerVersionAvailable"
-        message="A newer version of org.json:json than 20240303 is available: 20260814"
-        errorLine1="json = &quot;20240303&quot;"
-        errorLine2="       ~~~~~~~~~~">
-        <location
-            file="../gradle/libs.versions.toml"
-            line="52"
-            column="8"/>
-    </issue>
 
     <issue
         id="NewerVersionAvailable"
@@ -3356,16 +3206,6 @@
             column="13"/>
     </issue>
 
-    <issue
-        id="DataExtractionRules"
-        message="The attribute `android:allowBackup` is deprecated from Android 12 and higher and may be removed in future versions. Consider adding the attribute `android:dataExtractionRules` specifying an `@xml` resource which configures cloud backups and device transfers on Android 12 and higher."
-        errorLine1="        android:allowBackup=&quot;false&quot;"
-        errorLine2="                             ~~~~~">
-        <location
-            file="src/main/AndroidManifest.xml"
-            line="57"
-            column="30"/>
-    </issue>
 
     <issue
         id="ObsoleteSdkInt"

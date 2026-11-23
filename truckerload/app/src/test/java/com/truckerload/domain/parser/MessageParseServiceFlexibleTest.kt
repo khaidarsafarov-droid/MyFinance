@@ -50,19 +50,19 @@ class MessageParseServiceFlexibleTest {
     @Test
     fun inboundRateConfirmationParsesLoadFields() {
         val text = """
-            Rate Confirmation IEL PO#: 2665704
-            Estimated Rate (To Truck): $2,325.84
-            Miles: 742.50
+            Rate Confirmation IEL PO#: 4401901
+            Estimated Rate (To Truck): $1,864.20
+            Miles: 512.25
             Pick Ups
-            Address: 1325 ENSELL RD LAKE ZURICH, IL 60047
+            Address: 400 DEMO DOCK RD CEDAR RAPIDS, IA 52404
             Deliveries
-            Address: 7091 TROY HILL DRIVE ELKRIDGE, MD 21075
+            Address: 900 SAMPLE LN BOISE, ID 83702
         """.trimIndent()
         val result = MessageParseService().parseLoadFromUserInput(text)
         assertTrue(result.isSuccess)
         val load = result.getOrThrow()
-        assertEquals(Money.fromDollars(2325.84), load.totalRate)
-        assertTrue(load.pointA.contains("LAKE ZURICH", ignoreCase = true))
+        assertEquals(Money.fromDollars(1864.20), load.totalRate)
+        assertTrue(load.pointA.contains("CEDAR RAPIDS", ignoreCase = true))
     }
 
     @Test

@@ -78,9 +78,7 @@ object JsonLoadParser {
     private fun rootOf(raw: String): Any? {
         val text = raw.trim()
         if (!looksLikeJson(text)) return null
-        return runCatching {
-            if (text.startsWith("[")) JSONArray(text) else JSONObject(text)
-        }.getOrNull()
+        return UntrustedJson.valueOrNull(text)
     }
 
     private fun fromNode(

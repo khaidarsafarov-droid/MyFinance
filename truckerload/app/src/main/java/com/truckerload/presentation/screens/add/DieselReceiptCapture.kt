@@ -87,7 +87,8 @@ fun DieselReceiptCaptureRow(
     ) { uri -> if (uri != null) onImagePicked(uri) }
 
     fun launchCamera() {
-        val file = File.createTempFile("diesel_photo_", ".jpg", context.cacheDir)
+        val dir = File(context.cacheDir, "diesel").apply { mkdirs() }
+        val file = File.createTempFile("diesel_photo_", ".jpg", dir)
         pendingCameraFile = file
         val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
         pendingCameraUri = uri
