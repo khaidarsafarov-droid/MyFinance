@@ -2025,4 +2025,24 @@
     <string name="workbook_col_volume_km">Litros</string>
     <string name="workbook_col_price_km">Precio / L</string>
     <string name="workbook_col_discount_km">Precio con descuento / L</string>
+    <string name="share_import_checking">Comprobando…</string>
+    <string name="share_import_rejected_title">No es una carga</string>
+    <string name="share_import_rejected_body">Esto no parece una carga. No se añadió nada.</string>
+    <string name="share_import_duplicate_title">Ya está guardada</string>
+    <string name="share_import_duplicate_body">Esta carga ya está en TruckoRig. No se añadió nada nuevo.</string>
+    <string name="share_import_too_large">El archivo es demasiado grande. No se añadió nada.</string>
+    <string name="share_import_unreadable">No se pudo leer. No se añadió nada.</string>
+    <string name="share_import_sign_in">Abre TruckoRig e inicia sesión, luego comparte la carga otra vez.</string>
+    <string name="share_import_done">Listo</string>
+    <string name="share_import_view_load">Ver carga</string>
+    <string name="share_load_added">Carga añadida</string>
+    <string name="share_load_added_missing">Carga añadida. Completa: %1$s.</string>
+    <string name="share_loads_added">%1$d cargas añadidas</string>
+    <string name="share_field_rate">tarifa</string>
+    <string name="share_field_pickup">origen</string>
+    <string name="share_field_delivery">destino</string>
+    <string name="share_field_miles">millas</string>
+    <string name="share_field_date">fecha</string>
+    <string name="share_field_load_number">número de carga</string>
+    <string name="share_direct_label">A cargas</string>
 </resources>

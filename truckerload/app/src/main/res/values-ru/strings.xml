@@ -2035,4 +2035,24 @@
     <string name="workbook_col_volume_km">Литры</string>
     <string name="workbook_col_price_km">Цена / л</string>
     <string name="workbook_col_discount_km">Цена со скидкой / л</string>
+    <string name="share_import_checking">Проверяем…</string>
+    <string name="share_import_rejected_title">Это не груз</string>
+    <string name="share_import_rejected_body">Похоже, это не груз. Ничего не добавлено.</string>
+    <string name="share_import_duplicate_title">Уже есть</string>
+    <string name="share_import_duplicate_body">Такой груз уже в TruckoRig. Новый не добавлен.</string>
+    <string name="share_import_too_large">Файл слишком большой. Ничего не добавлено.</string>
+    <string name="share_import_unreadable">Не удалось прочитать. Ничего не добавлено.</string>
+    <string name="share_import_sign_in">Откройте TruckoRig и войдите, затем отправьте груз ещё раз.</string>
+    <string name="share_import_done">Готово</string>
+    <string name="share_import_view_load">Открыть груз</string>
+    <string name="share_load_added">Груз добавлен</string>
+    <string name="share_load_added_missing">Груз добавлен. Заполните: %1$s.</string>
+    <string name="share_loads_added">Добавлено грузов: %1$d</string>
+    <string name="share_field_rate">ставку</string>
+    <string name="share_field_pickup">погрузку</string>
+    <string name="share_field_delivery">выгрузку</string>
+    <string name="share_field_miles">мили</string>
+    <string name="share_field_date">дату</string>
+    <string name="share_field_load_number">номер груза</string>
+    <string name="share_direct_label">В грузы</string>
 </resources>

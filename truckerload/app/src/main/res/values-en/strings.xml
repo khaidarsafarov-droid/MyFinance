@@ -2025,4 +2025,24 @@
     <string name="workbook_col_volume_km">Liters</string>
     <string name="workbook_col_price_km">Price / L</string>
     <string name="workbook_col_discount_km">Discount price / L</string>
+    <string name="share_import_checking">Checking this share…</string>
+    <string name="share_import_rejected_title">Not a load</string>
+    <string name="share_import_rejected_body">This doesn\'t look like a load. Nothing was added.</string>
+    <string name="share_import_duplicate_title">Already saved</string>
+    <string name="share_import_duplicate_body">This load is already in TruckoRig. Nothing new was added.</string>
+    <string name="share_import_too_large">That file is too large to import. Nothing was added.</string>
+    <string name="share_import_unreadable">Couldn\'t read this share. Nothing was added.</string>
+    <string name="share_import_sign_in">Open TruckoRig and sign in, then share the load again.</string>
+    <string name="share_import_done">Done</string>
+    <string name="share_import_view_load">View load</string>
+    <string name="share_load_added">Load added</string>
+    <string name="share_load_added_missing">Load added. Fill in %1$s.</string>
+    <string name="share_loads_added">%1$d loads added</string>
+    <string name="share_field_rate">rate</string>
+    <string name="share_field_pickup">pickup</string>
+    <string name="share_field_delivery">delivery</string>
+    <string name="share_field_miles">miles</string>
+    <string name="share_field_date">date</string>
+    <string name="share_field_load_number">load number</string>
+    <string name="share_direct_label">Add to Loads</string>
 </resources>

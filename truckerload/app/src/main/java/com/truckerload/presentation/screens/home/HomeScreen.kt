@@ -20,6 +20,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -34,6 +35,7 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import com.truckerload.R
 import com.truckerload.domain.filter.LoadFilter
 import com.truckerload.presentation.components.AuthStatusBanner
+import com.truckerload.presentation.components.LocalShareHighlightLoadIds
 import com.truckerload.presentation.premium.Day7SurveyBanner
 import com.truckerload.presentation.components.LocalOpenDrawer
 import com.truckerload.presentation.connectivity.ConnectivityObserver
@@ -49,7 +51,12 @@ import com.truckerload.presentation.theme.pressScale
 import com.truckerload.presentation.theme.rememberMinVisible
 import com.truckerload.utils.getPreviousWeekNumberAndYear
 import com.truckerload.utils.getWeekRange
+import com.truckerload.share.ShareImportBus
+import com.truckerload.share.ShareImportCopy
+import com.truckerload.share.ShareImportUndo
+import com.truckerload.share.ShareNoticeKind
 import com.truckerload.widget.WidgetDeepLink
+import kotlinx.coroutines.delay
 
 @Composable
 fun HomeScreen(
@@ -90,6 +97,7 @@ fun HomeScreen(
     val isInitialLoading by viewModel.isInitialLoading.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
     val undoDeleteId by viewModel.undoDeleteLoadId.collectAsStateWithLifecycle()
+    val shareNotice by ShareImportBus.notice.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val connectivity by remember(context) {
         ConnectivityObserver.observe(context)
@@ -202,9 +210,30 @@ fun HomeScreen(
         // Dismiss / timeout: HomeViewModel commits after UNDO_DELETE_WINDOW_MS.
     }
 
+    LaunchedEffect(shareNotice?.token) {
+        val current = shareNotice ?: return@LaunchedEffect
+        viewModel.setFilter(LoadFilter.ALL)
+        if (current.kind == ShareNoticeKind.ADDED) {
+            val result = snackbarHostState.showSnackbar(
+                message = ShareImportCopy.snackbar(context, current),
+                actionLabel = undoLabel,
+                duration = SnackbarDuration.Long,
+                withDismissAction = true,
+            )
+            if (result == SnackbarResult.ActionPerformed) {
+                ShareImportUndo.undo(context, current)
+            }
+        } else {
+            delay(6_000)
+        }
+        ShareImportBus.clear(current)
+    }
+
     val tabletChrome = com.truckerload.presentation.utils.useNavigationRail()
     val onSharePeriod = HomePeriodShare(uiState, welcomeName)
+    val highlightedLoadIds = shareNotice?.loads?.map { it.loadId }?.toSet().orEmpty()
 
+    CompositionLocalProvider(LocalShareHighlightLoadIds provides highlightedLoadIds) {
     Scaffold(
         containerColor = BentoGlassTheme.ScreenBackground,
         topBar = {
@@ -303,4 +332,5 @@ fun HomeScreen(
             }
         }
     )
+    }
 }

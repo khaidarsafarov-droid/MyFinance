@@ -31,6 +31,8 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
 import com.truckerload.presentation.theme.LocalBrandPalette
@@ -54,11 +56,17 @@ fun SwipeableLoadCard(
 ) {
     val brand = LocalBrandPalette.current
     val cardShape = remember { RoundedCornerShape(22.dp) }
+    val highlighted = card.id.isNotBlank() && card.id in LocalShareHighlightLoadIds.current
+    val cardBorder = BorderStroke(
+        width = if (highlighted) 2.dp else 1.dp,
+        color = if (highlighted) brand.goldStart else brand.cardBorder,
+    )
 
     if (!enableSwipe) {
         Surface(
             modifier = modifier
                 .loadSharedBounds(card.id)
+                .then(if (highlighted) Modifier.semantics { selected = true } else Modifier)
                 .shadow(
                     elevation = 4.dp,
                     shape = cardShape,
@@ -67,7 +75,7 @@ fun SwipeableLoadCard(
                 ),
             shape = cardShape,
             color = brand.card,
-            border = BorderStroke(1.dp, brand.cardBorder),
+            border = cardBorder,
             tonalElevation = 0.dp,
             shadowElevation = 0.dp,
         ) {
@@ -142,13 +150,14 @@ fun SwipeableLoadCard(
         // Horizontal padding owned by the caller (HomeLoadCardRow / adaptive padding).
         modifier = modifier
             .loadSharedBounds(card.id)
+            .then(if (highlighted) Modifier.semantics { selected = true } else Modifier)
             .clip(cardShape),
     ) {
         Surface(
             modifier = Modifier.fillMaxSize(),
             shape = cardShape,
             color = brand.card,
-            border = BorderStroke(1.dp, brand.cardBorder),
+            border = cardBorder,
             tonalElevation = 0.dp,
             shadowElevation = 0.dp,
         ) {
