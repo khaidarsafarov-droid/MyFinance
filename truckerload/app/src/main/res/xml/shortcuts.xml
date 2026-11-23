@@ -44,4 +44,11 @@
             android:targetPackage="com.truckorig"
             android:targetClass="com.truckerload.presentation.MainActivity" />
     </shortcut>
+
+    <share-target android:targetClass="com.truckerload.share.ShareReceiverActivity">
+        <data android:mimeType="text/plain" />
+        <data android:mimeType="application/pdf" />
+        <data android:mimeType="image/*" />
+        <category android:name="com.truckorig.category.SHARE_LOAD" />
+    </share-target>
 </shortcuts>

@@ -145,6 +145,9 @@ class TruckerLoadApp : Application(), Configuration.Provider {
         WidgetUpdateWorker.schedule(this)
         // One deferred widget paint at cold start; periodic worker keeps it fresh.
         WidgetUpdateWorker.refreshNow(this)
+        if (!DatabasePassphraseStore.isRobolectric()) {
+            runCatching { com.truckerload.share.ShareShortcutPublisher.publish(this) }
+        }
         refreshLoadReportingWeeks()
         ProcessLifecycleOwner.get().lifecycle.addObserver(object : DefaultLifecycleObserver {
             override fun onStart(owner: LifecycleOwner) {
