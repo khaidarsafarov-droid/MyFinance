@@ -48,11 +48,8 @@ fun String.escapeForBuildConfigString(): String =
         .replace("\r", "")
         .replace("\n", "")
 
-val firebaseConfigured = file("google-services.json").isFile
-if (firebaseConfigured) {
-    apply(plugin = "com.google.gms.google-services")
-    apply(plugin = "com.google.firebase.crashlytics")
-}
+// Crash reporting stays off for debug and release. A google-services.json on disk
+// must not apply a Google plugin or turn crash uploads back on.
 
 android {
     namespace = "com.truckerload"
@@ -81,7 +78,7 @@ android {
         // Default false: first launch shows the local name screen, then local_dev.
         val localOnly = localProps.getProperty("LOCAL_ONLY_MODE", "false").equals("true", ignoreCase = true)
         buildConfigField("boolean", "LOCAL_ONLY_MODE", if (localOnly) "true" else "false")
-        buildConfigField("boolean", "FIREBASE_CONFIGURED", firebaseConfigured.toString())
+        buildConfigField("boolean", "FIREBASE_CONFIGURED", "false")
         // Also set on each variant below. defaultConfig covers AGP 9 unit-test manifest merge,
         // which does not inherit placeholders the Secrets plugin adds only on the main variant.
         manifestPlaceholders["MAPS_API_KEY"] = resolveMapsApiKey()
@@ -294,10 +291,6 @@ dependencies {
     implementation(libs.okhttp.logging)
 
     implementation(libs.kotlinx.serialization.json)
-
-    // Firebase is inert without google-services.json; Crashlytics only.
-    implementation(platform(libs.firebase.bom))
-    implementation(libs.firebase.crashlytics)
 
     // DataStore + Encrypted
     implementation(libs.androidx.datastore.preferences)
@@ -514,6 +507,55 @@ tasks.register("verifyReleaseSecretsEmpty") {
 
 tasks.matching { it.name == "assembleRelease" || it.name == "bundleRelease" }.configureEach {
     dependsOn("verifyReleaseSecretsEmpty")
+}
+
+/**
+ * Fails if a build can ship crash reporting.
+ * The check reads Gradle files only, so a local google-services.json cannot satisfy it.
+ */
+tasks.register("verifyNoFirebaseCrashReporting") {
+    group = "verification"
+    description = "Ensures debug and release builds do not apply or depend on crash reporting"
+    doLast {
+        val appGradle = file("build.gradle.kts").readText()
+        val rootGradle = rootProject.file("build.gradle.kts").readText()
+        val servicesPlugin = "com.google.gms." + "google-services"
+        val crashPlugin = "com.google.firebase." + "crashlytics"
+        val firebaseLibs = "libs." + "firebase"
+        check(!appGradle.contains(servicesPlugin)) {
+            "Do not apply the Google services plugin from app/build.gradle.kts"
+        }
+        check(!appGradle.contains(crashPlugin)) {
+            "Do not apply or depend on crash reporting from app/build.gradle.kts"
+        }
+        check(!appGradle.contains(firebaseLibs)) {
+            "Do not put a Firebase library on the app classpath"
+        }
+        check(appGradle.contains("""buildConfigField("boolean", "FIREBASE_CONFIGURED", "false")""")) {
+            "FIREBASE_CONFIGURED must stay false"
+        }
+        check(!rootGradle.contains("libs.plugins." + "firebase.crashlytics")) {
+            "Do not add the crash reporting Gradle plugin to the root project"
+        }
+        check(!rootGradle.contains("libs.plugins." + "google.services")) {
+            "Do not add the Google services Gradle plugin to the root project"
+        }
+        val crashReporting = file("src/main/java/com/truckerload/utils/CrashReporting.kt").readText()
+        check(!crashReporting.contains("FirebaseCrashlytics")) {
+            "CrashReporting must not call a crash-reporting SDK"
+        }
+        val appClass = file("src/main/java/com/truckerload/TruckerLoadApp.kt").readText()
+        check(!appClass.contains("FirebaseCrashlytics")) {
+            "TruckerLoadApp must not initialize a crash-reporting SDK"
+        }
+        logger.lifecycle("verifyNoFirebaseCrashReporting: OK")
+    }
+}
+
+tasks.matching {
+    it.name == "assembleDebug" || it.name == "assembleRelease" || it.name == "bundleRelease"
+}.configureEach {
+    dependsOn("verifyNoFirebaseCrashReporting")
 }
 
 /**
