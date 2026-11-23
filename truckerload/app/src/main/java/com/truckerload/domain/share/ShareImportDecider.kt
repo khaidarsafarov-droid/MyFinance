@@ -2,8 +2,10 @@ package com.truckerload.domain.share
 
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.parser.LoadField
+import com.truckerload.domain.parser.LoadParsingEngine
 import com.truckerload.domain.parser.ManualLoadFactory
 import com.truckerload.domain.parser.MessageParseService
+import com.truckerload.domain.parser.ParseInput
 import com.truckerload.domain.parser.ParseUtils
 import java.util.Locale
 
@@ -23,7 +25,7 @@ sealed class ShareImportDecision {
 
 /**
  * Turns shared text into a save / duplicate / reject decision.
- * Field extraction reuses [MessageParseService]. The score gate is
+ * The load itself comes from [LoadParsingEngine]. Field extraction reuses [MessageParseService]. The score gate is
  * [ShareLoadClassifier], so a receipt that happens to contain a dollar amount
  * is not inserted.
  */
@@ -46,9 +48,13 @@ class ShareImportDecider(
             index.findByHash(hash)?.let { return ShareImportDecision.Duplicate(it) }
         }
 
-        val parsed = parser.parseLoadsFromInboundText(text, nowMillis, fileName)
-            .getOrNull()
-            ?.firstOrNull()
+        val parsed = LoadParsingEngine.parse(
+            if (fileName.isNullOrBlank()) {
+                ParseInput.PlainText(text, nowMillis)
+            } else {
+                ParseInput.ExtractedDocument(text, fileName, nowMillis)
+            },
+        ).getOrNull()?.firstOrNull()
         val fields = parser.extractLoadFields(text, nowMillis, fileName)
         val loadNumber = (
             reading.loadNumber.ifBlank {

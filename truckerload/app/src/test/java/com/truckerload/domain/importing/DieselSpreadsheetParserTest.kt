@@ -6,8 +6,8 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import org.mockito.kotlin.mock
 import com.truckerload.domain.money.UnitPrice
+import com.truckerload.domain.store.FakeDieselStore
 
 class DieselSpreadsheetParserTest {
 
@@ -117,7 +117,7 @@ class DieselSpreadsheetParserTest {
         assertEquals("2026-10-04", result.fills.last().transactionDate)
         assertEquals("LOVES #330 TRAVEL STOP, BAXTER, TN", result.fills.last().location)
 
-        val useCase = DieselImportUseCase(mock())
+        val useCase = DieselImportUseCase(FakeDieselStore())
         val saved = result.fills.mapIndexed { index, fill -> useCase.toDiesel(result, fill, index + 1) }
         assertEquals(1, saved.map { it.weekNumber to it.year }.distinct().size)
         assertEquals("2026-09-27", saved.first().weekStartDate)

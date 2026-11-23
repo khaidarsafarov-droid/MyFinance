@@ -1,6 +1,8 @@
 package com.truckerload.utils
 
+import com.truckerload.data.local.DeletedLoadLookupImpl
 import com.truckerload.data.repository.LoadRepository
+import com.truckerload.data.repository.RoomLoadStore
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.Stop
 import com.truckerload.domain.model.StopType
@@ -120,7 +122,7 @@ object LoadImporter {
         val rows = parseExportText(text)
         if (rows.isEmpty()) return@withContext ImportResult(0, 0, 0)
         val loads = toLoads(rows, text.take(500))
-        val processor = LoadProcessor(loadRepository)
+        val processor = LoadProcessor(RoomLoadStore(loadRepository), DeletedLoadLookupImpl.fromOpenDatabase())
         val stats = LoadImportHelper.processAll(
             processor = processor,
             loads = loads,

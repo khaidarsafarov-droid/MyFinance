@@ -5,6 +5,7 @@ import com.truckerload.R
 import com.truckerload.data.repository.DieselRepository
 import com.truckerload.data.repository.LoadRepository
 import com.truckerload.data.repository.PaycheckRepository
+import com.truckerload.data.repository.RoomLoadStore
 import com.truckerload.domain.parser.DuplicateAuditReport
 import com.truckerload.domain.parser.DuplicateAuditUseCase
 import com.truckerload.widget.WidgetDataUpdater
@@ -18,9 +19,9 @@ object DuplicateAuditRunner {
         dieselRepository: DieselRepository,
     ): DuplicateAuditReport {
         return DuplicateAuditUseCase(
-            loadRepository = loadRepository,
-            paycheckRepository = paycheckRepository,
-            dieselRepository = dieselRepository,
+            loads = RoomLoadStore(loadRepository),
+            paychecks = paycheckRepository,
+            diesel = dieselRepository,
         ).auditAndRemove()
     }
 

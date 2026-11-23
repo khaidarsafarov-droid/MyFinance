@@ -1,36 +1,33 @@
 package com.truckerload.domain.parser
 
-import com.truckerload.data.repository.LoadRepository
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.Stop
 import com.truckerload.domain.model.StopType
+import com.truckerload.domain.store.DeletedLoadLookup
+import com.truckerload.domain.store.FakeLoadStore
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import org.mockito.kotlin.any
-import org.mockito.kotlin.mock
-import org.mockito.kotlin.verify
-import org.mockito.kotlin.whenever
 import com.truckerload.domain.money.Money
 
 class LoadProcessorReplacedTest {
 
-    private val loadRepository = mock<LoadRepository>()
-    private val processor = LoadProcessor(loadRepository)
+    private val loads = FakeLoadStore()
+    private val processor = LoadProcessor(loads, DeletedLoadLookup.Allow)
 
     @Test
     fun duplicateRoute_newTripId_returnsReplaced() = runBlocking {
         val existing = sampleLoad(tripId = "T-OLD", rate = 1500.0)
         val incoming = sampleLoad(tripId = "T-NEW", rate = 1500.0)
-        whenever(loadRepository.getByTripId("T-NEW")).thenReturn(null)
-        whenever(loadRepository.getByRouteAndDate(any(), any(), any(), any())).thenReturn(existing)
+        loads.saved += existing
 
         val result = processor.processLoad(incoming, playFeedback = false)
 
         assertTrue(result is ProcessingResult.Replaced)
         assertEquals("tripId: T-OLD → T-NEW", (result as ProcessingResult.Replaced).reason)
-        verify(loadRepository).update(any())
+        assertEquals("T-NEW", loads.updated.single().tripId)
+        assertEquals(existing.id, loads.updated.single().id)
     }
 
     private fun sampleLoad(tripId: String, rate: Double): Load {

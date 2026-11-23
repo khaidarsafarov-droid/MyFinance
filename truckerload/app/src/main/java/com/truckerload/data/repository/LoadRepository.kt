@@ -351,7 +351,7 @@ class LoadRepository(
             referenceMillis = parsedAt,
         )
         val normalized = repaired.copy(tripId = normalizeTripId(repaired.tripId)).withReportingWeek().withRouteMetrics()
-        val ctx = AppDatabase.applicationContext()
+        val ctx = AppDatabase.hostContext()
         if (ctx != null && DeletedLoadLedger.isBlocked(ctx, normalized.id, normalized.tripId)) {
             if (!reviveDeleted) return
             DeletedLoadLedger.allowAgain(ctx, normalized.id, normalized.tripId)
@@ -435,7 +435,7 @@ class LoadRepository(
 
     suspend fun deleteLoad(loadId: String) {
         val existing = runCatching { getLoadById(loadId) }.getOrNull()
-        AppDatabase.applicationContext()?.let { ctx ->
+        AppDatabase.hostContext()?.let { ctx ->
             DeletedLoadLedger.markDeleted(ctx, loadId, existing?.tripId)
         }
         db.withTransaction {
@@ -528,12 +528,12 @@ class LoadRepository(
 
     private fun notifyWidgetDataChanged() {
         if (writeBatchDepth.get() > 0) return
-        AppDatabase.applicationContext()?.let { WidgetDataUpdater.updateWidgetData(it) }
+        AppDatabase.hostContext()?.let { WidgetDataUpdater.updateWidgetData(it) }
     }
 
     private fun scheduleAutoBackup() {
         if (writeBatchDepth.get() > 0) return
-        AppDatabase.applicationContext()?.let { context ->
+        AppDatabase.hostContext()?.let { context ->
             BackupService.scheduleCreateAutoBackup(context)
             MaintenanceReminderCoordinator.enqueue(context)
         }
