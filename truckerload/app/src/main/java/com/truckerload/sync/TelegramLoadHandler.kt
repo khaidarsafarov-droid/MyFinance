@@ -5,8 +5,9 @@ import com.truckerload.R
 import com.truckerload.data.preferences.SettingsDataStore
 import com.truckerload.data.repository.LoadRepository
 import com.truckerload.domain.model.Load
+import com.truckerload.domain.parser.LoadParsingEngine
 import com.truckerload.domain.parser.LoadProcessor
-import com.truckerload.domain.parser.MessageParseService
+import com.truckerload.domain.parser.ParseInput
 import com.truckerload.domain.parser.ParserConfig
 import com.truckerload.domain.parser.ProcessingResult
 import com.truckerload.utils.FeedbackManager
@@ -15,7 +16,6 @@ import com.truckerload.widget.WidgetRefresh
 class TelegramLoadHandler(
     private val context: Context,
     private val loadRepository: LoadRepository,
-    private val messageParseService: MessageParseService = MessageParseService(),
     private val loadProcessor: LoadProcessor = LoadProcessor(loadRepository),
     private val settingsDataStore: SettingsDataStore,
 ) {
@@ -25,9 +25,13 @@ class TelegramLoadHandler(
         playFeedback: Boolean = true,
     ): String {
         val referenceMillis = messageDateSeconds?.times(1000) ?: System.currentTimeMillis()
-        val parsedLoads = messageParseService.parseLoadsFromMessage(message, referenceMillis)
-            .getOrNull()
-            .orEmpty()
+        val parsedLoads = LoadParsingEngine.parse(
+            ParseInput.TelegramMessage(
+                text = message,
+                messageDateSeconds = messageDateSeconds,
+                referenceMillis = referenceMillis,
+            ),
+        ).getOrNull().orEmpty()
         if (parsedLoads.isEmpty()) {
             return context.getString(R.string.sync_no_new_data)
         }

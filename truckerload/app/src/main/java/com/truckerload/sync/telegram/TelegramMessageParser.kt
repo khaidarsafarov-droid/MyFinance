@@ -16,7 +16,9 @@ import com.truckerload.data.repository.PaycheckRepository
 import com.truckerload.domain.import.usecase.ImportLoadsUseCase
 import com.truckerload.domain.model.Diesel
 import com.truckerload.domain.model.Paycheck
+import com.truckerload.domain.parser.LoadParsingEngine
 import com.truckerload.domain.parser.LoadProcessor
+import com.truckerload.domain.parser.ParseInput
 import com.truckerload.domain.units.DisplayUnits
 import com.truckerload.domain.units.MeasurementUnits
 import com.truckerload.domain.parser.MessageClassifier
@@ -43,7 +45,7 @@ import java.util.Locale
 
 /**
  * Parses inbound Telegram text/documents into loads / paychecks / diesel and writes Room.
- * Low-level regex parsing stays in [MessageParseService].
+ * Load text goes through [LoadParsingEngine]. Paycheck and diesel stay on [MessageParseService].
  */
 class TelegramMessageParser(
     private val context: Context,
@@ -119,7 +121,6 @@ class TelegramMessageParser(
         TelegramLoadHandler(
             context = context,
             loadRepository = loadRepository,
-            messageParseService = messageParseService,
             settingsDataStore = settingsDataStore,
         )
 
@@ -134,9 +135,11 @@ class TelegramMessageParser(
             return context.getString(R.string.sync_restore_manual_not_load)
         }
 
-        val parsed = messageParseService.parseLoadsFromMessage(
-            text,
-            messageDateSeconds?.times(1000) ?: System.currentTimeMillis(),
+        val parsed = LoadParsingEngine.parse(
+            ParseInput.TelegramMessage(
+                text = text,
+                messageDateSeconds = messageDateSeconds,
+            ),
         ).getOrNull().orEmpty()
         if (parsed.isEmpty()) {
             return context.getString(R.string.sync_restore_manual_not_load)
@@ -206,10 +209,13 @@ class TelegramMessageParser(
         dieselRepository: DieselRepository,
         prefs: SharedPreferences,
     ): String {
-        val referenceMillis = messageDateSeconds?.times(1000) ?: System.currentTimeMillis()
         if (!PaycheckTextParser.looksLikePaycheck(text)) {
-            messageParseService.parseLoadsFromMessage(text, referenceMillis)
-                .onSuccess { incomingLoads ->
+            LoadParsingEngine.parse(
+                ParseInput.TelegramMessage(
+                    text = text,
+                    messageDateSeconds = messageDateSeconds,
+                ),
+            ).onSuccess { incomingLoads ->
                     if (incomingLoads.isNotEmpty()) {
                         return telegramLoadHandler(loadRepository).handleLoads(
                             loads = incomingLoads,

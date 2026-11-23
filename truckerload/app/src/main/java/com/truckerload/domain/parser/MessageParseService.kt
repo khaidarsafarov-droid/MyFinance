@@ -11,83 +11,51 @@ class MessageParseService {
 
     fun classify(text: String): MessageType = MessageClassifier.classify(text)
 
+    /** Chat and restore text. Same ranker as files and share — see [LoadParsingEngine]. */
     fun parseLoadsFromMessage(
         rawMessage: String,
         referenceMillis: Long = System.currentTimeMillis(),
-    ): Result<List<Load>> = runCatching {
-        LoadMessageParser.parseAll(rawMessage, referenceMillis)
-    }
+    ): Result<List<Load>> =
+        LoadParsingEngine.parse(ParseInput.PlainText(rawMessage, referenceMillis))
 
     /**
-     * Any inbound payload of unknown layout. Every parser runs; the ranker keeps the
-     * candidate whose rate, miles, and stops agree. Shared by the bot and the app.
+     * File or share text. Delegates to [LoadParsingEngine] so a PDF and a pasted copy
+     * of that PDF cannot take different parsers.
      */
     fun parseLoadsFromInboundText(
         rawMessage: String,
         referenceMillis: Long = System.currentTimeMillis(),
         fileName: String? = null,
-    ): Result<List<Load>> = runCatching {
-        val chosen = LoadCandidateRanker.choose(loadGroups(rawMessage, referenceMillis, fileName))
-        if (LoadCandidateRanker.keepDespiteReceipt(classify(rawMessage), chosen)) chosen else emptyList()
-    }
-
-    /** Every parser that can read this text. The ranker, not call order, decides the winner. */
-    private fun loadGroups(
-        rawMessage: String,
-        referenceMillis: Long,
-        fileName: String?,
-    ): List<LoadParseGroup> {
-        val flattened = JsonLoadParser.flattenToText(rawMessage)
-        val fromFlat = if (flattened.isBlank()) {
-            emptyList()
+    ): Result<List<Load>> = LoadParsingEngine.parse(
+        if (fileName.isNullOrBlank()) {
+            ParseInput.PlainText(rawMessage, referenceMillis)
         } else {
-            listOfNotNull(
-                FlexibleLoadParser.parseOne(flattened, referenceMillis)?.copy(rawMessage = rawMessage),
-            )
-        }
-        return listOf(
-            LoadParseGroup(LoadParseSource.JSON, JsonLoadParser.parseAll(rawMessage, referenceMillis)),
-            LoadParseGroup(LoadParseSource.RELAY, LoadMessageParser.parseAll(rawMessage, referenceMillis)),
-            LoadParseGroup(LoadParseSource.DELIMITED, DelimitedLoadParser.parseAll(rawMessage, referenceMillis)),
-            LoadParseGroup(
-                LoadParseSource.TEMPLATE,
-                listOfNotNull(BrokerRateTemplateEngine.parseOne(rawMessage, referenceMillis, fileName)),
-            ),
-            LoadParseGroup(
-                LoadParseSource.RATE_CONFIRMATION,
-                listOfNotNull(RateConfirmationLoadParser.parseOne(rawMessage, referenceMillis, fileName)),
-            ),
-            LoadParseGroup(
-                LoadParseSource.FLEXIBLE,
-                listOfNotNull(FlexibleLoadParser.parseOne(rawMessage, referenceMillis)),
-            ),
-            LoadParseGroup(LoadParseSource.FLEXIBLE, fromFlat),
-        )
-    }
-
-    private fun bestLoad(
-        rawMessage: String,
-        referenceMillis: Long,
-        fileName: String?,
-    ): Load? = LoadCandidateRanker.chooseOne(loadGroups(rawMessage, referenceMillis, fileName))
+            ParseInput.ExtractedDocument(rawMessage, fileName, referenceMillis)
+        },
+    )
 
     fun parseLoadFromMessage(
         rawMessage: String,
         referenceMillis: Long = System.currentTimeMillis(),
-    ): Result<Load> = runCatching {
-        parseAmazonRelayLoad(rawMessage, referenceMillis)?.load
-            ?: throw IllegalArgumentException("No valid load found in message")
-    }
+    ): Result<Load> = firstLoad(ParseInput.PlainText(rawMessage, referenceMillis))
 
     /** Add-load screen: the parser whose numbers agree, not the first one that matched. */
     fun parseLoadFromUserInput(
         rawMessage: String,
         referenceMillis: Long = System.currentTimeMillis(),
         fileName: String? = null,
-    ): Result<Load> = runCatching {
-        bestLoad(rawMessage, referenceMillis, fileName)
-            ?: throw IllegalArgumentException("No valid load found in message")
-    }
+    ): Result<Load> = firstLoad(
+        if (fileName.isNullOrBlank()) {
+            ParseInput.PlainText(rawMessage, referenceMillis)
+        } else {
+            ParseInput.ExtractedDocument(rawMessage, fileName, referenceMillis)
+        },
+    )
+
+    private fun firstLoad(input: ParseInput): Result<Load> =
+        LoadParsingEngine.parse(input).mapCatching { loads ->
+            loads.firstOrNull() ?: throw IllegalArgumentException("No valid load found in message")
+        }
 
     /**
      * Best-effort fields for the add-load form after paste, file import, or OCR.
@@ -98,7 +66,12 @@ class MessageParseService {
         referenceMillis: Long = System.currentTimeMillis(),
         fileName: String? = null,
     ): LoadDraftFields {
-        bestLoad(rawMessage, referenceMillis, fileName)?.let { return LoadDraftFields.fromLoad(it) }
+        val input = if (fileName.isNullOrBlank()) {
+            ParseInput.PlainText(rawMessage, referenceMillis)
+        } else {
+            ParseInput.ExtractedDocument(rawMessage, fileName, referenceMillis)
+        }
+        LoadParsingEngine.rankedLoad(input)?.let { return LoadDraftFields.fromLoad(it) }
         val direct = FlexibleLoadParser.extractFields(rawMessage)
         if (!direct.isEmpty()) return direct
         val flattened = JsonLoadParser.flattenToText(rawMessage)

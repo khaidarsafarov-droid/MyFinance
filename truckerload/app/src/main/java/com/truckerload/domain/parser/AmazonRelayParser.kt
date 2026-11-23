@@ -21,7 +21,7 @@ data class AmazonRelayParseResult(
 /**
  * Parses Amazon Relay load text: Total Rate, Total Loaded Miles, first Pu-time, last Del-time.
  */
-fun parseAmazonRelayLoad(
+internal fun parseAmazonRelayLoad(
     text: String,
     referenceMillis: Long = System.currentTimeMillis(),
 ): AmazonRelayParseResult? {
