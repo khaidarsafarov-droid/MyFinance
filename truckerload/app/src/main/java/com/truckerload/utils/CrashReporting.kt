@@ -1,50 +1,32 @@
 package com.truckerload.utils
 
 import android.util.Log
-import com.google.firebase.crashlytics.FirebaseCrashlytics
-import com.truckerload.BuildConfig
 
 /**
- * Best-effort Crashlytics wrapper. No-ops when Firebase is not configured.
+ * On-device log only. Debug and release builds do not link a crash-reporting SDK,
+ * including when a google-services.json file is present on the build machine.
  */
 object CrashReporting {
     private const val TAG = "CrashReporting"
 
     fun setCustomKey(key: String, value: String) {
-        if (!BuildConfig.FIREBASE_CONFIGURED) return
-        runCatching {
-            FirebaseCrashlytics.getInstance().setCustomKey(key, value)
-        }.onFailure { e ->
-            Log.w(TAG, "setCustomKey($key) failed: ${e.javaClass.simpleName}")
-        }
+        note(key, value)
     }
 
     fun setCustomKey(key: String, value: Boolean) {
-        if (!BuildConfig.FIREBASE_CONFIGURED) return
-        runCatching {
-            FirebaseCrashlytics.getInstance().setCustomKey(key, value)
-        }.onFailure { e ->
-            Log.w(TAG, "setCustomKey($key) failed: ${e.javaClass.simpleName}")
-        }
+        note(key, value.toString())
     }
 
     fun setCustomKey(key: String, value: Long) {
-        if (!BuildConfig.FIREBASE_CONFIGURED) return
-        runCatching {
-            FirebaseCrashlytics.getInstance().setCustomKey(key, value)
-        }.onFailure { e ->
-            Log.w(TAG, "setCustomKey($key) failed: ${e.javaClass.simpleName}")
-        }
+        note(key, value.toString())
     }
 
     fun recordException(throwable: Throwable) {
         val safe = LogRedactor.redactThrowable(throwable)
         Log.e(TAG, safe.message ?: safe.javaClass.simpleName, safe)
-        if (!BuildConfig.FIREBASE_CONFIGURED) return
-        runCatching {
-            FirebaseCrashlytics.getInstance().recordException(safe)
-        }.onFailure { e ->
-            Log.w(TAG, "recordException failed: ${e.javaClass.simpleName}")
-        }
+    }
+
+    private fun note(key: String, value: String) {
+        if (key.isEmpty() && value.isEmpty()) return
     }
 }

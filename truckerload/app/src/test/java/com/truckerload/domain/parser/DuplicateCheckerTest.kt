@@ -1,19 +1,18 @@
 package com.truckerload.domain.parser
 
-import com.truckerload.data.repository.LoadRepository
 import com.truckerload.domain.model.Load
+import com.truckerload.domain.store.FakeLoadStore
 import com.truckerload.domain.model.Stop
 import com.truckerload.domain.model.StopType
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import org.mockito.kotlin.mock
 import com.truckerload.domain.money.Money
 
 class DuplicateCheckerTest {
 
-    private val checker = DuplicateChecker(loadRepository = mock<LoadRepository>())
+    private val checker = DuplicateChecker(loads = FakeLoadStore())
 
     @Test
     fun sameRouteAndDate_differentRate_isNotSameLoad() {

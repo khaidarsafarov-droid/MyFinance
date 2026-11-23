@@ -1,14 +1,12 @@
 package com.truckerload.domain.ingest
 
+import com.truckerload.domain.parser.DecimalInput
 import com.truckerload.domain.parser.DieselTextParser
-import com.truckerload.domain.parser.FlexibleLoadParser
-import com.truckerload.domain.parser.LoadMessageParser
+import com.truckerload.domain.parser.LoadParsingEngine
+import com.truckerload.domain.parser.ParseInput
 import com.truckerload.domain.parser.PaycheckTextParser
-import com.truckerload.domain.parser.BrokerRateTemplateEngine
-import com.truckerload.domain.parser.RateConfirmationLoadParser
 import com.truckerload.domain.parser.ServiceReceiptTextParser
 import java.util.Locale
-import com.truckerload.domain.parser.DecimalInput
 
 /**
  * Pulls journal fields from OCR / file text using the same parsers as in-app add flows.
@@ -28,11 +26,13 @@ object ReceiptFieldExtractor {
         val paycheck = PaycheckTextParser.parse(text, fileName)
         val diesel = DieselTextParser.parse(text)
         val receipt = ServiceReceiptTextParser.parse(text)
-        val loads = runCatching { LoadMessageParser.parseAll(text) }.getOrNull().orEmpty()
-        val load = loads.firstOrNull()
-            ?: BrokerRateTemplateEngine.parseOne(text, fileName = fileName)
-            ?: RateConfirmationLoadParser.parseOne(text, fileName = fileName)
-            ?: FlexibleLoadParser.parseOne(text)
+        val load = LoadParsingEngine.parse(
+            if (fileName.isNullOrBlank()) {
+                ParseInput.PlainText(text)
+            } else {
+                ParseInput.ExtractedDocument(text, fileName = fileName)
+            },
+        ).getOrNull()?.firstOrNull()
         val resolvedKind = when {
             kind != ReceiptKind.UNKNOWN -> kind
             load != null -> ReceiptKind.LOAD

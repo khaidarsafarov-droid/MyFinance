@@ -1294,8 +1294,8 @@
     
 
 <string name="settings_battery_title">Funcionamiento en segundo plano</string>
-    <string name="settings_battery_desc">Para que el bot responda con la app cerrada, desactiva la optimización de batería para TruckoRig.</string>
-    <string name="settings_battery_button">Desactivar optimización de batería</string>
+    <string name="settings_battery_desc">Para que el bot responda con la app cerrada, abre la lista de batería, busca TruckoRig y elige «No optimizar» o «Sin restricciones».</string>
+    <string name="settings_battery_button">Abrir lista de batería</string>
     <string name="settings_battery_ok">✅ Optimización de batería desactivada: el bot corre en segundo plano</string>
     <string name="settings_logout_title">Cerrar sesión</string>
     <string name="settings_logout_desc">Cierra sesión y ve a la pantalla de inicio. Todos los datos se quedan guardados.</string>
@@ -1357,8 +1357,8 @@
     <string name="maintenance_exact_alarm_settings">Ajustes de alarmas exactas</string>
     <string name="maintenance_exact_alarm_banner">Las alarmas exactas están desactivadas. Los recordatorios pueden llegar tarde hasta que las permitas.</string>
     <string name="maintenance_battery_title">Para que el recordatorio suene a tiempo</string>
-    <string name="maintenance_battery_body">La optimización de batería puede retrasar la comprobación de respaldo, y algunos teléfonos también retrasan las alarmas. Permite el uso sin restricciones para que el cambio de aceite suene a tiempo.</string>
-    <string name="maintenance_battery_allow">Permitir</string>
+    <string name="maintenance_battery_body">La optimización de batería puede retrasar la comprobación de respaldo, y algunos teléfonos también retrasan las alarmas. En la lista de batería, busca TruckoRig y elige «No optimizar» o «Sin restricciones» para que el cambio de aceite suene a tiempo.</string>
+    <string name="maintenance_battery_allow">Abrir lista de batería</string>
     <string name="maintenance_battery_later">Ahora no</string>
     <string name="maintenance_ocr_processing">Leyendo recibo…</string>
     <string name="maintenance_retake_photo">Elegir otra foto</string>
@@ -2060,4 +2060,9 @@
     <string name="share_field_date">fecha</string>
     <string name="share_field_load_number">número de carga</string>
     <string name="share_direct_label">A cargas</string>
+    <string name="db_startup_loading">Abriendo tu diario</string>
+    <string name="db_startup_failed_title">No se pudo abrir tu diario</string>
+    <string name="db_startup_failed_body">TruckoRig no pudo desbloquear el diario en este teléfono. Tus cargas siguen en el dispositivo. Inténtalo de nuevo o recupera el diario.</string>
+    <string name="db_startup_retry">Intentar de nuevo</string>
+    <string name="db_startup_recover">Recuperar diario</string>
 </resources>
