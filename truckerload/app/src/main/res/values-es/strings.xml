@@ -2060,4 +2060,9 @@
     <string name="share_field_date">fecha</string>
     <string name="share_field_load_number">número de carga</string>
     <string name="share_direct_label">A cargas</string>
+    <string name="db_startup_loading">Abriendo tu diario</string>
+    <string name="db_startup_failed_title">No se pudo abrir tu diario</string>
+    <string name="db_startup_failed_body">TruckoRig no pudo desbloquear el diario en este teléfono. Tus cargas siguen en el dispositivo. Inténtalo de nuevo o recupera el diario.</string>
+    <string name="db_startup_retry">Intentar de nuevo</string>
+    <string name="db_startup_recover">Recuperar diario</string>
 </resources>
