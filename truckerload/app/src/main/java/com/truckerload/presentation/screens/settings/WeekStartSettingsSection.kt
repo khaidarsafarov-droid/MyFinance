@@ -17,7 +17,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
 import com.truckerload.domain.week.WeekStartDay
-import com.truckerload.domain.week.WeekStartRebinder
+import com.truckerload.data.repository.WeekStartRebind
 import com.truckerload.domain.week.WeekStartRuntime
 import com.truckerload.presentation.di.LocalSettingsDataStore
 import com.truckerload.presentation.theme.BentoGlassSection
@@ -62,7 +62,7 @@ fun WeekStartSettingsSection(
                         WeekStartRuntime.installLoads(day)
                         settingsDataStore.saveLoadWeekStartDay(day)
                         withContext(Dispatchers.IO) {
-                            WeekStartRebinder.rebindIfPossible(context)
+                            WeekStartRebind.rebindIfPossible(context)
                             BackupService.scheduleCreateAutoBackup(context)
                         }
                         WidgetUpdateWorker.refreshNow(context)
@@ -79,7 +79,7 @@ fun WeekStartSettingsSection(
                         WeekStartRuntime.installDiesel(day)
                         settingsDataStore.saveDieselWeekStartDay(day)
                         withContext(Dispatchers.IO) {
-                            WeekStartRebinder.rebindIfPossible(context)
+                            WeekStartRebind.rebindIfPossible(context)
                             BackupService.scheduleCreateAutoBackup(context)
                         }
                         WidgetUpdateWorker.refreshNow(context)

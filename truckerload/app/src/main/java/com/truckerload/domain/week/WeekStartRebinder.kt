@@ -1,19 +1,15 @@
 package com.truckerload.domain.week
 
-import android.content.Context
-import com.truckerload.data.local.AppDatabase
-import com.truckerload.data.repository.DieselRepository
-import com.truckerload.data.repository.LoadRepository
-import com.truckerload.data.repository.PaycheckRepository
 import com.truckerload.domain.model.Diesel
 import com.truckerload.domain.model.DieselJournalFilter
 import com.truckerload.domain.model.Paycheck
+import com.truckerload.domain.store.DieselStore
+import com.truckerload.domain.store.LoadStore
+import com.truckerload.domain.store.PaycheckStore
 import com.truckerload.utils.formatIsoDate
 import com.truckerload.utils.getWeekNumberAndYearFromDate
 import com.truckerload.utils.getWeekNumberAndYearFromTimestamp
 import com.truckerload.utils.getWeekRange
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 
 /**
  * Rewrites persisted weekNumber/year (and diesel/paycheck week labels) after the
@@ -22,22 +18,14 @@ import kotlinx.coroutines.withContext
  */
 object WeekStartRebinder {
 
-    suspend fun rebindIfPossible(context: Context) {
-        val app = context.applicationContext
-        withContext(Dispatchers.IO) {
-            val db = AppDatabase.getInstanceForActiveUser(app) ?: return@withContext
-            rebind(LoadRepository(db), DieselRepository(db), PaycheckRepository(db))
-        }
-    }
-
     suspend fun rebind(
-        loadRepository: LoadRepository,
-        dieselRepository: DieselRepository,
-        paycheckRepository: PaycheckRepository,
+        loads: LoadStore,
+        diesel: DieselStore,
+        paychecks: PaycheckStore,
     ) {
-        loadRepository.refreshReportingWeeks()
-        dieselRepository.replaceReportingWeeks(recomputeDiesel(dieselRepository.getAllDieselOnce()))
-        paycheckRepository.replaceReportingWeeks(recomputePaychecks(paycheckRepository.getAllPaychecksOnce()))
+        loads.refreshReportingWeeks()
+        diesel.replaceReportingWeeks(recomputeDiesel(diesel.getAllDieselOnce()))
+        paychecks.replaceReportingWeeks(recomputePaychecks(paychecks.getAllPaychecksOnce()))
     }
 
     fun recomputeDiesel(entries: List<Diesel>): List<Diesel> {

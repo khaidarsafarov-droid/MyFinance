@@ -3,7 +3,9 @@ package com.truckerload.sync
 import android.content.Context
 import com.truckerload.R
 import com.truckerload.data.preferences.SettingsDataStore
+import com.truckerload.data.local.DeletedLoadLookupImpl
 import com.truckerload.data.repository.LoadRepository
+import com.truckerload.data.repository.RoomLoadStore
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.parser.LoadParsingEngine
 import com.truckerload.domain.parser.LoadProcessor
@@ -16,7 +18,10 @@ import com.truckerload.widget.WidgetRefresh
 class TelegramLoadHandler(
     private val context: Context,
     private val loadRepository: LoadRepository,
-    private val loadProcessor: LoadProcessor = LoadProcessor(loadRepository),
+    private val loadProcessor: LoadProcessor = LoadProcessor(
+        RoomLoadStore(loadRepository),
+        DeletedLoadLookupImpl(context),
+    ),
     private val settingsDataStore: SettingsDataStore,
 ) {
     suspend fun handleMessage(

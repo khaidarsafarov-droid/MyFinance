@@ -205,6 +205,11 @@ abstract class AppDatabase : RoomDatabase() {
         fun databaseNameFor(userId: String): String =
             "truckerload_${com.truckerload.data.preferences.AccountIds.sanitizeFilePart(userId)}"
 
-        fun applicationContext(): Context? = appContext
+        /**
+         * Context captured when this process opened the database.
+         * Backup, widgets, and the deleted-load tombstone read it from the data layer.
+         * Domain code does not.
+         */
+        internal fun hostContext(): Context? = appContext
     }
 }
