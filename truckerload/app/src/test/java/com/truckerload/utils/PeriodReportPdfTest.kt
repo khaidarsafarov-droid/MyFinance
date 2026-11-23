@@ -40,6 +40,12 @@ class PeriodReportPdfTest {
         assertTrue(text.contains("Loads total"))
         assertTrue(text.contains("Gross total"))
         assertTrue(text.contains("Miles total"))
+        assertTrue(text.contains("$1,971.00"))
+        assertTrue(text.contains("$891.00"))
+        assertTrue(text.contains("$1,080.00"))
+        assertTrue(text.contains("Nov 15, 2026"))
+        assertTrue(text.contains("11/16/26"))
+        assertTrue(text.contains("Stored only on this device until you share it."))
         assertFalse(text.contains("Fuel"))
         assertFalse(text.contains("Expense"))
         assertFalse(text.contains("IFTA"))
@@ -50,18 +56,47 @@ class PeriodReportPdfTest {
         outDir.mkdirs()
         File(outDir, "load-report-en.pdf").writeBytes(bytes)
         File(outDir, "load-report-en.txt").writeText(report.plainText)
-        val russian = report.copy(
-            driverName = "Алексей Морозов",
-            companyName = "Северная линия",
-            pdf = russianLabels(),
+    }
+
+    @Test
+    fun pdf_staysEnglishWhenTheAppLocaleIsRussian() {
+        val russianNumbers = PeriodReportNumbers(
+            money = { "$${it.formatPlain()}" },
+            miles = { "${it.toInt()} км" },
+            rpm = { String.format(Locale.US, "$%.2f/км", it) },
+            volume = { "${it.toInt()} л" },
+            date = { it.format(DateTimeFormatter.ofPattern("d MMM yyyy", Locale.forLanguageTag("ru"))) },
         )
-        val russianBytes = PeriodReportPdf.render(russian, regular, bold)
-        val russianText = PdfTextLayerExtractor.extract(russianBytes)
-        assertTrue(russianText.contains("Отчёт по грузам"))
-        assertTrue(russianText.contains("Алексей Морозов"))
-        assertTrue(russianText.contains("Откуда"))
-        assertFalse(russianText.contains("IFTA"))
-        File(outDir, "load-report-ru.pdf").writeBytes(russianBytes)
+        val report = PeriodReportBuilder.build(
+            sampleDraft().copy(
+                locale = Locale.forLanguageTag("ru"),
+                periodLabel = "Неделя 47 · 15 нояб. 2026 – 21 нояб. 2026",
+            ),
+            russianPlainLabels(),
+            russianNumbers,
+        )
+        val (regular, bold) = fonts()
+        val text = PdfTextLayerExtractor.extract(PeriodReportPdf.render(report, regular, bold))
+        assertTrue(text.contains("Load Report"))
+        assertTrue(text.contains("Origin"))
+        assertTrue(text.contains("Ship date"))
+        assertTrue(text.contains("Delivery"))
+        assertTrue(text.contains("Total"))
+        assertTrue(text.contains("Summary"))
+        assertTrue(text.contains("Loads total"))
+        assertTrue(text.contains("Report date: Nov 21, 2026"))
+        assertTrue(text.contains("Period: Week 47 · Nov 15, 2026 – Nov 21, 2026"))
+        assertTrue(text.contains("$1,971.00"))
+        assertTrue(text.contains("$2.69/mi"))
+        assertTrue(text.contains("Stored only on this device until you share it."))
+        assertFalse(text.contains("Отчёт"))
+        assertFalse(text.contains("Откуда"))
+        assertFalse(text.contains("Итого"))
+        assertFalse(text.contains("нояб"))
+        assertFalse(text.contains("/км"))
+        assertTrue(report.plainText.contains("Отчёт за период"))
+        assertTrue(report.plainText.contains("Водитель: Alex Morgan"))
+        assertTrue(report.plainText.contains("Неделя 47"))
     }
 
     @Test
@@ -85,12 +120,18 @@ class PeriodReportPdfTest {
     fun emptyPdf_statesThatThePeriodHasNoLoads() {
         val empty = sampleReport().copy(
             loads = emptyList(),
-            emptyLoads = "No loads in this period.",
+            statementRows = emptyList(),
+            emptyLoads = "За этот период грузов нет.",
+            footer = "Хранится только на этом устройстве",
             plainText = "",
         )
         val (regular, bold) = fonts()
         val text = PdfTextLayerExtractor.extract(PeriodReportPdf.render(empty, regular, bold))
         assertTrue(text.contains("No loads in this period."))
+        assertTrue(text.contains("Load Report"))
+        assertTrue(text.contains("Stored only on this device until you share it."))
+        assertFalse(text.contains("За этот"))
+        assertFalse(text.contains("Хранится"))
     }
 
     private fun assertEqualsPdf(bytes: ByteArray) {
@@ -98,75 +139,19 @@ class PeriodReportPdfTest {
         assertTrue(header, header == "%PDF-")
     }
 
-    private fun sampleReport(): PeriodReport {
-        val numbers = PeriodReportNumbers(
-            money = { "$${it.formatPlain()}" },
-            miles = { "${it.toInt()} mi" },
-            rpm = { String.format(Locale.US, "$%.2f/mi", it) },
-            volume = { "${it.toInt()} gal" },
-            date = { it.format(DateTimeFormatter.ofPattern("MMM d, yyyy", Locale.US)) },
-        )
-        val labels = PeriodReportLabels(
-            appName = "TruckoRig",
-            title = "Period report",
-            driver = "Driver",
-            period = "Period",
-            generated = "Generated",
-            summary = "Summary",
-            gross = "Gross",
-            loads = "Loads",
-            loadedMiles = "Loaded miles",
-            emptyMiles = "Empty miles",
-            totalMiles = "Total miles",
-            avgRate = "Avg rate per mile",
-            fuel = "Fuel",
-            fuelVolume = "Fuel volume",
-            expenses = "Expenses",
-            penalties = "Penalties",
-            net = "Net",
-            goal = "Goal",
-            goalJoin = "of",
-            loadsSection = "Loads",
-            emptyLoads = "No loads in this period.",
-            pickup = "Pickup",
-            delivery = "Delivery",
-            reference = "Reference",
-            miles = "Miles",
-            milesSplit = "%1\$s loaded, %2\$s empty",
-            rate = "Rate",
-            ratePerMile = "Rate per mile",
-            equipment = "Equipment",
-            status = "Status",
-            notes = "Notes",
-            disputeOpen = "Dispute open",
-            disputeClosed = "Dispute closed",
-            disputeAmount = "Dispute amount",
-            footer = "Stored only on this device until you share it.",
-            equipmentNames = mapOf(EquipmentType.DRY_VAN to "Dry Van"),
-        )
-        val loads = listOf(
-            draft("b", "2026-11-18", "DEMO-1002", "Denver, CO", "Omaha, NE", 420.0, 0.0, 1080.0, "Nov 18, 2026"),
-            draft("a", "2026-11-16", "DEMO-1001", "Boise, ID", "Denver, CO", 300.0, 31.0, 891.0, "Nov 16, 2026"),
-        )
-        return PeriodReportBuilder.build(
-            PeriodReportDraft(
-                driverName = "Alex Morgan",
-                companyName = "Northline Freight",
-                periodLabel = "Week 47 · Nov 15, 2026 – Nov 21, 2026",
-                generatedOn = LocalDate.of(2026, 11, 21),
-                locale = Locale.US,
-                loads = loads,
-                fuel = Money.fromDollars(180.0),
-                fuelGallons = 48.0,
-                showFuel = true,
-                expenses = Money.fromDollars(25.0),
-                showExpenses = true,
-                goal = Money.fromDollars(12_000.0),
-            ),
-            labels,
-            numbers,
-        )
-    }
+    private fun sampleReport(): PeriodReport = PeriodReportBuilder.build(
+        sampleDraft(),
+        englishLabels(),
+        sampleNumbers(),
+    )
+
+    private fun sampleNumbers() = PeriodReportNumbers(
+        money = { "$${it.formatPlain()}" },
+        miles = { "${it.toInt()} mi" },
+        rpm = { String.format(Locale.US, "$%.2f/mi", it) },
+        volume = { "${it.toInt()} gal" },
+        date = { it.format(DateTimeFormatter.ofPattern("MMM d, yyyy", Locale.US)) },
+    )
 
     private fun draft(
         id: String,
@@ -202,24 +187,96 @@ class PeriodReportPdfTest {
         )
     }
 
-    private fun russianLabels() = PeriodReportPdfLabels(
-        title = "Отчёт по грузам",
-        period = "Период",
-        reportDate = "Дата отчёта",
-        loadNumber = "№ груза",
-        origin = "Откуда",
-        destination = "Куда",
-        shipDate = "Погрузка",
-        deliveryDate = "Выгрузка",
-        miles = "Мили",
-        gross = "Выручка",
-        ratePerMile = "Ставка/ми",
-        total = "Итого",
-        summary = "Итоги",
-        loadsTotal = "Всего грузов",
-        grossTotal = "Выручка всего",
-        milesTotal = "Всего миль",
-        avgRate = "Ставка за милю",
+    private fun sampleDraft() = PeriodReportDraft(
+        driverName = "Alex Morgan",
+        companyName = "Northline Freight",
+        periodLabel = "Week 47 · Nov 15, 2026 – Nov 21, 2026",
+        periodStart = LocalDate.of(2026, 11, 15),
+        periodEnd = LocalDate.of(2026, 11, 21),
+        weekNumber = 47,
+        generatedOn = LocalDate.of(2026, 11, 21),
+        locale = Locale.US,
+        loads = listOf(
+            draft("b", "2026-11-18", "DEMO-1002", "Denver, CO", "Omaha, NE", 420.0, 0.0, 1080.0, "Nov 18, 2026"),
+            draft("a", "2026-11-16", "DEMO-1001", "Boise, ID", "Denver, CO", 300.0, 31.0, 891.0, "Nov 16, 2026"),
+        ),
+        fuel = Money.fromDollars(180.0),
+        fuelGallons = 48.0,
+        showFuel = true,
+        expenses = Money.fromDollars(25.0),
+        showExpenses = true,
+        goal = Money.fromDollars(12_000.0),
+    )
+
+    private fun russianPlainLabels(): PeriodReportLabels {
+        val english = englishLabels()
+        return english.copy(
+            title = "Отчёт за период",
+            driver = "Водитель",
+            period = "Период",
+            generated = "Сформирован",
+            summary = "Итоги",
+            footer = "Хранится только на этом устройстве, пока вы сами не отправите файл.",
+            emptyLoads = "За этот период грузов нет.",
+            pdf = PeriodReportPdfLabels(
+                title = "Отчёт по грузам",
+                period = "Период",
+                reportDate = "Дата отчёта",
+                loadNumber = "№ груза",
+                origin = "Откуда",
+                destination = "Куда",
+                shipDate = "Погрузка",
+                deliveryDate = "Выгрузка",
+                miles = "Мили",
+                gross = "Выручка",
+                ratePerMile = "Ставка/ми",
+                total = "Итого",
+                summary = "Итоги",
+                loadsTotal = "Всего грузов",
+                grossTotal = "Выручка всего",
+                milesTotal = "Всего миль",
+                avgRate = "Ставка за милю",
+            ),
+        )
+    }
+
+    private fun englishLabels() = PeriodReportLabels(
+        appName = "TruckoRig",
+        title = "Period report",
+        driver = "Driver",
+        period = "Period",
+        generated = "Generated",
+        summary = "Summary",
+        gross = "Gross",
+        loads = "Loads",
+        loadedMiles = "Loaded miles",
+        emptyMiles = "Empty miles",
+        totalMiles = "Total miles",
+        avgRate = "Avg rate per mile",
+        fuel = "Fuel",
+        fuelVolume = "Fuel volume",
+        expenses = "Expenses",
+        penalties = "Penalties",
+        net = "Net",
+        goal = "Goal",
+        goalJoin = "of",
+        loadsSection = "Loads",
+        emptyLoads = "No loads in this period.",
+        pickup = "Pickup",
+        delivery = "Delivery",
+        reference = "Reference",
+        miles = "Miles",
+        milesSplit = "%1\$s loaded, %2\$s empty",
+        rate = "Rate",
+        ratePerMile = "Rate per mile",
+        equipment = "Equipment",
+        status = "Status",
+        notes = "Notes",
+        disputeOpen = "Dispute open",
+        disputeClosed = "Dispute closed",
+        disputeAmount = "Dispute amount",
+        footer = "Stored only on this device until you share it.",
+        equipmentNames = mapOf(EquipmentType.DRY_VAN to "Dry Van"),
     )
 
     private fun fonts(): Pair<ByteArray, ByteArray> {

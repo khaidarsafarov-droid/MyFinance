@@ -127,6 +127,8 @@ data class PeriodReport(
     val statementMilesTotal: String = "",
     val statementGrossTotal: String = "",
     val statementAvgRate: String = "",
+    val statementPeriod: String = "",
+    val statementGenerated: String = "",
     val pdf: PeriodReportPdfLabels = englishPdfLabels(),
 )
 

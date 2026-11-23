@@ -19,13 +19,18 @@ import com.itextpdf.layout.properties.VerticalAlignment
 import com.truckerload.domain.report.PeriodReport
 import com.truckerload.domain.report.PeriodReportPdfLabels
 import com.truckerload.domain.report.PeriodReportStatementRow
+import com.truckerload.domain.report.englishPdfLabels
 import java.io.ByteArrayOutputStream
 
 /**
- * Letter-size load statement. White page, grey header, striped rows.
+ * Letter-size load statement. Always English and Locale.US, even when the app
+ * language is Russian. White page, grey header, striped rows.
  * The header row repeats when the table splits. No fuel or deduction section.
  */
 object PeriodReportPdf {
+
+    private const val FOOTER = "Stored only on this device until you share it."
+    private const val EMPTY = "No loads in this period."
 
     private val ink = rgb(0x22, 0x22, 0x22)
     private val muted = rgb(0x55, 0x55, 0x55)
@@ -39,7 +44,7 @@ object PeriodReportPdf {
     fun render(report: PeriodReport, regular: ByteArray, bold: ByteArray): ByteArray {
         val out = ByteArrayOutputStream()
         val pdf = PdfDocument(PdfWriter(out))
-        val labels = report.pdf
+        val labels = englishPdfLabels()
         pdf.documentInfo.setTitle(labels.title)
         val body = font(regular)
         val strong = font(bold)
@@ -47,14 +52,13 @@ object PeriodReportPdf {
         try {
             doc.setMargins(40f, 36f, 40f, 36f)
             doc.add(letterhead(report, labels, body, strong))
-            val empty = report.emptyLoads
-            if (empty != null) {
-                doc.add(paragraph(empty, body, 11f).setFontColor(muted).setMarginTop(16f))
+            if (report.statementRows.isEmpty()) {
+                doc.add(paragraph(EMPTY, body, 11f).setFontColor(muted).setMarginTop(16f))
             } else {
                 doc.add(loadTable(report, labels, body, strong))
             }
             doc.add(summary(report, labels, body, strong))
-            doc.add(paragraph(report.footer, body, 8f).setFontColor(muted).setMarginTop(16f))
+            doc.add(paragraph(FOOTER, body, 8f).setFontColor(muted).setMarginTop(16f))
         } finally {
             doc.close()
         }
@@ -78,8 +82,8 @@ object PeriodReportPdf {
         band.addCell(left)
         val right = Cell().setBorder(Border.NO_BORDER).setPadding(0f)
         right.add(paragraph(labels.title, strong, 16f).setFontColor(midnight).setTextAlignment(TextAlignment.RIGHT))
-        val period = report.header.getOrNull(if (report.driverName.isBlank()) 0 else 1)?.value.orEmpty()
-        val generated = report.header.lastOrNull()?.value.orEmpty()
+        val period = report.statementPeriod
+        val generated = report.statementGenerated
         right.add(paragraph("${labels.period}: $period", body, 9f).setTextAlignment(TextAlignment.RIGHT).setMarginTop(4f))
         right.add(paragraph("${labels.reportDate}: $generated", body, 9f).setTextAlignment(TextAlignment.RIGHT))
         band.addCell(right)
