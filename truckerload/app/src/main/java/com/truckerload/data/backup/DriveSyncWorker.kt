@@ -10,6 +10,7 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import androidx.hilt.work.HiltWorker
+import com.truckerload.data.local.DatabaseStartup
 import com.truckerload.data.preferences.AuthStore
 import com.truckerload.utils.logFailure
 import com.truckerload.utils.runReportedSuspending
@@ -28,6 +29,7 @@ class DriveSyncWorker @AssistedInject constructor(
 ) : CoroutineWorker(context, params) {
 
     override suspend fun doWork(): Result {
+        if (!DatabaseStartup.awaitReadyOrFalse()) return Result.retry()
         val userId = authStore.currentUserIdOrNull()
         if (userId.isNullOrBlank()) {
             Log.i(TAG, "No session — skip Drive sync")

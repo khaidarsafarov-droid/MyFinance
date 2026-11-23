@@ -2060,4 +2060,9 @@
     <string name="share_field_date">date</string>
     <string name="share_field_load_number">load number</string>
     <string name="share_direct_label">Add to Loads</string>
+    <string name="db_startup_loading">Opening your journal</string>
+    <string name="db_startup_failed_title">Couldn\'t open your journal</string>
+    <string name="db_startup_failed_body">TruckoRig couldn\'t unlock the journal on this phone. Your loads are still on this device. Try again, or recover the journal.</string>
+    <string name="db_startup_retry">Try again</string>
+    <string name="db_startup_recover">Recover journal</string>
 </resources>

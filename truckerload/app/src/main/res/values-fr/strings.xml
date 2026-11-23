@@ -2054,4 +2054,9 @@
     <string name="share_field_date">date</string>
     <string name="share_field_load_number">numéro de chargement</string>
     <string name="share_direct_label">Vers les chargements</string>
+    <string name="db_startup_loading">Ouverture du journal</string>
+    <string name="db_startup_failed_title">Impossible d\'ouvrir le journal</string>
+    <string name="db_startup_failed_body">TruckoRig n\'a pas pu déverrouiller le journal sur ce téléphone. Vos chargements sont toujours sur cet appareil. Réessayez, ou récupérez le journal.</string>
+    <string name="db_startup_retry">Réessayer</string>
+    <string name="db_startup_recover">Récupérer le journal</string>
 </resources>

@@ -2,6 +2,7 @@ package com.truckerload
 
 import android.app.Application
 import android.content.Context
+import android.os.StrictMode
 import android.util.Log
 import com.truckerload.sync.MaintenanceReminderCoordinator
 import com.truckerload.utils.DirectBoot
@@ -18,6 +19,7 @@ import androidx.work.Configuration
 import androidx.hilt.work.HiltWorkerFactory
 import com.truckerload.BuildConfig
 import com.truckerload.data.local.DatabasePassphraseStore
+import com.truckerload.data.local.DatabaseStartup
 import com.truckerload.data.local.InstalledJournalRecovery
 import com.truckerload.data.local.JournalRecoveryGate
 import com.truckerload.data.preferences.AuthStore
@@ -96,9 +98,22 @@ class TruckerLoadApp : Application(), Configuration.Provider {
 
     override fun onCreate() {
         super.onCreate()
+        enableMainThreadStrictMode()
         if (DirectBoot.isUserUnlocked(this)) {
             startAfterUnlock()
         }
+    }
+
+    /** Debug builds log disk reads and writes on the main thread. Tests stay quiet. */
+    private fun enableMainThreadStrictMode() {
+        if (!BuildConfig.DEBUG || DatabasePassphraseStore.isRobolectric()) return
+        StrictMode.setThreadPolicy(
+            StrictMode.ThreadPolicy.Builder()
+                .detectDiskReads()
+                .detectDiskWrites()
+                .penaltyLog()
+                .build(),
+        )
     }
 
     /** Runs once, on the main thread, after the user unlocks credential storage. */
@@ -117,6 +132,8 @@ class TruckerLoadApp : Application(), Configuration.Provider {
                 withContext(Dispatchers.Main) { startTelegramForActiveUser() }
             }
         }
+        // Returns immediately. The SQLCipher open continues on Dispatchers.IO.
+        DatabaseStartup.start(this, authStore)
         initializeCrashReporting()
         com.truckerload.data.premium.PremiumAccess.get(this).refresh()
         if (DatabasePassphraseStore.isRobolectric()) {

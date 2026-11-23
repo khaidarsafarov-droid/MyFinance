@@ -2070,4 +2070,9 @@
     <string name="share_field_date">дату</string>
     <string name="share_field_load_number">номер груза</string>
     <string name="share_direct_label">В грузы</string>
+    <string name="db_startup_loading">Открываем журнал</string>
+    <string name="db_startup_failed_title">Не удалось открыть журнал</string>
+    <string name="db_startup_failed_body">TruckoRig не смог открыть журнал на этом телефоне. Грузы остались на устройстве. Повторите попытку или запустите восстановление журнала.</string>
+    <string name="db_startup_retry">Повторить</string>
+    <string name="db_startup_recover">Восстановить журнал</string>
 </resources>
