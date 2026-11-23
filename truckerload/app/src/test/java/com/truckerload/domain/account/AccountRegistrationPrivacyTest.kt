@@ -267,5 +267,8 @@ class AgeGateAndCipherTest {
         assertNotEquals("CDL-123", encoded)
         assertEquals("CDL-123", cipher.decrypt(encoded))
         assertEquals("legacy", cipher.decrypt(AesGcmSensitiveFieldCipher.wrapPlaintextForMigration("legacy")))
+        cipher.retireLegacyPlaintext()
+        assertEquals("", cipher.decrypt(AesGcmSensitiveFieldCipher.wrapPlaintextForMigration("legacy")))
+        assertEquals("CDL-123", cipher.decrypt(encoded))
     }
 }

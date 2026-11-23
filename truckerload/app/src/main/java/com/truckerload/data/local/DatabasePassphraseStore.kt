@@ -16,6 +16,17 @@ import javax.crypto.spec.GCMParameterSpec
  * A random 256-bit database passphrase. Only the AES-GCM wrapping of that
  * passphrase is written to disk. On a device the wrapping key stays inside
  * the Android Keystore.
+ *
+ * The key is not bound to fingerprint or PIN. [KeyGenParameterSpec.Builder.setUserAuthenticationRequired]
+ * would permanently invalidate the key if the lock screen changes, and Room
+ * opens this database at startup and from background workers with no auth
+ * prompt. Either outcome locks an existing journal. See docs/SECURITY.md.
+ *
+ * New keys on Android 15+ require the device to be unlocked
+ * ([KeyGenParameterSpec.Builder.setUnlockedDeviceRequired]). Android's own
+ * docs warn that this flag had data-loss bugs on Android 12 through 14, so
+ * those versions keep the previous key spec. An existing key is never
+ * regenerated, so an upgrade cannot lose the journal.
  */
 internal class DatabasePassphraseStore(
     private val wrappedFile: File,
@@ -107,17 +118,28 @@ internal class AndroidKeystorePassphraseCipher(
     private fun secretKey(): SecretKey {
         val existing = keyStore.getKey(alias, null) as? SecretKey
         if (existing != null) return existing
+        // Android 15 fixed unlocked-device-required bugs that deleted keys on
+        // Android 12–14. Only new keys on API 35+ opt in. If generation fails,
+        // create the key without the flag so a new install is not bricked.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
+            runCatching { return generateKey(requireUnlockedDevice = true) }
+        }
+        return generateKey(requireUnlockedDevice = false)
+    }
+
+    private fun generateKey(requireUnlockedDevice: Boolean): SecretKey {
         val generator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, ANDROID_KEY_STORE)
-        generator.init(
-            KeyGenParameterSpec.Builder(
-                alias,
-                KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT,
-            )
-                .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
-                .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
-                .setKeySize(256)
-                .build(),
+        val builder = KeyGenParameterSpec.Builder(
+            alias,
+            KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT,
         )
+            .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
+            .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
+            .setKeySize(256)
+        if (requireUnlockedDevice) {
+            builder.setUnlockedDeviceRequired(true)
+        }
+        generator.init(builder.build())
         return generator.generateKey()
     }
 

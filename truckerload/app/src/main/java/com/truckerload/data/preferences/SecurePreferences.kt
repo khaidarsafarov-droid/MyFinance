@@ -7,6 +7,7 @@ import androidx.core.content.edit
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import com.truckerload.BuildConfig
+import com.truckerload.data.local.DatabasePassphraseStore
 import com.truckerload.utils.CrashReporting
 import com.truckerload.utils.logFailure
 import java.io.IOException
@@ -14,39 +15,60 @@ import java.security.GeneralSecurityException
 import java.security.ProviderException
 
 /**
- * Encrypted SharedPreferences with one-time migration from legacy plain-text stores.
+ * Encrypted SharedPreferences.
  *
- * When Android Keystore / EncryptedSharedPreferences is unavailable (common on some OEM
- * tablets), falls back to a durable plaintext file (`{name}_fallback`) and sets
- * [plaintextFallbackUsed]. Session identity and PBKDF2 password verifiers are allowed
- * on the degraded store so users are not forced to re-register. The Telegram bot token
- * does not use this store; it is wrapped with the Android Keystore AES-GCM helper.
+ * Secret stores ([open] with `secrets = true`) never fall back to a plaintext
+ * file. If the Android Keystore is unavailable, they throw
+ * [SecureStorageUnavailableException] and the caller must not write the secret.
  *
- * Important: do not delete the fallback file on every [open] — Keystore can stay broken
- * across process restarts; wiping would erase registration/login every cold start.
+ * Non-secret metadata (session flags, onboarding) may still use a plaintext
+ * file so the app can open. Password verifiers, CDL keys, and tokens must not
+ * use that path.
+ *
+ * Robolectric has no Android Keystore. Unit tests get a process-local
+ * preferences file. That branch does not run on a device.
  */
 object SecurePreferences {
 
-    fun open(context: Context, name: String): SharedPreferences {
+    fun open(context: Context, name: String, secrets: Boolean = false): SharedPreferences {
         val appContext = context.applicationContext
         return try {
-            val masterKey = MasterKey.Builder(appContext)
-                .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
-                .build()
-            EncryptedSharedPreferences.create(
-                appContext,
-                name,
-                masterKey,
-                EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-                EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
-            )
+            createEncrypted(appContext, name)
         } catch (e: GeneralSecurityException) {
-            plaintextFallback(appContext, name, e)
+            onEncryptedFailure(appContext, name, secrets, e)
         } catch (e: IOException) {
-            plaintextFallback(appContext, name, e)
+            onEncryptedFailure(appContext, name, secrets, e)
         } catch (e: ProviderException) {
-            plaintextFallback(appContext, name, e)
+            onEncryptedFailure(appContext, name, secrets, e)
         }
+    }
+
+    private fun createEncrypted(appContext: Context, name: String): SharedPreferences {
+        val masterKey = MasterKey.Builder(appContext)
+            .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+            .build()
+        return EncryptedSharedPreferences.create(
+            appContext,
+            name,
+            masterKey,
+            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
+        )
+    }
+
+    private fun onEncryptedFailure(
+        appContext: Context,
+        name: String,
+        secrets: Boolean,
+        error: Exception,
+    ): SharedPreferences {
+        if (DatabasePassphraseStore.isRobolectric()) {
+            return appContext.getSharedPreferences(name, Context.MODE_PRIVATE)
+        }
+        if (secrets) {
+            throw SecureStorageUnavailableException(name, error)
+        }
+        return plaintextFallback(appContext, name, error)
     }
 
     private fun plaintextFallback(appContext: Context, name: String, e: Exception): SharedPreferences {
@@ -59,7 +81,6 @@ object SecurePreferences {
 
         val fallbackName = fallbackName(name)
         val fallback = appContext.getSharedPreferences(fallbackName, Context.MODE_PRIVATE)
-        // One-time rescue from a same-named plaintext file (older debug fallback).
         if (fallback.all.isEmpty()) {
             val legacySameName = appContext.getSharedPreferences(name, Context.MODE_PRIVATE)
             if (legacySameName.all.isNotEmpty()) {
@@ -77,26 +98,24 @@ object SecurePreferences {
                 legacySameName.edit { clear() }
             }
         }
-        Log.w(TAG, "Durable plaintext fallback for $name → $fallbackName")
+        Log.w(TAG, "Plaintext fallback for non-secret prefs $name → $fallbackName")
         return fallback
     }
 
     fun fallbackName(name: String): String = "${name}_fallback"
 
     /**
-     * True after any [open] call fell back away from EncryptedSharedPreferences.
-     * Callers storing bot tokens / passwords should surface a user warning when set.
+     * True after a non-secret [open] fell back to plaintext.
+     * Secret stores do not set this; they throw instead.
      */
     @Volatile
     var plaintextFallbackUsed: Boolean = false
         private set
 
-    /** Test-only reset. */
     internal fun resetFallbackForTests() {
         plaintextFallbackUsed = false
     }
 
-    /** Test-only: simulate Keystore / encrypted-prefs failure. */
     internal fun markFallbackForTests() {
         plaintextFallbackUsed = true
     }
@@ -107,9 +126,6 @@ object SecurePreferences {
         }
     }
 
-    /**
-     * Copies all entries from a legacy plain prefs file into [securePrefs], then clears the legacy file.
-     */
     fun migratePlainToSecure(
         context: Context,
         legacyName: String,
@@ -139,3 +155,8 @@ object SecurePreferences {
 
     private const val TAG = "SecurePreferences"
 }
+
+class SecureStorageUnavailableException(
+    name: String,
+    cause: Throwable,
+) : IllegalStateException("Secure storage unavailable for $name", cause)

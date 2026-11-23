@@ -224,7 +224,11 @@ class TelegramApi(private val token: String) {
                             } else ""
                             throw redactedApiFailure("getUpdates failed: ${response.code}.$hint $errBody")
                         }
-                        val json = JSONObject(response.body?.string() ?: "{}")
+                        val body = response.body?.string() ?: "{}"
+                        if (body.length > com.truckerload.domain.parser.UntrustedJson.MAX_CHARS) {
+                            throw redactedApiFailure("getUpdates body exceeds the JSON size cap")
+                        }
+                        val json = JSONObject(body)
                         val arr = json.optJSONArray("result")
                             ?: return@runCatching TelegramGetUpdatesResult(emptyList(), offset ?: 0L)
                         var rawMaxUpdateId = 0L

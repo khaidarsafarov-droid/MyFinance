@@ -8,6 +8,8 @@ import com.truckerload.domain.account.DriverProfileAccess
 import com.truckerload.domain.account.DriverRole
 import com.truckerload.domain.account.ProfessionalAccess
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 
 /**
@@ -17,13 +19,18 @@ class DriverProfessionalRepository(
     private val dao: DriverProfessionalDao,
     private val cipher: SensitiveFieldCipher,
 ) {
-    suspend fun getOwn(userId: String): DriverProfessionalProfile? =
-        dao.get(userId)?.toDomain(cipher)
+    suspend fun getOwn(userId: String): DriverProfessionalProfile? {
+        migrateLegacyPlaintext(userId)
+        return dao.get(userId)?.toDomain(cipher)
+    }
 
-    fun watchOwn(userId: String): Flow<DriverProfessionalProfile?> =
-        dao.watch(userId).map { it?.toDomain(cipher) }
+    fun watchOwn(userId: String): Flow<DriverProfessionalProfile?> = flow {
+        migrateLegacyPlaintext(userId)
+        emitAll(dao.watch(userId).map { it?.toDomain(cipher) })
+    }
 
     suspend fun getForViewer(targetUserId: String, viewerId: String): ProfessionalAccess {
+        migrateLegacyPlaintext(targetUserId)
         val profile = dao.get(targetUserId)?.toDomain(cipher)
         return DriverProfileAccess.resolve(profile, viewerId)
     }
@@ -34,6 +41,29 @@ class DriverProfessionalRepository(
 
     suspend fun delete(userId: String) {
         dao.delete(userId)
+    }
+
+    /**
+     * Rewrites `plain:` or raw CDL values to `v1:` once, then the cipher
+     * refuses plaintext. Skipped when secure storage cannot hold the key,
+     * so an existing ciphertext is left untouched.
+     */
+    private suspend fun migrateLegacyPlaintext(userId: String) {
+        if (!cipher.supportsLegacyMigration() || cipher.isLegacyRetired()) return
+        val row = dao.get(userId)
+        if (row != null) {
+            val number = cipher.reencryptLegacy(row.cdlNumberCiphertext)
+            val url = cipher.reencryptLegacy(row.cdlDocumentUrlCiphertext)
+            if (number != null || url != null) {
+                dao.upsert(
+                    row.copy(
+                        cdlNumberCiphertext = number ?: row.cdlNumberCiphertext,
+                        cdlDocumentUrlCiphertext = url ?: row.cdlDocumentUrlCiphertext,
+                    ),
+                )
+            }
+        }
+        cipher.retireLegacyPlaintext()
     }
 }
 

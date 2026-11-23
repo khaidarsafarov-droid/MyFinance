@@ -1,16 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  FileProvider may only share these app-specific folders.
+  https://developer.android.com/reference/androidx/core/content/FileProvider
+  Public Downloads are not listed. The explicit "save to phone" action uses
+  MediaStore (API 29+) or Download/TruckoRig/ (older Android).
+-->
 <paths xmlns:android="http://schemas.android.com/apk/res/android">
-    <cache-path name="cache" path="." />
-    <external-files-path name="downloads" path="Download/" />
+    <cache-path name="share_inbox" path="share-inbox/" />
+    <cache-path name="camera" path="camera/" />
+    <cache-path name="diesel" path="diesel/" />
+    <cache-path name="maintenance_cache" path="maintenance/" />
+    <cache-path name="exports_cache" path="exports/" />
     <external-files-path name="exports" path="exports/" />
     <external-files-path name="photos" path="photos/" />
     <external-files-path name="scans" path="scans/" />
     <external-files-path name="maintenance" path="maintenance/" />
-    <external-path name="public_downloads" path="Download/" />
+    <external-files-path name="backups" path="backups/" />
+    <external-path name="truckorig_downloads" path="Download/TruckoRig/" />
     <files-path name="backups" path="backups/" />
     <files-path name="avatars" path="avatars/" />
     <files-path name="chat_attachments" path="chat_attachments/" />
     <files-path name="statuses" path="statuses/" />
     <files-path name="paychecks" path="paychecks/" />
     <files-path name="misc_receipts" path="misc_receipts/" />
+    <files-path name="receipts" path="receipts/" />
 </paths>

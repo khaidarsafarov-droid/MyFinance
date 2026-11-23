@@ -74,7 +74,8 @@ fun AddLoadDocumentSection(
     }
 
     fun launchCamera() {
-        val file = File.createTempFile("load_photo_", ".jpg", context.cacheDir)
+        val dir = File(context.cacheDir, "camera").apply { mkdirs() }
+        val file = File.createTempFile("load_photo_", ".jpg", dir)
         pendingCameraFile = file
         val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
         pendingCameraUri = uri

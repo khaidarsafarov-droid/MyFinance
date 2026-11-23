@@ -30,6 +30,7 @@ class TelegramMessageArchive(
             if (file.exists()) {
                 file.readLines().forEach { line ->
                     runCatching {
+                        if (line.length > com.truckerload.domain.parser.UntrustedJson.MAX_CHARS) return@forEach
                         val obj = JSONObject(line)
                         if (updateId != null && obj.optLong("updateId") == updateId) return
                         if (obj.optInt("hash") == hash) return

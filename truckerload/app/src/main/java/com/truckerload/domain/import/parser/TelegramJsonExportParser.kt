@@ -15,7 +15,7 @@ class TelegramJsonExportParser(
 ) : LoadParser {
 
     override fun parse(input: String): List<Load> {
-        val root = JSONObject(input)
+        val root = com.truckerload.domain.parser.UntrustedJson.objectOrNull(input) ?: return emptyList()
         val messages = root.optJSONArray("messages") ?: return emptyList()
         val loads = mutableListOf<Load>()
 
@@ -74,7 +74,7 @@ class TelegramJsonExportParser(
 
     companion object {
         fun isTelegramJsonExport(json: String): Boolean = try {
-            val root = JSONObject(json.trim())
+            val root = com.truckerload.domain.parser.UntrustedJson.objectOrNull(json) ?: return false
             root.has("messages") &&
                 root.optJSONArray("messages") != null &&
                 (root.has("name") || root.has("type") || root.has("id"))
