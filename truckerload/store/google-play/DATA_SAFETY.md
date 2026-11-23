@@ -43,17 +43,21 @@ Encryption in transit for every row: **Yes** (HTTPS). `network_security_config.x
 
 Collected and shared, ephemeral, optional, purpose App functionality.
 
-The manifest requests `ACCESS_FINE_LOCATION` (`AndroidManifest.xml`). `LocationHelper.getCurrentLocation` reads a fused fix and calls `Geocoder.getFromLocation` (`LocationHelper.kt`). On a Play-services phone that lookup leaves the device for Google, which is why this row is shared. The app uses the result to fill city, state, and ZIP for that photo. It does not send the coordinate to a TruckoRig server, and it does not build an ad profile, so the form answer is ephemeral. The user can refuse location and still use the journal, so it is optional. There is no `ACCESS_BACKGROUND_LOCATION`.
+This row is **only** the one geocoder lookup. It is not the photo stamp.
 
-The coordinates are also stored on the phone (next section). That on-device copy is not itself collection.
+Stamping a photo with GPS, date, and time is the feature drivers install the app for. The user chooses it by taking the photo. It never runs in the background. `PhotoManager.savePhoto` draws the place, date, and time onto the JPEG, and `PhotoRepository` stores the same fields on the phone (`CameraViewModel`, `PhotoEntity`). That processing stays on the device, so it is not collection. When the driver later shares or exports that photo (for example to their trucking company), Play treats it as user-initiated sharing, so it is not ticked as sharing either. See section 5.
+
+The lookup that **is** ticked: if location permission is granted, `LocationHelper.getCurrentLocation` calls `Geocoder.getFromLocation` (`LocationHelper.kt`) so the stamp can say city, state, and ZIP. On a Play-services phone that one request goes to Google, which is why the row is shared. The app does not send it to a TruckoRig server, does not keep a server copy, and does not build a profile, so it is ephemeral. The user can refuse location and still use the journal and the camera (the stamp then has the time without a place), so it is optional. There is no `ACCESS_BACKGROUND_LOCATION`.
+
+The map does not send the driver’s GPS. `GoogleMapsHeatmapCard` does not turn on my-location. Maps SDK diagnostics are the Diagnostics, Crash logs, App interactions, and Device or other IDs rows, not this one.
 
 ### Approximate location
 
 Collected and shared, ephemeral, optional, purpose App functionality.
 
-The manifest also requests `ACCESS_COARSE_LOCATION`. `LocationHelper.hasLocationPermission` accepts a coarse-only grant, and the same fused call uses `PRIORITY_BALANCED_POWER_ACCURACY`. A coarse fix is approximate location under Play’s “3 square kilometers or coarser” definition. Same geocoder path, same ephemeral and optional answers.
+Same geocoder lookup, and only that. The manifest also requests `ACCESS_COARSE_LOCATION`. `LocationHelper.hasLocationPermission` accepts a coarse-only grant, and the fused fix uses `PRIORITY_BALANCED_POWER_ACCURACY`. A coarse fix is approximate location under Play’s “3 square kilometers or coarser” definition. Same optional, ephemeral, not-background answers. The on-device stamp is still not this row.
 
-Do **not** also tick approximate location just because the Maps SDK collects an IP address. Google’s Maps disclosure says the IP is used to understand SDK usage, not that the SDK infers a place from it. IP-related SDK data is covered by Diagnostics and Device or other IDs.
+Do **not** also tick approximate location because the Maps SDK collects an IP address. Google’s Maps disclosure says the IP is used to understand SDK usage, not that the SDK infers a place from it. IP-related SDK data is covered by Diagnostics and Device or other IDs. `geocodeAddress` is not called from production code.
 
 ### Email address
 
@@ -147,21 +151,24 @@ Not ticked. Play’s FAQ: you do not declare card data the payment service colle
 
 Not ticked. `TessDataManager` downloads `eng` and `rus` traineddata from `https://github.com/tesseract-ocr/tessdata_fast`. No journal data is uploaded.
 
-## 5. Photos — on the device, location and time kept on purpose
+## 5. Photos — the stamp drivers install the app for
 
-Do **not** tick Photos or Videos.
+Do **not** tick Photos or Videos. Do **not** describe the stamp as a privacy risk.
 
-Taking a photo decodes the camera file, reads EXIF only to fix rotation (`CameraViewModel.decodeBitmap`), and writes a new JPEG. `PhotoManager.savePhoto` draws the capture time, city, state, ZIP, and GPS coordinates onto the image. `PhotoRepository.savePhoto` stores latitude, longitude, city, state, ZIP, and timestamp on `PhotoEntity`. That is intentional. The app does not strip place, date, or time off the photo.
+GPS, date, and time on a photo are the product. The driver takes the photo when they choose to, so they can show their trucking company where and when it was taken. Nothing stamps a photo in the background.
 
-The image file stays in app storage (`PhotoManager` writes under the app’s external `photos` directory). `BackupSnapshotBuilder` does not put photo bytes in the Drive JSON. `MediaSyncQueueDao` has no production caller, so there is no cloud media upload.
+`CameraViewModel` reads EXIF only to fix rotation, then `PhotoManager.savePhoto` draws the capture time and, when location was allowed, the city, state, ZIP, and coordinates onto a new JPEG. `PhotoRepository.savePhoto` stores latitude, longitude, city, state, ZIP, and timestamp on `PhotoEntity`. The file stays in app storage. On-device processing is not collection under Play’s definition.
 
-The watermarked image leaves the phone only if the user shares it or exports it (section 4). The place, date, and time are visible on that image.
+`BackupSnapshotBuilder` does not put photo bytes in the Drive JSON. `MediaSyncQueueDao` has no production caller.
+
+The stamped photo leaves the phone only when the driver shares or exports it (section 4). That is user-initiated sharing: the user expects the photo, stamp included, to go to the destination they pick. It is not ticked as collection or sharing.
 
 ## 6. On-device only (not collection)
 
 | Data | Where | Leaves the device? |
 | --- | --- | --- |
 | Journal | Room + SQLCipher | Only via section 4 |
+| Photo stamp (GPS, date, time) | On the JPEG and in `PhotoEntity` | Only when the user shares or exports that photo |
 | First-run name | Device prefs | No |
 | Telegram token | Encrypted prefs | Only to `api.telegram.org` when the user configured the bot |
 | Crowd RPM | `CrowdRpmShareGate.payloadOrNull` always returns null | No network publish |
@@ -178,7 +185,7 @@ Merged manifest permissions that matter for the photo, location, and data-safety
 | Permission | Declare? |
 | --- | --- |
 | `CAMERA` | Yes. Photos and scans. Optional for the journal. |
-| `ACCESS_FINE_LOCATION`, `ACCESS_COARSE_LOCATION` | Yes. Foreground only. Photo place and address labels. |
+| `ACCESS_FINE_LOCATION`, `ACCESS_COARSE_LOCATION` | Yes. Foreground only, and only when the user takes a photo. Used to stamp that photo. No background location. |
 | `POST_NOTIFICATIONS` | Yes. Local reminders. |
 | `INTERNET`, `ACCESS_NETWORK_STATE` | Used for the optional network features and Play billing. |
 | `com.android.vending.BILLING` | Play subscription sheet. |
@@ -198,8 +205,8 @@ Ads: **No**. Monetization is the optional subscription only. Financial-features 
 | Collect or share any required user data types? | No | **Yes** |
 | Data shared with third parties? | No | **Yes** for Maps SDK identifiers, crash metrics, diagnostics, and map interactions, and for the geocoder lookup. Email is collected and not shared. Drive, Telegram, share sheet, and Play card data stay off the ticked list under the exemptions in section 4. |
 | Crash logs | Only if `google-services.json` was present | **Yes**, Maps SDK only. Firebase crash reporting is **No** and cannot be turned on by that file. |
-| Location | “On device, not sold” | **Precise and approximate, collected, ephemeral, optional.** On-device photo GPS is separate and is kept on purpose. |
-| Photos | “Leave only if the user exports” | Still **not ticked**. Files stay on the phone, including GPS, date, and time. Drive JSON does not include the files. |
+| Location | “On device, not sold” | **Precise and approximate: Yes, shared, ephemeral, optional — geocoder lookup only.** The photo stamp itself is on-device and is not this row. |
+| Photos | “Leave only if the user exports” | **Not ticked.** The stamp (GPS, date, time) is the feature. It is written on the phone when the user takes the photo, and it leaves only when the user shares or exports that photo. |
 | Encryption in transit | Yes | **Yes** |
 | Users can request deletion | Yes, uninstall and “delete the Drive file” | **Yes**. In-app account delete, uninstall, or `truckorig@gmail.com`. The Drive copy is a hidden app-data file; disconnect does not delete it. |
 | Foreground service | Declared | **Do not declare.** The permission is removed. |
@@ -209,6 +216,6 @@ Ads: **No**. Monetization is the optional subscription only. Financial-features 
 
 1. Paste `PRIVACY_POLICY.md` over https://rentry.co/truckorig-privacy-policy (or replace that URL with the hosted `docs/release/privacy/index.html`). The form’s URL and the in-app story have to match the page users open.
 2. Enter this sheet in the Data safety form. Save as draft. Do not send the app for review from this change.
-3. In the photo and location declaration forms, say foreground location and camera are optional and that photo GPS, date, and time are kept on the device on purpose.
+3. In the photo and location declaration forms, say camera and foreground location are optional and user-initiated. The stamp (GPS, date, and time) is the feature drivers install the app for. It is not background collection.
 4. Do not upload an AAB that was built from an older commit that still depended on Crashlytics. Confirm the merged release manifest has no `FirebaseInitProvider` and no `FirebaseCrashlytics` registrar.
 5. There is no postal address in the repo. If the Console account form requires one, use your real address. Do not invent one.

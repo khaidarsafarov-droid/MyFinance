@@ -31,17 +31,17 @@ TruckoRig на Android — локальный журнал водителя. Г�
 | Профиль | Имя при первом запуске, по желанию | Этот телефон |
 | Журнал | Грузы, остановки, зарплаты, дизель, цели, ТО, налоговые заметки | База Room на устройстве, SQLCipher |
 | Фото и сканы | Файлы и распознанный текст | Память приложения |
-| Место, дата и время фото | Координаты, город, штат, индекс, время съёмки | На снимке и в записи фото. Так и задумано. |
+| Штамп на фото | Место, дата и время, которые водитель сам ставит на снимок | На снимке и в записи фото, на этом телефоне |
 | Telegram | Токен бота и chat id, которые вы вводите | Зашифрованные настройки телефона |
 | Подписка | Локальный флаг Premium | Этот телефон |
 
 Системная автокопия Android для приложения выключена. Биометрия, если включите, работает только на телефоне. Экран «Аналитика» — ваши графики, а не отправка статистики разработчику.
 
-### Фото
+### Штамп на фото
 
-При съёмке приложение сохраняет время. Если вы разрешили геолокацию, сохраняет и координаты. Дата, время, место и координаты рисуются на снимке и пишутся в запись фото. Файл — новый JPEG в памяти приложения. Приложение не стирает место, дату и время.
+Место, дата и время на снимке — основная функция. Водитель ставит их, чтобы показать компании, где и когда сделано фото. Это происходит только когда вы снимаете. В фоне приложение местоположение не собирает.
 
-Файлы фото не входят в копию Google Drive. Туда уходит JSON журнала. Фото покидает телефон, только если вы сами им делитесь или экспортируете его. Водяной знак остаётся на картинке.
+Штамп рисуется на снимке и хранится вместе с фото на этом телефоне. Разработчик его не получает. В копию Google Drive уходит JSON журнала, без файлов фото. Снимок со штампом уходит с телефона, только когда вы сами им делитесь или экспортируете его. Это ваше действие.
 
 ### Когда данные уходят с телефона
 
@@ -52,7 +52,9 @@ TruckoRig на Android — локальный журнал водителя. Г�
 - Политика Google: https://policies.google.com/privacy
 - Что указывает SDK: https://developers.google.com/maps/documentation/android-sdk/play-data-disclosure
 
-**Геолокация.** Только на переднем плане, по разрешению. Фоновое местоположение не запрашивается. Если вы разрешили его и снимаете фото, или приложение ищет адрес, координата или адрес уходят в геокодер Android, чтобы получить город, штат и индекс. На телефоне с сервисами Google это делает Google. Отдельной копии у разработчика нет. Координаты остаются на телефоне вместе с фото.
+**Город на штампе.** Геолокация необязательна и только на переднем плане. Фоновое местоположение не запрашивается. Открытие карты не отправляет ваш GPS.
+
+Если вы разрешили геолокацию и снимаете фото, приложение один раз спрашивает геокодер Android, чтобы написать на штампе город, штат и индекс. На телефоне с сервисами Google на этот запрос отвечает Google. Копии для TruckoRig не остаётся. Геолокацию можно запретить и всё равно снимать: на штампе будет время без места.
 
 **ML Kit.** Сканер документов и распознавание латиницы необязательны. Google пишет, что снимок обрабатывается на устройстве, а в Google уходят служебные сведения (устройство, приложение, ошибки), а не копия документа разработчику.
 
@@ -95,7 +97,7 @@ TruckoRig на Android — локальный журнал водителя. Г�
 ### Разрешения Android
 
 - Камера — фото и сканы, когда вы снимаете.
-- Геолокация (передний план, точная и приблизительная) — место на фото и подписи адресов.
+- Геолокация (передний план, точная и приблизительная) — только когда вы снимаете фото, чтобы на штампе было место. Фона нет.
 - Уведомления — местные напоминания.
 - Интернет — функции выше и проверка подписки.
 - Точные будильники и загрузка устройства — местные напоминания.
@@ -158,17 +160,17 @@ The iOS code in this repository is a weekly-goal screen. It does not store a jou
 | Profile | Optional name from the first launch | This phone |
 | Journal | Loads, stops, paychecks, diesel, goals, maintenance, tax notes | On-device Room database, encrypted with SQLCipher |
 | Photos and scans | Image files, recognized text | App storage on this phone |
-| Photo place, date, and time | GPS coordinates, city, state, ZIP, capture time | On the photo and in the photo record. Kept on purpose. |
+| Photo stamp | GPS, date, and time the driver asked to put on a photo | On the photo and in the photo record, on this phone |
 | Telegram | Bot token and chat id you type | Encrypted preferences on this phone |
 | Subscription | A local flag that Premium is active | This phone |
 
 Android system backup of the app is off. Biometric unlock, if you turn it on, stays on the phone. The in-app Analytics screens are your own charts. They are not sent to the developer.
 
-### Photos
+### Photo stamp
 
-When you take a photo, the app keeps the capture time. If you allowed location, it also keeps the GPS coordinates. Date, time, place, and coordinates are drawn onto the picture and stored with the photo record. The saved file is a new JPEG in app storage. The app does not remove that place, date, or time.
+Putting location, date, and time on a photo is a core feature. Drivers use it so they can show their trucking company where and when a photo was taken. It happens only when you take the photo. It does not run in the background.
 
-Photo files are not part of the Google Drive backup. That backup is a JSON file of the journal. A photo leaves the phone only if you share or export it yourself. The watermark stays on the image.
+The stamp is drawn onto the picture and saved with the photo on this phone. The developer does not receive it. The Google Drive backup is a JSON file of the journal and does not include photo files. The stamped photo leaves the phone only when you share or export it yourself. That share is your action.
 
 ### When data leaves the phone
 
@@ -179,7 +181,9 @@ The app blocks unencrypted http. The transfers below use HTTPS.
 - Google privacy policy: https://policies.google.com/privacy
 - What the Maps SDK lists: https://developers.google.com/maps/documentation/android-sdk/play-data-disclosure
 
-**Location lookup.** Location is optional and foreground-only. The app does not ask for background location. If you allow it and take a photo, or the app resolves an address, the coordinate or address is sent to Android’s geocoder to get a city, state, and ZIP. On a phone with Google Play services, Google handles that lookup. The developer does not keep a separate copy. The coordinates stay on the phone with the photo.
+**City line on the stamp.** Location is optional and foreground-only. The app does not ask for background location, and opening the map does not send your GPS.
+
+If you allow location and take a photo, the app asks Android’s geocoder once for the city, state, and ZIP to write on that stamp. On a phone with Google Play services, Google answers that lookup and does not keep a copy for TruckoRig. You can refuse location and still take photos; the stamp then has the time without a place.
 
 **ML Kit.** The document scanner and Latin text recognition are optional. Google’s ML Kit processes the image on the device and sends Google diagnostic details, not a TruckoRig copy of the document.
 
@@ -222,7 +226,7 @@ The app does not receive your card number and does not send the purchase token t
 ### Android permissions
 
 - Camera — photos and scans, when you take them.
-- Location (foreground, fine and coarse) — the place stored with a photo, and address labels.
+- Location (foreground, fine and coarse) — only when you take a photo, so the stamp can include the place. No background location.
 - Notifications — local reminders.
 - Internet — the features above, and the Play subscription check.
 - Exact alarms and boot — local reminders.

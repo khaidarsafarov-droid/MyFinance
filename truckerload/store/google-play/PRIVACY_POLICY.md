@@ -25,17 +25,17 @@ Some optional features, and Google libraries that ship inside the app, do send d
 | Profile | Optional name from the first launch | This phone |
 | Journal | Loads, stops, paychecks, diesel, goals, maintenance, tax notes | On-device Room database, encrypted with SQLCipher |
 | Photos and scans | Image files, recognized text | App storage on this phone |
-| Photo place, date, and time | GPS coordinates, city, state, ZIP, capture time | On the photo and in the photo record. Kept on purpose. |
+| Photo stamp | GPS, date, and time the driver asked to put on a photo | On the photo and in the photo record, on this phone |
 | Telegram | Bot token and chat id you type | Encrypted preferences on this phone |
 | Subscription | A local flag that Premium is active | This phone |
 
 Android system backup of the app is off. Biometric unlock, if you turn it on, stays on the phone. The in-app Analytics screens are your own charts. They are not sent to the developer.
 
-### Photos
+### Photo stamp
 
-When you take a photo, the app keeps the capture time. If you allowed location, it also keeps the GPS coordinates. Both are drawn onto the picture (date, time, place, and coordinates) and stored with the photo record. The saved file is a new JPEG in app storage. The app does not remove that place, date, or time.
+Putting location, date, and time on a photo is a core feature. Drivers use it so they can show their trucking company where and when a photo was taken. It happens only when you take the photo. It does not run in the background.
 
-Photo files are not part of the Google Drive backup. That backup is a JSON file of the journal. A photo leaves the phone only if you share or export it yourself. The watermark goes with the image.
+The stamp is drawn onto the picture and saved with the photo on this phone. The developer does not receive it. The Google Drive backup is a JSON file of the journal and does not include photo files. The stamped photo leaves the phone only when you share or export it yourself. That share is your action.
 
 ## When data leaves the phone
 
@@ -48,9 +48,11 @@ Opening the map is optional. Google’s Maps SDK then sends Google device and re
 - Google privacy policy: https://policies.google.com/privacy
 - What the Maps SDK lists: https://developers.google.com/maps/documentation/android-sdk/play-data-disclosure
 
-### Location lookup
+### City line on the stamp
 
-Location is optional and foreground-only. The app does not ask for background location. If you allow it and take a photo, or the app turns an address into a map point, the coordinate or address is sent to Android’s geocoder to get a city, state, and ZIP. On a phone with Google Play services, Google handles that lookup. The developer does not keep a separate copy. The coordinates stay on the phone with the photo, as described above.
+Location is optional and foreground-only. The app does not ask for background location, and opening the map does not send your GPS.
+
+If you allow location and take a photo, the app asks Android’s geocoder once for the city, state, and ZIP to write on that stamp. On a phone with Google Play services, Google answers that lookup and does not keep a copy for TruckoRig. You can refuse location and still take photos; the stamp then has the time without a place.
 
 ### ML Kit scanner and text recognition
 
@@ -103,7 +105,7 @@ Google processes the payment. The app does not receive your card number and does
 ## Permissions
 
 - **Camera** — photos and scans, when you take them
-- **Location (foreground, fine and coarse)** — the place stored with a photo, and address labels
+- **Location (foreground, fine and coarse)** — only when you take a photo, so the stamp can include the place. No background location.
 - **Notifications** — local reminders
 - **Internet** — the optional features above, and Play billing
 - **Exact alarms and boot** — local reminders after restart
