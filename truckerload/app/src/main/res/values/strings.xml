@@ -1294,8 +1294,8 @@
     
 
 <string name="settings_battery_title">Background operation</string>
-    <string name="settings_battery_desc">For the bot to respond when the app is closed, disable battery optimization for TruckoRig.</string>
-    <string name="settings_battery_button">Disable battery optimization</string>
+    <string name="settings_battery_desc">For the bot to respond when the app is closed, open the battery list, find TruckoRig, and choose Don\'t optimize or Unrestricted.</string>
+    <string name="settings_battery_button">Open battery list</string>
     <string name="settings_battery_ok">✅ Battery optimization disabled — bot runs in background</string>
     <string name="settings_logout_title">Sign out</string>
     <string name="settings_logout_desc">Sign out and go to the login screen. All data will remain saved.</string>
@@ -1357,8 +1357,8 @@
     <string name="maintenance_exact_alarm_settings">Exact alarm settings</string>
     <string name="maintenance_exact_alarm_banner">Exact alarms are off. Reminders can arrive late until you allow them.</string>
     <string name="maintenance_battery_title">Keep reminders on time</string>
-    <string name="maintenance_battery_body">Battery optimization can delay the backup check, and some phones also delay alarms. Allow unrestricted battery use so an oil change still rings on time.</string>
-    <string name="maintenance_battery_allow">Allow</string>
+    <string name="maintenance_battery_body">Battery optimization can delay the backup check, and some phones also delay alarms. In the battery list, find TruckoRig and choose Don\'t optimize or Unrestricted so an oil change still rings on time.</string>
+    <string name="maintenance_battery_allow">Open battery list</string>
     <string name="maintenance_battery_later">Not now</string>
     <string name="maintenance_ocr_processing">Reading receipt…</string>
     <string name="maintenance_retake_photo">Choose another photo</string>
