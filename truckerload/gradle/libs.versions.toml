@@ -20,7 +20,7 @@ gson = "2.11.0"
 room = "2.7.0"
 hilt = "2.60.1"
 # 1.2.0 keeps compileSdk ≤36 compatibility; 1.4.0 pulls artifacts that require SDK 37.
-androidxHilt = "1.2.0"
+androidxHilt = "1.4.0"
 paging = "3.3.6"
 work = "2.10.5"
 desugar = "2.1.4"
