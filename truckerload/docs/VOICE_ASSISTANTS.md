@@ -30,4 +30,4 @@
 
 iOS / Siri: отдельного клиента нет. Когда появится, те же `Routes` вешаются на App Intents один-к-одному.
 
-Deep links: `truckerload://app/add_load`, `truckerload://assistant/open?featureName=цель`.
+Deep links: `truckerload://app/add_load`. The app only accepts the `app` host.

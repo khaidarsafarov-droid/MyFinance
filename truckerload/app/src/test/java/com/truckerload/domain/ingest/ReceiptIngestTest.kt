@@ -65,17 +65,17 @@ class ReceiptKindClassifierTest {
     fun rateConfirmationFilenameBeatsLovesMention() {
         val text = """
             Rate Confirmation
-            Estimated Rate: $2,325.84
-            Miles: 742.50
+            Estimated Rate: $1,864.20
+            Miles: 512.25
             Pick Ups
-            Address: 1325 ENSELL RD LAKE ZURICH, IL 60047
+            Address: 400 DEMO DOCK RD CEDAR RAPIDS, IA 52404
             LOVES TRAVEL STOP #800
             Deliveries
-            Address: 7091 TROY HILL DRIVE ELKRIDGE, MD 21075
+            Address: 900 SAMPLE LN BOISE, ID 83702
         """.trimIndent()
         assertEquals(
             ReceiptKind.LOAD,
-            ReceiptKindClassifier.classify(text, "2665704-Carrier-Rate-Confirmation.pdf"),
+            ReceiptKindClassifier.classify(text, "4401901-Carrier-Rate-Confirmation.pdf"),
         )
     }
 }

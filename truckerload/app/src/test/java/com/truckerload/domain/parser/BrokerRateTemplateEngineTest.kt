@@ -32,11 +32,11 @@ class BrokerRateTemplateEngineTest {
     fun integrityExpressTemplateMatchesTheExistingParser() {
         val load = BrokerRateTemplateEngine.parseOne(IEL, nowMillis = REF_MILLIS)
         assertNotNull(load)
-        assertEquals(Money.fromDollars(2325.84), load!!.totalRate)
-        assertEquals(742.50, load.totalMiles, 0.01)
-        assertTrue(load.tripId.contains("2665704"))
-        assertTrue(load.pointA.contains("LAKE ZURICH", ignoreCase = true))
-        assertTrue(load.pointB.contains("ELKRIDGE", ignoreCase = true))
+        assertEquals(Money.fromDollars(1864.20), load!!.totalRate)
+        assertEquals(512.25, load.totalMiles, 0.01)
+        assertTrue(load.tripId.contains("4401901"))
+        assertTrue(load.pointA.contains("CEDAR RAPIDS", ignoreCase = true))
+        assertTrue(load.pointB.contains("BOISE", ignoreCase = true))
     }
 
     @Test
@@ -188,17 +188,18 @@ class BrokerRateTemplateEngineTest {
         """.trimIndent()
 
         private val IEL = """
-            Rate Confirmation IEL PO#: 2665704
+            Rate Confirmation IEL PO#: 4401901
             Integrity Express Logistics
             Load Information
-            IEL PO#: 2665704
+            IEL PO#: 4401901
             Pick Up: 07/25/25
-            Miles: 742.50
-            Estimated Rate (To Truck): $2,325.84 Unloading: $0.00 Total: $2,325.84
+            Miles: 512.25
+            Carrier: Sample Haul LLC
+            Estimated Rate (To Truck): $1,864.20 Unloading: $0.00 Total: $1,864.20
             Pick Ups
-            Address: 1325 ENSELL RD LAKE ZURICH, IL 60047
+            Address: 400 DEMO DOCK RD CEDAR RAPIDS, IA 52404
             Deliveries
-            Address: 7091 TROY HILL DRIVE ELKRIDGE, MD 21075
+            Address: 900 SAMPLE LN BOISE, ID 83702
         """.trimIndent()
     }
 }

@@ -1,13 +1,17 @@
 package com.truckerload.domain.account
 
+import android.content.Context
 import com.truckerload.data.local.AppDatabase
+import com.truckerload.data.local.entities.DriverProfessionalEntity
 import com.truckerload.data.local.entities.LoadEntity
 import com.truckerload.data.preferences.AuthCredentialsStore
 import com.truckerload.data.preferences.AuthStore
 import com.truckerload.data.preferences.ConsentStore
 import com.truckerload.data.preferences.RegistrationProgressStore
 import com.truckerload.data.preferences.UserProfileStore
+import com.truckerload.data.preferences.AccountIds
 import com.truckerload.data.privacy.AesGcmSensitiveFieldCipher
+import com.truckerload.data.privacy.SensitiveFieldCipher
 import com.truckerload.data.repository.account.AccountDeletionService
 import com.truckerload.data.repository.account.AccountIdentityRepository
 import com.truckerload.data.repository.account.DriverProfessionalRepository
@@ -30,6 +34,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 import com.truckerload.domain.money.Money
+import java.util.Base64
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [28])
@@ -249,6 +254,76 @@ class AccountRegistrationPrivacyTest {
         skipped = false,
         updatedAt = 1L,
     )
+
+    @Test
+    fun plainCdlIsRewrittenToV1OnRead() = runBlocking {
+        db.driverProfessionalDao().upsert(
+            DriverProfessionalEntity(
+                userId = userId,
+                cdlNumberCiphertext = "plain:CDL-PLAIN-1",
+                cdlDocumentUrlCiphertext = "plain:",
+                updatedAt = now,
+            ),
+        )
+        val loaded = professional.getOwn(userId)
+        assertEquals("CDL-PLAIN-1", loaded!!.cdlNumber)
+        val stored = db.driverProfessionalDao().get(userId)!!.cdlNumberCiphertext
+        assertNotNull(stored)
+        assertTrue(stored!!.startsWith(AesGcmSensitiveFieldCipher.PREFIX_V1))
+        assertFalse(stored.contains("CDL-PLAIN-1"))
+        assertEquals("CDL-PLAIN-1", professional.getOwn(userId)!!.cdlNumber)
+    }
+
+    @Test
+    fun forUserReusesKeyFromPlaintextFallback() {
+        val context = RuntimeEnvironment.getApplication()
+        val account = "fallback-user"
+        val id = AccountIds.sanitizeFilePart(account)
+        val encoded = Base64.getEncoder().encodeToString(ByteArray(32) { 4 })
+        context.getSharedPreferences("truckerload_sensitive_${id}_fallback", Context.MODE_PRIVATE)
+            .edit()
+            .putString("aes_gcm_key", encoded)
+            .commit()
+        val first = AesGcmSensitiveFieldCipher.forUser(context, account)
+        val stored = first.encrypt("CDL-FALLBACK")
+        val second = AesGcmSensitiveFieldCipher.forUser(context, account)
+        assertEquals("CDL-FALLBACK", second.decrypt(stored))
+        assertNull(
+            context.getSharedPreferences("truckerload_sensitive_${id}_fallback", Context.MODE_PRIVATE)
+                .getString("aes_gcm_key", null),
+        )
+    }
+
+    @Test
+    fun keystoreDownDoesNotNullStoredCdl() = runBlocking {
+        db.driverProfessionalDao().upsert(
+            DriverProfessionalEntity(
+                userId = userId,
+                cdlNumberCiphertext = "v1:keep-me",
+                cdlDocumentUrlCiphertext = "v1:keep-doc",
+                updatedAt = now,
+            ),
+        )
+        val down = object : SensitiveFieldCipher {
+            override fun canEncrypt(): Boolean = false
+            override fun encrypt(plaintext: String): String = error("keystore down")
+            override fun decrypt(stored: String): String = ""
+            override fun wipe() = Unit
+        }
+        val repo = DriverProfessionalRepository(db.driverProfessionalDao(), down)
+        val downRegistration = RegistrationService(
+            userId = userId,
+            identity = identity,
+            professional = repo,
+            progressStore = progressStore,
+            userProfileStore = userProfileStore,
+            nowMillis = { now },
+        )
+        assertTrue(downRegistration.completeBasicProfile("Ann Driver", DriverRole.OWNER_OPERATOR).isSuccess)
+        val stored = db.driverProfessionalDao().get(userId)!!
+        assertEquals("v1:keep-me", stored.cdlNumberCiphertext)
+        assertEquals("v1:keep-doc", stored.cdlDocumentUrlCiphertext)
+    }
 }
 
 class AgeGateAndCipherTest {
@@ -267,5 +342,8 @@ class AgeGateAndCipherTest {
         assertNotEquals("CDL-123", encoded)
         assertEquals("CDL-123", cipher.decrypt(encoded))
         assertEquals("legacy", cipher.decrypt(AesGcmSensitiveFieldCipher.wrapPlaintextForMigration("legacy")))
+        cipher.retireLegacyPlaintext()
+        assertEquals("", cipher.decrypt(AesGcmSensitiveFieldCipher.wrapPlaintextForMigration("legacy")))
+        assertEquals("CDL-123", cipher.decrypt(encoded))
     }
 }
