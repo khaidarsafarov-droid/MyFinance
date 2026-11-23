@@ -6,7 +6,6 @@ import java.util.concurrent.atomic.AtomicReference
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -72,7 +71,10 @@ class JournalRecoveryGateTest {
         val started = System.nanoTime()
         val db = AppDatabase.getInstance(context, "gate-before-open")
         val buildMs = (System.nanoTime() - started) / 1_000_000
-        assertTrue("getInstance blocked the main thread for ${buildMs}ms", buildMs < 500)
+        // Room's first builder pays for class loading. The gate is still held, so this
+        // did not wait for recovery. A main-thread open would still be inside the latch.
+        assertTrue(JournalRecoveryGate.deferCurrentThread())
+        assertTrue("getInstance blocked the main thread for ${buildMs}ms", buildMs < 3_000)
         val thread = Thread {
             try {
                 // Another test can close the process-wide singleton in the gap
@@ -115,24 +117,48 @@ class JournalRecoveryGateTest {
     }
 
     @Test
-    fun mainThreadOpenDoesNotThrowWhenRecoveryIsStillRunning() {
+    fun mainThreadOpenIsRefusedAndDoesNotBlock() {
         val context = RuntimeEnvironment.getApplication()
         JournalRecoveryGate.resetForTests()
         JournalRecoveryGate.enforceForTests = true
-        JournalRecoveryGate.mainOpenWaitMillis = 100
         JournalRecoveryGate.arm()
         val db = AppDatabase.getInstance(context, "gate-main-open")
-        val releaser = Thread {
-            Thread.sleep(350)
-            JournalRecoveryGate.release()
+        val started = System.nanoTime()
+        val error = runCatching { db.openHelper.writableDatabase }.exceptionOrNull()
+        val elapsedMs = (System.nanoTime() - started) / 1_000_000
+        assertTrue("main thread blocked for ${elapsedMs}ms", elapsedMs < 400)
+        assertTrue(error is IllegalStateException)
+        assertEquals(
+            RecoveryGatedOpenHelper.MAIN_THREAD_OPEN_MESSAGE,
+            error?.message,
+        )
+        val opened = AtomicBoolean(false)
+        val thread = Thread {
+            var database = db
+            var replaced = 0
+            while (true) {
+                try {
+                    database.openHelper.writableDatabase
+                    opened.set(true)
+                    break
+                } catch (closed: IllegalStateException) {
+                    if (closed.message?.contains("closed") != true || replaced++ >= 8) {
+                        throw closed
+                    }
+                    database = AppDatabase.getInstance(context, "gate-main-open")
+                }
+            }
         }
-        releaser.start()
+        thread.start()
         try {
-            val opened = db.openHelper.writableDatabase
-            assertNotNull(opened)
+            Thread.sleep(150)
+            assertFalse(opened.get())
+            JournalRecoveryGate.release()
+            thread.join(8_000)
+            assertTrue(opened.get())
         } finally {
             JournalRecoveryGate.release()
-            releaser.join(2_000)
+            thread.join(2_000)
             AppDatabase.closeCurrent()
             JournalRecoveryGate.resetForTests()
         }

@@ -2,6 +2,7 @@ package com.truckerload.data.repository
 
 import androidx.room.withTransaction
 import com.truckerload.data.local.AppDatabase
+import com.truckerload.data.local.DeletedLoadLookupImpl
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.normalizeTripId
 import com.truckerload.domain.model.withRouteMetrics
@@ -73,7 +74,7 @@ internal suspend fun syncLoadsCdcImpl(
     }
 
     val loadRepository = LoadRepository(db)
-    val processor = LoadProcessor(loadRepository)
+    val processor = LoadProcessor(RoomLoadStore(loadRepository), DeletedLoadLookupImpl.fromOpenDatabase())
     var addedCount = 0
     var updatedCount = 0
     var lastText = ""

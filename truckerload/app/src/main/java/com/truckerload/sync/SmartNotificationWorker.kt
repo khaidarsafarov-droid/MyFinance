@@ -10,6 +10,7 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import androidx.hilt.work.HiltWorker
 import com.truckerload.R
+import com.truckerload.data.local.DatabaseStartup
 import com.truckerload.data.preferences.AuthStore
 import com.truckerload.data.preferences.SettingsDataStore
 import com.truckerload.di.UserComponentManager
@@ -49,6 +50,7 @@ class SmartNotificationWorker @AssistedInject constructor(
     }
 
     override suspend fun doWork(): Result {
+        if (!DatabaseStartup.awaitReadyOrFalse()) return Result.retry()
         val userId = authStore.currentUserIdOrNull() ?: return Result.success()
         val session = userComponentManager.startSession(userId)
         val paycheckRepo = session.paycheckRepository

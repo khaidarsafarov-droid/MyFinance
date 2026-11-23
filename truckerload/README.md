@@ -14,7 +14,7 @@ The repository contains:
 - `shared/contract/` — KMP identifiers shared with iOS (`:shared`);
 - `shared/domain/` — KMP portable domain (goal math today; parsers later).
 
-There is no web/Expo client. The Telegram bot runs in the Android foreground service.
+There is no web/Expo client. The Telegram bot runs in the app process. It is not an Android foreground service.
 iOS sharing plan: [docs/KMP_IOS_ROADMAP.md](docs/KMP_IOS_ROADMAP.md).
 
 ## Google Play release
@@ -78,7 +78,7 @@ SHA-1, and to the Drive API only. Do not commit the new key.
 
 - [Target architecture](docs/TARGET_ARCHITECTURE.md)
 - [KMP / iOS client](docs/KMP_IOS_ROADMAP.md)
-- [Optional Firebase/Crashlytics](docs/ANDROID_FIREBASE_SETUP.md)
+- [Crash reporting is off](docs/ANDROID_FIREBASE_SETUP.md)
 - [Local auth / Drive backup](docs/AUTH_GOOGLE.md)
 
 ## Android capabilities
@@ -87,9 +87,9 @@ SHA-1, and to the Drive API only. Do not commit the new key.
 - ML Kit document scanner and Latin OCR, with Tesseract `rus+eng`
 - Geotagged camera, gallery, PDFs, and load attachments
 - Local first-run name screen (`local_dev` journal); optional Google Drive backup
-- On-device Telegram bot (foreground service)
+- On-device Telegram bot (not a foreground service)
 - Optional Google Drive backup of the local journal
-- Optional Crashlytics when `app/google-services.json` is present
+- No Firebase Crashlytics, even if `app/google-services.json` is present
 
 ML Kit document scanning requires Google Play Services on a physical device. The
 camera flow remains the scanner fallback.

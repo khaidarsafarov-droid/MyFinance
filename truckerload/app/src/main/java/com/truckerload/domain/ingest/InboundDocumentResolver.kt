@@ -3,7 +3,9 @@ package com.truckerload.domain.ingest
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.parser.JsonLoadParser
 import com.truckerload.domain.parser.LoadCompleteness
+import com.truckerload.domain.parser.LoadParsingEngine
 import com.truckerload.domain.parser.MessageParseService
+import com.truckerload.domain.parser.ParseInput
 
 /**
  * Decides whether inbound Telegram file / paste text is a load that can be
@@ -28,9 +30,14 @@ object InboundDocumentResolver {
         parseService: MessageParseService = MessageParseService(),
     ): Decision {
         val preview = ReceiptFieldExtractor.extract(text, fileName, messageDateSeconds)
-        val loads = parseService.parseLoadsFromInboundText(text, referenceMillis, fileName)
-            .getOrNull()
-            .orEmpty()
+        val loads = LoadParsingEngine.parse(
+            ParseInput.ExtractedDocument(
+                text = text,
+                fileName = fileName,
+                referenceMillis = referenceMillis,
+                messageDateSeconds = messageDateSeconds,
+            ),
+        ).getOrNull().orEmpty()
         val scores = ReceiptKindClassifier.scores(combinedText(text, fileName))
         val loadScore = scores[ReceiptKind.LOAD] ?: 0
         val paycheckScore = scores[ReceiptKind.PAYCHECK] ?: 0

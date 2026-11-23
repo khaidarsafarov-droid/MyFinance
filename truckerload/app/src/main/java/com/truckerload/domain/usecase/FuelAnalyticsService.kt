@@ -1,11 +1,11 @@
 package com.truckerload.domain.usecase
 
-import com.truckerload.data.repository.DieselRepository
 import com.truckerload.domain.money.Money
 import com.truckerload.domain.money.sum
-import com.truckerload.data.repository.LoadRepository
+import com.truckerload.domain.store.DieselStore
+import com.truckerload.domain.store.LoadStore
 import com.truckerload.utils.shiftWeekNumberAndYear
-import kotlinx.coroutines.flow.first
+import javax.inject.Inject
 
 data class FuelAnalytics(
     val periodLabel: String,
@@ -19,9 +19,9 @@ data class FuelAnalytics(
     val previousPeriod: FuelAnalytics? = null
 )
 
-class FuelAnalyticsService(
-    private val dieselRepository: DieselRepository,
-    private val loadRepository: LoadRepository
+class FuelAnalyticsService @Inject constructor(
+    private val diesel: DieselStore,
+    private val loads: LoadStore,
 ) {
     suspend fun calculateForWeek(weekNumber: Int, year: Int): FuelAnalytics =
         calculateForWeek(weekNumber, year, includePrevious = true)
@@ -35,12 +35,12 @@ class FuelAnalyticsService(
         year: Int,
         includePrevious: Boolean,
     ): FuelAnalytics {
-        val diesel = dieselRepository.getDieselForWeek(weekNumber, year).first()
-        val loads = loadRepository.getLoadsByWeek(weekNumber, year).first()
-        val totalSpent = diesel.map { it.totalAmount }.sum().cents / 100.0
-        val totalGallons = diesel.sumOf { it.gallons ?: 0.0 }
-        val totalMiles = loads.sumOf { it.drivenMiles }
-        val totalSavings = diesel.map { it.savingsAmount ?: Money.ZERO }.sum().cents / 100.0
+        val dieselRows = diesel.getDieselForWeekOnce(weekNumber, year)
+        val loadRows = loads.loadsForWeek(weekNumber, year)
+        val totalSpent = dieselRows.map { it.totalAmount }.sum().cents / 100.0
+        val totalGallons = dieselRows.sumOf { it.gallons ?: 0.0 }
+        val totalMiles = loadRows.sumOf { it.drivenMiles }
+        val totalSavings = dieselRows.map { it.savingsAmount ?: Money.ZERO }.sum().cents / 100.0
         val avgMpg = if (totalGallons > 0) totalMiles / totalGallons else 0.0
         val avgPrice = if (totalGallons > 0) totalSpent / totalGallons else 0.0
         val costPer100 = if (totalMiles > 0) (totalSpent / totalMiles) * 100 else 0.0

@@ -11,6 +11,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.lifecycleScope
 import com.truckerload.BuildConfig
+import com.truckerload.data.local.DatabaseStartup
 import com.truckerload.data.preferences.AccountIds
 import com.truckerload.data.preferences.AuthStore
 import com.truckerload.data.share.PrefsShareImportIndex
@@ -105,6 +106,10 @@ class ShareReceiverActivity : AppCompatActivity() {
     }
 
     private suspend fun import(inbound: ShareInbound): ShareOutcome? {
+        if (!DatabaseStartup.awaitReadyOrFalse()) {
+            show(ShareReceiverMessage.UNREADABLE)
+            return null
+        }
         authStore.awaitReady()
         val userId = resolveUserId()
         if (userId == null) {

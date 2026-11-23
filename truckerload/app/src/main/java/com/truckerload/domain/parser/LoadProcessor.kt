@@ -1,10 +1,9 @@
 package com.truckerload.domain.parser
 
-import com.truckerload.data.local.AppDatabase
-import com.truckerload.data.local.DeletedLoadLedger
-import com.truckerload.data.repository.LoadRepository
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.withRouteMetrics
+import com.truckerload.domain.store.DeletedLoadLookup
+import com.truckerload.domain.store.LoadStore
 import com.truckerload.utils.LoadDateRepair
 import com.truckerload.utils.formatDateFromUnixSeconds
 import com.truckerload.utils.withReportingWeek
@@ -22,9 +21,10 @@ sealed class ProcessingResult {
 }
 
 class LoadProcessor(
-    private val loadRepository: LoadRepository,
-    private val duplicateChecker: DuplicateChecker = DuplicateChecker(loadRepository),
-    private val loadUpdater: LoadUpdater = LoadUpdater(loadRepository),
+    private val loads: LoadStore,
+    private val deletedLoads: DeletedLoadLookup,
+    private val duplicateChecker: DuplicateChecker = DuplicateChecker(loads),
+    private val loadUpdater: LoadUpdater = LoadUpdater(loads),
     private val changeDetector: LoadChangeDetector = LoadChangeDetector,
 ) {
     suspend fun processLoad(
@@ -36,7 +36,7 @@ class LoadProcessor(
     ): ProcessingResult {
         val incoming = normalizeIncoming(parsedLoad, messageDateSeconds)
 
-        val existingLoad = loadRepository.getByTripId(incoming.tripId)
+        val existingLoad = loads.getByTripId(incoming.tripId)
             ?: when (val duplicate = duplicateChecker.checkDuplicate(incoming)) {
                 is DuplicateResult.Found -> duplicate.load
                 // FIX: route/stops match with same rate — update existing row, not silent skip
@@ -45,13 +45,10 @@ class LoadProcessor(
             }
 
         if (existingLoad == null) {
-            val ctx = AppDatabase.applicationContext()
-            val blocked = ctx != null &&
-                DeletedLoadLedger.isBlocked(ctx, incoming.id, incoming.tripId)
-            if (blocked && !reviveDeleted) {
+            if (deletedLoads.isBlocked(incoming.id, incoming.tripId) && !reviveDeleted) {
                 return ProcessingResult.Skipped("Deleted")
             }
-            loadRepository.insertLoad(
+            loads.insertLoad(
                 incoming,
                 playFeedback = playFeedback,
                 reviveDeleted = reviveDeleted,
@@ -84,7 +81,7 @@ class LoadProcessor(
         playFeedback: Boolean = true,
         reviveDeleted: Boolean = false,
     ): List<ProcessingResult> =
-        loadRepository.runBatchWrite {
+        loads.runBatchWrite {
             parsedLoads.map { load ->
                 processLoad(
                     parsedLoad = load,

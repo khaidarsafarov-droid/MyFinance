@@ -5,6 +5,7 @@ import com.truckerload.data.local.AppDatabase
 import com.truckerload.data.local.toDomain
 import com.truckerload.data.local.toEntity
 import com.truckerload.domain.model.Diesel
+import com.truckerload.domain.store.DieselStore
 import com.truckerload.domain.model.JournalSyncClock
 import com.truckerload.utils.BackupService
 import androidx.room.withTransaction
@@ -14,7 +15,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 
-class DieselRepository(private val db: AppDatabase) {
+class DieselRepository(private val db: AppDatabase) : DieselStore {
 
     private val dao = db.dieselDao()
 
@@ -24,26 +25,26 @@ class DieselRepository(private val db: AppDatabase) {
     fun getDieselForWeek(weekNumber: Int, year: Int): Flow<List<Diesel>> =
         dao.getDieselForWeek(weekNumber, year).map { list -> list.map { it.toDomain() } }.flowOn(Dispatchers.IO)
 
-    suspend fun getDieselForWeekOnce(weekNumber: Int, year: Int): List<Diesel> =
+    override suspend fun getDieselForWeekOnce(weekNumber: Int, year: Int): List<Diesel> =
         getDieselForWeek(weekNumber, year).first()
 
     suspend fun getDieselById(id: Int): Diesel? =
         dao.getById(id)?.toDomain()
 
-    suspend fun insertDiesel(diesel: Diesel) {
+    override suspend fun insertDiesel(diesel: Diesel) {
         dao.insert(diesel.copy(addedAt = JournalSyncClock.bump(diesel.addedAt)).toEntity())
         scheduleAutoBackup()
         notifyWidgetDataChanged()
     }
 
-    suspend fun deleteDiesel(id: Int) {
+    override suspend fun deleteDiesel(id: Int) {
         dao.deleteById(id)
         scheduleAutoBackup()
         notifyWidgetDataChanged()
     }
 
     /** Deletes all fills for the trucking week, then inserts [fills], in one transaction. */
-    suspend fun replaceWeekFills(weekNumber: Int, year: Int, fills: List<Diesel>) {
+    override suspend fun replaceWeekFills(weekNumber: Int, year: Int, fills: List<Diesel>) {
         db.withTransaction {
             dao.deleteForWeek(weekNumber, year)
             if (fills.isNotEmpty()) {
@@ -66,20 +67,20 @@ class DieselRepository(private val db: AppDatabase) {
     suspend fun getDieselForYear(year: Int): List<Diesel> =
         getAllDiesel().first().filter { it.year == year }
 
-    suspend fun getAllDieselOnce(): List<Diesel> = getAllDiesel().first()
+    override suspend fun getAllDieselOnce(): List<Diesel> = getAllDiesel().first()
 
     /** Overwrites week fields in place without bumping [Diesel.addedAt] or enqueueing sync. */
-    suspend fun replaceReportingWeeks(updated: List<Diesel>) {
+    override suspend fun replaceReportingWeeks(updated: List<Diesel>) {
         if (updated.isEmpty()) return
         dao.insertAll(updated.map { it.toEntity() })
     }
 
     private fun scheduleAutoBackup() {
-        AppDatabase.applicationContext()?.let { BackupService.scheduleCreateAutoBackup(it) }
+        AppDatabase.hostContext()?.let { BackupService.scheduleCreateAutoBackup(it) }
     }
 
     private fun notifyWidgetDataChanged() {
-        AppDatabase.applicationContext()?.let {
+        AppDatabase.hostContext()?.let {
             com.truckerload.widget.WidgetDataUpdater.updateWidgetData(it)
         }
     }
