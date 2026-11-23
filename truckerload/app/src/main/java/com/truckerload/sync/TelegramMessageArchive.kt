@@ -2,6 +2,7 @@ package com.truckerload.sync
 
 import android.content.Context
 import com.truckerload.data.preferences.AccountIds
+import com.truckerload.domain.parser.UntrustedJson
 import org.json.JSONObject
 import java.io.File
 
@@ -30,7 +31,7 @@ class TelegramMessageArchive(
             if (file.exists()) {
                 file.readLines().forEach { line ->
                     runCatching {
-                        if (line.length > com.truckerload.domain.parser.UntrustedJson.MAX_CHARS) return@forEach
+                        if (line.length > UntrustedJson.MAX_CHARS) return@forEach
                         val obj = JSONObject(line)
                         if (updateId != null && obj.optLong("updateId") == updateId) return
                         if (obj.optInt("hash") == hash) return
@@ -52,6 +53,7 @@ class TelegramMessageArchive(
         file.readLines()
             .mapNotNull { line ->
                 runCatching {
+                    if (line.length > UntrustedJson.MAX_CHARS) return@runCatching null
                     val obj = JSONObject(line)
                     ArchivedTelegramMessage(
                         text = obj.getString("text"),

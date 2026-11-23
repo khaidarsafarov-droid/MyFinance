@@ -36,6 +36,17 @@ class DriverProfessionalRepository(
     }
 
     suspend fun upsertOwn(profile: DriverProfessionalProfile) {
+        if (!cipher.canEncrypt()) {
+            val existing = dao.get(profile.userId)
+            val kept = profile.copy(cdlNumber = null, cdlDocumentUrl = null).toEntity(cipher)
+            dao.upsert(
+                kept.copy(
+                    cdlNumberCiphertext = existing?.cdlNumberCiphertext,
+                    cdlDocumentUrlCiphertext = existing?.cdlDocumentUrlCiphertext,
+                ),
+            )
+            return
+        }
         dao.upsert(profile.toEntity(cipher))
     }
 
@@ -50,21 +61,39 @@ class DriverProfessionalRepository(
      */
     private suspend fun migrateLegacyPlaintext(userId: String) {
         if (!cipher.supportsLegacyMigration() || cipher.isLegacyRetired()) return
-        val row = dao.get(userId)
-        if (row != null) {
-            val number = cipher.reencryptLegacy(row.cdlNumberCiphertext)
-            val url = cipher.reencryptLegacy(row.cdlDocumentUrlCiphertext)
-            if (number != null || url != null) {
-                dao.upsert(
-                    row.copy(
-                        cdlNumberCiphertext = number ?: row.cdlNumberCiphertext,
-                        cdlDocumentUrlCiphertext = url ?: row.cdlDocumentUrlCiphertext,
-                    ),
-                )
-            }
+        val row = dao.get(userId) ?: return
+        val number = settle(row.cdlNumberCiphertext, cipher.reencryptLegacy(row.cdlNumberCiphertext))
+        val url = settle(row.cdlDocumentUrlCiphertext, cipher.reencryptLegacy(row.cdlDocumentUrlCiphertext))
+        val saved = if (number != row.cdlNumberCiphertext || url != row.cdlDocumentUrlCiphertext) {
+            val updated = row.copy(
+                cdlNumberCiphertext = number,
+                cdlDocumentUrlCiphertext = url,
+            )
+            dao.upsert(updated)
+            updated
+        } else {
+            row
         }
-        cipher.retireLegacyPlaintext()
+        if (isSettled(saved.cdlNumberCiphertext) && isSettled(saved.cdlDocumentUrlCiphertext)) {
+            cipher.retireLegacyPlaintext()
+        }
     }
+
+    private fun settle(stored: String?, rewritten: String?): String? {
+        if (rewritten != null) return rewritten
+        if (stored.isNullOrBlank() || stored == SensitiveFieldCipherPlain.BLANK) return null
+        if (stored.startsWith("plain:") && stored.removePrefix("plain:").isBlank()) return null
+        return stored
+    }
+
+    private fun isSettled(stored: String?): Boolean {
+        if (stored.isNullOrBlank()) return true
+        return stored.startsWith("v1:")
+    }
+}
+
+private object SensitiveFieldCipherPlain {
+    const val BLANK = "plain:"
 }
 
 internal fun DriverProfessionalEntity.toDomain(cipher: SensitiveFieldCipher): DriverProfessionalProfile =

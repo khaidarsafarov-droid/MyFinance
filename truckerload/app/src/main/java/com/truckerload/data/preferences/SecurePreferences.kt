@@ -120,12 +120,6 @@ object SecurePreferences {
         plaintextFallbackUsed = true
     }
 
-    fun requireEncryptedForSecretWrite(secretName: String) {
-        check(!plaintextFallbackUsed) {
-            "Secure storage unavailable; refusing to persist $secretName"
-        }
-    }
-
     fun migratePlainToSecure(
         context: Context,
         legacyName: String,

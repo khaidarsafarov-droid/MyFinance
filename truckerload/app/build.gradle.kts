@@ -441,6 +441,9 @@ tasks.register("verifyReleaseSecretsEmpty") {
         check(manifest.contains("""android:dataExtractionRules="@xml/data_extraction_rules"""")) {
             "android:dataExtractionRules must exclude backup and device transfer"
         }
+        check(manifest.contains("""android:fullBackupContent="@xml/full_backup_content"""")) {
+            "android:fullBackupContent must exclude backup on Android 11 and lower"
+        }
         val extraction = file("src/main/res/xml/data_extraction_rules.xml").readText()
         check(extraction.contains("<cloud-backup>") && extraction.contains("<device-transfer>")) {
             "data_extraction_rules.xml must cover cloud backup and device transfer"
@@ -521,30 +524,33 @@ tasks.register("checkNoTrackedApiKeys") {
     group = "verification"
     description = "Fails if an AIza-style key is committed in Gradle or example files"
     doLast {
-        val key = Regex("""AIza[0-9A-Za-z_\-]{10,}""")
-        val roots = listOf(rootProject.projectDir, rootProject.projectDir.parentFile)
+        // Real Google API keys are 39 characters. The LogRedactor unit-test
+        // fixture is shorter, and test sources are skipped as well.
+        val key = Regex("""AIza[0-9A-Za-z_\-]{35,}""")
+        val gitRoot = rootProject.projectDir.parentFile
+        val listed = ProcessBuilder("git", "-C", gitRoot.absolutePath, "ls-files", "-z")
+            .redirectErrorStream(true)
+            .start()
+            .let { process ->
+                val bytes = process.inputStream.readBytes()
+                val code = process.waitFor()
+                check(code == 0) { "git ls-files failed" }
+                bytes
+            }
         val hits = mutableListOf<String>()
-        roots.distinct().forEach { root ->
-            if (!root.isDirectory) return@forEach
-            root.walkTopDown()
-                .onEnter { dir ->
-                    val name = dir.name
-                    name != "build" && name != ".git" && name != ".gradle" && name != ".idea"
-                }
-                .filter { file ->
-                    file.isFile && (
-                        file.name.endsWith(".gradle") ||
-                            file.name.endsWith(".gradle.kts") ||
-                            file.name.endsWith(".example") ||
-                            file.name == "local.defaults.properties"
-                        )
-                }
-                .forEach { file ->
-                    val text = runCatching { file.readText() }.getOrNull() ?: return@forEach
-                    if (key.containsMatchIn(text)) {
-                        hits += file.relativeTo(rootProject.projectDir.parentFile).path
-                    }
-                }
+        listed.decodeToString().split('\u0000').forEach { relative ->
+            if (relative.isBlank()) return@forEach
+            if (relative.contains("/src/test/") || relative.contains("/src/androidTest/")) return@forEach
+            val name = relative.substringAfterLast('/')
+            val watched = name.endsWith(".gradle") ||
+                name.endsWith(".gradle.kts") ||
+                name.endsWith(".example") ||
+                name == "local.defaults.properties"
+            if (!watched) return@forEach
+            val file = gitRoot.resolve(relative)
+            if (!file.isFile) return@forEach
+            val text = runCatching { file.readText() }.getOrNull() ?: return@forEach
+            if (key.containsMatchIn(text)) hits += relative
         }
         check(hits.isEmpty()) {
             "Tracked Gradle or example file contains a Google API key: ${hits.joinToString()}"

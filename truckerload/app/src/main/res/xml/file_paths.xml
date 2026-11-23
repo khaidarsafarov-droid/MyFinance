@@ -15,7 +15,7 @@
     <external-files-path name="photos" path="photos/" />
     <external-files-path name="scans" path="scans/" />
     <external-files-path name="maintenance" path="maintenance/" />
-    <external-files-path name="backups" path="backups/" />
+    <external-files-path name="external_backups" path="backups/" />
     <external-path name="truckorig_downloads" path="Download/TruckoRig/" />
     <files-path name="backups" path="backups/" />
     <files-path name="avatars" path="avatars/" />

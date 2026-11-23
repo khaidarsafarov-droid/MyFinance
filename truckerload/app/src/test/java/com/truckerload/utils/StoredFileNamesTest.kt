@@ -8,6 +8,7 @@ class StoredFileNamesTest {
 
     @Test
     fun stripsTraversalFromFileName() {
+        assertEquals("отчёт.pdf", StoredFileNames.sanitize("inbox/отчёт.pdf"))
         assertEquals("settlement.pdf", StoredFileNames.sanitize("../../settlement.pdf"))
         assertEquals("file", StoredFileNames.sanitize(".."))
     }

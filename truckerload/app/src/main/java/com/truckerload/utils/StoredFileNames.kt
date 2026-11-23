@@ -12,11 +12,7 @@ object StoredFileNames {
             ?.substringAfterLast('\\')
             ?.trim()
             .orEmpty()
-        val cleaned = base
-            .replace(Regex("""[^A-Za-z0-9._ -]"""), "")
-            .trim('.', ' ', '-')
-            .take(80)
-            .trim()
+        val cleaned = cleanSegment(base).take(80).trim()
         if (cleaned.isBlank() || cleaned == "." || cleaned == "..") return "file"
         return cleaned
     }
@@ -29,13 +25,16 @@ object StoredFileNames {
         val root = BrandConstants.DOWNLOADS_FOLDER
         val kept = raw.orEmpty()
             .split('/', '\\')
-            .map { segment ->
-                segment.trim().replace(Regex("""[^A-Za-z0-9._ -]"""), "").trim('.', ' ', '-')
-            }
+            .map { segment -> cleanSegment(segment) }
             .filter { it.isNotBlank() && it != "." && it != ".." }
         val joined = kept.joinToString("/")
         if (joined.isBlank() || joined == root) return root
         if (joined.startsWith("$root/")) return joined
         return "$root/$joined"
     }
+
+    private fun cleanSegment(raw: String): String =
+        raw.replace("..", "")
+            .replace(Regex("""[^\p{L}\p{N}._ -]"""), "")
+            .trim('.', ' ', '-')
 }

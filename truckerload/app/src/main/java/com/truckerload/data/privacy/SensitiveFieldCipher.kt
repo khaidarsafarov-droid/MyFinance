@@ -1,10 +1,12 @@
 package com.truckerload.data.privacy
 
 import android.content.Context
+import android.content.SharedPreferences
 import androidx.core.content.edit
 import com.truckerload.data.preferences.AccountIds
 import com.truckerload.data.preferences.SecurePreferences
 import com.truckerload.data.preferences.SecureStorageUnavailableException
+import java.security.GeneralSecurityException
 import java.security.SecureRandom
 import java.util.Base64
 import javax.crypto.Cipher
@@ -25,6 +27,9 @@ interface SensitiveFieldCipher {
     fun encrypt(plaintext: String): String
     fun decrypt(stored: String): String
     fun wipe()
+
+    /** False when the Keystore cannot hold the data key. Callers must not null stored ciphertext. */
+    fun canEncrypt(): Boolean = true
 
     /** True when this cipher can rewrite legacy plaintext and then refuse it. */
     fun supportsLegacyMigration(): Boolean = false
@@ -94,7 +99,11 @@ class AesGcmSensitiveFieldCipher(
         val body = raw.copyOfRange(IV_BYTES, raw.size)
         val cipher = Cipher.getInstance(TRANSFORMATION)
         cipher.init(Cipher.DECRYPT_MODE, SecretKeySpec(keyBytes, "AES"), GCMParameterSpec(TAG_BITS, iv))
-        return String(cipher.doFinal(body), Charsets.UTF_8)
+        return try {
+            String(cipher.doFinal(body), Charsets.UTF_8)
+        } catch (_: GeneralSecurityException) {
+            ""
+        }
     }
 
     private fun legacyCleartext(stored: String): String = when {
@@ -125,7 +134,9 @@ class AesGcmSensitiveFieldCipher(
             } catch (_: SecureStorageUnavailableException) {
                 return UnavailableSensitiveFieldCipher
             }
-            val existing = prefs.getString(KEY_AES, null)
+            val prefsName = PREFS_PREFIX + id
+            val existing = prefs.getString(KEY_AES, null)?.takeIf { it.isNotBlank() }
+                ?: copyFallbackKey(context, prefsName, prefs)
             val key = if (existing.isNullOrBlank()) {
                 val generated = ByteArray(KEY_BYTES).also { SecureRandom().nextBytes(it) }
                 prefs.edit { putString(KEY_AES, Base64.getEncoder().encodeToString(generated)) }
@@ -143,6 +154,21 @@ class AesGcmSensitiveFieldCipher(
             )
         }
 
+        private fun copyFallbackKey(
+            context: Context,
+            prefsName: String,
+            encrypted: SharedPreferences,
+        ): String? {
+            val fallback = context.applicationContext.getSharedPreferences(
+                SecurePreferences.fallbackName(prefsName),
+                Context.MODE_PRIVATE,
+            )
+            val copied = fallback.getString(KEY_AES, null)?.takeIf { it.isNotBlank() } ?: return null
+            encrypted.edit { putString(KEY_AES, copied) }
+            fallback.edit { remove(KEY_AES) }
+            return copied
+        }
+
         fun wrapPlaintextForMigration(plaintext: String): String {
             if (plaintext.isBlank()) return ""
             return PREFIX_PLAIN + plaintext
@@ -152,6 +178,8 @@ class AesGcmSensitiveFieldCipher(
 
 /** Used when the Keystore cannot hold the CDL key. Does not persist a new key. */
 private object UnavailableSensitiveFieldCipher : SensitiveFieldCipher {
+    override fun canEncrypt(): Boolean = false
+
     override fun encrypt(plaintext: String): String {
         error("Secure storage unavailable; refusing to persist a sensitive field")
     }

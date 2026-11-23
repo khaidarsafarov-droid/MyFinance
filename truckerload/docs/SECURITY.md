@@ -24,7 +24,7 @@ CDL values that were stored as `plain:` are rewritten to `v1:` ciphertext on the
 
 ## Backup and shared files
 
-`android:allowBackup` stays `false`. `res/xml/data_extraction_rules.xml` also excludes every domain from cloud backup, device-to-device transfer, and cross-platform transfer. Android treats a missing section as "back up everything".
+`android:allowBackup` stays `false`. `res/xml/data_extraction_rules.xml` excludes every domain from cloud backup, device-to-device transfer, and cross-platform transfer. `res/xml/full_backup_content.xml` does the same for Android 11 and lower. Android treats a missing section as "back up everything".
 
 FileProvider only names app-specific folders. Financial PDFs and scans stay in app-private storage and are shared with a one-time URI grant. "Save to phone" still writes through MediaStore on Android 10+, or `Download/TruckoRig/` on older versions. File names are stripped of slashes and `..`.
 

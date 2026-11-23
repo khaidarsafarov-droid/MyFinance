@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.Build
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
+import androidx.annotation.RequiresApi
 import java.io.File
 import java.security.KeyStore
 import java.security.SecureRandom
@@ -122,23 +123,37 @@ internal class AndroidKeystorePassphraseCipher(
         // Android 12–14. Only new keys on API 35+ opt in. If generation fails,
         // create the key without the flag so a new install is not bricked.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
-            runCatching { return generateKey(requireUnlockedDevice = true) }
+            try {
+                return generateUnlockedKey()
+            } catch (_: Exception) {
+                // A failed opt-in can leave a half-created alias. Drop it before
+                // the plain key, or the next generateKey hits "alias exists".
+                runCatching { keyStore.deleteEntry(alias) }
+            }
         }
-        return generateKey(requireUnlockedDevice = false)
+        return generateKey()
     }
 
-    private fun generateKey(requireUnlockedDevice: Boolean): SecretKey {
-        val generator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, ANDROID_KEY_STORE)
-        val builder = KeyGenParameterSpec.Builder(
+    @RequiresApi(Build.VERSION_CODES.P)
+    private fun generateUnlockedKey(): SecretKey {
+        val builder = keyBuilder()
+        builder.setUnlockedDeviceRequired(true)
+        return generate(builder)
+    }
+
+    private fun generateKey(): SecretKey = generate(keyBuilder())
+
+    private fun keyBuilder(): KeyGenParameterSpec.Builder =
+        KeyGenParameterSpec.Builder(
             alias,
             KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT,
         )
             .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
             .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
             .setKeySize(256)
-        if (requireUnlockedDevice) {
-            builder.setUnlockedDeviceRequired(true)
-        }
+
+    private fun generate(builder: KeyGenParameterSpec.Builder): SecretKey {
+        val generator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, ANDROID_KEY_STORE)
         generator.init(builder.build())
         return generator.generateKey()
     }

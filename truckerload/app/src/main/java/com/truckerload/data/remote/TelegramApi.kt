@@ -1,6 +1,7 @@
 package com.truckerload.data.remote
 
 import com.truckerload.BuildConfig
+import com.truckerload.domain.parser.UntrustedJson
 import com.truckerload.utils.LogRedactor
 import kotlin.coroutines.coroutineContext
 import kotlinx.coroutines.Dispatchers
@@ -225,7 +226,25 @@ class TelegramApi(private val token: String) {
                             throw redactedApiFailure("getUpdates failed: ${response.code}.$hint $errBody")
                         }
                         val body = response.body?.string() ?: "{}"
-                        if (body.length > com.truckerload.domain.parser.UntrustedJson.MAX_CHARS) {
+                        if (body.length > UntrustedJson.MAX_CHARS) {
+                            if (limit > 1) {
+                                return@withContext getUpdates(
+                                    offset = offset,
+                                    timeoutSeconds = 0,
+                                    limit = limit / 2,
+                                )
+                            }
+                            val stalled = UPDATE_ID_IN_BODY.find(body)?.groupValues?.get(1)?.toLongOrNull()
+                            if (stalled != null && stalled > 0L) {
+                                return@withContext Result.success(
+                                    TelegramGetUpdatesResult(
+                                        updates = emptyList(),
+                                        nextOffset = stalled + 1L,
+                                        rawMaxUpdateId = stalled,
+                                        unparsedUpdateIds = listOf(stalled),
+                                    ),
+                                )
+                            }
                             throw redactedApiFailure("getUpdates body exceeds the JSON size cap")
                         }
                         val json = JSONObject(body)
@@ -409,6 +428,7 @@ class TelegramApi(private val token: String) {
     companion object {
         /** Hard cap for Telegram file downloads to avoid OOM kills in the background bot service. */
         const val MAX_DOWNLOAD_BYTES = 20L * 1024 * 1024
+        private val UPDATE_ID_IN_BODY = Regex(""""update_id"\s*:\s*(\d+)""")
 
         internal fun profilePhotoStaticAttachJson(): String =
             JSONObject()
