@@ -9,7 +9,6 @@ import androidx.core.content.edit
 import com.truckerload.data.local.DatabasePassphraseStore
 import com.truckerload.data.local.JournalRecoveryGate
 import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -107,18 +106,6 @@ class AuthStore internal constructor(
     internal suspend fun awaitDiskSnapshot() {
         if (diskReady().isCompleted) return
         diskReady().await()
-    }
-
-    /** Bounded wait used by a main-thread database open. Does not change the session. */
-    internal fun awaitReadyBlocking(timeoutMs: Long): Boolean {
-        if (_sessionKnown.value) return true
-        val latch = readyLatch()
-        if (timeoutMs > 0L) {
-            latch.await(timeoutMs, TimeUnit.MILLISECONDS)
-        } else {
-            latch.await()
-        }
-        return _sessionKnown.value
     }
 
     internal fun publishColdStart() {

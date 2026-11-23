@@ -2,6 +2,7 @@ package com.truckerload.sync
 
 import android.content.Context
 import android.util.Log
+import com.truckerload.data.local.DatabaseStartup
 import com.truckerload.data.preferences.AuthStore
 import com.truckerload.data.preferences.SettingsDataStore
 import com.truckerload.di.userComponentManager
@@ -30,6 +31,9 @@ class TelegramBotSyncEngine(private val context: Context) {
     private val syncScheduler = TelegramSyncScheduler(context)
 
     suspend fun runOnce(token: String, expectedUserId: String? = null): SyncRunResult {
+        if (!DatabaseStartup.awaitReadyOrFalse()) {
+            return SyncRunResult(skipped = true, processedUpdates = 0, nextDelaySeconds = 15)
+        }
         if (token.isBlank()) {
             return SyncRunResult(skipped = true, processedUpdates = 0, nextDelaySeconds = 60)
         }

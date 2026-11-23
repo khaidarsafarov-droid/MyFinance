@@ -1,24 +1,19 @@
 package com.truckerload.domain.parser
 
-import android.util.Log
-import com.truckerload.data.local.entities.LoadHistory
-import com.truckerload.data.repository.LoadRepository
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.withRouteMetrics
+import com.truckerload.domain.store.LoadFieldChange
+import com.truckerload.domain.store.LoadStore
 import com.truckerload.utils.withReportingWeek
 
 class LoadUpdater(
-    private val loadRepository: LoadRepository,
+    private val loads: LoadStore,
 ) {
     suspend fun updateLoad(
         oldLoad: Load,
         newData: Load,
         changes: List<String>,
     ): Load {
-        changes.forEach { change ->
-            Log.d(TAG, "Change: $change")
-        }
-
         val now = System.currentTimeMillis()
         // Синхронизируем маршрут/даты из новых стопов, затем пересчитываем метрики —
         // иначе карточки в журнале показывают устаревший маршрут после Telegram-обновления.
@@ -41,7 +36,7 @@ class LoadUpdater(
             actualFinishDate = oldLoad.actualFinishDate,
         ).withReportingWeek().withRouteMetrics()
 
-        loadRepository.update(updatedLoad)
+        loads.update(updatedLoad)
         recordHistory(oldLoad, newData, changes, now)
         return updatedLoad
     }
@@ -53,25 +48,25 @@ class LoadUpdater(
         timestamp: Long,
     ) {
         if (changes.any { it.startsWith("totalRate") }) {
-            loadRepository.addChangeHistory(
-                LoadHistory(
+            loads.addChangeHistory(
+                LoadFieldChange(
                     loadId = oldLoad.id,
                     field = "totalRate",
                     oldValue = oldLoad.totalRate.formatPlain(),
                     newValue = newData.totalRate.formatPlain(),
                     timestamp = timestamp,
-                )
+                ),
             )
         }
         if (changes.any { it.startsWith("totalMiles") }) {
-            loadRepository.addChangeHistory(
-                LoadHistory(
+            loads.addChangeHistory(
+                LoadFieldChange(
                     loadId = oldLoad.id,
                     field = "totalMiles",
                     oldValue = oldLoad.totalMiles.toString(),
                     newValue = newData.totalMiles.toString(),
                     timestamp = timestamp,
-                )
+                ),
             )
         }
         changes.filter { it.startsWith("stop") }.forEach { change ->
@@ -90,8 +85,8 @@ class LoadUpdater(
                     summarizeStopStatus(oldLoad) to summarizeStopStatus(newData)
                 else -> change to change
             }
-            loadRepository.addChangeHistory(
-                LoadHistory(
+            loads.addChangeHistory(
+                LoadFieldChange(
                     loadId = oldLoad.id,
                     field = field,
                     oldValue = oldValue,
@@ -113,7 +108,4 @@ class LoadUpdater(
             if (note.contains("CANCEL", ignoreCase = true)) "CANCELLED" else "ACTIVE"
         }
 
-    companion object {
-        private const val TAG = "LoadUpdater"
-    }
 }

@@ -5,6 +5,7 @@ import com.truckerload.domain.money.sum
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.PeriodSummary
 import com.truckerload.domain.model.WeekSummary
+import com.truckerload.domain.store.WeekSummaryStore
 import com.truckerload.domain.week.WeekStartRebinder
 import com.truckerload.utils.getWeekRange
 import com.truckerload.utils.getWeeksInMonth
@@ -19,7 +20,7 @@ class WeekRepository(
     private val loadRepository: LoadRepository,
     private val paycheckRepository: PaycheckRepository,
     private val dieselRepository: DieselRepository
-) {
+) : WeekSummaryStore {
 
     fun getWeekSummary(weekNumber: Int, year: Int): Flow<WeekSummary> {
         val (weekStartDate, weekEndDate, weekLabel) = getWeekRange(weekNumber, year)
@@ -55,7 +56,7 @@ class WeekRepository(
         }.flowOn(Dispatchers.IO)
     }
 
-    suspend fun getWeekSummaryOnce(weekNumber: Int, year: Int): WeekSummary {
+    override suspend fun getWeekSummaryOnce(weekNumber: Int, year: Int): WeekSummary {
         val (weekStartDate, weekEndDate, weekLabel) = getWeekRange(weekNumber, year)
         val loadList = loadRepository.getLoadsByWeek(weekNumber, year).first()
         val paycheckList = paycheckRepository.getPaychecksForWeek(weekNumber, year).first()

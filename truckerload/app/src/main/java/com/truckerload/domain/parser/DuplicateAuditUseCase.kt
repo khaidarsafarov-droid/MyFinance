@@ -1,9 +1,9 @@
 package com.truckerload.domain.parser
 
-import com.truckerload.data.repository.DieselRepository
-import com.truckerload.data.repository.LoadRepository
-import com.truckerload.data.repository.PaycheckRepository
 import com.truckerload.domain.model.Diesel
+import com.truckerload.domain.store.DieselStore
+import com.truckerload.domain.store.LoadStore
+import com.truckerload.domain.store.PaycheckStore
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.Paycheck
 import java.util.Locale
@@ -18,24 +18,24 @@ data class DuplicateAuditReport(
 )
 
 class DuplicateAuditUseCase(
-    private val loadRepository: LoadRepository,
-    private val paycheckRepository: PaycheckRepository,
-    private val dieselRepository: DieselRepository,
+    private val loads: LoadStore,
+    private val paychecks: PaycheckStore,
+    private val diesel: DieselStore,
 ) {
     suspend fun auditAndRemove(): DuplicateAuditReport {
         val startTime = System.currentTimeMillis()
-        val allLoads = loadRepository.getAllLoadsOnce()
+        val allLoads = loads.getAllLoadsOnce()
         val loadIdsToDelete = findDuplicateLoadIds(allLoads)
 
         loadIdsToDelete.forEach { loadId ->
-            loadRepository.deleteLoad(loadId)
+            loads.deleteLoad(loadId)
         }
 
-        val paycheckIdsToDelete = findDuplicatePaycheckIds(paycheckRepository.getAllPaychecksOnce())
-        paycheckIdsToDelete.forEach { paycheckRepository.deletePaycheck(it) }
+        val paycheckIdsToDelete = findDuplicatePaycheckIds(paychecks.getAllPaychecksOnce())
+        paycheckIdsToDelete.forEach { paychecks.deletePaycheck(it) }
 
-        val dieselIdsToDelete = findDuplicateDieselIds(dieselRepository.getAllDieselOnce())
-        dieselIdsToDelete.forEach { dieselRepository.deleteDiesel(it) }
+        val dieselIdsToDelete = findDuplicateDieselIds(diesel.getAllDieselOnce())
+        dieselIdsToDelete.forEach { diesel.deleteDiesel(it) }
 
         val deletedTripIds = allLoads
             .filter { it.id in loadIdsToDelete }

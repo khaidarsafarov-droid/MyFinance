@@ -10,7 +10,7 @@ import java.util.Locale
  * Structured JSON from broker APIs, TMS exports, or webhook dumps.
  * Vendor key names differ, so lookups are alias-based and case/underscore insensitive.
  */
-object JsonLoadParser {
+internal object JsonLoadParser {
 
     private val tripKeys = listOf(
         "tripid", "trip", "loadid", "loadnumber", "ponumber", "po", "pronumber",

@@ -4,7 +4,7 @@
 
 This repository is a single-module **native Android app** (`truckerload/`, Kotlin +
 Jetpack Compose, module `:app`). There is **no backend / web / standalone bot service** —
-the "Telegram bot" runs inside the app as a foreground service. General project info is in
+the "Telegram bot" runs inside the app process, not as an Android foreground service. General project info is in
 `truckerload/README.md` and `truckerload/docs/PROJECT_OVERVIEW.md` (in Russian).
 
 ### Toolchain / environment (already provisioned in the VM snapshot)

@@ -19,18 +19,18 @@ These drafts are based on the Android repo (`MyFinance`, `main` at `b431f9b`, ve
 
 Existing repo drafts this set supersedes (do not delete them in this PR):
 
-- `truckerload/store/google-play/PRIVACY_POLICY.md` (2026-10-13, Android-only, has payments)
-- `docs/privacy/index.html` (2026-09-03, no payments / iOS / iCloud)
-- Live page https://rentry.co/truckorig-privacy-policy (2026-09-03, same gap)
-- `truckerload/store/google-play/DATA_SAFETY.md`
-- `truckerload/store/google-play/PLAY_CONSOLE_RELEASE.md` (still mentions 1.5.11)
+- `truckerload/store/google-play/PRIVACY_POLICY.md` (23 November 2026, Android)
+- `docs/privacy/index.html` (same date; keep it in sync with this folder)
+- Live page https://rentry.co/truckorig-privacy-policy (still the old page until you paste the new text)
+- `truckerload/store/google-play/DATA_SAFETY.md` (overview answer is Yes)
+- `truckerload/store/google-play/PLAY_CONSOLE_RELEASE.md`
 
 ## How to publish later (K S)
 
 1. Resolve every **TODO for K S** below and in the two answers files.
 2. Host `privacy/index.html` and `terms/index.html` on HTTPS (GitHub Pages is fine: enable Pages on this repo, or copy the HTML into `docs/privacy/` and `docs/terms/`).
 3. Paste the public URLs into Play Console and App Store Connect, then update the live rentry page so it matches, or retire it.
-4. Do not put `google-services.json` in the Play AAB if you want to keep the “no developer collection / no Crashlytics” answers.
+4. Do not turn Firebase Crashlytics back on. Release builds reject it even if `google-services.json` is present. The Data safety Crash logs row is still Yes because of the Maps SDK. See `truckerload/store/google-play/DATA_SAFETY.md`.
 
 ## Decided
 

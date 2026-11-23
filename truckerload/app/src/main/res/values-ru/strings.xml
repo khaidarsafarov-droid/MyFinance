@@ -1302,8 +1302,8 @@
     
 
 <string name="settings_battery_title">Фоновая работа</string>
-    <string name="settings_battery_desc">Чтобы бот отвечал при закрытом приложении, отключите оптимизацию батареи для TruckoRig.</string>
-    <string name="settings_battery_button">Отключить оптимизацию батареи</string>
+    <string name="settings_battery_desc">Чтобы бот отвечал при закрытом приложении, откройте список батареи, найдите TruckoRig и выберите «Не оптимизировать» или «Без ограничений».</string>
+    <string name="settings_battery_button">Открыть список батареи</string>
     <string name="settings_battery_ok">✅ Оптимизация батареи отключена — бот работает в фоне</string>
     <string name="settings_logout_title">Выйти</string>
     <string name="settings_logout_desc">Выйти и перейти на страницу входа. Все данные останутся сохранёнными.</string>
@@ -1365,8 +1365,8 @@
     <string name="maintenance_exact_alarm_settings">Настройки точных будильников</string>
     <string name="maintenance_exact_alarm_banner">Точные будильники выключены. Напоминания могут опаздывать, пока вы их не разрешите.</string>
     <string name="maintenance_battery_title">Чтобы напоминание прозвенело вовремя</string>
-    <string name="maintenance_battery_body">Оптимизация батареи может задержать запасную проверку, а некоторые телефоны задерживают и будильники. Разрешите работу без ограничений, чтобы замена масла всё равно прозвучала вовремя.</string>
-    <string name="maintenance_battery_allow">Разрешить</string>
+    <string name="maintenance_battery_body">Оптимизация батареи может задержать запасную проверку, а некоторые телефоны задерживают и будильники. В списке батареи найдите TruckoRig и выберите «Не оптимизировать» или «Без ограничений», чтобы замена масла всё равно прозвучала вовремя.</string>
+    <string name="maintenance_battery_allow">Открыть список батареи</string>
     <string name="maintenance_battery_later">Не сейчас</string>
     <string name="maintenance_ocr_processing">Распознаём чек…</string>
     <string name="maintenance_retake_photo">Другое фото</string>
@@ -2070,4 +2070,9 @@
     <string name="share_field_date">дату</string>
     <string name="share_field_load_number">номер груза</string>
     <string name="share_direct_label">В грузы</string>
+    <string name="db_startup_loading">Открываем журнал</string>
+    <string name="db_startup_failed_title">Не удалось открыть журнал</string>
+    <string name="db_startup_failed_body">TruckoRig не смог открыть журнал на этом телефоне. Грузы остались на устройстве. Повторите попытку или запустите восстановление журнала.</string>
+    <string name="db_startup_retry">Повторить</string>
+    <string name="db_startup_recover">Восстановить журнал</string>
 </resources>

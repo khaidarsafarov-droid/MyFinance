@@ -1,5 +1,7 @@
 package com.truckerload.presentation.screens.settings
 
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.MaterialTheme
@@ -24,21 +26,29 @@ internal fun BatteryOptimizationContent(
 ) {
     var ignoring by remember { mutableStateOf(BatteryOptimizationHelper.isIgnoringBatteryOptimizations(context)) }
 
-    if (!ignoring) {
-        Button(
-            onClick = {
-                BatteryOptimizationHelper.requestIgnoreBatteryOptimizations(context)
-                ignoring = BatteryOptimizationHelper.isIgnoringBatteryOptimizations(context)
-            },
-            modifier = Modifier.fillMaxWidth().height(48.dp)
-        ) {
-            Text(stringResource(R.string.settings_battery_button))
-        }
-    } else {
+    Column(modifier = Modifier.fillMaxWidth()) {
         Text(
-            text = stringResource(R.string.settings_battery_ok),
+            text = stringResource(R.string.settings_battery_desc),
             style = MaterialTheme.typography.bodySmall,
-            color = tc.AccentProfit
+            color = tc.TextSecondary,
         )
+        Spacer(Modifier.height(8.dp))
+        if (!ignoring) {
+            Button(
+                onClick = {
+                    BatteryOptimizationHelper.requestIgnoreBatteryOptimizations(context)
+                    ignoring = BatteryOptimizationHelper.isIgnoringBatteryOptimizations(context)
+                },
+                modifier = Modifier.fillMaxWidth().height(48.dp)
+            ) {
+                Text(stringResource(R.string.settings_battery_button))
+            }
+        } else {
+            Text(
+                text = stringResource(R.string.settings_battery_ok),
+                style = MaterialTheme.typography.bodySmall,
+                color = tc.AccentProfit
+            )
+        }
     }
 }
