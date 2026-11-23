@@ -32,7 +32,7 @@ jobs:
         run: sh ./gradlew -Dorg.gradle.java.home="$JAVA_HOME" :app:testDebugUnitTest --no-daemon
       - name: Upload unit test reports
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: app-unit-test-reports
           path: |
@@ -56,7 +56,7 @@ jobs:
         run: sh ./gradlew -Dorg.gradle.java.home="$JAVA_HOME" :shared:jvmTest --no-daemon
       - name: Upload shared test reports
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: shared-jvm-test-reports
           path: |
@@ -94,7 +94,7 @@ jobs:
         run: sh ./gradlew -Dorg.gradle.java.home="$JAVA_HOME" :app:lintDebug --no-daemon
       - name: Upload lint reports
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: app-lint-debug-reports
           path: |
