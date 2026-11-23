@@ -166,22 +166,11 @@ abstract class AppDatabase : RoomDatabase() {
 
         /**
          * Off the main thread this waits until cold start publishes, same as before.
-         * On the main thread a short wait is followed by the rest of the wait on IO,
-         * so a still-restoring session is not treated as signed out and does not throw.
+         * On the main thread an unknown session returns null immediately. The SQLCipher
+         * file itself is never opened here, and never on the main thread.
          */
         private fun resolveActiveUserId(context: Context): String? {
-            val auth = com.truckerload.data.preferences.AuthStore(context)
-            if (!JournalRecoveryGate.callerIsMainThread() || auth.sessionKnown.value) {
-                return auth.currentUserIdOrNull()
-            }
-            if (!auth.awaitReadyBlocking(JournalRecoveryGate.mainOpenWaitMillis)) {
-                android.util.Log.w(
-                    "AppDatabase",
-                    "Main-thread database open is waiting for session restore on IO",
-                )
-                return RecoveryOpenThreads.submit { auth.currentUserIdOrNull() }.get()
-            }
-            return auth.currentUserIdOrNull()
+            return com.truckerload.data.preferences.AuthStore(context).currentUserIdOrNull()
         }
 
         private fun reusable(existing: AppDatabase, userId: String): Boolean {

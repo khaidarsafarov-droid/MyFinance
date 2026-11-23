@@ -26,6 +26,7 @@ import androidx.glance.appwidget.updateAll
 import androidx.glance.state.GlanceStateDefinition
 import androidx.glance.state.PreferencesGlanceStateDefinition
 import androidx.glance.material3.ColorProviders
+import com.truckerload.data.local.DatabaseStartup
 import com.truckerload.presentation.MainActivity
 import com.truckerload.widget.WidgetCabinColors
 import com.truckerload.widget.WidgetDataStore
@@ -128,6 +129,7 @@ class OneUiWideGlanceReceiver : GlanceAppWidgetReceiver() {
 }
 
 private suspend fun GlanceAppWidget.provideCabinGlance(context: Context, id: GlanceId) {
+    DatabaseStartup.awaitReadyOrFalse()
     runCatching {
         getAppWidgetState(context, PreferencesGlanceStateDefinition, id)[WidgetGlanceRevisionKey]
     }
