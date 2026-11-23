@@ -23,8 +23,10 @@ import com.truckerload.domain.parser.LoadCompleteness
 import com.truckerload.domain.parser.LoadCompletenessChecker
 import com.truckerload.domain.parser.LoadDraftFields
 import com.truckerload.domain.parser.LoadField
+import com.truckerload.domain.parser.LoadParsingEngine
 import com.truckerload.domain.parser.ManualLoadFactory
 import com.truckerload.domain.parser.MessageParseService
+import com.truckerload.domain.parser.ParseInput
 import com.truckerload.utils.LogRedactor
 import com.truckerload.utils.PaycheckSourceFiles
 import java.util.Locale
@@ -233,10 +235,13 @@ class TelegramFileIngestHandler(
         }
         if (kind == ReceiptKind.LOAD) {
             val referenceMillis = preview.messageDateSeconds?.times(1000) ?: System.currentTimeMillis()
-            val loads = parseService.parseLoadsFromInboundText(
-                preview.extractedText,
-                referenceMillis,
-                preview.sourceFileName,
+            val loads = LoadParsingEngine.parse(
+                ParseInput.ExtractedDocument(
+                    text = preview.extractedText,
+                    fileName = preview.sourceFileName,
+                    referenceMillis = referenceMillis,
+                    messageDateSeconds = preview.messageDateSeconds,
+                ),
             ).getOrNull().orEmpty().ifEmpty {
                 listOfNotNull(loadFromPreview(preview, referenceMillis))
             }

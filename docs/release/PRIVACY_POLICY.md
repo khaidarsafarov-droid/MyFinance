@@ -1,13 +1,16 @@
 # Политика конфиденциальности TruckoRig
 
 **Privacy Policy · TruckoRig**  
-Android package / iOS bundle ID: `com.truckorig`  
+Android package: `com.truckorig`  
 Разработчик / Developer: Khaidar Safarov  
 Контакт / Contact: [truckorig@gmail.com](mailto:truckorig@gmail.com)  
-Дата вступления в силу / Effective date: 18 ноября 2026 / 18 November 2026  
-Последнее обновление / Last updated: 18 ноября 2026 / 18 November 2026
+Последнее обновление / Last updated: 23 ноября 2026 / 23 November 2026
 
-Эта политика описывает, как приложение TruckoRig на Android и iOS обрабатывает данные. Она заменяет версию от 3 сентября 2026 года.
+Почтовый адрес в этом репозитории не указан. **TODO:** добавьте настоящий адрес только если хотите его опубликовать. Не выдумывайте адрес.
+
+Postal address: none is stored in this repository. **TODO:** add a real mailing address only if you want it published.
+
+Скопируйте эту страницу на https://rentry.co/truckorig-privacy-policy перед отправкой формы Data safety. Репозиторий не может обновить rentry.
 
 ---
 
@@ -15,111 +18,128 @@ Android package / iOS bundle ID: `com.truckorig`
 
 ### Кратко
 
-TruckoRig — локальный журнал для водителей. Разработчик **не собирает** персональные данные на своих серверах и **не передаёт** их третьим лицам в рекламных или коммерческих целях. Журнал грузов, зарплат и дизеля хранится на вашем устройстве.
+TruckoRig на Android — локальный журнал водителя. Грузы, зарплаты, дизель и фото хранятся на телефоне. Разработчик не поднимает сервер, который принимает журнал. Рекламы нет, данные не продаются.
 
-Рекламы в приложении нет. Облачного аккаунта TruckoRig нет. Вход через Google или email для работы журнала не требуется.
+Некоторые необязательные функции и библиотеки Google, которые входят в приложение, отправляют данные с телефона. Ниже каждый такой случай и ссылка на политику этой компании.
 
-Подписка TruckoRig Premium оформляется через Google Play (Android) или App Store (iOS). Платёжные данные обрабатывает магазин, а не разработчик.
+Код iOS в этом репозитории — экран недельной цели. Он не хранит журнал, не использует iCloud и не подключается к Telegram. Раздел про отдельное приложение для iPhone ниже перенесён из черновика от 18 ноября 2026 и в этот раз по коду Apple не проверялся.
 
-### Кто мы
+### Что остаётся на телефоне
 
-Приложение TruckoRig (`com.truckorig`) публикуется разработчиком Khaidar Safarov.  
-Контакт: [truckorig@gmail.com](mailto:truckorig@gmail.com), либо обратная связь в Настройках приложения.
-
-### Какие данные обрабатываются на устройстве
-
-| Категория | Примеры | Где хранится |
+| Категория | Примеры | Где |
 | --- | --- | --- |
-| Профиль | Имя, которое вы можете указать при первом запуске на Android. На iOS вход в аккаунт не нужен. | Только на устройстве |
-| Журнал | Грузы, остановки, зарплаты, дизель, цели, напоминания ТО, налоговые заметки | Локальная база (Room на Android, GRDB на iOS), шифрование SQLCipher |
-| Медиа | Фото и сканы документов, распознанный текст | Хранилище устройства |
-| Геолокация | Метка на фото или карта | На устройстве, только с разрешения |
-| Telegram (по желанию) | Токен бота и chat ID, которые вы сами вводите | Настройки устройства (на Android — в Android Keystore, на iOS — в Keychain) |
-| Подписка | Локальный флаг, что Premium активен, чтобы доступ сохранялся без сети короткое время | Настройки устройства |
-| Виджет (iOS) | Снимок цели и темы для виджета | Общая группа приложений `group.com.truckorig` на этом iPhone |
+| Профиль | Имя при первом запуске, по желанию | Этот телефон |
+| Журнал | Грузы, остановки, зарплаты, дизель, цели, ТО, налоговые заметки | База Room на устройстве, SQLCipher |
+| Фото и сканы | Файлы и распознанный текст | Память приложения |
+| Штамп на фото | Место, дата и время, которые водитель сам ставит на снимок | На снимке и в записи фото, на этом телефоне |
+| Telegram | Токен бота и chat id, которые вы вводите | Зашифрованные настройки телефона |
+| Подписка | Локальный флаг Premium | Этот телефон |
 
-На Android системная автокопия приложения отключена (`allowBackup="false"`). Разблокировка по биометрии, если вы её включите, работает только на устройстве.
+Системная автокопия Android для приложения выключена. Биометрия, если включите, работает только на телефоне. Экран «Аналитика» — ваши графики, а не отправка статистики разработчику.
 
-Раздел «Аналитика» в приложении — это ваши графики по грузам и дизелю на телефоне, а не отправка статистики разработчику.
+### Штамп на фото
+
+Место, дата и время на снимке — основная функция. Водитель ставит их, чтобы показать компании, где и когда сделано фото. Это происходит только когда вы снимаете. В фоне приложение местоположение не собирает.
+
+Штамп рисуется на снимке и хранится вместе с фото на этом телефоне. Разработчик его не получает. В копию Google Drive уходит JSON журнала, без файлов фото. Снимок со штампом уходит с телефона, только когда вы сами им делитесь или экспортируете его. Это ваше действие.
+
+### Когда данные уходят с телефона
+
+Приложение запрещает незашифрованный http. Ниже только HTTPS.
+
+**Google Maps.** Карта необязательна. SDK Google Maps отправляет Google сведения об устройстве и запросе, псевдонимный идентификатор Maps, IP-адрес, жесты карты (сдвиг, масштаб) и метрики сбоев внутри SDK. Разработчик это не получает. Приложение не вызывает Directions API.
+
+- Политика Google: https://policies.google.com/privacy
+- Что указывает SDK: https://developers.google.com/maps/documentation/android-sdk/play-data-disclosure
+
+**Город на штампе.** Геолокация необязательна и только на переднем плане. Фоновое местоположение не запрашивается. Открытие карты не отправляет ваш GPS.
+
+Если вы разрешили геолокацию и снимаете фото, приложение один раз спрашивает геокодер Android, чтобы написать на штампе город, штат и индекс. На телефоне с сервисами Google на этот запрос отвечает Google. Копии для TruckoRig не остаётся. Геолокацию можно запретить и всё равно снимать: на штампе будет время без места.
+
+**ML Kit.** Сканер документов и распознавание латиницы необязательны. Google пишет, что снимок обрабатывается на устройстве, а в Google уходят служебные сведения (устройство, приложение, ошибки), а не копия документа разработчику.
+
+- Политика Google: https://policies.google.com/privacy
+- Раскрытие ML Kit: https://developers.google.com/ml-kit/android-data-disclosure
+
+При первом офлайн-распознавании приложение может скачать языковые файлы английского и русского с GitHub. Журнал при этом не загружается.
+
+- Политика GitHub: https://docs.github.com/en/site-policy/privacy-policies/github-privacy-statement
+
+**Google Drive.** По желанию, в Premium. Вход через Google только к скрытой папке данных приложения. Почта Google нужна, чтобы показать, какой аккаунт привязан. Это не вход в TruckoRig.
+
+В эту скрытую папку вашего аккаунта уходит JSON: грузы, зарплаты, дизель, ТО и настройки. Файла не видно в «Моём диске». Фото в нём нет. Google может прочитать JSON. Это не сквозное шифрование. На сервер разработчика файл не приходит.
+
+После включения копии следующее изменение может отправиться снова. «Отключить» в Настройках останавливает новые отправки и выходит из аккаунта на телефоне. Уже лежащий скрытый файл это не удаляет.
+
+- Политика Google: https://policies.google.com/privacy
+- Папка app data: https://developers.google.com/drive/api/guides/appdata
+
+**Telegram.** По желанию. Если вы вставляете свой токен, приложение вызывает Bot API `https://api.telegram.org`. Команда статуса может отправить в ваш чат количество записей, доход за неделю и мили. Файл, который вы экспортируете, может уйти документом. Telegram читает сообщения Bot API. Это не сквозное шифрование. Токен остаётся на телефоне. Бота ведёте вы, не разработчик.
+
+- Политика Telegram: https://telegram.org/privacy
+
+**Экспорт и письмо.** CSV, PDF, файл копии или отзыв уходят, когда вы сами сохраняете их или выбираете приложение в меню «Поделиться» или в почте.
+
+**Оплата Google Play.** Установка бесплатна. Подписка TruckoRig Premium (`premium_monthly_subscription`) продаётся Google Play. Первый месяц может быть бесплатным (`free-month`). Дальше Play списывает месячную цену — **2,99 $ в США**, в других странах свою. Продлевается, пока не отмените в Google Play → Платежи и подписки. Удаление приложения подписку не отменяет.
+
+Номер карты приложение не получает и токен покупки на сервер разработчика не отправляет.
+
+- Политика Google: https://policies.google.com/privacy
 
 ### Чего мы не делаем
 
-- Не ведём облачный аккаунт TruckoRig и не храним ваш журнал на серверах разработчика.
-- Не продаём данные и не показываем рекламу.
-- Не требуем вход через Google, Apple или email для работы журнала.
-- Не отправляем отчёты о сбоях (Firebase Crashlytics), пока в выпускную сборку не добавлен файл `google-services.json`. В обычной сборке из репозитория этого файла нет.
-- Не публикуем и не загружаем «народные» ставки (Crowd RPM): карта эффективности строится только по вашим локальным грузам.
+- Не продаём данные и не показываем рекламу. Разрешение рекламного идентификатора не запрашивается.
+- Не отправляем Firebase Crashlytics, сессии Firebase и другие отчёты о сбоях Firebase. Файл `google-services.json` на компьютере сборки это не включает.
+- Не запускаем foreground service. Эти разрешения из манифеста удалены. Опрос Telegram — не служба Android с постоянным уведомлением.
+- Не загружаем «народные» ставки. Карта строится по вашим грузам на телефоне.
+- Не запрашиваем микрофон.
 
-### Когда данные могут покинуть устройство — только по вашему действию
+### Разрешения Android
 
-Эти функции необязательны. Основной журнал (грузы, дизель, зарплаты) работает без интернета.
+- Камера — фото и сканы, когда вы снимаете.
+- Геолокация (передний план, точная и приблизительная) — только когда вы снимаете фото, чтобы на штампе было место. Фона нет.
+- Уведомления — местные напоминания.
+- Интернет — функции выше и проверка подписки.
+- Точные будильники и загрузка устройства — местные напоминания.
+- Биометрия — по желанию, только на этом телефоне.
+- Память на старых версиях Android — сохранение экспорта, который вы запросили.
 
-1. **Резервная копия Google Drive (Android, в Premium)** — если вы сами подключите Диск в Настройках. Копия уходит в *ваш* Google Drive, не к разработчику. Для входа Drive приложение запрашивает доступ у Google; адрес вашей учётки Google нужен только для этой привязки и не становится входом в TruckoRig.
-2. **Резервная копия iCloud Drive (iOS)** — если вы включите синхронизацию. Журнал и, при включённой копии медиа, фото и сканы сохраняются в контейнер `iCloud.com.truckorig` в *вашем* iCloud. Файлы можно увидеть в приложении «Файлы». Разработчик не имеет доступа к вашему iCloud.
-3. **Telegram-бот** — если вы укажете свой токен бота. Сообщения идут в API Telegram, который вы настроили. Токен хранится только на устройстве.
-4. **Экспорт и отправка** — CSV, PDF, файл бэкапа или письмо с обратной связью, которое вы сами сохраняете или отправляете.
-5. **Карта** — при открытии карты Google Maps может загрузить тайлы. Построение маршрута может отправить точки маршрута в сервис Google. Это сервис Google, не сервер TruckoRig.
-6. **Оплата подписки** — Google Play или App Store обрабатывают платёж. TruckoRig не получает номер вашей карты и не отправляет токен покупки на сервер разработчика.
-7. **Сканер документов (Android)** — распознавание может использовать сервисы Google Play на устройстве.
+Камеру, геолокацию и уведомления можно запретить. Журнал откроется.
 
-### Платежи и подписка
+### Сколько хранятся данные
 
-TruckoRig бесплатен в установке. Грузы, дизель, зарплаты и deadhead остаются бесплатными.
+- На телефоне — пока вы не удалите аккаунт в приложении, не очистите данные приложения или не удалите приложение.
+- Скрытый файл Drive — пока вы не удалите скрытые данные приложения в Google Drive. У разработчика копий нет.
+- Telegram — по правилам Telegram.
+- Диагностика Maps и ML Kit — по правилам Google. Разработчик её не получает.
+- Серверы разработчика — журнала там нет.
 
-По желанию можно оформить автопродлеваемую подписку **TruckoRig Premium** (идентификатор продукта `premium_monthly_subscription`):
+### Как удалить
 
-- Первый месяц бесплатный (оффер / introductory offer `free-month`). Бесплатный месяц начинается только после оформления подписки, а не при открытии приложения.
-- Далее магазин списывает ежемесячную плату. В США это **2,99 $ в месяц**; в других странах цена задаётся Google Play или App Store.
-- Подписка продлевается каждый месяц, пока вы её не отмените.
-- На Android отмена: Google Play → Платежи и подписки.
-- На iOS отмена: Настройки iPhone → [Ваше имя] → Подписки, либо подписка в App Store.
-- Удаление приложения само по себе подписку не отменяет.
+- Удалите аккаунт в приложении. Сотрутся журнал, фото, сканы и токен Telegram на телефоне.
+- Или очистите данные приложения, или удалите приложение. Это не отменяет Premium и не удаляет скрытый файл Drive.
+- Drive: Настройки → Google Drive → отключить. Затем в Google Drive в браузере: Настройки → Управление приложениями → удалить скрытые данные. Инструкция Google: https://support.google.com/drive/answer/2523073 . Подключённые приложения: https://myaccount.google.com/connections
+- Telegram: удалите токен в Настройках и, если нужно, чат в Telegram.
+- Подписку отмените в Google Play.
+- Запросы: [truckorig@gmail.com](mailto:truckorig@gmail.com) или обратная связь в Настройках. Разработчик не может удалить файл в вашем Google-аккаунте или сообщение на серверах Telegram.
 
-В Premium на Android входят: импорт из Telegram, аналитика, недельная цель, карта, налоги, сканер, камера, экспорт и копия в Google Drive. На iOS набор тот же, но вместо Google Drive — файловая резервная копия и, если функция включена, iCloud.
+### iOS
 
-### Разрешения
+Эти предложения перенесены из черновика от 18 ноября 2026 для отдельного приложения Apple. В этом репозитории iOS их не делает. Перед публикацией сверьте их с тем приложением.
 
-**Android**
-
-- Камера — фото груза или скана, только когда вы снимаете.
-- Геолокация (передний план) — геотег фото и карта, только с вашего разрешения. Фоновая геолокация не запрашивается.
-- Уведомления — напоминания (грузы, ТО, окончание пробного месяца) и статус бота.
-- Интернет — Drive, Telegram, карта и проверка подписки в Google Play, если вы ими пользуетесь.
-- Биометрия — по желанию, только для разблокировки на этом устройстве.
-- Точные будильники — локальные напоминания.
-
-Любое разрешение можно отозвать в настройках Android. Журнал при этом остаётся доступен.
-
-**iOS**
-
-- Камера — фото документов рейса и сканирование бумаг.
-- Медиатека — если вы берёте фото из галереи.
-- Геолокация «при использовании» — место съёмки на фото рейса.
-- Фоновые задачи — только если вы включили Telegram-синхронизацию или копию в iCloud.
-
-Разрешения можно отозвать в Настройках iOS.
+Если вы пользуетесь приложением TruckoRig для iPhone из другого репозитория: журнал, если он там есть, хранится на устройстве. Копия iCloud, если вы её включили, лежит в вашем iCloud, и разработчик её не читает. Камера, медиатека и геолокация «при использовании» работают только с вашего разрешения. Удаление фото на телефоне само не удаляет копию в iCloud.
 
 ### Дети
 
-Приложение не предназначено для детей младше 13 лет. Мы сознательно не собираем данные детей.
-
-### Как удалить данные
-
-- Удалите данные приложения в настройках системы или удалите само приложение. Локальный журнал, фото и токен Telegram при этом стираются с устройства.
-- Если вы делали копию в Google Drive — удалите файл бэкапа в своём Диске. Чтобы отозвать доступ: Настройки приложения → Google Drive → отключить.
-- Если вы делали копию в iCloud — удалите файлы TruckoRig в приложении «Файлы» / iCloud Drive. Удаление фото на телефоне само по себе не удаляет копию в iCloud; копия уходит из iCloud, только когда вы удалите её сами.
-- Чтобы отключить Telegram: удалите токен в Настройках приложения.
-- Подписку отменяйте в Google Play или App Store, как указано выше.
-
-Поскольку разработчик не хранит ваш журнал на своих серверах, отдельного «аккаунта TruckoRig» на стороне разработчика удалять не нужно.
+Приложение не предназначено для детей младше 13 лет.
 
 ### Изменения
 
-Мы можем обновить эту политику. Дата в начале страницы изменится. Актуальная версия всегда доступна по этому адресу. Если изменения существенные, мы обновим дату и текст здесь; рекомендуем периодически просматривать политику.
+Дата в начале страницы меняется вместе с текстом. Продолжая пользоваться приложением после обновления, вы принимаете новую редакцию.
 
 ### Контакты
 
-Вопросы по конфиденциальности: [truckorig@gmail.com](mailto:truckorig@gmail.com) или обратная связь в Настройках приложения.
+Khaidar Safarov — [truckorig@gmail.com](mailto:truckorig@gmail.com)
 
 ---
 
@@ -127,108 +147,125 @@ TruckoRig бесплатен в установке. Грузы, дизель, з
 
 ### Summary
 
-TruckoRig is a **local-first** trucking journal for Android and iOS. The developer **does not collect** personal data on developer-operated servers and **does not share** it with third parties for advertising or sale. Loads, paychecks, and diesel records stay on your device.
+TruckoRig on Android is a local-first trucking journal. Loads, paychecks, diesel, and photos stay on your phone. The developer does not run a server that receives your journal. The app does not show ads and does not sell personal data.
 
-The app shows no ads. There is no TruckoRig cloud account. Google, Apple, or email sign-in is not required to use the journal.
+Some optional features, and Google libraries inside the app, send data off the phone. Each case is listed below with that company’s policy.
 
-Optional TruckoRig Premium is billed by Google Play (Android) or the App Store (iOS). The store processes the payment; the developer does not receive your card number.
+The iOS code in this repository is a weekly-goal screen. It does not store a journal, use iCloud, or connect to Telegram. The iPhone sentences further down were carried forward from the 18 November 2026 draft and were not re-checked against the Apple app in this change.
 
-### Who we are
+### Data that stays on the phone
 
-TruckoRig (package and bundle ID `com.truckorig`) is published by Khaidar Safarov.  
-Contact: [truckorig@gmail.com](mailto:truckorig@gmail.com), or in-app Settings feedback.
-
-### Data processed on the device
-
-| Category | Examples | Stored |
+| Category | Examples | Where |
 | --- | --- | --- |
-| Profile | Optional first-run name on Android. iOS does not require an account. | On device only |
-| Journal | Loads, stops, paychecks, diesel, goals, maintenance reminders, tax notes | On-device database (Room on Android, GRDB on iOS), encrypted with SQLCipher |
-| Media | Photos, document scans, recognized text | Device storage |
-| Location | Photo geotag or map | On device, only with permission |
-| Telegram (optional) | Bot token and chat ID you enter | Device preferences (Android Keystore / iOS Keychain) |
-| Subscription | A local flag that Premium is active, so access can continue offline for a short time | Device preferences |
-| Widget (iOS) | A snapshot of your goal and theme for the home-screen widget | App Group `group.com.truckorig` on this iPhone |
+| Profile | Optional name from the first launch | This phone |
+| Journal | Loads, stops, paychecks, diesel, goals, maintenance, tax notes | On-device Room database, encrypted with SQLCipher |
+| Photos and scans | Image files, recognized text | App storage on this phone |
+| Photo stamp | GPS, date, and time the driver asked to put on a photo | On the photo and in the photo record, on this phone |
+| Telegram | Bot token and chat id you type | Encrypted preferences on this phone |
+| Subscription | A local flag that Premium is active | This phone |
 
-On Android, system auto-backup of the app is turned off (`allowBackup="false"`). Biometric unlock, if you enable it, stays on the device.
+Android system backup of the app is off. Biometric unlock, if you turn it on, stays on the phone. The in-app Analytics screens are your own charts. They are not sent to the developer.
 
-The in-app “Analytics” screens are your own load and diesel charts on the phone. They are not telemetry sent to the developer.
+### Photo stamp
+
+Putting location, date, and time on a photo is a core feature. Drivers use it so they can show their trucking company where and when a photo was taken. It happens only when you take the photo. It does not run in the background.
+
+The stamp is drawn onto the picture and saved with the photo on this phone. The developer does not receive it. The Google Drive backup is a JSON file of the journal and does not include photo files. The stamped photo leaves the phone only when you share or export it yourself. That share is your action.
+
+### When data leaves the phone
+
+The app blocks unencrypted http. The transfers below use HTTPS.
+
+**Google Maps.** Opening the map is optional. Google’s Maps SDK then sends Google device and request details, a pseudonymous Maps identifier, your IP address, map gestures such as pan and zoom, and crash metrics from inside the Maps SDK. The developer does not receive those. The map does not call Google’s Directions API.
+
+- Google privacy policy: https://policies.google.com/privacy
+- What the Maps SDK lists: https://developers.google.com/maps/documentation/android-sdk/play-data-disclosure
+
+**City line on the stamp.** Location is optional and foreground-only. The app does not ask for background location, and opening the map does not send your GPS.
+
+If you allow location and take a photo, the app asks Android’s geocoder once for the city, state, and ZIP to write on that stamp. On a phone with Google Play services, Google answers that lookup and does not keep a copy for TruckoRig. You can refuse location and still take photos; the stamp then has the time without a place.
+
+**ML Kit.** The document scanner and Latin text recognition are optional. Google’s ML Kit processes the image on the device and sends Google diagnostic details, not a TruckoRig copy of the document.
+
+- Google privacy policy: https://policies.google.com/privacy
+- ML Kit disclosure: https://developers.google.com/ml-kit/android-data-disclosure
+
+The first time offline recognition needs language files, the app may download English and Russian data from GitHub. That download does not upload your journal.
+
+- GitHub privacy statement: https://docs.github.com/en/site-policy/privacy-policies/github-privacy-statement
+
+**Google Drive.** Optional. If you connect Drive in Settings, the app signs in with Google and asks only for Drive’s hidden app-data folder. Your Google email shows which account is linked. It is not a TruckoRig login.
+
+The app uploads a JSON backup (loads, paychecks, diesel, maintenance, settings) to that hidden folder in your Google account. The file does not appear in My Drive. Photo files are not in it. Google can read the JSON. This is not end-to-end encryption. The developer’s servers do not receive it.
+
+After you turn backup on, a later edit can upload again. Disconnect in Settings stops new uploads and signs out on the phone. It does not delete the hidden file.
+
+- Google privacy policy: https://policies.google.com/privacy
+- Drive app-data folder: https://developers.google.com/drive/api/guides/appdata
+
+**Telegram.** Optional. If you paste your own bot token, the app calls `https://api.telegram.org`. A status command can send counts, weekly income, and miles back to your chat. A file you export can be sent as a document. Telegram can read Bot API messages. They are not end-to-end encrypted. The token stays on the phone. The developer does not run the bot.
+
+- Telegram privacy policy: https://telegram.org/privacy
+
+**Export and feedback.** A CSV, PDF, backup file, or feedback email leaves the phone when you save it or pick an app in the share sheet or your mail app.
+
+**Google Play billing.** Install is free. TruckoRig Premium (`premium_monthly_subscription`) is sold by Google Play. The first month can be free (`free-month`). After that, Play charges the monthly price — **$2.99 in the United States**; other countries use the local price. It renews until you cancel in Google Play → Payments and subscriptions. Uninstalling does not cancel it.
+
+The app does not receive your card number and does not send the purchase token to a developer server.
+
+- Google privacy policy: https://policies.google.com/privacy
 
 ### What we do not do
 
-- We do not run a TruckoRig cloud account or store your journal on our servers.
-- We do not sell data or show ads.
-- Google, Apple, or email sign-in is not required to use the journal.
-- Crash reports are not sent unless a release build includes `google-services.json`. The default repository build does not include that file.
-- We do not publish or upload “crowd” rates (Crowd RPM). The efficiency map uses only your own on-device loads.
+- We do not sell personal data and we do not show ads. The app does not request the advertising ID.
+- We do not send Firebase Crashlytics, Firebase sessions, or any other Firebase crash log. A `google-services.json` file on a build machine does not turn that on.
+- We do not run a foreground service. Those permissions are removed from the manifest. Telegram polling is not an Android foreground service.
+- We do not upload “crowd” rates. The map uses your on-device loads only.
+- We do not request the microphone.
 
-### When data may leave the device — only if you choose
+### Android permissions
 
-These features are optional. The core journal (loads, diesel, paychecks) works offline.
+- Camera — photos and scans, when you take them.
+- Location (foreground, fine and coarse) — only when you take a photo, so the stamp can include the place. No background location.
+- Notifications — local reminders.
+- Internet — the features above, and the Play subscription check.
+- Exact alarms and boot — local reminders.
+- Biometrics — optional unlock on this phone.
+- Storage on older Android versions — saving an export you asked for.
 
-1. **Google Drive backup (Android, Premium)** — if you connect Drive in Settings. The copy goes to *your* Google Drive, not to the developer. Drive sign-in uses Google OAuth. Your Google account email is used only to attach Drive; it does not become the TruckoRig login.
-2. **iCloud Drive backup (iOS)** — if you enable sync. The journal and, when media backup is on, photos and scans are stored in the `iCloud.com.truckorig` container in *your* iCloud. You can see the files in the Files app. The developer cannot access your iCloud.
-3. **Telegram bot** — if you enter your own bot token. Traffic goes to Telegram’s API that you configured. The token stays on the device.
-4. **Export / share** — a CSV, PDF, backup file, or feedback email that you save or send yourself.
-5. **Maps** — opening the map may load Google Maps tiles. Route directions may send route points to Google. That is Google’s service, not a TruckoRig server.
-6. **Subscription payment** — Google Play or the App Store processes the payment. TruckoRig does not receive your card number and does not send the purchase token to a developer server.
-7. **Document scanner (Android)** — recognition may use Google Play services on the device.
+You can deny camera, location, and notifications. The journal still opens.
 
-### Payments and subscriptions
+### How long data is kept
 
-TruckoRig is free to install. Loads, diesel, paychecks, and deadhead miles stay free.
+- On the phone: until you delete the account in the app, clear the app’s storage, or uninstall.
+- Hidden Drive file: until you delete hidden app data in Google Drive. The developer does not hold a copy.
+- Telegram: under Telegram’s policy.
+- Maps and ML Kit diagnostics: under Google’s policy. The developer does not receive them.
+- Developer servers: no journal is stored there.
 
-An optional auto-renewing subscription, **TruckoRig Premium** (product ID `premium_monthly_subscription`), is sold by the store:
+### How to delete data
 
-- The first month is free (offer / introductory offer `free-month`). Opening the app does not start the free month; subscribing does.
-- After that, the store charges the monthly price — **$2.99 per month in the United States** (other countries use the local Play or App Store price).
-- The plan renews every month until you cancel.
-- Android: cancel in Google Play → Payments and subscriptions.
-- iOS: cancel in iPhone Settings → [your name] → Subscriptions, or in the App Store.
-- Uninstalling the app does not cancel the subscription by itself.
+- In the app, delete the account. That erases the on-device journal, photos, scans, and saved Telegram token.
+- Or clear the app’s storage, or uninstall. That does not cancel Premium and does not delete the hidden Drive file.
+- Drive: Settings → Google Drive → disconnect. Then in Google Drive on the web, open Settings → Manage apps and delete hidden app data. Google’s steps: https://support.google.com/drive/answer/2523073 . Connected apps: https://myaccount.google.com/connections
+- Telegram: remove the token in Settings, and delete the chat in Telegram if you want those messages gone.
+- Cancel Premium in Google Play → Payments and subscriptions.
+- Privacy requests: [truckorig@gmail.com](mailto:truckorig@gmail.com) or in-app Settings feedback. The developer cannot delete a file in your Google account or a message on Telegram’s servers.
 
-On Android, Premium includes Telegram import, analytics, the weekly goal, the map, taxes, scanner, camera, export, and Google Drive backup. On iOS the paid set is the same, except file backup and optional iCloud replace Google Drive.
+### iOS
 
-### Permissions
+These sentences were carried forward from the 18 November 2026 draft for a separate Apple app. The iOS target in this repository does not do them. Check that app before you publish this section.
 
-**Android**
-
-- Camera — load photos and document scans, only when you capture them.
-- Location (foreground) — photo geotag and map, only with your permission. The app does not request background location.
-- Notifications — reminders (loads, maintenance, trial ending) and bot status.
-- Internet — Drive, Telegram, map tiles, and Play subscription checks if you use them.
-- Biometrics — optional, only to unlock the app on this device.
-- Exact alarms — local reminders.
-
-You can revoke permissions in Android settings. The journal remains usable.
-
-**iOS**
-
-- Camera — trip document photos and paper scans.
-- Photo library — if you pick an image from the library.
-- Location When In Use — the capture location on a trip photo.
-- Background processing — only if you enable Telegram sync or iCloud backup.
-
-You can revoke permissions in iOS Settings.
+If you use a TruckoRig iPhone app from another repository: a journal there, if that app has one, stays on the device. An iCloud copy, if you turned it on, stays in your iCloud, and the developer cannot read it. Camera, photo library, and While Using location run only with your permission. Deleting a photo on the phone does not by itself delete an iCloud copy.
 
 ### Children
 
-TruckoRig is not directed at children under 13. We do not knowingly collect children’s data.
-
-### Deleting your data
-
-- Clear the app’s storage in system settings or uninstall the app. That removes the on-device journal, photos, and any saved Telegram token.
-- If you made a Drive backup, delete that file in your own Google Drive. To revoke Drive access: Settings → Google Drive → disconnect.
-- If you made an iCloud backup, delete the TruckoRig files in the Files app / iCloud Drive. Removing a photo on the phone does not remove the iCloud copy; the copy leaves iCloud only when you delete it there yourself.
-- To disconnect Telegram, remove the token in app Settings.
-- Cancel a subscription in Google Play or the App Store, as described above.
-
-Because the developer does not store your journal on developer servers, there is no separate TruckoRig account on our side to delete.
+TruckoRig is not directed at children under 13.
 
 ### Changes
 
-We may update this policy. The effective date at the top will change. The current version is always available at this URL. If we make material changes, we will update the date and the text here. Please review this page from time to time.
+The date at the top changes with the text. Continued use after an update means you accept the revised policy.
 
 ### Contact
 
-Privacy questions: [truckorig@gmail.com](mailto:truckorig@gmail.com) or in-app Settings feedback.
+Khaidar Safarov — [truckorig@gmail.com](mailto:truckorig@gmail.com)

@@ -169,7 +169,7 @@ class LoadUpdatePersistsFieldsTest {
     )
 
     private fun ledgerContexts(testContext: Context): List<Context> {
-        val stored = AppDatabase.applicationContext()
+        val stored = AppDatabase.hostContext()
         return if (stored == null || stored === testContext) listOf(testContext) else listOf(testContext, stored)
     }
 

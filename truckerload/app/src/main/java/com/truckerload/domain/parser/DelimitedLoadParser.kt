@@ -9,7 +9,7 @@ import com.truckerload.domain.model.Load
  * Each row is rewritten as `header: value` lines and handed to [FlexibleLoadParser],
  * so any column naming that parser already understands works here too.
  */
-object DelimitedLoadParser {
+internal object DelimitedLoadParser {
 
     private val delimiters = charArrayOf(',', '\t', ';')
     private val rateHeader = Regex(
