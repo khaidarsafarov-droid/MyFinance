@@ -58,7 +58,7 @@ class PeriodReportBuilderTest {
         assertEquals(17, totals.goalPercent)
 
         val text = report.plainText
-        assertBefore(text, "Driver: Khaidar Safarov", "Period:")
+        assertBefore(text, "Driver: Alex Morgan", "Period:")
         assertBefore(text, "Period: Week 47", "Generated: Nov 21, 2026")
         assertBefore(text, "Summary", "Gross: $2091.00")
         assertBefore(text, "Gross: $2091.00", "Loads: 3")
@@ -191,7 +191,7 @@ class PeriodReportBuilderTest {
             diesel = diesel,
             expenses = expenses,
             window = week,
-            driverName = "Khaidar Safarov",
+            driverName = "Alex Morgan",
             periodLabel = "Week 47",
             generatedOn = generated,
             locale = Locale.US,
@@ -316,7 +316,7 @@ class PeriodReportBuilderTest {
             },
             expenses = if (expense == 0.0) emptyList() else listOf(expense(1, "2026-11-16", expense)),
             window = weekWindow(),
-            driverName = "Khaidar Safarov",
+            driverName = "Alex Morgan",
             periodLabel = "Week 47",
             generatedOn = generated,
             locale = Locale.US,
