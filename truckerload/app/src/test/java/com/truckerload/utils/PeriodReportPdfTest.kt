@@ -8,9 +8,13 @@ import com.truckerload.domain.report.PeriodReportDraft
 import com.truckerload.domain.report.PeriodReportLabels
 import com.truckerload.domain.report.PeriodReportLoadDraft
 import com.truckerload.domain.report.PeriodReportNumbers
-import com.truckerload.domain.report.ReportLine
+import com.itextpdf.kernel.pdf.PdfDocument
+import com.itextpdf.kernel.pdf.PdfReader
+import com.truckerload.domain.report.PeriodReportPdfLabels
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.io.ByteArrayInputStream
 import java.io.File
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -19,43 +23,62 @@ import java.util.Locale
 class PeriodReportPdfTest {
 
     @Test
-    fun pdf_embedsTextInContractOrder_includingCyrillic() {
+    fun pdf_isAStatementTable_withoutDeductions_andKeepsPlainText() {
         val report = sampleReport()
         val (regular, bold) = fonts()
         val bytes = PeriodReportPdf.render(report, regular, bold)
-        assertTrue(bytes.size > 4)
         assertEqualsPdf(bytes)
         val text = PdfTextLayerExtractor.extract(bytes)
-        assertBefore(text, "TruckoRig", "Period report")
-        assertBefore(text, "Driver", "Khaidar Safarov")
-        assertBefore(text, "Summary", "Gross")
-        assertBefore(text, "T-116KYL6KW", "T-220")
-        assertTrue(text.contains("Garner, NC"))
-        assertTrue(text.contains("Dallas, TX"))
+        assertBefore(text, "Northline Freight", "Alex Morgan")
+        assertBefore(text, "Load Report", "DEMO-1001")
+        assertBefore(text, "DEMO-1001", "DEMO-1002")
+        assertTrue(text.contains("Boise, ID"))
+        assertTrue(text.contains("Denver, CO"))
+        assertTrue(text.contains("Origin"))
+        assertTrue(text.contains("Ship date"))
+        assertTrue(text.contains("Total"))
+        assertTrue(text.contains("Loads total"))
+        assertTrue(text.contains("Gross total"))
+        assertTrue(text.contains("Miles total"))
+        assertFalse(text.contains("Fuel"))
+        assertFalse(text.contains("Expense"))
+        assertFalse(text.contains("IFTA"))
+        assertFalse(text.contains("Deduction"))
+        assertFalse(text.contains("LIABILITY"))
+        assertTrue(report.plainText.contains("Fuel:"))
         val outDir = File("build/period-report-sample")
         outDir.mkdirs()
-        File(outDir, "period-report-en.pdf").writeBytes(bytes)
-        File(outDir, "period-report-en.txt").writeText(report.plainText)
+        File(outDir, "load-report-en.pdf").writeBytes(bytes)
+        File(outDir, "load-report-en.txt").writeText(report.plainText)
         val russian = report.copy(
-            title = "Отчёт за период",
-            header = listOf(
-                ReportLine("Водитель", "Хайдар Сафаров"),
-                ReportLine("Период", "Неделя 47 · 15 нояб. 2026 – 21 нояб. 2026"),
-                ReportLine("Сформирован", "21 нояб. 2026"),
-            ),
-            summaryTitle = "Итоги",
-            plainText = report.plainText
-                .replace("Period report", "Отчёт за период")
-                .replace("Driver:", "Водитель:")
-                .replace("Khaidar Safarov", "Хайдар Сафаров"),
+            driverName = "Алексей Морозов",
+            companyName = "Северная линия",
+            pdf = russianLabels(),
         )
         val russianBytes = PeriodReportPdf.render(russian, regular, bold)
         val russianText = PdfTextLayerExtractor.extract(russianBytes)
-        assertTrue(russianText.contains("Водитель"))
-        assertTrue(russianText.contains("Хайдар Сафаров"))
-        assertTrue(russianText.contains("Итоги"))
-        File(outDir, "period-report-ru.txt").writeText(russian.plainText)
-        File(outDir, "period-report-ru.pdf").writeBytes(russianBytes)
+        assertTrue(russianText.contains("Отчёт по грузам"))
+        assertTrue(russianText.contains("Алексей Морозов"))
+        assertTrue(russianText.contains("Откуда"))
+        assertFalse(russianText.contains("IFTA"))
+        File(outDir, "load-report-ru.pdf").writeBytes(russianBytes)
+    }
+
+    @Test
+    fun longTable_repeatsTheHeaderOnTheNextPage() {
+        val base = sampleReport()
+        val rows = (1..40).map { index ->
+            base.statementRows.first().copy(reference = "DEMO-${1000 + index}")
+        }
+        val report = base.copy(statementRows = rows, totals = base.totals.copy(loadCount = rows.size))
+        val (regular, bold) = fonts()
+        val bytes = PeriodReportPdf.render(report, regular, bold)
+        PdfDocument(PdfReader(ByteArrayInputStream(bytes))).use { doc ->
+            assertTrue("expected a second page", doc.numberOfPages >= 2)
+        }
+        val text = PdfTextLayerExtractor.extract(bytes)
+        assertTrue(text.split("Origin").size - 1 >= 2)
+        assertFalse(text.contains("IFTA"))
     }
 
     @Test
@@ -122,12 +145,13 @@ class PeriodReportPdfTest {
             equipmentNames = mapOf(EquipmentType.DRY_VAN to "Dry Van"),
         )
         val loads = listOf(
-            draft("b", "2026-11-18", "T-220", "Charlotte, NC", "Atlanta, GA", 420.0, 0.0, 1080.0, "Nov 18, 2026"),
-            draft("a", "2026-11-16", "T-116KYL6KW", "Garner, NC", "Dallas, TX", 300.0, 31.0, 891.0, "Nov 16, 2026"),
+            draft("b", "2026-11-18", "DEMO-1002", "Denver, CO", "Omaha, NE", 420.0, 0.0, 1080.0, "Nov 18, 2026"),
+            draft("a", "2026-11-16", "DEMO-1001", "Boise, ID", "Denver, CO", 300.0, 31.0, 891.0, "Nov 16, 2026"),
         )
         return PeriodReportBuilder.build(
             PeriodReportDraft(
-                driverName = "Khaidar Safarov",
+                driverName = "Alex Morgan",
+                companyName = "Northline Freight",
                 periodLabel = "Week 47 · Nov 15, 2026 – Nov 21, 2026",
                 generatedOn = LocalDate.of(2026, 11, 21),
                 locale = Locale.US,
@@ -165,16 +189,38 @@ class PeriodReportPdfTest {
             pickup = pickup,
             delivery = delivery,
             reference = trip,
+            shipOn = LocalDate.parse(sortDate),
+            deliverOn = LocalDate.parse(sortDate),
             loadedMiles = loaded,
             emptyMiles = empty,
             rate = money,
             rpm = money.cents / 100.0 / driven,
-            equipment = if (trip.startsWith("T-116")) "Dry Van" else "",
+            equipment = "",
             status = "",
-            notes = if (trip.startsWith("T-220")) "Lumper paid" else "",
+            notes = "",
             penalties = Money.ZERO,
         )
     }
+
+    private fun russianLabels() = PeriodReportPdfLabels(
+        title = "Отчёт по грузам",
+        period = "Период",
+        reportDate = "Дата отчёта",
+        loadNumber = "№ груза",
+        origin = "Откуда",
+        destination = "Куда",
+        shipDate = "Погрузка",
+        deliveryDate = "Выгрузка",
+        miles = "Мили",
+        gross = "Выручка",
+        ratePerMile = "Ставка/ми",
+        total = "Итого",
+        summary = "Итоги",
+        loadsTotal = "Всего грузов",
+        grossTotal = "Выручка всего",
+        milesTotal = "Всего миль",
+        avgRate = "Ставка за милю",
+    )
 
     private fun fonts(): Pair<ByteArray, ByteArray> {
         var dir: File? = listOf(

@@ -41,6 +41,10 @@ import java.time.LocalDate
  * 9. Status — dispute open / dispute closed, omitted otherwise
  * 10. Notes — stop notes, then penalties, then a dispute amount
  *
+ * The PDF is a separate letter-size statement: one striped table (load number, origin,
+ * destination, ship date, delivery date, miles, gross, rate per mile) and a short
+ * summary. It does not include fuel, expenses, penalties, goal, or carrier deductions.
+ * The app has no driver pay percent, so the PDF has no pay-percent or net-pay column.
  * There is no broker or customer name on the load. Do not invent one.
  * Distance and volume follow the in-app unit setting (miles/km, gallons/liters).
  * Fuel on a week report is the diesel stored for that reporting week.
@@ -54,6 +58,39 @@ data class ReportLoad(
     val number: Int,
     val heading: String,
     val rows: List<ReportLine>,
+)
+
+/** One printable statement row. Miles are loaded plus empty, so rate × miles matches gross. */
+data class PeriodReportStatementRow(
+    val reference: String,
+    val origin: String,
+    val destination: String,
+    val shipDate: String,
+    val deliveryDate: String,
+    val miles: String,
+    val gross: String,
+    val ratePerMile: String,
+)
+
+/** Column titles for the PDF statement. Plain text does not use these. */
+data class PeriodReportPdfLabels(
+    val title: String,
+    val period: String,
+    val reportDate: String,
+    val loadNumber: String,
+    val origin: String,
+    val destination: String,
+    val shipDate: String,
+    val deliveryDate: String,
+    val miles: String,
+    val gross: String,
+    val ratePerMile: String,
+    val total: String,
+    val summary: String,
+    val loadsTotal: String,
+    val grossTotal: String,
+    val milesTotal: String,
+    val avgRate: String,
 )
 
 data class PeriodReportTotals(
@@ -84,6 +121,13 @@ data class PeriodReport(
     val footer: String,
     val totals: PeriodReportTotals,
     val plainText: String,
+    val driverName: String = "",
+    val companyName: String = "",
+    val statementRows: List<PeriodReportStatementRow> = emptyList(),
+    val statementMilesTotal: String = "",
+    val statementGrossTotal: String = "",
+    val statementAvgRate: String = "",
+    val pdf: PeriodReportPdfLabels = englishPdfLabels(),
 )
 
 data class PeriodReportLabels(
@@ -124,6 +168,27 @@ data class PeriodReportLabels(
     val disputeAmount: String,
     val footer: String,
     val equipmentNames: Map<EquipmentType, String> = emptyMap(),
+    val pdf: PeriodReportPdfLabels = englishPdfLabels(),
+)
+
+internal fun englishPdfLabels() = PeriodReportPdfLabels(
+    title = "Load Report",
+    period = "Period",
+    reportDate = "Report date",
+    loadNumber = "Load #",
+    origin = "Origin",
+    destination = "Destination",
+    shipDate = "Ship date",
+    deliveryDate = "Delivery",
+    miles = "Miles",
+    gross = "Gross",
+    ratePerMile = "Rate/mi",
+    total = "Total",
+    summary = "Summary",
+    loadsTotal = "Loads total",
+    grossTotal = "Gross total",
+    milesTotal = "Miles total",
+    avgRate = "Avg rate per mile",
 )
 
 data class PeriodReportPeriodTemplates(

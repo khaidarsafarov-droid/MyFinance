@@ -2,6 +2,9 @@ package com.truckerload.domain.report
 
 import com.truckerload.domain.money.Money
 import com.truckerload.domain.money.sum
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 import java.util.Locale
 import kotlin.math.roundToInt
 
@@ -58,6 +61,20 @@ object PeriodReportBuilder {
                 rows = loadRows(load, labels, numbers, draft.locale),
             )
         }
+        val shortDate = DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT).withLocale(draft.locale)
+        val statementRows = ordered.map { load ->
+            val driven = load.loadedMiles + load.emptyMiles
+            PeriodReportStatementRow(
+                reference = load.reference.ifBlank { PERIOD_REPORT_EMPTY_VALUE },
+                origin = load.pickup.ifBlank { PERIOD_REPORT_EMPTY_VALUE },
+                destination = load.delivery.ifBlank { PERIOD_REPORT_EMPTY_VALUE },
+                shipDate = load.shipOn.toShort(shortDate),
+                deliveryDate = load.deliverOn.toShort(shortDate),
+                miles = compactMiles(driven),
+                gross = numbers.money(load.rate),
+                ratePerMile = load.rpm?.let { numbers.rpm(it) } ?: PERIOD_REPORT_EMPTY_VALUE,
+            )
+        }
         val emptyLoads = if (blocks.isEmpty()) labels.emptyLoads else null
         val report = PeriodReport(
             appName = labels.appName,
@@ -71,9 +88,26 @@ object PeriodReportBuilder {
             footer = labels.footer,
             totals = totals,
             plainText = "",
+            driverName = draft.driverName,
+            companyName = draft.companyName,
+            statementRows = statementRows,
+            statementMilesTotal = compactMiles(totalMiles),
+            statementGrossTotal = numbers.money(gross),
+            statementAvgRate = if (totalMiles > 0.0) numbers.rpm(avgRpm) else PERIOD_REPORT_EMPTY_VALUE,
+            pdf = labels.pdf,
         )
         return report.copy(plainText = renderText(report))
     }
+
+    private fun LocalDate?.toShort(format: DateTimeFormatter): String =
+        this?.format(format)?.ifBlank { null } ?: PERIOD_REPORT_EMPTY_VALUE
+
+    private fun compactMiles(value: Double): String =
+        if (value % 1.0 == 0.0) {
+            String.format(Locale.US, "%,.0f", value)
+        } else {
+            String.format(Locale.US, "%,.1f", value)
+        }
 
     private fun summaryLines(
         totals: PeriodReportTotals,

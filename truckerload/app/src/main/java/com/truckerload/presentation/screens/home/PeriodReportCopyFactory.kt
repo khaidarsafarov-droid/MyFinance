@@ -5,6 +5,7 @@ import com.truckerload.R
 import com.truckerload.domain.model.EquipmentType
 import com.truckerload.domain.report.PeriodReportLabels
 import com.truckerload.domain.report.PeriodReportNumbers
+import com.truckerload.domain.report.PeriodReportPdfLabels
 import com.truckerload.domain.report.PeriodReportPeriodTemplates
 import com.truckerload.domain.units.DisplayUnits
 import com.truckerload.domain.units.MeasurementUnits
@@ -51,6 +52,25 @@ internal fun periodReportLabels(app: Application): PeriodReportLabels = PeriodRe
     disputeAmount = app.getString(R.string.period_report_dispute_amount),
     footer = app.getString(R.string.period_report_footer),
     equipmentNames = EquipmentType.entries.associateWith { app.getString(it.labelRes()) },
+    pdf = PeriodReportPdfLabels(
+        title = app.getString(R.string.period_report_pdf_title),
+        period = app.getString(R.string.period_report_period),
+        reportDate = app.getString(R.string.period_report_pdf_date),
+        loadNumber = app.getString(R.string.period_report_col_load),
+        origin = app.getString(R.string.period_report_col_origin),
+        destination = app.getString(R.string.period_report_col_destination),
+        shipDate = app.getString(R.string.period_report_col_ship),
+        deliveryDate = app.getString(R.string.period_report_col_delivery),
+        miles = app.getString(R.string.period_report_col_miles),
+        gross = app.getString(R.string.period_report_col_gross),
+        ratePerMile = app.getString(R.string.period_report_col_rpm),
+        total = app.getString(R.string.period_report_col_total),
+        summary = app.getString(R.string.period_report_pdf_summary),
+        loadsTotal = app.getString(R.string.period_report_loads_total),
+        grossTotal = app.getString(R.string.period_report_gross_total),
+        milesTotal = app.getString(R.string.period_report_miles_total),
+        avgRate = app.getString(R.string.period_report_avg_rate),
+    ),
 )
 
 internal fun periodReportTemplates(app: Application): PeriodReportPeriodTemplates = PeriodReportPeriodTemplates(

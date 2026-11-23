@@ -17,6 +17,8 @@ data class PeriodReportLoadDraft(
     val pickup: String,
     val delivery: String,
     val reference: String,
+    val shipOn: LocalDate? = null,
+    val deliverOn: LocalDate? = null,
     val loadedMiles: Double,
     val emptyMiles: Double,
     val rate: Money,
@@ -29,6 +31,7 @@ data class PeriodReportLoadDraft(
 
 data class PeriodReportDraft(
     val driverName: String,
+    val companyName: String = "",
     val periodLabel: String,
     val generatedOn: LocalDate,
     val locale: Locale,
@@ -49,6 +52,7 @@ object PeriodReportAssembler {
         expenses: List<MiscExpense>,
         window: PeriodReportWindow,
         driverName: String,
+        companyName: String = "",
         periodLabel: String,
         generatedOn: LocalDate,
         locale: Locale,
@@ -60,6 +64,7 @@ object PeriodReportAssembler {
         val expenseRows = expenses.filter { it.belongsTo(window) }
         return PeriodReportDraft(
             driverName = driverName.trim(),
+            companyName = companyName.trim(),
             periodLabel = periodLabel,
             generatedOn = generatedOn,
             locale = locale,
@@ -98,6 +103,8 @@ object PeriodReportAssembler {
             pickup = firstPuCityState.ifBlank { pointA }.trim(),
             delivery = lastDelCityState.ifBlank { pointB }.trim(),
             reference = tripId.trim(),
+            shipOn = start,
+            deliverOn = finish,
             loadedMiles = loaded,
             emptyMiles = empty,
             rate = totalRate,

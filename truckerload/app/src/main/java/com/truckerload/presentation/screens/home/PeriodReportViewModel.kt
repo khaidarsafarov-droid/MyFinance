@@ -8,6 +8,8 @@ import com.truckerload.data.preferences.WeeklyProfitGoalStore
 import com.truckerload.data.repository.DieselRepository
 import com.truckerload.data.repository.LoadRepository
 import com.truckerload.data.repository.MiscExpenseRepository
+import com.truckerload.data.repository.account.DriverProfessionalRepository
+import com.truckerload.di.UserId
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.money.Money
 import com.truckerload.domain.report.PeriodReportAssembler
@@ -38,6 +40,8 @@ class PeriodReportViewModel @Inject constructor(
     private val loadRepository: LoadRepository,
     private val dieselRepository: DieselRepository,
     private val expenseRepository: MiscExpenseRepository,
+    private val professionalRepository: DriverProfessionalRepository,
+    @param:UserId private val userId: String,
     private val goalStore: WeeklyProfitGoalStore,
     private val app: Application,
 ) : ViewModel() {
@@ -94,6 +98,7 @@ class PeriodReportViewModel @Inject constructor(
             expenses = if (window.includeExpenses) expenseRepository.getAllOnce() else emptyList(),
             window = window,
             driverName = driverName,
+            companyName = companyName(),
             periodLabel = periodLabel,
             generatedOn = LocalDate.now(),
             locale = locale,
@@ -127,6 +132,10 @@ class PeriodReportViewModel @Inject constructor(
             }
         }
     }
+
+    private suspend fun companyName(): String = runCatching {
+        professionalRepository.getOwn(userId)?.companyName?.trim().orEmpty()
+    }.getOrDefault("")
 
     private suspend fun loadsFor(window: PeriodReportWindow): List<Load> = when (window.kind) {
         PeriodReportKind.WEEK ->
