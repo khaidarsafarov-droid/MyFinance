@@ -4,6 +4,8 @@ import android.app.Application
 import android.content.Context
 import android.os.StrictMode
 import android.util.Log
+import com.truckerload.data.repository.JournalWriteEffects
+import com.truckerload.sync.AppJournalWriteEffects
 import com.truckerload.sync.MaintenanceReminderCoordinator
 import com.truckerload.utils.DirectBoot
 import java.util.concurrent.atomic.AtomicBoolean
@@ -98,6 +100,9 @@ class TruckerLoadApp : Application(), Configuration.Provider {
         }
         val wrapped = if (DirectBoot.isUserUnlocked(base)) AppLocale.wrap(base) else base
         super.attachBaseContext(wrapped)
+        // Before any repository can write: journal writes refresh widgets, queue
+        // backups and re-plan reminders through the app, not from data/.
+        JournalWriteEffects.install(AppJournalWriteEffects(this))
     }
 
     override fun onCreate() {

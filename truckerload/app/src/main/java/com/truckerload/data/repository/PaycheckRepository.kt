@@ -6,7 +6,6 @@ import com.truckerload.data.local.toEntity
 import com.truckerload.domain.model.JournalSyncClock
 import com.truckerload.domain.model.Paycheck
 import com.truckerload.domain.store.PaycheckStore
-import com.truckerload.utils.BackupService
 import com.truckerload.utils.PaycheckSourceFiles
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -14,7 +13,10 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 
-class PaycheckRepository(private val db: AppDatabase) : PaycheckStore {
+class PaycheckRepository(
+    private val db: AppDatabase,
+    private val effects: JournalWriteEffects = JournalWriteEffects.Installed,
+) : PaycheckStore {
 
     private val dao = db.paycheckDao()
 
@@ -72,13 +74,7 @@ class PaycheckRepository(private val db: AppDatabase) : PaycheckStore {
         dao.insertAll(updated.map { it.toEntity() })
     }
 
-    private fun scheduleAutoBackup() {
-        AppDatabase.hostContext()?.let { BackupService.scheduleCreateAutoBackup(it) }
-    }
+    private fun scheduleAutoBackup() = effects.onBackupWorthyWrite()
 
-    private fun notifyWidgetDataChanged() {
-        AppDatabase.hostContext()?.let {
-            com.truckerload.widget.WidgetDataUpdater.updateWidgetData(it)
-        }
-    }
+    private fun notifyWidgetDataChanged() = effects.onDataChanged()
 }
