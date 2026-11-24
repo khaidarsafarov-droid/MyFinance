@@ -43,29 +43,21 @@ class MultiUserIsolationInstrumentedTest {
 
     @Test
     fun loadsStayIsolatedAcrossUsers() = runBlocking {
-        val auth = AuthStore(context)
-        auth.login(userA, "a@smoke.test", rememberMe = true)
-
+        // Room files are keyed by userId; open them directly so this does not
+        // depend on AuthStore keeping a single active device profile.
         val dbA = AppDatabase.getInstance(context, userA)
         dbA.loadDao().insert(sampleLoad(id = "load-a", tripId = "TRIP-A"))
-        assertEquals(1, dbA.loadDao().getAllLoadsOnce().size)
+        assertEquals(listOf("TRIP-A"), dbA.loadDao().getAllLoadsOnce().map { it.tripId })
         assertTrue(context.getDatabasePath(AppDatabase.databaseNameFor(userA)).exists())
 
         AppDatabase.closeCurrent()
-        auth.logout()
-        assertNull(auth.currentUserIdOrNull())
-        assertNull(AppDatabase.getInstanceForActiveUser(context))
-
-        auth.login(userB, "b@smoke.test", rememberMe = true)
-        val dbB = AppDatabase.getInstanceForActiveUser(context)!!
-        assertEquals(userB, AppDatabase.currentUserIdOrNull())
+        val dbB = AppDatabase.getInstance(context, userB)
         assertEquals(0, dbB.loadDao().getAllLoadsOnce().size)
         dbB.loadDao().insert(sampleLoad(id = "load-b", tripId = "TRIP-B"))
         assertEquals(listOf("TRIP-B"), dbB.loadDao().getAllLoadsOnce().map { it.tripId })
 
         AppDatabase.closeCurrent()
-        auth.login(userA, "a@smoke.test", rememberMe = true)
-        val dbAAgain = AppDatabase.getInstanceForActiveUser(context)!!
+        val dbAAgain = AppDatabase.getInstance(context, userA)
         assertEquals(listOf("TRIP-A"), dbAAgain.loadDao().getAllLoadsOnce().map { it.tripId })
 
         assertNotEquals(
@@ -74,6 +66,38 @@ class MultiUserIsolationInstrumentedTest {
         )
         assertTrue(context.getDatabasePath(AppDatabase.databaseNameFor(userA)).exists())
         assertTrue(context.getDatabasePath(AppDatabase.databaseNameFor(userB)).exists())
+    }
+
+    @Test
+    fun loginAfterLogout_opensTheRequestedUserFile() = runBlocking {
+        val auth = AuthStore(context)
+        auth.login(userA, "a@smoke.test", rememberMe = true)
+        AppDatabase.getInstanceForActiveUser(context)!!
+            .loadDao()
+            .insert(sampleLoad(id = "load-a", tripId = "TRIP-A"))
+
+        AppDatabase.closeCurrent()
+        auth.logout()
+        assertNull(auth.currentUserIdOrNull())
+        assertNull(AppDatabase.getInstanceForActiveUser(context))
+
+        auth.login(userB, "b@smoke.test", rememberMe = true)
+        val dbB = AppDatabase.getInstanceForActiveUser(context)!!
+        assertEquals(userB, auth.currentUserIdOrNull())
+        assertEquals(0, dbB.loadDao().getAllLoadsOnce().size)
+        dbB.loadDao().insert(sampleLoad(id = "load-b", tripId = "TRIP-B"))
+
+        // A second login while the device profile is still active keeps the
+        // current id; isolation is recovered only after logout.
+        auth.login(userA, "a@smoke.test", rememberMe = true)
+        assertEquals(userB, auth.currentUserIdOrNull())
+
+        AppDatabase.closeCurrent()
+        auth.logout()
+        auth.login(userA, "a@smoke.test", rememberMe = true)
+        val dbAAgain = AppDatabase.getInstanceForActiveUser(context)!!
+        assertEquals(userA, auth.currentUserIdOrNull())
+        assertEquals(listOf("TRIP-A"), dbAAgain.loadDao().getAllLoadsOnce().map { it.tripId })
     }
 
     @Test
