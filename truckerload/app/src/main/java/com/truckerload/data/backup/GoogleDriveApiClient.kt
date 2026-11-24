@@ -33,7 +33,7 @@ import java.util.concurrent.TimeUnit
 class GoogleDriveApiClient(
     private val appContext: Context,
     private val prefs: GoogleDriveBackupPrefs = GoogleDriveBackupPrefs(appContext),
-) {
+) : DriveRemoteStore {
     private val client = OkHttpClient.Builder()
         .connectTimeout(20, TimeUnit.SECONDS)
         .readTimeout(60, TimeUnit.SECONDS)
@@ -50,7 +50,7 @@ class GoogleDriveApiClient(
     fun lastSignedInAccount(): GoogleSignInAccount? =
         GoogleSignIn.getLastSignedInAccount(appContext)
 
-    suspend fun uploadBackupJson(json: String): Result<Unit> = withContext(Dispatchers.IO) {
+    override suspend fun uploadBackupJson(json: String): Result<Unit> = withContext(Dispatchers.IO) {
         withRetry {
             val token = accessToken()
             val existing = findBackupFileMeta(token)
@@ -69,7 +69,7 @@ class GoogleDriveApiClient(
         }
     }
 
-    suspend fun downloadBackupJson(): Result<String> = withContext(Dispatchers.IO) {
+    override suspend fun downloadBackupJson(): Result<String> = withContext(Dispatchers.IO) {
         withRetry {
             val token = accessToken()
             val meta = findBackupFileMeta(token)
@@ -88,7 +88,7 @@ class GoogleDriveApiClient(
      */
     suspend fun probeRemoteBackup(): Result<Boolean> = refreshRemoteBackup()
 
-    suspend fun refreshRemoteBackup(): Result<Boolean> = withContext(Dispatchers.IO) {
+    override suspend fun refreshRemoteBackup(): Result<Boolean> = withContext(Dispatchers.IO) {
         com.truckerload.utils.runCatchingCancellable {
             val token = accessToken()
             val meta = findBackupFileMeta(token)
