@@ -102,7 +102,7 @@ class MultiUserIsolationInstrumentedTest {
         id = id,
         tripId = tripId,
         date = "2026-07-20",
-        totalRate = 2500.0,
+        totalRate = 250_000L, // $2,500 in cents
         totalMiles = 850.0,
         pointA = "Garner, NC",
         pointB = "Dallas, TX",
