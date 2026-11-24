@@ -15,3 +15,9 @@ data class WeeklyLoadStatsAgg(
     /** Cents. */
     val totalRevenue: Long,
 )
+
+/** ТО miles counted since a service day. See [com.truckerload.data.local.dao.LoadDao.sumServiceMiles]. */
+data class ServiceMilesAgg(
+    val miles: Long,
+    val loadCount: Int,
+)

@@ -35,7 +35,7 @@ object MaintenanceMileageUseCase {
     private val iso = DateTimeFormatter.ISO_LOCAL_DATE
 
     /** Ignore single-load outliers (corrupt / non-mile values). */
-    private const val MAX_PLAUSIBLE_LOAD_MILES = 15_000L
+    const val MAX_PLAUSIBLE_LOAD_MILES = 15_000L
 
     data class LoadInput(
         val tripId: String,
@@ -125,6 +125,44 @@ object MaintenanceMileageUseCase {
             loadCount++
         }
 
+        return snapshot(baseOdometer, targetInterval, ServiceMiles(totalDrivenMiles, loadCount))
+    }
+
+    /** Miles counted since a service day and how many loads gave them. */
+    data class ServiceMiles(val miles: Long, val loadCount: Int)
+
+    /**
+     * The window [calculate] counts in, as values a SQL aggregate can bind.
+     * A load counts when its end date is in [serviceDate]..[endCapIso]. A load whose end
+     * comes from [LoadInput.lastDelMillis] counts when that instant is in
+     * [startMillis] (inclusive) .. [endMillisExclusive].
+     */
+    data class ServiceWindow(
+        val serviceDate: String,
+        val endCapIso: String,
+        val startMillis: Long,
+        val endMillisExclusive: Long,
+        val maxLoadMiles: Long = MAX_PLAUSIBLE_LOAD_MILES,
+    )
+
+    fun serviceWindow(
+        serviceDate: String,
+        today: LocalDate = LocalDate.now(),
+        zoneId: ZoneId = ZoneId.systemDefault(),
+    ): ServiceWindow {
+        val service = serviceDate.take(10)
+        val cap = inclusiveEndDateCap(today)
+        val start = runCatching { LocalDate.parse(service, iso) }.getOrNull()
+            ?.atStartOfDay(zoneId)?.toInstant()?.toEpochMilli()
+            ?: Long.MAX_VALUE
+        val end = runCatching { LocalDate.parse(cap, iso) }.getOrNull()
+            ?.plusDays(1)?.atStartOfDay(zoneId)?.toInstant()?.toEpochMilli()
+            ?: Long.MIN_VALUE
+        return ServiceWindow(service, cap, start, end)
+    }
+
+    fun snapshot(baseOdometer: Long, targetInterval: Long, counted: ServiceMiles): MileageSnapshot {
+        val totalDrivenMiles = counted.miles.coerceAtLeast(0L)
         val safeBase = baseOdometer.coerceAtLeast(0L)
         val safeInterval = targetInterval.coerceAtLeast(0L)
         val targetOdometer = safeBase + safeInterval
@@ -143,7 +181,7 @@ object MaintenanceMileageUseCase {
             currentOdometer = currentOdometer,
             remainingMiles = remainingMiles,
             milesSinceService = totalDrivenMiles,
-            loadCount = loadCount,
+            loadCount = counted.loadCount,
             isUrgent = isUrgent,
             progressFraction = progressFraction,
         )
@@ -154,17 +192,29 @@ object MaintenanceMileageUseCase {
         loads: List<LoadInput>,
         today: LocalDate = LocalDate.now(),
     ): MaintenanceProgress {
+        val counted = if (task.reminderType == MaintenanceReminderType.MILES) {
+            val snap = calculate(0L, 0L, task.startDate, loads, today)
+            ServiceMiles(snap.milesSinceService, snap.loadCount)
+        } else {
+            ServiceMiles(0L, 0)
+        }
+        return progressForTask(task, counted, today)
+    }
+
+    /**
+     * Same result as the list overload when [counted] is the SQL sum over
+     * [serviceWindow] for this task. DATE tasks ignore [counted].
+     */
+    fun progressForTask(
+        task: MaintenanceTask,
+        counted: ServiceMiles,
+        today: LocalDate = LocalDate.now(),
+    ): MaintenanceProgress {
         return when (task.reminderType) {
             MaintenanceReminderType.MILES -> {
                 val base = (task.odometerAtStart ?: 0.0).roundToLong().coerceAtLeast(0L)
                 val interval = (task.intervalMiles ?: 0.0).roundToLong().coerceAtLeast(0L)
-                val snap = calculate(
-                    baseOdometer = base,
-                    targetInterval = interval,
-                    serviceDate = task.startDate,
-                    loads = loads,
-                    today = today,
-                )
+                val snap = snapshot(base, interval, counted)
                 MaintenanceProgress(
                     task = task,
                     milesDrivenSinceStart = snap.milesSinceService.toDouble(),
