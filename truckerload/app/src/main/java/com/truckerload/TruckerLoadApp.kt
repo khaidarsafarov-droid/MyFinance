@@ -65,6 +65,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import android.widget.Toast
+import com.truckerload.utils.PdfBox
 
 @HiltAndroidApp
 class TruckerLoadApp : Application(), Configuration.Provider {
@@ -108,6 +109,7 @@ class TruckerLoadApp : Application(), Configuration.Provider {
     override fun onCreate() {
         super.onCreate()
         enableMainThreadStrictMode()
+        PdfBox.init(this)
         if (DirectBoot.isUserUnlocked(this)) {
             startAfterUnlock()
         }
