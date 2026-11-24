@@ -19,8 +19,8 @@ datastore = "1.1.7"
 gson = "2.11.0"
 room = "2.7.0"
 hilt = "2.60.1"
-# 1.4.0 requires compileSdk 37 (now available). Keep 1.2.0 until that bump lands.
-androidxHilt = "1.2.0"
+# 1.4.0 requires compileSdk 37, which this project now uses.
+androidxHilt = "1.4.0"
 paging = "3.3.6"
 work = "2.10.5"
 desugar = "2.1.4"
