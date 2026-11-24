@@ -55,11 +55,20 @@ class TelegramBotNoFgsContractGuardTest {
     }
 
     @Test
-    fun leavingTheApp_doesNotStopThePoller() {
+    fun leavingTheApp_keepsThePollerForAGracePeriod() {
         val src = readMain("TruckerLoadApp.kt")
         val onStop = src.substringAfter("override fun onStop").substringBefore("private fun initializeCrashReporting")
         assertFalse(onStop.contains("TelegramBotPoller.stop"))
         assertTrue(onStop.contains("enqueueFollowUp"))
+        val handOff = onStop.substringAfter("delay(TelegramBotPoller.BACKGROUND_GRACE_MS)")
+        assertTrue(handOff.trimStart().startsWith("TelegramBotPoller.handOffToWorker"))
+        val onStart = src.substringAfter("override fun onStart").substringBefore("override fun onStop")
+        assertTrue(onStart.contains("backgroundPollHandOff?.cancel()"))
+    }
+
+    @Test
+    fun backgroundGrace_coversASwitchToTelegram() {
+        assertTrue(TelegramBotForegroundService.BACKGROUND_GRACE_MS >= 5 * 60 * 1000L)
     }
 
     private fun readMain(relativePath: String): String {
