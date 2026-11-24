@@ -24,7 +24,6 @@ import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.Stop
 import com.truckerload.domain.model.normalizeTripId
 import com.truckerload.domain.parser.StopsHasher
-import com.truckerload.sync.MaintenanceReminderCoordinator
 import com.truckerload.utils.dateStringToEndOfDayMillis
 import com.truckerload.utils.dateStringToStartOfDayMillis
 import com.truckerload.utils.TruckingWeekTicker
@@ -34,12 +33,10 @@ import com.truckerload.utils.getLastDeliveryMillis
 import com.truckerload.domain.goal.LoadYieldCalculator
 import com.truckerload.domain.model.withRouteMetrics
 import com.truckerload.utils.withReportingWeek
-import com.truckerload.utils.BackupService
 import com.truckerload.utils.FeedbackManager
 import com.truckerload.utils.formatDateFromUnixSeconds
 import com.truckerload.utils.LoadDateRepair
 import com.truckerload.domain.parser.ParseUtils
-import com.truckerload.widget.WidgetDataUpdater
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -54,6 +51,7 @@ import java.util.concurrent.atomic.AtomicInteger
 @OptIn(ExperimentalCoroutinesApi::class)
 class LoadRepository(
     private val db: AppDatabase,
+    private val effects: JournalWriteEffects = JournalWriteEffects.Installed,
 ) {
 
     private val loadDao = db.loadDao()
@@ -528,15 +526,13 @@ class LoadRepository(
 
     private fun notifyWidgetDataChanged() {
         if (writeBatchDepth.get() > 0) return
-        AppDatabase.hostContext()?.let { WidgetDataUpdater.updateWidgetData(it) }
+        effects.onDataChanged()
     }
 
     private fun scheduleAutoBackup() {
         if (writeBatchDepth.get() > 0) return
-        AppDatabase.hostContext()?.let { context ->
-            BackupService.scheduleCreateAutoBackup(context)
-            MaintenanceReminderCoordinator.enqueue(context)
-        }
+        effects.onBackupWorthyWrite()
+        effects.onMileageInputsChanged()
     }
 
     /**

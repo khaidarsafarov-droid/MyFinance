@@ -8,8 +8,6 @@ import com.truckerload.domain.maintenance.MaintenanceProgressCalculator
 import com.truckerload.domain.model.MaintenanceArchiveEntry
 import com.truckerload.domain.model.MaintenanceProgress
 import com.truckerload.domain.model.MaintenanceTask
-import com.truckerload.sync.MaintenanceReminderCoordinator
-import com.truckerload.utils.BackupService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -19,6 +17,7 @@ import java.time.LocalDate
 
 class MaintenanceRepository(
     private val db: AppDatabase,
+    private val effects: JournalWriteEffects = JournalWriteEffects.Installed,
 ) {
     private val dao = db.maintenanceDao()
     private val loadDao = db.loadDao()
@@ -133,9 +132,7 @@ class MaintenanceRepository(
     }
 
     private fun scheduleAutoBackup() {
-        AppDatabase.hostContext()?.let { context ->
-            BackupService.scheduleCreateAutoBackup(context)
-            MaintenanceReminderCoordinator.enqueue(context)
-        }
+        effects.onBackupWorthyWrite()
+        effects.onMileageInputsChanged()
     }
 }
