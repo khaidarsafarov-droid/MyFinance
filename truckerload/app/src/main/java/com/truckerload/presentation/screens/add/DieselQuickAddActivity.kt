@@ -21,6 +21,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 import com.truckerload.BuildConfig
+import com.truckerload.data.local.DatabaseStartup
 import com.truckerload.data.preferences.AccountIds
 import com.truckerload.data.preferences.AuthStore
 import com.truckerload.di.UserComponentManager
@@ -85,6 +86,15 @@ class DieselQuickAddActivity : AppCompatActivity() {
             }
         }
         lifecycleScope.launch {
+            if (!DatabaseStartup.awaitReadyOrFalse()) {
+                startActivity(
+                    Intent(this@DieselQuickAddActivity, MainActivity::class.java).apply {
+                        flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                    },
+                )
+                finish()
+                return@launch
+            }
             authStore.awaitReady()
             val userId = resolveUserId()
             if (userId == null) {
