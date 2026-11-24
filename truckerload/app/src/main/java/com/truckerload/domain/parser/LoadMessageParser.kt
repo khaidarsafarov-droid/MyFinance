@@ -11,7 +11,7 @@ import java.util.Locale
  * Regex/FSM-based parser for Amazon Relay and similar load messages.
  * Supports multiple PU/DEL legs per trip (PU# blocks).
  */
-object LoadMessageParser {
+internal object LoadMessageParser {
 
     private val tripIdPatterns = listOf(
         Regex("""Trip\s*ID\s*[:\|]?\s*(T-[A-Z0-9]+)""", RegexOption.IGNORE_CASE),

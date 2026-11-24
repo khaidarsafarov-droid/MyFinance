@@ -133,7 +133,7 @@ class MaintenanceRepository(
     }
 
     private fun scheduleAutoBackup() {
-        AppDatabase.applicationContext()?.let { context ->
+        AppDatabase.hostContext()?.let { context ->
             BackupService.scheduleCreateAutoBackup(context)
             MaintenanceReminderCoordinator.enqueue(context)
         }

@@ -9,7 +9,7 @@ import java.util.Locale
  * [parseOne] requires a positive rate and at least one pickup or delivery address.
  * [extractFields] fills whatever it can so the add-load form can show editable boxes.
  */
-object FlexibleLoadParser {
+internal object FlexibleLoadParser {
 
     private val tripIdPatterns = listOf(
         Regex("""Trip\s*ID\s*[:\|]?\s*(T-[A-Z0-9]+)""", RegexOption.IGNORE_CASE),

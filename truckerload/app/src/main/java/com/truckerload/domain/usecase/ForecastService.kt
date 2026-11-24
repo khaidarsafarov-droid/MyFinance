@@ -1,10 +1,10 @@
 package com.truckerload.domain.usecase
 
-import com.truckerload.data.repository.LoadRepository
 import com.truckerload.domain.money.sum
-import com.truckerload.data.repository.WeekRepository
+import com.truckerload.domain.store.LoadStore
+import com.truckerload.domain.store.WeekSummaryStore
 import com.truckerload.utils.shiftWeekNumberAndYear
-import kotlinx.coroutines.flow.first
+import javax.inject.Inject
 
 data class WeekForecast(
     val expectedRate: Double,
@@ -18,9 +18,9 @@ data class WeekForecast(
 
 enum class ForecastTrend { ABOVE, ON_TRACK, BELOW }
 
-class ForecastService(
-    private val weekRepository: WeekRepository,
-    private val loadRepository: LoadRepository
+class ForecastService @Inject constructor(
+    private val weeks: WeekSummaryStore,
+    private val loads: LoadStore,
 ) {
     suspend fun calculateForecast(currentWeek: Int, currentYear: Int): WeekForecast? {
         // FIX: use shiftWeekNumberAndYear — hardcoding week 52 skips week 53 / wrong prior week
@@ -29,13 +29,13 @@ class ForecastService(
         }
 
         val summariesWithPaycheck = last8Weeks.map { (wn, wy) ->
-            weekRepository.getWeekSummaryOnce(wn, wy)
+            weeks.getWeekSummaryOnce(wn, wy)
         }.filter { it.paycheckAmount > 0 }
 
         if (summariesWithPaycheck.isEmpty()) return null
 
         val avgExpected = summariesWithPaycheck.map { it.totalLoadRate }.average()
-        val currentLoads = loadRepository.getLoadsByWeek(currentWeek, currentYear).first()
+        val currentLoads = loads.loadsForWeek(currentWeek, currentYear)
         val currentTotal = currentLoads.map { it.totalRate }.sum().cents / 100.0
 
         val progressPercent = if (avgExpected > 0) (currentTotal / avgExpected).toFloat().coerceIn(0f, 1.5f) else 0f

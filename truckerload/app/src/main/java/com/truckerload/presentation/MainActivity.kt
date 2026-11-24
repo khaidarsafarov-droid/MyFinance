@@ -29,6 +29,8 @@ import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.R
+import com.truckerload.data.local.DatabaseStartup
+import com.truckerload.data.local.DbState
 import com.truckerload.data.preferences.AppThemeMode
 import com.truckerload.data.preferences.AuthCredentialsStore
 import com.truckerload.data.preferences.AuthProvider
@@ -67,6 +69,8 @@ import com.truckerload.presentation.di.LocalLastUsedDefaultsStore
 import com.truckerload.presentation.di.LocalWeeklyProfitGoalStore
 import com.truckerload.presentation.navigation.AuthNavHost
 import com.truckerload.presentation.navigation.NavGraph
+import com.truckerload.presentation.startup.DatabaseStartupFailed
+import com.truckerload.presentation.startup.DatabaseStartupLoading
 import com.truckerload.presentation.theme.TruckerLoadTheme
 import com.truckerload.presentation.auth.BiometricSession
 import com.truckerload.sync.TelegramBotPoller
@@ -118,8 +122,13 @@ class MainActivity : AppCompatActivity() {
             val sessionKnown by authStore.sessionKnown.collectAsStateWithLifecycle()
             val isLoggedIn by authStore.isLoggedIn.collectAsStateWithLifecycle()
             val userId by authStore.userId.collectAsStateWithLifecycle()
+            val dbState by DatabaseStartup.state.collectAsStateWithLifecycle()
 
-            LaunchedEffect(sessionKnown, isLoggedIn, userId) {
+            LaunchedEffect(dbState, sessionKnown, isLoggedIn, userId) {
+                if (dbState !is DbState.Ready) {
+                    sessionReady = false
+                    return@LaunchedEffect
+                }
                 if (!sessionKnown) {
                     sessionReady = false
                     return@LaunchedEffect
@@ -203,7 +212,17 @@ class MainActivity : AppCompatActivity() {
                 oledDark = oledDark,
                 reduceMotion = reduceMotionPref,
             ) {
-                Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+                when (val startup = dbState) {
+                    DbState.Loading -> DatabaseStartupLoading()
+                    is DbState.Failed -> DatabaseStartupFailed(
+                        recoverable = startup.recoverable,
+                        onRetry = { DatabaseStartup.retry() },
+                        onRecover = { DatabaseStartup.restore() },
+                    )
+                    DbState.Ready -> Surface(
+                        modifier = Modifier.fillMaxSize(),
+                        color = MaterialTheme.colorScheme.background,
+                    ) {
                     when {
                         !sessionReady -> {
                             Box(
@@ -279,6 +298,7 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
             }
+        }
         }
     }
 

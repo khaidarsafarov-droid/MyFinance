@@ -1,13 +1,20 @@
 package com.truckerload.domain.social
 
-import com.truckerload.data.local.entities.WeeklyLoadStatsAgg
 import com.truckerload.domain.money.Money
 
-fun WeeklyLoadStatsAgg.leaderboardScore(category: LeaderboardCategory): Double =
+/** Weekly totals the leaderboard scores. The data layer maps query rows into this. */
+data class LeaderboardStats(
+    val loadCount: Int,
+    val totalMiles: Double,
+    /** Cents. */
+    val totalRevenueCents: Long,
+)
+
+fun LeaderboardStats.leaderboardScore(category: LeaderboardCategory): Double =
     when (category) {
         LeaderboardCategory.LOADS -> loadCount.toDouble()
-        LeaderboardCategory.REVENUE -> Money.fromCents(totalRevenue).cents / 100.0
+        LeaderboardCategory.REVENUE -> Money.fromCents(totalRevenueCents).cents / 100.0
         LeaderboardCategory.RPM ->
-            if (totalMiles > 0) Money.fromCents(totalRevenue).cents / 100.0 / totalMiles else 0.0
+            if (totalMiles > 0) Money.fromCents(totalRevenueCents).cents / 100.0 / totalMiles else 0.0
         LeaderboardCategory.OVERALL -> totalMiles
     }

@@ -113,12 +113,12 @@ The app asks Play for this product, prefers the offer tagged `free-month`, and s
 
 **Manage / cancel:** Settings → Premium → “Manage subscription in Google Play”, or Play → Payments and subscriptions.
 
-Republish the privacy policy by hand at https://rentry.co/truckorig-privacy-policy so the live page matches this draft, including the support email `truckorig@gmail.com` and the payments section dated 2026-10-13. The repo cannot update rentry.
+Republish the privacy policy by hand at https://rentry.co/truckorig-privacy-policy so the live page matches `store/google-play/PRIVACY_POLICY.md` (23 November 2026), including `truckorig@gmail.com`. The repo cannot update rentry. Do not submit the Data safety form until that page matches. Fill the form from `store/google-play/DATA_SAFETY.md`.
 
 ## 5) Post-upload
 
 - [ ] Register Play App Signing SHA-1 in Google Cloud OAuth  
-- [ ] Watch Crashlytics / ANRs 24–48h (`docs/POST_RELEASE_MONITORING.md`)  
+- [ ] Watch Play vitals / ANRs 24–48h (`docs/POST_RELEASE_MONITORING.md`). This app does not send Firebase Crashlytics.  
 - [ ] Keep this upload keystore backed up offline
 
 ## Blockers this repo cannot finish for you

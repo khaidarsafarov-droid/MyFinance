@@ -1,32 +1,21 @@
 package com.truckerload.domain.parser
 
-import com.truckerload.data.repository.LoadRepository
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.Penalty
 import com.truckerload.domain.model.Stop
 import com.truckerload.domain.model.StopType
+import com.truckerload.domain.store.FakeLoadStore
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.mockito.kotlin.argumentCaptor
-import org.mockito.kotlin.mock
-import org.mockito.kotlin.verify
-import org.mockito.kotlin.whenever
-import org.robolectric.RobolectricTestRunner
-import org.robolectric.annotation.Config
 import com.truckerload.domain.money.Money
 
-@RunWith(RobolectricTestRunner::class)
-@Config(sdk = [28])
 class LoadUpdaterTest {
 
     @Test
     fun `updateLoad copies penalties from new data`() = runBlocking {
-        val repository = mock<LoadRepository>()
-        whenever(repository.update(org.mockito.kotlin.any())).thenAnswer { }
-        whenever(repository.addChangeHistory(org.mockito.kotlin.any())).thenAnswer { }
+        val repository = FakeLoadStore()
         val updater = LoadUpdater(repository)
 
         val oldLoad = sampleLoad(
@@ -42,9 +31,7 @@ class LoadUpdaterTest {
 
         updater.updateLoad(oldLoad, newLoad, listOf("totalRate: 2500.0 -> 2600.0"))
 
-        val captor = argumentCaptor<Load>()
-        verify(repository).update(captor.capture())
-        val saved = captor.firstValue
+        val saved = repository.updated.single()
         assertEquals(2, saved.penalties.size)
         assertEquals("load-1", saved.penalties[0].loadId)
         assertEquals(Money.fromDollars(100.0), saved.penalties[0].amount)
@@ -54,8 +41,7 @@ class LoadUpdaterTest {
 
     @Test
     fun `updateLoad preserves load id when copying penalties`() = runBlocking {
-        val repository = mock<LoadRepository>()
-        whenever(repository.update(org.mockito.kotlin.any())).thenAnswer { }
+        val repository = FakeLoadStore()
         val updater = LoadUpdater(repository)
 
         val oldLoad = sampleLoad(id = "persist-id")
@@ -65,15 +51,12 @@ class LoadUpdaterTest {
 
         updater.updateLoad(oldLoad, newLoad, emptyList())
 
-        val captor = argumentCaptor<Load>()
-        verify(repository).update(captor.capture())
-        assertEquals("persist-id", captor.firstValue.penalties.single().loadId)
+        assertEquals("persist-id", repository.updated.single().penalties.single().loadId)
     }
 
     @Test
     fun `updateLoad remaps stops and recomputes route metrics`() = runBlocking {
-        val repository = mock<LoadRepository>()
-        whenever(repository.update(org.mockito.kotlin.any())).thenAnswer { }
+        val repository = FakeLoadStore()
         val updater = LoadUpdater(repository)
 
         val oldLoad = sampleLoad(id = "load-42")
@@ -116,9 +99,7 @@ class LoadUpdaterTest {
 
         updater.updateLoad(oldLoad, newLoad, listOf("stopCount: 1 → 2", "totalRate: 2500.0 → 3000.0"))
 
-        val captor = argumentCaptor<Load>()
-        verify(repository).update(captor.capture())
-        val saved = captor.firstValue
+        val saved = repository.updated.single()
         assertEquals("load-42", saved.id)
         assertEquals(2, saved.stops.size)
         assertEquals("load-42", saved.stops[0].loadId)

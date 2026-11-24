@@ -4,6 +4,8 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.util.Log
+import com.truckerload.data.local.DatabaseStartup
+import com.truckerload.utils.DirectBoot
 
 /**
  * Maintenance reminder alarms, notification actions, and clock/package events.
@@ -21,6 +23,11 @@ class MaintenanceReminderReceiver : BroadcastReceiver() {
         val app = context.applicationContext
         Thread {
             try {
+                val locked = action == Intent.ACTION_LOCKED_BOOT_COMPLETED ||
+                    !DirectBoot.isUserUnlocked(app)
+                if (!locked) {
+                    DatabaseStartup.awaitReadyBlockingOrFalse()
+                }
                 MaintenanceReminderCoordinator.onBroadcast(app, intent)
             } catch (error: Exception) {
                 Log.e(TAG, "maintenance reminder broadcast failed", error)
