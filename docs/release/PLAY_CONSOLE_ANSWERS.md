@@ -2,7 +2,7 @@
 
 Fill these in Play Console for package `com.truckorig`. This is a worksheet, not a legal opinion. Confirm every **TODO for K S** before submitting.
 
-Source of truth in code (Android `main` at `b431f9b`): `versionCode` **18**, `versionName` **1.6.0**, `targetSdk` **36**, `applicationId` `com.truckorig`. Existing drafts: `truckerload/store/google-play/DATA_SAFETY.md` and `PLAY_CONSOLE_RELEASE.md` (the runbook still says 1.5.11 / versionCode 16).
+Source of truth in code (Android `main` at `7f98db9a`): `versionCode` **18**, `versionName` **1.6.0**, `targetSdk` **36**, `compileSdk` **37**, `applicationId` `com.truckorig`. Existing drafts: `truckerload/store/google-play/DATA_SAFETY.md` and `PLAY_CONSOLE_RELEASE.md` (the runbook still says 1.5.11 / versionCode 16).
 
 **Do not publish, pay, or submit from this document.** Host the privacy policy and terms first.
 
@@ -34,7 +34,7 @@ Why Yes:
 
 - The journal stays on the device (SQLCipher / Room). Android auto-backup is off. There is no TruckoRig backend.
 - Google Maps SDK and ML Kit send diagnostics, identifiers, and (for Maps) SDK crash metrics to Google. That is collection under Play’s SDK rule. Directions API is not called.
-- Precise and approximate location are collected only as an ephemeral geocoder lookup when the user allows location. Photo GPS, date, and time stay on the device on purpose. Photo files are not in the Drive JSON.
+- Precise and approximate location are collected as ephemeral fused-location plus geocoder lookups when the user allows location: for the photo stamp, and to prefill the diesel station or address. Photo GPS, date, and time stay on the device on purpose. The map does not use the driver’s GPS. Photo files and photo GPS records are not in the Drive JSON.
 - Drive backup, Telegram, the share sheet, and Play card data are not ticked. The exemptions and the “if a review rejects this” fallback are in `DATA_SAFETY.md`.
 - Firebase Crashlytics is not in debug or release, even if `google-services.json` is present. The Crash logs row is still Yes because of the Maps SDK, not because of Firebase.
 
@@ -53,7 +53,7 @@ Declare as required by the current Play forms, purpose **App functionality**:
 | --- | --- |
 | Camera | Yes, used to capture load photos and document scans, only when the user takes or picks a picture. Not required for the core journal. |
 | Photos / videos | On-device. GPS, date, and time are kept on purpose (watermark and photo record). The Drive JSON does not include the image files. They leave the device only if the user shares or exports that file. |
-| Location | **Foreground only.** Photo geotag and map. The manifest does **not** request `ACCESS_BACKGROUND_LOCATION`. Approximate and precise location may both be requested. Optional; denying it does not block the journal. |
+| Location | **Foreground only.** Photo geotag and prefilling the diesel station or address. The map does **not** use the driver’s GPS. The manifest does **not** request `ACCESS_BACKGROUND_LOCATION`. Approximate and precise location may both be requested. Optional; denying it does not block the journal. |
 | Notifications | Reminders (loads, maintenance, trial) and optional Telegram status. |
 | Foreground service | **Do not declare a data-sync FGS.** The current manifest removes `FOREGROUND_SERVICE` and `FOREGROUND_SERVICE_DATA_SYNC`. Telegram import no longer uses a persistent notification (see 1.5.11 notes). |
 | Internet / Billing | Used for optional Drive, Telegram, maps, and Play subscription checks. |
@@ -101,7 +101,7 @@ Answer about what users can see or do **in the app**, including optional feature
 | Gambling, betting, or simulated gambling | **No** | |
 | Horror / fear themes | **No** | |
 | Can users interact or exchange messages **with other TruckoRig users** inside the app? | **No** | There is no in-app chat, comments, friends list, or live map of other drivers. `SocialNavGraph` is the local Profile tab only. Crowd RPM publish is hard-denied. |
-| Can users share their location with other users? | **No** | Location is for photo geotag and the driver’s own map. |
+| Can users share their location with other users? | **No** | Location is for the photo stamp and for prefilling the diesel place field, not for sharing with other users. The map does not use the driver’s GPS. |
 | Unrestricted internet / open web browser? | **No** | No in-app open web browser. Maps, Drive, Telegram, and Play billing are specific features. |
 | Digital goods or in-app purchases? | **Yes** | Auto-renewing subscription `premium_monthly_subscription`. First month free, then the store price ($2.99/month in the US). |
 | Users can purchase physical goods? | **No** | |
@@ -195,7 +195,7 @@ TruckoRig Premium is optional: the first month is free, then Google Play charges
 PRIVACY BY DESIGN
 • Journal data lives in an on-device database
 • Drive backup and Telegram are optional — turn them on only if you need them
-• Camera and location are used only when you take geotagged photos or enable map features
+• Camera and location are used when you take geotagged photos or add a diesel fill (to prefill the place). The map does not use your GPS
 • No ads. No selling of load data
 • Google or email sign-in is not required to use the journal
 
