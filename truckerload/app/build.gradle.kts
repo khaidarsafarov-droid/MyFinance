@@ -326,10 +326,9 @@ dependencies {
     // Artifact name is text-recognition (not *-bundled); used by OCRService for receipt OCR.
     implementation(libs.mlkit.text.recognition)
 
-    // PDF generation (fallback when scanner returns JPEG pages only)
-    implementation(libs.itext.kernel)
-    implementation(libs.itext.io)
-    implementation(libs.itext.layout)
+    // PDF: load statements, scan page merge/JPEG fallback, text layer of imported PDFs.
+    // Apache PDFBox port (Apache-2.0); replaces AGPL iText.
+    implementation(libs.pdfbox.android)
 
     // Tesseract OCR (Russian + English, offline) — 4.8+ ships 16 KB-aligned arm64 libs
     implementation(libs.tesseract4android)

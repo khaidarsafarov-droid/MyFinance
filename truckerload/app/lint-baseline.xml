@@ -917,38 +917,8 @@
     </issue>
 
 
-    <issue
-        id="NewerVersionAvailable"
-        message="A newer version of com.itextpdf:io than 8.0.5 is available: 9.8.1"
-        errorLine1="itext = &quot;8.0.5&quot;"
-        errorLine2="        ~~~~~~~">
-        <location
-            file="../gradle/libs.versions.toml"
-            line="46"
-            column="9"/>
-    </issue>
 
-    <issue
-        id="NewerVersionAvailable"
-        message="A newer version of com.itextpdf:kernel than 8.0.5 is available: 9.8.1"
-        errorLine1="itext = &quot;8.0.5&quot;"
-        errorLine2="        ~~~~~~~">
-        <location
-            file="../gradle/libs.versions.toml"
-            line="46"
-            column="9"/>
-    </issue>
 
-    <issue
-        id="NewerVersionAvailable"
-        message="A newer version of com.itextpdf:layout than 8.0.5 is available: 9.8.1"
-        errorLine1="itext = &quot;8.0.5&quot;"
-        errorLine2="        ~~~~~~~">
-        <location
-            file="../gradle/libs.versions.toml"
-            line="46"
-            column="9"/>
-    </issue>
 
     <issue
         id="NewerVersionAvailable"

@@ -43,7 +43,7 @@ mapsCompose = "4.3.0"
 mapsUtils = "3.8.2"
 cameraX = "1.4.2"
 exifinterface = "1.3.7"
-itext = "8.0.5"
+pdfboxAndroid = "2.0.27.0"
 tesseract4android = "4.9.0"
 coil = "2.6.0"
 vico = "1.15.0"
@@ -128,9 +128,7 @@ androidx-camera-camera2 = { group = "androidx.camera", name = "camera-camera2", 
 androidx-camera-lifecycle = { group = "androidx.camera", name = "camera-lifecycle", version.ref = "cameraX" }
 androidx-camera-view = { group = "androidx.camera", name = "camera-view", version.ref = "cameraX" }
 androidx-exifinterface = { group = "androidx.exifinterface", name = "exifinterface", version.ref = "exifinterface" }
-itext-kernel = { group = "com.itextpdf", name = "kernel", version.ref = "itext" }
-itext-io = { group = "com.itextpdf", name = "io", version.ref = "itext" }
-itext-layout = { group = "com.itextpdf", name = "layout", version.ref = "itext" }
+pdfbox-android = { group = "com.tom-roush", name = "pdfbox-android", version.ref = "pdfboxAndroid" }
 tesseract4android = { group = "cz.adaptech.tesseract4android", name = "tesseract4android", version.ref = "tesseract4android" }
 coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
 vico-compose = { group = "com.patrykandpatrick.vico", name = "compose", version.ref = "vico" }
