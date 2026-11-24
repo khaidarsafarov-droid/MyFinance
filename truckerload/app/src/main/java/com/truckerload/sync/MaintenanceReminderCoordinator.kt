@@ -12,7 +12,7 @@ import com.truckerload.data.local.toDomain
 import com.truckerload.data.local.toEntity
 import com.truckerload.data.preferences.AuthStore
 import com.truckerload.data.preferences.SettingsDataStore
-import com.truckerload.domain.maintenance.MaintenanceMileageUseCase
+import com.truckerload.data.repository.MaintenanceMileageQuery
 import com.truckerload.domain.maintenance.MaintenanceReminderPlanner
 import com.truckerload.domain.maintenance.MaintenanceReminderPlanner.FireState
 import com.truckerload.domain.maintenance.MaintenanceReminderPlanner.Occurrence
@@ -172,8 +172,9 @@ object MaintenanceReminderCoordinator {
             if (action.kind == PendingAction.Kind.SNOOZE) {
                 states[task.id] = MaintenanceReminderPlanner.afterSnooze(state, action.atMillis, zone, quiet)
             } else {
-                val loads = loadInputs(db)
-                val estimated = MaintenanceMileageUseCase.progressForTask(task, loads, today).estimatedOdometer
+                val estimated = runBlocking {
+                    MaintenanceMileageQuery.progress(db.loadDao(), task, today)
+                }.estimatedOdometer
                 val (updated, nextState) = MaintenanceReminderPlanner.afterDone(
                     task = task,
                     state = state,
@@ -186,11 +187,13 @@ object MaintenanceReminderCoordinator {
                 states[task.id] = nextState
             }
         }
-        val loads = loadInputs(db)
-        val milesDue = tasks.filter { it.reminderType == MaintenanceReminderType.MILES }
-            .associate { task ->
-                task.id to MaintenanceMileageUseCase.progressForTask(task, loads, today).isDue
-            }
+        // One SQL sum per mileage task. Alarms and boot no longer read every load.
+        val milesDue = runBlocking {
+            tasks.filter { it.reminderType == MaintenanceReminderType.MILES }
+                .associate { task ->
+                    task.id to MaintenanceMileageQuery.progress(db.loadDao(), task, today).isDue
+                }
+        }
         val evaluation = MaintenanceReminderPlanner.evaluate(
             tasks = tasks,
             nowMillis = now,
@@ -315,18 +318,6 @@ object MaintenanceReminderCoordinator {
         )
         MaintenanceAlarmScheduler.arm(app, userId, occurrence)
     }
-
-    private fun loadInputs(db: AppDatabase): List<MaintenanceMileageUseCase.LoadInput> =
-        runBlocking { db.loadDao().getAllLoadsOnce() }.map { entity ->
-            MaintenanceMileageUseCase.LoadInput(
-                tripId = entity.tripId,
-                id = entity.id,
-                miles = entity.totalMiles,
-                date = entity.date,
-                actualFinishDate = entity.actualFinishDate,
-                lastDelMillis = entity.lastDelMillis,
-            )
-        }
 
     private fun ensureAppStarted(app: Context) {
         val application = app as? TruckerLoadApp ?: return

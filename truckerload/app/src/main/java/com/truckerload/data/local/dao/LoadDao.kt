@@ -8,6 +8,7 @@ import androidx.room.Update
 import com.truckerload.data.local.entities.LoadDateSpan
 import com.truckerload.data.local.entities.LoadEntity
 import com.truckerload.data.local.entities.LoadStatsAgg
+import com.truckerload.data.local.entities.ServiceMilesAgg
 import com.truckerload.data.local.entities.WeekYieldAgg
 import com.truckerload.data.local.entities.WeeklyLoadStatsAgg
 import com.truckerload.data.local.entities.analytics.AnalyticsTotalsAgg
@@ -456,4 +457,52 @@ interface LoadDao {
         """,
     )
     suspend fun sumLoadedMilesOnOrAfterService(serviceDate: String): Double
+
+    /**
+     * ТО miles in SQL, so reminders and the ТО screen do not read every load.
+     * Mirrors [com.truckerload.domain.maintenance.MaintenanceMileageUseCase.calculate]:
+     * - miles per load are rounded, loads under half a mile skipped, each load capped at [maxLoadMiles];
+     * - end date is actualFinishDate, else lastDelMillis, else date;
+     * - the load counts when that end is in [serviceDate]..[endCap] (inclusive).
+     * The lastDelMillis day is resolved by the caller into [startMillis]..[endMillisExclusive],
+     * so the device time zone stays in Kotlin. tripId is unique, so no dedup is needed here.
+     */
+    @Query(
+        """
+        SELECT
+            COALESCE(SUM(CASE WHEN m > :maxLoadMiles THEN :maxLoadMiles ELSE m END), 0) AS miles,
+            COUNT(*) AS loadCount
+        FROM (
+            SELECT
+                CAST(ROUND(totalMiles) AS INTEGER) AS m,
+                CASE
+                    WHEN actualFinishDate IS NOT NULL
+                        AND length(trim(actualFinishDate, ' ' || char(9, 10, 13))) >= 10
+                        THEN substr(trim(actualFinishDate, ' ' || char(9, 10, 13)), 1, 10)
+                    WHEN lastDelMillis IS NOT NULL AND lastDelMillis > 0
+                        THEN CASE
+                            WHEN lastDelMillis >= :startMillis AND lastDelMillis < :endMillisExclusive
+                                THEN :serviceDate
+                            ELSE NULL
+                        END
+                    WHEN length(date) >= 10 THEN substr(date, 1, 10)
+                    ELSE NULL
+                END AS endDate
+            FROM loads
+            WHERE totalMiles > 0 AND totalMiles < 9.0e15
+        )
+        WHERE m > 0 AND endDate IS NOT NULL AND endDate >= :serviceDate AND endDate <= :endCap
+        """,
+    )
+    suspend fun sumServiceMiles(
+        serviceDate: String,
+        endCap: String,
+        startMillis: Long,
+        endMillisExclusive: Long,
+        maxLoadMiles: Long,
+    ): ServiceMilesAgg
+
+    /** Emits on every change to the loads table. A cheap trigger for derived SQL sums. */
+    @Query("SELECT COUNT(*) FROM loads")
+    fun watchLoadCount(): Flow<Int>
 }
