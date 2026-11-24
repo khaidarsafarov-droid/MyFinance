@@ -48,11 +48,11 @@ Opening the map is optional. Google’s Maps SDK then sends Google device and re
 - Google privacy policy: https://policies.google.com/privacy
 - What the Maps SDK lists: https://developers.google.com/maps/documentation/android-sdk/play-data-disclosure
 
-### City line on the stamp
+### City line on the stamp, and the diesel place field
 
 Location is optional and foreground-only. The app does not ask for background location, and opening the map does not send your GPS.
 
-If you allow location and take a photo, the app asks Android’s geocoder once for the city, state, and ZIP to write on that stamp. On a phone with Google Play services, Google answers that lookup and does not keep a copy for TruckoRig. You can refuse location and still take photos; the stamp then has the time without a place.
+If you allow location, the app can ask Android’s geocoder in two cases: when you take a photo, so the stamp can include city, state, and ZIP; and when you add a diesel fill, so the station or address field can be prefilled. On a phone with Google Play services, Google answers those lookups and does not keep a copy for TruckoRig. You can refuse location and still take photos or add diesel: the stamp then has the time without a place, and the diesel field stays empty for you to type.
 
 ### ML Kit scanner and text recognition
 
@@ -71,14 +71,14 @@ Optional. If you connect Drive in Settings, the app signs in with Google and ask
 
 The app then uploads a JSON backup (loads, paychecks, diesel, maintenance, settings) to that hidden folder in **your** Google account. The file does not appear in My Drive. Photo files are not in it. Google can read the JSON. This is not end-to-end encryption. The developer’s servers do not receive it.
 
-After you turn backup on, a later edit can upload again. Disconnect in Settings stops new uploads and signs out on the phone. Disconnect does not delete the hidden file already stored.
+After you turn backup on, a later edit can upload again, and a periodic check (about every 12 hours, when the phone has network) can upload again. If you allowed location when adding diesel, the station or address text can be in that JSON. Photo files and photo GPS records are not. Disconnect in Settings stops new uploads and signs out on the phone. Disconnect does not delete the hidden file already stored.
 
 - Google privacy policy: https://policies.google.com/privacy
 - Drive app-data folder: https://developers.google.com/drive/api/guides/appdata
 
 ### Telegram
 
-Optional. If you paste your own bot token, the app calls Telegram’s Bot API at `https://api.telegram.org`. A status command can send counts, weekly income, and miles back to your chat. A file you export can be sent as a document. Telegram can read Bot API messages. They are not end-to-end encrypted. The token stays on the phone. The developer does not run the bot.
+Optional. If you paste your own bot token, the app calls Telegram’s Bot API at `https://api.telegram.org`. Once the token is saved, the app can poll that bot in the background (this is not an Android foreground service). A status command can send counts, weekly income, and miles back to your chat. A file you export can be sent as a document. Incoming chats can be imported into the journal on this phone. Telegram can read Bot API messages. They are not end-to-end encrypted. The token stays on the phone. The developer does not run the bot.
 
 - Telegram privacy policy: https://telegram.org/privacy
 
@@ -105,7 +105,7 @@ Google processes the payment. The app does not receive your card number and does
 ## Permissions
 
 - **Camera** — photos and scans, when you take them
-- **Location (foreground, fine and coarse)** — only when you take a photo, so the stamp can include the place. No background location.
+- **Location (foreground, fine and coarse)** — when you take a photo, so the stamp can include the place, or when you add a diesel fill, to prefill the station or address. The map does not use your GPS. No background location.
 - **Notifications** — local reminders
 - **Internet** — the optional features above, and Play billing
 - **Exact alarms and boot** — local reminders after restart

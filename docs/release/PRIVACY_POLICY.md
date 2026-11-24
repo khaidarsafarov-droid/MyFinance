@@ -52,9 +52,9 @@ TruckoRig на Android — локальный журнал водителя. Г�
 - Политика Google: https://policies.google.com/privacy
 - Что указывает SDK: https://developers.google.com/maps/documentation/android-sdk/play-data-disclosure
 
-**Город на штампе.** Геолокация необязательна и только на переднем плане. Фоновое местоположение не запрашивается. Открытие карты не отправляет ваш GPS.
+**Город на штампе и место заправки.** Геолокация необязательна и только на переднем плане. Фоновое местоположение не запрашивается. Открытие карты не отправляет ваш GPS.
 
-Если вы разрешили геолокацию и снимаете фото, приложение один раз спрашивает геокодер Android, чтобы написать на штампе город, штат и индекс. На телефоне с сервисами Google на этот запрос отвечает Google. Копии для TruckoRig не остаётся. Геолокацию можно запретить и всё равно снимать: на штампе будет время без места.
+Если вы разрешили геолокацию, приложение может спросить геокодер Android в двух случаях: когда вы снимаете фото, чтобы написать на штампе город, штат и индекс; и когда вы добавляете заправку, чтобы подставить станцию или адрес. На телефоне с сервисами Google на эти запросы отвечает Google. Копии для TruckoRig не остаётся. Геолокацию можно запретить и всё равно снимать или вносить дизель: на штампе будет время без места, поле заправки останется пустым, его можно ввести вручную.
 
 **ML Kit.** Сканер документов и распознавание латиницы необязательны. Google пишет, что снимок обрабатывается на устройстве, а в Google уходят служебные сведения (устройство, приложение, ошибки), а не копия документа разработчику.
 
@@ -69,12 +69,12 @@ TruckoRig на Android — локальный журнал водителя. Г�
 
 В эту скрытую папку вашего аккаунта уходит JSON: грузы, зарплаты, дизель, ТО и настройки. Файла не видно в «Моём диске». Фото в нём нет. Google может прочитать JSON. Это не сквозное шифрование. На сервер разработчика файл не приходит.
 
-После включения копии следующее изменение может отправиться снова. «Отключить» в Настройках останавливает новые отправки и выходит из аккаунта на телефоне. Уже лежащий скрытый файл это не удаляет.
+После включения копии следующее изменение может отправиться снова, и примерно раз в 12 часов, если есть сеть, приложение может проверить и отправить копию снова. Если при внесении дизеля была включена геолокация, в JSON может попасть текст станции или адреса. Файлов фото и записей GPS с фото в нём нет. «Отключить» в Настройках останавливает новые отправки и выходит из аккаунта на телефоне. Уже лежащий скрытый файл это не удаляет.
 
 - Политика Google: https://policies.google.com/privacy
 - Папка app data: https://developers.google.com/drive/api/guides/appdata
 
-**Telegram.** По желанию. Если вы вставляете свой токен, приложение вызывает Bot API `https://api.telegram.org`. Команда статуса может отправить в ваш чат количество записей, доход за неделю и мили. Файл, который вы экспортируете, может уйти документом. Telegram читает сообщения Bot API. Это не сквозное шифрование. Токен остаётся на телефоне. Бота ведёте вы, не разработчик.
+**Telegram.** По желанию. Если вы вставляете свой токен, приложение вызывает Bot API `https://api.telegram.org`. Пока токен сохранён, приложение может опрашивать этот бот в фоне (это не foreground service Android). Команда статуса может отправить в ваш чат количество записей, доход за неделю и мили. Файл, который вы экспортируете, может уйти документом. Входящие сообщения можно импортировать в журнал на этом телефоне. Telegram читает сообщения Bot API. Это не сквозное шифрование. Токен остаётся на телефоне. Бота ведёте вы, не разработчик.
 
 - Политика Telegram: https://telegram.org/privacy
 
@@ -97,7 +97,7 @@ TruckoRig на Android — локальный журнал водителя. Г�
 ### Разрешения Android
 
 - Камера — фото и сканы, когда вы снимаете.
-- Геолокация (передний план, точная и приблизительная) — только когда вы снимаете фото, чтобы на штампе было место. Фона нет.
+- Геолокация (передний план, точная и приблизительная) — когда вы снимаете фото, чтобы на штампе было место, или когда добавляете заправку, чтобы подставить станцию или адрес. Карта ваш GPS не использует. Фона нет.
 - Уведомления — местные напоминания.
 - Интернет — функции выше и проверка подписки.
 - Точные будильники и загрузка устройства — местные напоминания.
@@ -181,9 +181,9 @@ The app blocks unencrypted http. The transfers below use HTTPS.
 - Google privacy policy: https://policies.google.com/privacy
 - What the Maps SDK lists: https://developers.google.com/maps/documentation/android-sdk/play-data-disclosure
 
-**City line on the stamp.** Location is optional and foreground-only. The app does not ask for background location, and opening the map does not send your GPS.
+**City line on the stamp, and the diesel place field.** Location is optional and foreground-only. The app does not ask for background location, and opening the map does not send your GPS.
 
-If you allow location and take a photo, the app asks Android’s geocoder once for the city, state, and ZIP to write on that stamp. On a phone with Google Play services, Google answers that lookup and does not keep a copy for TruckoRig. You can refuse location and still take photos; the stamp then has the time without a place.
+If you allow location, the app can ask Android’s geocoder in two cases: when you take a photo, so the stamp can include city, state, and ZIP; and when you add a diesel fill, so the station or address field can be prefilled. On a phone with Google Play services, Google answers those lookups and does not keep a copy for TruckoRig. You can refuse location and still take photos or add diesel: the stamp then has the time without a place, and the diesel field stays empty for you to type.
 
 **ML Kit.** The document scanner and Latin text recognition are optional. Google’s ML Kit processes the image on the device and sends Google diagnostic details, not a TruckoRig copy of the document.
 
@@ -198,12 +198,12 @@ The first time offline recognition needs language files, the app may download En
 
 The app uploads a JSON backup (loads, paychecks, diesel, maintenance, settings) to that hidden folder in your Google account. The file does not appear in My Drive. Photo files are not in it. Google can read the JSON. This is not end-to-end encryption. The developer’s servers do not receive it.
 
-After you turn backup on, a later edit can upload again. Disconnect in Settings stops new uploads and signs out on the phone. It does not delete the hidden file.
+After you turn backup on, a later edit can upload again, and a periodic check (about every 12 hours, when the phone has network) can upload again. If you allowed location when adding diesel, the station or address text can be in that JSON. Photo files and photo GPS records are not. Disconnect in Settings stops new uploads and signs out on the phone. It does not delete the hidden file.
 
 - Google privacy policy: https://policies.google.com/privacy
 - Drive app-data folder: https://developers.google.com/drive/api/guides/appdata
 
-**Telegram.** Optional. If you paste your own bot token, the app calls `https://api.telegram.org`. A status command can send counts, weekly income, and miles back to your chat. A file you export can be sent as a document. Telegram can read Bot API messages. They are not end-to-end encrypted. The token stays on the phone. The developer does not run the bot.
+**Telegram.** Optional. If you paste your own bot token, the app calls `https://api.telegram.org`. Once the token is saved, the app can poll that bot in the background (this is not an Android foreground service). A status command can send counts, weekly income, and miles back to your chat. A file you export can be sent as a document. Incoming chats can be imported into the journal on this phone. Telegram can read Bot API messages. They are not end-to-end encrypted. The token stays on the phone. The developer does not run the bot.
 
 - Telegram privacy policy: https://telegram.org/privacy
 
@@ -226,7 +226,7 @@ The app does not receive your card number and does not send the purchase token t
 ### Android permissions
 
 - Camera — photos and scans, when you take them.
-- Location (foreground, fine and coarse) — only when you take a photo, so the stamp can include the place. No background location.
+- Location (foreground, fine and coarse) — when you take a photo, so the stamp can include the place, or when you add a diesel fill, to prefill the station or address. The map does not use your GPS. No background location.
 - Notifications — local reminders.
 - Internet — the features above, and the Play subscription check.
 - Exact alarms and boot — local reminders.

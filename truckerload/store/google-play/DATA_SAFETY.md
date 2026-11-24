@@ -4,7 +4,7 @@ Fill **Play Console → Policy → App content → Data safety** for `com.trucko
 
 Definitions used here are Google’s, from [Provide information for Google Play’s Data safety section](https://support.google.com/googleplay/android-developer/answer/10787469) (collected = sent off the device by the app **or by an SDK**, to the developer **or** a third party). On-device processing is not collection. End-to-end encryption (only sender and recipient can read it) is not collection. A user-initiated transfer the user reasonably expects is not **sharing**; Google’s Drive/Dropbox FAQ also says a backup the user sends to their own cloud account is not **collection** when the developer does not take a copy. Ephemeral processing (memory only, only long enough to answer that request, not used to build a profile) is still answered on the form, and Play hides it on the store listing.
 
-Audit date: 2026-11-23. Package `com.truckorig`, versionName 1.6.0, versionCode 18. Merged debug manifest (before this change) had no `FOREGROUND_SERVICE`, no `FOREGROUND_SERVICE_DATA_SYNC`, and no `AD_ID`. It did embed `FirebaseInitProvider` because the Crashlytics SDK was a normal dependency. That SDK is removed; see Crash logs below.
+Audit date: 2026-11-23, re-checked the same day against main `7f98db9a`. Package `com.truckorig`, versionName 1.6.0, versionCode 18, targetSdk 36, compileSdk 37. The merged app manifest still has no `FOREGROUND_SERVICE`, no `FOREGROUND_SERVICE_DATA_SYNC`, and no `AD_ID`. Firebase Crashlytics is not a dependency; see Crash logs below.
 
 ## 1. Overview
 
@@ -47,7 +47,12 @@ This row is **only** the one geocoder lookup. It is not the photo stamp.
 
 Stamping a photo with GPS, date, and time is the feature drivers install the app for. The user chooses it by taking the photo. It never runs in the background. `PhotoManager.savePhoto` draws the place, date, and time onto the JPEG, and `PhotoRepository` stores the same fields on the phone (`CameraViewModel`, `PhotoEntity`). That processing stays on the device, so it is not collection. When the driver later shares or exports that photo (for example to their trucking company), Play treats it as user-initiated sharing, so it is not ticked as sharing either. See section 5.
 
-The lookup that **is** ticked: if location permission is granted, `LocationHelper.getCurrentLocation` calls `Geocoder.getFromLocation` (`LocationHelper.kt`) so the stamp can say city, state, and ZIP. On a Play-services phone that one request goes to Google, which is why the row is shared. The app does not send it to a TruckoRig server, does not keep a server copy, and does not build a profile, so it is ephemeral. The user can refuse location and still use the journal and the camera (the stamp then has the time without a place), so it is optional. There is no `ACCESS_BACKGROUND_LOCATION`.
+The lookups that **are** ticked are two foreground, user-started actions. Both use Play’s fused location client (`PRIORITY_BALANCED_POWER_ACCURACY`) and then `Geocoder.getFromLocation` (`LocationHelper.kt`):
+
+1. Taking a photo: `getCurrentLocation` so the stamp can say city, state, and ZIP (`CameraViewModel`).
+2. Adding a diesel fill: `getCurrentStopLabel` prefills the station or address (`AddDieselViewModel.ensureLocation`, from `AddDieselScreen` and `DieselQuickAddScreen`).
+
+On a Play-services phone those requests go to Google, which is why the row is shared. The app does not send them to a TruckoRig server, does not keep a server copy, and does not build a profile, so they are ephemeral. The user can refuse location and still use the journal, the camera (the stamp then has the time without a place), and diesel entry (the field stays empty to type), so it is optional. There is no `ACCESS_BACKGROUND_LOCATION`.
 
 The map does not send the driver’s GPS. `GoogleMapsHeatmapCard` does not turn on my-location. Maps SDK diagnostics are the Diagnostics, Crash logs, App interactions, and Device or other IDs rows, not this one.
 
@@ -55,7 +60,7 @@ The map does not send the driver’s GPS. `GoogleMapsHeatmapCard` does not turn 
 
 Collected and shared, ephemeral, optional, purpose App functionality.
 
-Same geocoder lookup, and only that. The manifest also requests `ACCESS_COARSE_LOCATION`. `LocationHelper.hasLocationPermission` accepts a coarse-only grant, and the fused fix uses `PRIORITY_BALANCED_POWER_ACCURACY`. A coarse fix is approximate location under Play’s “3 square kilometers or coarser” definition. Same optional, ephemeral, not-background answers. The on-device stamp is still not this row.
+The same two fused-location plus geocoder lookups, and only those. The manifest also requests `ACCESS_COARSE_LOCATION`. `LocationHelper.hasLocationPermission` accepts a coarse-only grant, and the fused fix uses `PRIORITY_BALANCED_POWER_ACCURACY`. A coarse fix is approximate location under Play’s “3 square kilometers or coarser” definition. Same optional, ephemeral, not-background answers. The on-device stamp is still not this row. A diesel station/address string stored in the journal is on-device (and may later sit in the user’s own Drive file; see section 4).
 
 Do **not** also tick approximate location because the Maps SDK collects an IP address. Google’s Maps disclosure says the IP is used to understand SDK usage, not that the SDK infers a place from it. IP-related SDK data is covered by Diagnostics and Device or other IDs. `geocodeAddress` is not called from production code.
 
@@ -125,15 +130,15 @@ Play’s FAQ: if the user chooses to upload to their own Drive or similar accoun
 
 End-to-end encryption does **not** apply. Google can read the JSON. HTTPS only means encrypted in transit.
 
-After the user connects Drive, `BackupService.createAutoBackup` can call `pushAutoBackupIfEnabled` on a later edit. That is still the backup they turned on, not a new silent destination.
+After the user connects Drive and turns auto backup on, a later local edit (`BackupService.createAutoBackup` → `pushAutoBackupIfEnabled`) and a periodic WorkManager job (`DriveSyncWorker`, about every 12 hours when the phone has network) can upload again. The periodic job is enqueued for a signed-in session, but the upload itself runs only when auto-sync is enabled and Drive is linked. That is still the backup they turned on, not a new silent destination. There is no Android foreground service for this. If the user allowed location when adding diesel, the station or address text can be inside that JSON; photo files and photo GPS records are not.
 
-If the exemption is rejected, tick: Financial info → Other financial info (rates, paychecks, diesel), App activity → Other user-generated content (load text), Location → Approximate location (city/state text in stops), Personal info → User IDs (account id). Collected Yes, Shared No (user’s own Google account), Ephemeral No, Optional Yes, Purpose App functionality, Encrypted in transit Yes.
+If the exemption is rejected, tick: Financial info → Other financial info (rates, paychecks, diesel), App activity → Other user-generated content (load text), Location → Approximate location (city/state text in stops, and diesel station/address text), Personal info → User IDs (account id). Collected Yes, Shared No (user’s own Google account), Ephemeral No, Optional Yes, Purpose App functionality, Encrypted in transit Yes.
 
 ### Telegram — user’s own bot
 
 Not ticked. Not end-to-end encrypted.
 
-`TelegramApi` calls `https://api.telegram.org/bot…` (`TelegramApi.kt`). The user supplies the token. Status and stats replies include load count, paycheck count, diesel count, and weekly income and miles (`TelegramStatusMessages.kt`). `sendDocument` can upload a file the user exports. Bot API messages are readable by Telegram.
+`TelegramApi` calls `https://api.telegram.org/bot…` (`TelegramApi.kt`). The user supplies the token. Status and stats replies include load count, paycheck count, diesel count, and weekly income and miles (`TelegramStatusMessages.kt`). `sendDocument` can upload a file the user exports. Bot API messages are readable by Telegram. Once a token is saved, `TelegramSyncWorker` can long-poll that bot in the background via WorkManager, including after boot (`TelegramBootReceiver`), so incoming chats can be imported into the local journal. This is not an `android.app.Service` and not a data-sync foreground service.
 
 The sharing exemption is the specific user action: they created the bot, paired the chat, and sent the command, and they expect the reply in that chat. The same idea as Play’s “user sends the data to a service they chose.” The collection FAQ that names Drive does not name Telegram. Treat Telegram as that chosen-service case only because the bot is theirs and the policy says so. Do not call it end-to-end encryption.
 
@@ -185,7 +190,7 @@ Merged manifest permissions that matter for the photo, location, and data-safety
 | Permission | Declare? |
 | --- | --- |
 | `CAMERA` | Yes. Photos and scans. Optional for the journal. |
-| `ACCESS_FINE_LOCATION`, `ACCESS_COARSE_LOCATION` | Yes. Foreground only, and only when the user takes a photo. Used to stamp that photo. No background location. |
+| `ACCESS_FINE_LOCATION`, `ACCESS_COARSE_LOCATION` | Yes. Foreground only, when the user takes a photo (stamp) or adds a diesel fill (prefill the station/address). The map does not use the driver’s GPS. No background location. |
 | `POST_NOTIFICATIONS` | Yes. Local reminders. |
 | `INTERNET`, `ACCESS_NETWORK_STATE` | Used for the optional network features and Play billing. |
 | `com.android.vending.BILLING` | Play subscription sheet. |
@@ -194,7 +199,7 @@ Merged manifest permissions that matter for the photo, location, and data-safety
 | `WAKE_LOCK` | Merged from a library. Not a data-safety type. |
 | `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_DATA_SYNC` | **Removed** with `tools:node="remove"`. Do not submit a data-sync foreground-service declaration. `TelegramBotForegroundService` is not an `android.app.Service`. |
 | `AD_ID` | Not in the merged manifest. Ads declaration: **No**. |
-| `RECORD_AUDIO` | Not in the manifest. The privacy screen can show a microphone row; the app does not request the microphone. |
+| `RECORD_AUDIO` | Not in the manifest. Unused microphone strings remain in resources. A leftover `<queries>` entry for `android.speech.RecognitionService` is still in the manifest; the app does not start speech recognition. |
 
 Ads: **No**. Monetization is the optional subscription only. Financial-features form: this is a journal, not banking, loans, or crypto.
 
@@ -205,7 +210,7 @@ Ads: **No**. Monetization is the optional subscription only. Financial-features 
 | Collect or share any required user data types? | No | **Yes** |
 | Data shared with third parties? | No | **Yes** for Maps SDK identifiers, crash metrics, diagnostics, and map interactions, and for the geocoder lookup. Email is collected and not shared. Drive, Telegram, share sheet, and Play card data stay off the ticked list under the exemptions in section 4. |
 | Crash logs | Only if `google-services.json` was present | **Yes**, Maps SDK only. Firebase crash reporting is **No** and cannot be turned on by that file. |
-| Location | “On device, not sold” | **Precise and approximate: Yes, shared, ephemeral, optional — geocoder lookup only.** The photo stamp itself is on-device and is not this row. |
+| Location | “On device, not sold” | **Precise and approximate: Yes, shared, ephemeral, optional — fused location plus geocoder, for the photo stamp and for prefilling a diesel place.** The photo stamp itself is on-device and is not this row. The map does not use the driver’s GPS. |
 | Photos | “Leave only if the user exports” | **Not ticked.** The stamp (GPS, date, time) is the feature. It is written on the phone when the user takes the photo, and it leaves only when the user shares or exports that photo. |
 | Encryption in transit | Yes | **Yes** |
 | Users can request deletion | Yes, uninstall and “delete the Drive file” | **Yes**. In-app account delete, uninstall, or `truckorig@gmail.com`. The Drive copy is a hidden app-data file; disconnect does not delete it. |
