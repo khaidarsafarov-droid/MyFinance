@@ -23,8 +23,10 @@ class GoogleAuthArchitectureTest {
 
     @Test
     fun driveAutoPush_skipsWhenRemoteNewer() {
+        val flow = readMainSource("com/truckerload/data/backup/DriveBackupFlow.kt")
+        assertTrue(flow.contains("DriveSyncPolicy.shouldSkipAutoPush"))
         val service = readMainSource("com/truckerload/data/backup/GoogleDriveBackupService.kt")
-        assertTrue(service.contains("DriveSyncPolicy.shouldSkipAutoPush"))
+        assertTrue(service.contains("pushAutoBackupIfEnabled"))
         val policy = readMainSource("com/truckerload/data/backup/DriveSyncPolicy.kt")
         assertTrue(policy.contains("fun shouldSkipAutoPush"))
     }

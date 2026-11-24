@@ -23,7 +23,7 @@ UI построен на **едином BentoGlass / Material3** стеке (~35
 | `play-services-maps` + `maps-compose` + `maps-utils` | MapScreen | **High** | maps-utils **unused** (Stage 4) — remove; lazy-init Maps only on map route |
 | `tesseract4android` + runtime tessdata download | OCR rus+eng | **Medium** (~4 MB/lang on first use) | Keep for offline; document download UX; consider ML Kit-only path |
 | `play-services-mlkit-document-scanner` + `text-recognition` | Scanner/OCR | **Medium** | Required for scan feature; no duplicate init on Home |
-| `itextpdf` (3 modules) | PDF from JPEG | **Medium** | Lazy class-load; only scanner path |
+| `pdfbox-android` (Apache-2.0; replaced AGPL iText) | Statement PDF, scan merge/JPEG fallback, PDF text layer | **Medium** | Lazy class-load; only PDF paths |
 | `firebase-bom` + messaging + crashlytics | Push/crash | **Medium** | Optional via `google-services.json` ✅ |
 | `camera-camera2` ×3 | CameraX | **Medium** | Route-scoped; OK |
 | `vico` compose charts | Analytics | **Low–Medium** | Load only on Analytics route ✅ |

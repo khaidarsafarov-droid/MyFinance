@@ -39,10 +39,11 @@
 # Google Sign-In / Play services
 -dontwarn com.google.android.gms.**
 
-# iText optional crypto factories + SLF4J binder (not shipped on Android)
--dontwarn com.itextpdf.bouncycastle.BouncyCastleFactory
--dontwarn com.itextpdf.bouncycastlefips.BouncyCastleFipsFactory
+# SLF4J binder (not shipped on Android)
 -dontwarn org.slf4j.impl.StaticLoggerBinder
+
+# PdfBox-Android: optional JPEG2000 codec (JP2Decoder/JP2Encoder) is not bundled
+-dontwarn com.gemalto.jp2.**
 
 # Crashlytics references newer Android Profiling APIs (API 35+) not in compileSdk 34
 -dontwarn android.os.ProfilingManager

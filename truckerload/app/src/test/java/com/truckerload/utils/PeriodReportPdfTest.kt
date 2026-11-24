@@ -8,19 +8,31 @@ import com.truckerload.domain.report.PeriodReportDraft
 import com.truckerload.domain.report.PeriodReportLabels
 import com.truckerload.domain.report.PeriodReportLoadDraft
 import com.truckerload.domain.report.PeriodReportNumbers
-import com.itextpdf.kernel.pdf.PdfDocument
-import com.itextpdf.kernel.pdf.PdfReader
 import com.truckerload.domain.report.PeriodReportPdfLabels
+import com.tom_roush.pdfbox.pdmodel.PDDocument
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Test
-import java.io.ByteArrayInputStream
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.RuntimeEnvironment
+import org.robolectric.annotation.Config
 import java.io.File
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
+/** PdfBox-Android logs through android.util.Log and reads assets, so it runs on Robolectric. */
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [34])
 class PeriodReportPdfTest {
+
+    @Before
+    fun setUp() {
+        PdfBox.init(RuntimeEnvironment.getApplication())
+    }
+
 
     @Test
     fun pdf_isAStatementTable_withoutDeductions_andKeepsPlainText() {
@@ -108,7 +120,7 @@ class PeriodReportPdfTest {
         val report = base.copy(statementRows = rows, totals = base.totals.copy(loadCount = rows.size))
         val (regular, bold) = fonts()
         val bytes = PeriodReportPdf.render(report, regular, bold)
-        PdfDocument(PdfReader(ByteArrayInputStream(bytes))).use { doc ->
+        PDDocument.load(bytes).use { doc ->
             assertTrue("expected a second page", doc.numberOfPages >= 2)
         }
         val text = PdfTextLayerExtractor.extract(bytes)

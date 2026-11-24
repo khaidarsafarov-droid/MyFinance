@@ -11,7 +11,6 @@ import com.google.android.gms.common.api.Scope
 import com.truckerload.BuildConfig
 import com.truckerload.R
 import com.truckerload.data.remote.GoogleSignInClients
-import com.truckerload.utils.BackupService
 import com.truckerload.utils.logFailure
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
@@ -104,121 +103,18 @@ object GoogleDriveBackupService {
         }.onFailure { Log.w(TAG, "signOut failed", it) }
     }
 
-    suspend fun backupNow(context: Context): Result<String> = withContext(Dispatchers.IO) {
-        val app = context.applicationContext
-        if (!isApiKeyConfigured()) {
-            return@withContext Result.failure(
-                IllegalStateException(app.getString(R.string.drive_sync_key_missing)),
-            )
-        }
-        val prefs = prefs(app)
-        if (!prefs.isLinked && !isDriveScopeGranted(app)) {
-            return@withContext Result.failure(
-                IllegalStateException(app.getString(R.string.drive_sync_not_linked)),
-            )
-        }
-        syncLinkedAccountFromGoogle(app)
-        val json = BackupService.createBackupJson(app)
-            ?: return@withContext Result.failure(
-                IllegalStateException(app.getString(R.string.drive_sync_nothing_to_backup)),
-            )
-        val client = GoogleDriveApiClient(app, prefs)
-        client.uploadBackupJson(json).fold(
-            onSuccess = {
-                prefs.lastSyncAt = System.currentTimeMillis()
-                prefs.lastSyncError = null
-                prefs.lastSyncErrorAt = 0L
-                val msg = app.getString(
-                    R.string.drive_sync_backup_ok,
-                    prefs.accountEmail.orEmpty(),
-                )
-                Result.success(msg)
-            },
-            onFailure = {
-                val mapped = mapError(app, it)
-                prefs.lastSyncError = mapped.message ?: it.message ?: "backup_failed"
-                prefs.lastSyncErrorAt = System.currentTimeMillis()
-                Result.failure(mapped)
-            },
-        )
-    }
+    suspend fun backupNow(context: Context): Result<String> =
+        DriveBackupFlow.production().backupNow(context)
 
     suspend fun restoreNow(
         context: Context,
         allowUnboundAccount: Boolean = false,
-    ): Result<String> = withContext(Dispatchers.IO) {
-        val app = context.applicationContext
-        if (!isApiKeyConfigured()) {
-            return@withContext Result.failure(
-                IllegalStateException(app.getString(R.string.drive_sync_key_missing)),
-            )
-        }
-        val prefs = prefs(app)
-        if (!prefs.isLinked && !isDriveScopeGranted(app)) {
-            return@withContext Result.failure(
-                IllegalStateException(app.getString(R.string.drive_sync_not_linked)),
-            )
-        }
-        syncLinkedAccountFromGoogle(app)
-        val client = GoogleDriveApiClient(app, prefs)
-        val jsonResult = client.downloadBackupJson()
-        val json = jsonResult.getOrElse { return@withContext Result.failure(mapError(app, it)) }
-        BackupService.restoreBackupJson(app, json, allowUnboundAccount).fold(
-            onSuccess = { backup ->
-                prefs.lastSyncAt = System.currentTimeMillis()
-                prefs.lastSyncError = null
-                prefs.lastSyncErrorAt = 0L
-                Result.success(
-                    app.getString(
-                        R.string.backup_restore_success,
-                        backup.loads.size,
-                        backup.paychecks.size,
-                        backup.diesel.size,
-                    )
-                )
-            },
-            onFailure = { Result.failure(it) },
-        )
-    }
+    ): Result<String> =
+        DriveBackupFlow.production().restoreNow(context, allowUnboundAccount)
 
     /** Фоновый push после локального auto-backup — без UI. Returns false when upload failed. */
-    suspend fun pushAutoBackupIfEnabled(context: Context): Boolean {
-        if (!isApiKeyConfigured()) return true
-        val app = context.applicationContext
-        val prefs = prefs(app)
-        if (!prefs.autoSyncEnabled) return true
-        if (!prefs.isLinked && !isDriveScopeGranted(app)) return true
-        syncLinkedAccountFromGoogle(app)
-        val client = GoogleDriveApiClient(app, prefs)
-        val remote = client.refreshRemoteBackup()
-        if (remote.isFailure) {
-            Log.w(TAG, "auto push skipped — Drive metadata unavailable")
-            prefs.lastSyncError = "drive_metadata_unavailable"
-            prefs.lastSyncErrorAt = System.currentTimeMillis()
-            return false
-        }
-        val remoteExists = remote.getOrDefault(false)
-        if (remoteExists &&
-            DriveSyncPolicy.shouldSkipAutoPush(prefs.remoteModifiedAt, prefs.lastSyncAt)
-        ) {
-            Log.i(TAG, "auto push skipped — remote backup is newer or unsynced on this device")
-            return true
-        }
-        val json = BackupService.createBackupJson(app) ?: return true
-        return client.uploadBackupJson(json)
-            .onSuccess {
-                prefs.lastSyncAt = System.currentTimeMillis()
-                prefs.lastSyncError = null
-                prefs.lastSyncErrorAt = 0L
-                Log.d(TAG, "auto push ok")
-            }
-            .onFailure {
-                prefs.lastSyncError = it.message ?: "auto_push_failed"
-                prefs.lastSyncErrorAt = System.currentTimeMillis()
-                Log.w(TAG, "auto push failed: ${it.message}")
-            }
-            .isSuccess
-    }
+    suspend fun pushAutoBackupIfEnabled(context: Context): Boolean =
+        DriveBackupFlow.production().pushAutoBackupIfEnabled(context)
 
     /**
      * True when restore may overwrite newer local edits with a newer Drive file.

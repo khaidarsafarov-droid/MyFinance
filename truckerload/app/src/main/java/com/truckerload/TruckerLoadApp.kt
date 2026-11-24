@@ -4,6 +4,8 @@ import android.app.Application
 import android.content.Context
 import android.os.StrictMode
 import android.util.Log
+import com.truckerload.data.repository.JournalWriteEffects
+import com.truckerload.sync.AppJournalWriteEffects
 import com.truckerload.sync.MaintenanceReminderCoordinator
 import com.truckerload.utils.DirectBoot
 import java.util.concurrent.atomic.AtomicBoolean
@@ -63,6 +65,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import android.widget.Toast
+import com.truckerload.utils.PdfBox
 
 @HiltAndroidApp
 class TruckerLoadApp : Application(), Configuration.Provider {
@@ -98,11 +101,15 @@ class TruckerLoadApp : Application(), Configuration.Provider {
         }
         val wrapped = if (DirectBoot.isUserUnlocked(base)) AppLocale.wrap(base) else base
         super.attachBaseContext(wrapped)
+        // Before any repository can write: journal writes refresh widgets, queue
+        // backups and re-plan reminders through the app, not from data/.
+        JournalWriteEffects.install(AppJournalWriteEffects(this))
     }
 
     override fun onCreate() {
         super.onCreate()
         enableMainThreadStrictMode()
+        PdfBox.init(this)
         if (DirectBoot.isUserUnlocked(this)) {
             startAfterUnlock()
         }
