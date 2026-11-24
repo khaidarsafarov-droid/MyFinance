@@ -14,7 +14,12 @@ class TelegramManifestDropsDataSyncFgsTest {
         )
         val text = candidates.firstOrNull { it.isFile }?.readText()
             ?: error("AndroidManifest.xml not found")
-        assertTrue(text.contains("FOREGROUND_SERVICE_DATA_SYNC\" tools:node=\"remove\""))
+        // WorkManager 2.10.5 no longer merges DATA_SYNC, so a tools:node=remove
+        // marker would be a no-op. The permission must simply stay absent.
+        assertTrue(
+            "FOREGROUND_SERVICE_DATA_SYNC must not appear in the manifest",
+            "FOREGROUND_SERVICE_DATA_SYNC" !in text,
+        )
         assertTrue(!text.contains("android:foregroundServiceType"))
         assertTrue(!text.contains(".sync.TelegramBotForegroundService"))
     }

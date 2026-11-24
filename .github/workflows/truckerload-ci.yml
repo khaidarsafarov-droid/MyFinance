@@ -2,14 +2,8 @@ name: TruckerLoad CI
 
 on:
   pull_request:
-    paths:
-      - "truckerload/**"
-      - ".github/workflows/truckerload-ci.yml"
   push:
     branches: [main]
-    paths:
-      - "truckerload/**"
-      - ".github/workflows/truckerload-ci.yml"
   workflow_dispatch:
 
 permissions:
@@ -157,4 +151,18 @@ jobs:
       - name: Install Android SDK platform 37.0
         # defaults.run.working-directory is truckerload; resolve from the repo root.
         run: bash "${GITHUB_WORKSPACE}/.github/scripts/install-android-sdk-37.sh"
-      - run: sh ./gradlew -Dorg.gradle.java.home="$JAVA_HOME" :app:assembleRelease --no-daemon
+      - name: Assemble release APK and App Bundle
+        run: sh ./gradlew -Dorg.gradle.java.home="$JAVA_HOME" :app:assembleRelease :app:bundleRelease --no-daemon
+      - name: Check 16 KB ELF alignment
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          artifacts=(
+            app/build/outputs/apk/release/*.apk
+            app/build/outputs/bundle/release/*.aab
+          )
+          if [ ${#artifacts[@]} -eq 0 ]; then
+            echo "No release APK or AAB found." >&2
+            exit 1
+          fi
+          python3 scripts/check_elf_alignment.py "${artifacts[@]}"
