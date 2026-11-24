@@ -109,9 +109,12 @@ class MultiUserIsolationInstrumentedTest {
         // (Telegram workers / widgets construct their own AuthStore).
         assertEquals(userA, AuthStore(context).currentUserIdOrNull())
         assertEquals(userA, AuthStore(context).requireUserId())
-        assertEquals(userA, AppDatabase.getInstanceForActiveUser(context)?.let {
-            AppDatabase.currentUserIdOrNull()
-        } ?: AuthStore(context).currentUserIdOrNull())
+        assertEquals(
+            userA,
+            AppDatabase.getInstanceForActiveUser(context)?.let {
+                AppDatabase.currentUserIdOrNull()
+            } ?: AuthStore(context).currentUserIdOrNull(),
+        )
     }
 
     private fun deleteDbFiles(userId: String) {

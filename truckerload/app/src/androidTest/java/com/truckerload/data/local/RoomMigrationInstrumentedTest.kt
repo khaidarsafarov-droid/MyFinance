@@ -335,11 +335,7 @@ class RoomMigrationInstrumentedTest {
                         db.setup()
                     }
 
-                    override fun onUpgrade(
-                        db: SupportSQLiteDatabase,
-                        oldVersion: Int,
-                        newVersion: Int,
-                    ) = Unit
+                    override fun onUpgrade(db: SupportSQLiteDatabase, oldVersion: Int, newVersion: Int) = Unit
                 },
             )
             .build()
