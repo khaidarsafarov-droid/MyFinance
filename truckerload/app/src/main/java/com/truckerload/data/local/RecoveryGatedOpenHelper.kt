@@ -1,15 +1,8 @@
 package com.truckerload.data.local
 
-import android.util.Log
 import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.sqlite.db.SupportSQLiteOpenHelper
 import androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory
-import java.util.concurrent.Callable
-import java.util.concurrent.ExecutionException
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.TimeoutException
 
 /**
  * Room builds this helper during [androidx.room.RoomDatabase.Builder.build].
@@ -67,23 +60,15 @@ internal class RecoveryGatedOpenHelper(
     private fun open(
         block: (SupportSQLiteOpenHelper) -> SupportSQLiteDatabase,
     ): SupportSQLiteDatabase {
-        if (JournalRecoveryGate.deferCurrentThread()) {
-            val future = RecoveryOpenThreads.submit { openOnThisThread(block) }
-            val waitMs = JournalRecoveryGate.mainOpenWaitMillis
-            return try {
-                future.get(waitMs, TimeUnit.MILLISECONDS)
-            } catch (timeout: TimeoutException) {
-                Log.w(
-                    TAG,
-                    "Main-thread Room open still waiting for journal recovery; continuing on IO",
-                )
-                future.get()
-            } catch (error: ExecutionException) {
-                throw error.cause ?: error
-            }
+        if (delegate != null) return openOnThisThread(block)
+        if (JournalRecoveryGate.callerIsMainThread() && !allowsMainThreadOpen()) {
+            throw IllegalStateException(MAIN_THREAD_OPEN_MESSAGE)
         }
         return openOnThisThread(block)
     }
+
+    private fun allowsMainThreadOpen(): Boolean =
+        DatabasePassphraseStore.isRobolectric() && !JournalRecoveryGate.enforceForTests
 
     private fun openOnThisThread(
         block: (SupportSQLiteOpenHelper) -> SupportSQLiteDatabase,
@@ -97,8 +82,11 @@ internal class RecoveryGatedOpenHelper(
         synchronized(lock) {
             delegate?.let { return it }
             check(!isClosed) { "Database helper is closed" }
-            // Background opener blocks until recovery releases. Main never reaches
-            // here while the gate is held; [open] moved that call onto IO.
+            if (JournalRecoveryGate.callerIsMainThread() && !allowsMainThreadOpen()) {
+                throw IllegalStateException(MAIN_THREAD_OPEN_MESSAGE)
+            }
+            // Background opener blocks until recovery releases. The main thread
+            // never reaches the file open below.
             JournalRecoveryGate.awaitBeforeOpen()
             val created = if (useSqlCipher) {
                 val passphrase = DatabasePassphraseStore.forDatabase(appContext, dbName)
@@ -119,15 +107,7 @@ internal class RecoveryGatedOpenHelper(
         }
     }
 
-    private companion object {
-        const val TAG = "RecoveryOpen"
+    internal companion object {
+        const val MAIN_THREAD_OPEN_MESSAGE = "Refusing to open the database on the main thread"
     }
-}
-
-internal object RecoveryOpenThreads {
-    private val executor: ExecutorService = Executors.newSingleThreadExecutor { runnable ->
-        Thread(runnable, "room-recovery-open").apply { isDaemon = true }
-    }
-
-    fun <T> submit(block: () -> T) = executor.submit(Callable(block))
 }

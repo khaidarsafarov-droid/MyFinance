@@ -1,7 +1,7 @@
 package com.truckerload.domain.importing
 
-import com.truckerload.data.repository.DieselRepository
 import com.truckerload.domain.money.Money
+import com.truckerload.domain.store.DieselStore
 import com.truckerload.domain.money.UnitPrice
 import com.truckerload.domain.money.sum
 import com.truckerload.domain.model.Diesel
@@ -13,12 +13,12 @@ import java.util.Locale
 import javax.inject.Inject
 
 class DieselImportUseCase @Inject constructor(
-    private val dieselRepository: DieselRepository,
+    private val diesel: DieselStore,
 ) {
 
     suspend fun buildReview(import: DieselSpreadsheetImport): DieselImportReview {
         val preview = import.fills.map { fill -> toDiesel(import, fill, id = 0) }
-        val existing = dieselRepository.getDieselForWeekOnce(import.weekNumber, import.year)
+        val existing = diesel.getDieselForWeekOnce(import.weekNumber, import.year)
         val comparison = DieselImportComparison(
             existingCount = existing.size,
             importedCount = preview.size,
@@ -39,10 +39,10 @@ class DieselImportUseCase @Inject constructor(
     suspend fun apply(review: DieselImportReview, action: DieselImportAction) {
         when (action) {
             DieselImportAction.ADD_FROM_FILE -> {
-                review.importedPreview.forEach { dieselRepository.insertDiesel(it) }
+                review.importedPreview.forEach { diesel.insertDiesel(it) }
             }
             DieselImportAction.REPLACE_WEEK -> {
-                dieselRepository.replaceWeekFills(
+                diesel.replaceWeekFills(
                     weekNumber = review.import.weekNumber,
                     year = review.import.year,
                     fills = review.importedPreview,

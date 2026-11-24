@@ -1,5 +1,6 @@
 package com.truckerload.di
 
+import android.content.Context
 import com.truckerload.data.local.AppDatabase
 import com.truckerload.data.preferences.LastUsedDefaultsStore
 import com.truckerload.data.preferences.RpmThresholdsStore
@@ -20,8 +21,16 @@ import com.truckerload.data.repository.WeekRepository
 import com.truckerload.data.repository.account.AccountDeletionService
 import com.truckerload.data.repository.account.DriverProfessionalRepository
 import com.truckerload.data.repository.account.RegistrationService
+import com.truckerload.data.local.DeletedLoadLookupImpl
+import com.truckerload.data.repository.RoomLoadStore
 import com.truckerload.data.repository.social.ProfileRepository
+import com.truckerload.domain.store.DeletedLoadLookup
+import com.truckerload.domain.store.DieselStore
+import com.truckerload.domain.store.LoadStore
+import com.truckerload.domain.store.PaycheckStore
+import com.truckerload.domain.store.WeekSummaryStore
 import dagger.Module
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
@@ -50,7 +59,19 @@ object UserAccountModule {
         manager.require().loadRepository
 
     @Provides
+    fun provideLoadStore(manager: UserComponentManager): LoadStore =
+        RoomLoadStore(manager.require().loadRepository)
+
+    @Provides
+    fun provideDeletedLoadLookup(@ApplicationContext context: Context): DeletedLoadLookup =
+        DeletedLoadLookupImpl(context)
+
+    @Provides
     fun providePaycheckRepository(manager: UserComponentManager): PaycheckRepository =
+        manager.require().paycheckRepository
+
+    @Provides
+    fun providePaycheckStore(manager: UserComponentManager): PaycheckStore =
         manager.require().paycheckRepository
 
     @Provides
@@ -58,7 +79,15 @@ object UserAccountModule {
         manager.require().dieselRepository
 
     @Provides
+    fun provideDieselStore(manager: UserComponentManager): DieselStore =
+        manager.require().dieselRepository
+
+    @Provides
     fun provideWeekRepository(manager: UserComponentManager): WeekRepository =
+        manager.require().weekRepository
+
+    @Provides
+    fun provideWeekSummaryStore(manager: UserComponentManager): WeekSummaryStore =
         manager.require().weekRepository
 
     @Provides
