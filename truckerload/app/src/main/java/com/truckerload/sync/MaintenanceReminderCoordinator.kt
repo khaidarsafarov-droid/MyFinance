@@ -24,9 +24,7 @@ import com.truckerload.sync.MaintenanceAlarmStore.UserAlarms
 import com.truckerload.utils.DirectBoot
 import java.time.Instant
 import java.time.ZoneId
-import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -335,15 +333,9 @@ object MaintenanceReminderCoordinator {
             application.startAfterUnlock()
             return
         }
-        val latch = CountDownLatch(1)
-        Handler(Looper.getMainLooper()).post {
-            try {
-                application.startAfterUnlock()
-            } finally {
-                latch.countDown()
-            }
-        }
-        latch.await(15, TimeUnit.SECONDS)
+        // Do not wait on the main looper here. The sync that follows already waits,
+        // bounded, for the journal that startAfterUnlock opens on IO.
+        Handler(Looper.getMainLooper()).post { application.startAfterUnlock() }
     }
 
     private const val TAG = "MaintReminder"

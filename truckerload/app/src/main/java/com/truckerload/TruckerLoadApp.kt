@@ -33,6 +33,7 @@ import com.truckerload.domain.units.DisplayUnits
 import com.truckerload.domain.units.DistanceUnit
 import com.truckerload.domain.units.DistanceUnitPolicy
 import com.truckerload.domain.week.WeekStartRuntime
+import com.truckerload.presentation.startup.AfterFirstFrame
 import com.truckerload.presentation.theme.ThemeManager
 import com.truckerload.di.UserComponentManager
 import com.truckerload.sync.TelegramBotPoller
@@ -55,7 +56,9 @@ import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -83,6 +86,7 @@ class TruckerLoadApp : Application(), Configuration.Provider {
 
     private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private val unlockedStart = AtomicBoolean(false)
+    private var backgroundPollHandOff: Job? = null
 
     fun isUnlockStartDone(): Boolean = unlockedStart.get()
 
@@ -157,16 +161,21 @@ class TruckerLoadApp : Application(), Configuration.Provider {
         scheduleTelegramSync()
         scheduleTelegramWatchdog()
         scheduleSmartNotifications()
-        scheduleDay7Survey()
         WidgetUpdateWorker.schedule(this)
-        // One deferred widget paint at cold start; periodic worker keeps it fresh.
-        WidgetUpdateWorker.refreshNow(this)
-        if (!DatabasePassphraseStore.isRobolectric()) {
-            runCatching { com.truckerload.share.ShareShortcutPublisher.publish(this) }
+        // Not needed for the first screen. Run after its first frame so cold start stays light.
+        AfterFirstFrame.run(this) {
+            scheduleDay7Survey()
+            // One deferred widget paint at cold start; periodic worker keeps it fresh.
+            WidgetUpdateWorker.refreshNow(this)
+            if (!DatabasePassphraseStore.isRobolectric()) {
+                runCatching { com.truckerload.share.ShareShortcutPublisher.publish(this) }
+            }
         }
         refreshLoadReportingWeeks()
         ProcessLifecycleOwner.get().lifecycle.addObserver(object : DefaultLifecycleObserver {
             override fun onStart(owner: LifecycleOwner) {
+                backgroundPollHandOff?.cancel()
+                backgroundPollHandOff = null
                 if (authStore.sessionKnown.value) {
                     startTelegramForActiveUser()
                 }
@@ -174,9 +183,15 @@ class TruckerLoadApp : Application(), Configuration.Provider {
             }
 
             override fun onStop(owner: LifecycleOwner) {
-                // Leave the long-poll running. The driver often leaves this app to send
-                // a text or a file in Telegram; stopping here dropped those updates.
+                // Keep the long-poll for a grace period. The driver often leaves this app to
+                // send a text or a file in Telegram; stopping at once dropped those updates.
+                // After the grace period WorkManager polls instead, so Doze can batch it.
                 TelegramSyncWorker.enqueueFollowUp(this@TruckerLoadApp)
+                backgroundPollHandOff?.cancel()
+                backgroundPollHandOff = appScope.launch {
+                    delay(TelegramBotPoller.BACKGROUND_GRACE_MS)
+                    TelegramBotPoller.handOffToWorker(this@TruckerLoadApp)
+                }
                 WidgetRefresh.flushForHomeScreen(this@TruckerLoadApp)
             }
         })

@@ -83,6 +83,19 @@ object TelegramBotForegroundService {
 
     fun stopForLogout(context: Context) = stop(context)
 
+    /** How long the in-process poll stays up after the app leaves the screen. */
+    const val BACKGROUND_GRACE_MS = 10 * 60 * 1000L
+
+    /**
+     * The app has been in the background for [BACKGROUND_GRACE_MS]. Stop the in-process
+     * long-poll and let [TelegramSyncWorker] poll, which the system can defer in Doze.
+     */
+    fun handOffToWorker(context: Context) {
+        if (!isRunningFlag.get()) return
+        stop(context)
+        TelegramSyncWorker.enqueueFollowUp(context.applicationContext)
+    }
+
     private fun setupBotFeaturesOnce(app: Context, token: String) {
         val prefs = app.getSharedPreferences(TelegramSyncWorker.PREFS_NAME, Context.MODE_PRIVATE)
         val tokenFp = TelegramBotTokenFingerprint.of(token)
