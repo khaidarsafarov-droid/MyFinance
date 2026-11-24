@@ -8,13 +8,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
-import androidx.compose.ui.test.performSemanticsAction
-import kotlin.math.abs
 import androidx.compose.ui.unit.dp
 import androidx.test.core.app.ApplicationProvider
 import com.truckerload.data.local.entities.LoadStatsAgg
@@ -109,20 +106,10 @@ class HomeDashboardUiTest {
         composeRule.onNodeWithText("Demo Driver", substring = true).assertIsDisplayed()
         composeRule.onNodeWithText("Recent loads").performScrollTo().assertIsDisplayed()
         composeRule.onNodeWithText("#T-DEMO1", substring = true).performScrollTo().assertIsDisplayed()
-        val scannerLabel = composeRule.onNodeWithText("Scanner")
+        composeRule.onNodeWithText("Scanner")
             .performScrollTo()
-            .fetchSemanticsNode()
-            .boundsInRoot
-        val actions = composeRule.onAllNodes(hasClickAction())
-        val scannerIndex = actions.fetchSemanticsNodes().indexOfFirst { node ->
-            val bounds = node.boundsInRoot
-            val gap = scannerLabel.top - bounds.bottom
-            abs(bounds.center.x - scannerLabel.center.x) < 24f && gap in 0f..48f
-        }
-        check(scannerIndex >= 0) { "Scanner quick action was not on screen" }
-        actions[scannerIndex].performSemanticsAction(SemanticsActions.OnClick) { click ->
-            click()
-        }
+            .assertIsDisplayed()
+            .performClick()
         assertTrue(scannerOpened)
     }
 

@@ -9,7 +9,7 @@ import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.AcUnit
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
@@ -36,7 +36,7 @@ import androidx.compose.material.icons.filled.FlashOn
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.LocalShipping
 import androidx.compose.material.icons.filled.Lock
@@ -72,11 +72,11 @@ object AppIcons {
     val AcUnit = Icons.Filled.AcUnit
     val Add = Icons.Filled.Add
     val ArrowBack = Icons.AutoMirrored.Filled.ArrowBack
-    val ArrowForward = Icons.Filled.ArrowForward
-    val Assignment = Icons.Filled.List
+    val ArrowForward = Icons.AutoMirrored.Filled.ArrowForward
+    val Assignment = Icons.AutoMirrored.Filled.List
     val AttachFile = Icons.Filled.Add
     val Backup = Icons.Filled.Refresh
-    val BarChart = Icons.Filled.List
+    val BarChart = Icons.AutoMirrored.Filled.List
     val BrightnessAuto = Icons.Filled.Settings
     val Build = Icons.Filled.Build
     val CalendarMonth = Icons.Filled.DateRange
@@ -95,7 +95,7 @@ object AppIcons {
     val DateRange = Icons.Filled.DateRange
     val Delete = Icons.Filled.Delete
     val DeleteForever = Icons.Filled.Delete
-    val Description = Icons.Filled.List
+    val Description = Icons.AutoMirrored.Filled.List
     val DocumentScanner = Icons.Filled.DocumentScanner
     val Edit = Icons.Filled.Edit
     val Email = Icons.Filled.Email
@@ -109,7 +109,7 @@ object AppIcons {
     val FlashAuto = Icons.Filled.FlashAuto
     val FlashOff = Icons.Filled.FlashOff
     val FlashOn = Icons.Filled.FlashOn
-    val Fullscreen = Icons.Filled.ArrowForward
+    val Fullscreen = Icons.AutoMirrored.Filled.ArrowForward
     val Handyman = Icons.Filled.Build
     val History = Icons.Filled.History
     val Home = Icons.Filled.Home
@@ -150,13 +150,13 @@ object AppIcons {
     val Speaker = Icons.AutoMirrored.Filled.VolumeUp
     val Settings = Icons.Filled.Settings
     val Share = Icons.Filled.Share
-    val Speed = Icons.Filled.ArrowForward
+    val Speed = Icons.AutoMirrored.Filled.ArrowForward
     val Star = Icons.Filled.Star
     val Stop = Icons.Filled.Close
-    val TableChart = Icons.Filled.List
-    val Timeline = Icons.Filled.List
+    val TableChart = Icons.AutoMirrored.Filled.List
+    val Timeline = Icons.AutoMirrored.Filled.List
     val Today = Icons.Filled.DateRange
-    val TrendingUp = Icons.Filled.ArrowForward
+    val TrendingUp = Icons.AutoMirrored.Filled.ArrowForward
     val Vibration = Icons.Filled.Notifications
     val Visibility = Icons.Filled.Lock
     val VisibilityOff = Icons.Filled.Clear

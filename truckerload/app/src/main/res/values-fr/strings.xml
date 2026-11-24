@@ -1159,7 +1159,7 @@
     <string name="settings_oled_dark_title">Noir OLED</string>
     <string name="settings_oled_dark_desc">Fond noir pur pour l\'économie de batterie AMOLED et le confort la nuit</string>
     <string name="settings_dynamic_color_title">Couleurs dynamiques</string>
-    <string name="settings_dynamic_color_desc">Les accents suivent le thème du système (Material You / One UI)</string>
+    <string name="settings_dynamic_color_desc">Les accents suivent le thème du système (Material You / One UI). Le contraste vérifié de l\'application ne s\'applique plus lorsque cette option est activée.</string>
     <string name="settings_accessibility_title">Accessibilité</string>
     <string name="settings_accessibility_desc">Moins de mouvement pour une interface plus calme</string>
     <string name="settings_biometric_unlock_label">Déverrouillage biométrique</string>
@@ -2046,7 +2046,10 @@
     <string name="share_import_view_load">Voir le chargement</string>
     <string name="share_load_added">Chargement ajouté</string>
     <string name="share_load_added_missing">Chargement ajouté. Complétez : %1$s.</string>
-    <string name="share_loads_added">%1$d chargements ajoutés</string>
+    <plurals name="share_loads_added">
+        <item quantity="one">%d chargement ajouté</item>
+        <item quantity="other">%d chargements ajoutés</item>
+    </plurals>
     <string name="share_field_rate">tarif</string>
     <string name="share_field_pickup">enlèvement</string>
     <string name="share_field_delivery">livraison</string>

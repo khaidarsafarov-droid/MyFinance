@@ -39,7 +39,7 @@ import com.truckerload.utils.PeriodReportShare
  * sends the period already selected on Home.
  */
 @Composable
-internal fun HomePeriodShare(
+internal fun rememberHomePeriodShare(
     state: HomeUiState,
     driverName: String,
 ): () -> Unit {

@@ -35,7 +35,7 @@ internal object ShareImportBus {
 internal object ShareImportCopy {
     fun snackbar(context: Context, notice: ShareImportNotice): String {
         if (notice.loads.size > 1) {
-            return context.getString(R.string.share_loads_added, notice.loads.size)
+            return context.resources.getQuantityString(R.plurals.share_loads_added, notice.loads.size, notice.loads.size)
         }
         val missing = notice.loads.firstOrNull()?.missing.orEmpty()
         if (missing.isEmpty()) return context.getString(R.string.share_load_added)

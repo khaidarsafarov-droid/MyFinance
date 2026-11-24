@@ -22,6 +22,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import com.truckerload.utils.FeedbackManager
 import androidx.compose.ui.Alignment
@@ -35,6 +36,7 @@ import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
+import kotlinx.coroutines.launch
 import com.truckerload.presentation.theme.LocalBrandPalette
 import com.truckerload.presentation.theme.LocalSemantics
 import com.truckerload.presentation.theme.loadSharedBounds
@@ -90,17 +92,8 @@ fun SwipeableLoadCard(
         return
     }
 
-    val dismissState = rememberSwipeToDismissBoxState(
-        confirmValueChange = { value ->
-            if (value == SwipeToDismissBoxValue.EndToStart) {
-                // Soft-delete with undo snackbar; keep card settled so undo can restore it.
-                onDelete()
-                false
-            } else {
-                false
-            }
-        },
-    )
+    val dismissScope = rememberCoroutineScope()
+    val dismissState = rememberSwipeToDismissBoxState()
     LaunchedEffect(settleKey, card.id) {
         dismissState.snapTo(SwipeToDismissBoxValue.Settled)
     }
@@ -121,6 +114,13 @@ fun SwipeableLoadCard(
     SwipeToDismissBox(
         state = dismissState,
         enableDismissFromStartToEnd = false,
+        onDismiss = { value ->
+            if (value == SwipeToDismissBoxValue.EndToStart) {
+                // Soft-delete with undo snackbar; snap back so undo can restore the card.
+                onDelete()
+                dismissScope.launch { dismissState.snapTo(SwipeToDismissBoxValue.Settled) }
+            }
+        },
         backgroundContent = {
             if (showDeleteBackground) {
                 Box(

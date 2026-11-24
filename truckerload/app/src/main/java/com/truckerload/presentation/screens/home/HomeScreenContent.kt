@@ -64,6 +64,7 @@ import com.truckerload.presentation.di.LocalWeeklyProfitGoalStore
 import com.truckerload.presentation.screens.privacy.PrivacyTrustBadge
 import com.truckerload.presentation.components.rememberLoadCards
 import com.truckerload.presentation.theme.BentoGlassScreenBackground
+import com.truckerload.presentation.theme.LocalReduceMotion
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.theme.UiDimens
 import com.truckerload.presentation.utils.adaptiveLoadColumns
@@ -190,6 +191,7 @@ internal fun HomeScreenContent(
         derivedStateOf { !listState.canScrollBackward }
     }
     val loadColumns = adaptiveLoadColumns()
+    val reduceMotion = LocalReduceMotion.current
     val gridRows = remember(listItems, loadColumns) {
         buildHomeGridRows(listItems, loadColumns)
     }
@@ -326,9 +328,14 @@ internal fun HomeScreenContent(
                 val rowCount = pagedLoadRowCount(paging.itemCount, loadColumns)
                 items(
                     count = rowCount,
-                    // Stable row keys only — flipping null→id mid-fling makes
-                    // LazyColumn jump/spin while restoring scroll position.
-                    key = { rowIndex -> "page_row_$rowIndex" },
+                    key = { rowIndex ->
+                        pagedLoadRowKey(
+                            rowIndex = rowIndex,
+                            columns = loadColumns,
+                            itemCount = paging.itemCount,
+                            peekId = { index -> paging.peek(index)?.id },
+                        )
+                    },
                     contentType = { "load" },
                 ) { rowIndex ->
                     val start = rowIndex * loadColumns
@@ -344,7 +351,7 @@ internal fun HomeScreenContent(
                         onDelete = { id -> viewModel.requestDeleteLoad(id) },
                         onLoadCamera = onLoadCamera,
                         onLoadScan = onLoadScan,
-                        modifier = Modifier.animateItem(),
+                        modifier = if (reduceMotion) Modifier else Modifier.animateItem(),
                     )
                 }
             } else {
@@ -387,7 +394,7 @@ internal fun HomeScreenContent(
                                 onDelete = { id -> viewModel.requestDeleteLoad(id) },
                                 onLoadCamera = onLoadCamera,
                                 onLoadScan = onLoadScan,
-                                modifier = Modifier.animateItem(),
+                                modifier = if (reduceMotion) Modifier else Modifier.animateItem(),
                             )
                         }
                         is HomeGridRow.Loads -> HomeLoadCardRow(
@@ -398,7 +405,7 @@ internal fun HomeScreenContent(
                             onDelete = { id -> viewModel.requestDeleteLoad(id) },
                             onLoadCamera = onLoadCamera,
                             onLoadScan = onLoadScan,
-                            modifier = Modifier.animateItem(),
+                            modifier = if (reduceMotion) Modifier else Modifier.animateItem(),
                         )
                     }
                 }
@@ -493,31 +500,37 @@ private fun HomeAvatarButton(name: String, onClick: () -> Unit) {
         .map { it.first().uppercaseChar() }
         .joinToString("")
     val profileLabel = stringResource(R.string.nav_profile)
-    Surface(
+    Box(
         modifier = Modifier
             .padding(end = 12.dp)
-            .size(40.dp)
-            .clip(CircleShape)
+            .size(UiDimens.TouchTarget)
             .clickable(role = Role.Button, onClick = onClick)
             .semantics { contentDescription = profileLabel },
-        shape = CircleShape,
-        color = cs.primaryContainer,
+        contentAlignment = Alignment.Center,
     ) {
-        Box(contentAlignment = Alignment.Center) {
-            if (initials.isEmpty()) {
-                Icon(
-                    AppIcons.Person,
-                    contentDescription = null,
-                    tint = cs.onPrimaryContainer,
-                    modifier = Modifier.size(22.dp),
-                )
-            } else {
-                Text(
-                    text = initials,
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = cs.onPrimaryContainer,
-                )
+        Surface(
+            modifier = Modifier
+                .size(40.dp)
+                .clip(CircleShape),
+            shape = CircleShape,
+            color = cs.primaryContainer,
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                if (initials.isEmpty()) {
+                    Icon(
+                        AppIcons.Person,
+                        contentDescription = null,
+                        tint = cs.onPrimaryContainer,
+                        modifier = Modifier.size(22.dp),
+                    )
+                } else {
+                    Text(
+                        text = initials,
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = cs.onPrimaryContainer,
+                    )
+                }
             }
         }
     }

@@ -230,7 +230,7 @@ fun HomeScreen(
     }
 
     val tabletChrome = com.truckerload.presentation.utils.useNavigationRail()
-    val onSharePeriod = HomePeriodShare(uiState, welcomeName)
+    val onSharePeriod = rememberHomePeriodShare(uiState, welcomeName)
     val highlightedLoadIds = shareNotice?.loads?.map { it.loadId }?.toSet().orEmpty()
 
     CompositionLocalProvider(LocalShareHighlightLoadIds provides highlightedLoadIds) {
