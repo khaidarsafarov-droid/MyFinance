@@ -4,7 +4,7 @@ coreKtx = "1.16.0"
 junit = "4.13.2"
 junitVersion = "1.2.1"
 espressoCore = "3.6.1"
-# 2.11+/activity 1.13 require compileSdk 37; VM snapshot tops out at platform-36.
+# compileSdk is 37 (SDK package platforms;android-37.0). targetSdk stays 36.
 lifecycle = "2.9.4"
 activityCompose = "1.10.1"
 kotlin = "2.2.10"
@@ -19,21 +19,21 @@ datastore = "1.1.7"
 gson = "2.11.0"
 room = "2.7.0"
 hilt = "2.60.1"
-# 1.2.0 keeps compileSdk ≤36 compatibility; 1.4.0 pulls artifacts that require SDK 37.
+# 1.4.0 requires compileSdk 37, which this project now uses.
 androidxHilt = "1.4.0"
 paging = "3.3.6"
 work = "2.10.5"
 desugar = "2.1.4"
 appcompat = "1.7.1"
 material = "1.12.0"
-sqlcipher = "4.6.1"
+sqlcipher = "4.20.0"
 firebaseBom = "34.16.0"
 googleServices = "4.5.0"
 firebaseCrashlyticsGradle = "3.0.7"
 securityCrypto = "1.1.0-alpha06"
 biometric = "1.1.0"
 playServicesAuth = "21.2.0"
-playServicesMaps = "18.2.0"
+playServicesMaps = "20.1.0"
 playServicesLocation = "21.3.0"
 playServicesBase = "18.5.0"
 playServicesMlkitScanner = "16.0.0-beta1"
@@ -54,7 +54,7 @@ mockito = "5.14.2"
 mockitoKotlin = "5.4.0"
 robolectric = "4.14.1"
 # Baseline profiles. 1.5.0 supports AGP 8 through 9.x. profileinstaller 1.4.1
-# minCompileSdk is 34, which stays under this project's compileSdk 36.
+# minCompileSdk is 34, which stays under this project's compileSdk 37.
 baselineprofile = "1.5.0"
 # Reads MAPS_API_KEY from local.properties into the manifest. 2.0.1 is the current release.
 secretsGradlePlugin = "2.0.1"
