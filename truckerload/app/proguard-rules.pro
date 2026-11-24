@@ -42,8 +42,8 @@
 # SLF4J binder (not shipped on Android)
 -dontwarn org.slf4j.impl.StaticLoggerBinder
 
-# PdfBox-Android: optional JPEG2000 decoder is not bundled
--dontwarn com.gemalto.jp2.JP2Decoder
+# PdfBox-Android: optional JPEG2000 codec (JP2Decoder/JP2Encoder) is not bundled
+-dontwarn com.gemalto.jp2.**
 
 # Crashlytics references newer Android Profiling APIs (API 35+) not in compileSdk 34
 -dontwarn android.os.ProfilingManager
