@@ -218,7 +218,7 @@ class TaxTrackerViewModel @Inject constructor(
                     perDiemOverrideRepository.snapshotForYear(year),
                 )
                 val perDiemDays = perDiemDates.size
-                val perDiemAmt = PerDiemCalculator.amount(perDiemDays)
+                val perDiemAmt = PerDiemCalculator.deductibleAmount(perDiemDays)
                 val totalDed = dieselDed
                 val taxable = (totalGross - totalDed - perDiemAmt).coerceAtLeast(0.0)
 

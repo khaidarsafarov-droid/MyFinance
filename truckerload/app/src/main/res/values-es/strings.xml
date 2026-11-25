@@ -222,7 +222,7 @@
     <string name="about_guide_paycheck_title">6. Pago</string>
     <string name="about_guide_paycheck_body">Menú → Pago abre el diario de pagos. Ves cada pago anterior; elige una semana o busca por monto y archivo. Toca una tarjeta para editar el monto; toca el nombre del archivo para abrir el original. El más (+) abre el formulario: archivo/foto, Telegram o ingresa el monto. En Mis números, pago y diésel van lado a lado a color, sin restar.</string>
     <string name="about_guide_tax_title">7. Impuestos</string>
-    <string name="about_guide_tax_body">Menú → Impuestos: un estimado trimestral a partir del bruto de las cargas, deducción de diésel y per diem ($69/día). Es una guía, no asesoría fiscal.</string>
+    <string name="about_guide_tax_body">Menú → Impuestos: un estimado trimestral a partir del bruto de las cargas, deducción de diésel y per diem ($80/día, deducible al 80%). Es una guía, no asesoría fiscal.</string>
     <string name="about_guide_reports_title">8. Informes</string>
     <string name="about_guide_reports_body">Menú → Informes: ingresos por semana y ruta, pago y diésel lado a lado a color (sin restar) y exportación CSV.</string>
     <string name="about_guide_map_title">9. Mapa</string>
@@ -495,7 +495,7 @@
     <string name="tax_income">Ingresos</string>
     <string name="tax_deductions">Deducciones</string>
     <string name="tax_diesel_deduction">Diésel: -$%1$.2f</string>
-    <string name="tax_per_diem">Per Diem (%1$d días × $69): -$%2$.2f</string>
+    <string name="tax_per_diem">Per Diem (%1$d días × $80 × 80%%): -$%2$.2f</string>
     <string name="tax_total_deductions">Deducciones totales: -$%1$.2f</string>
     <string name="taxable_income">Ingreso gravable</string>
     <string name="tax_total_owed">Total a pagar: $%1$.2f</string>

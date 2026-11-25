@@ -281,12 +281,21 @@ class BillingManager(context: Context) {
 
                 override fun onBillingServiceDisconnected() {
                     // Не вызывать connect() отсюда: этот callback может прийти, пока connect() ещё ждёт.
+                    // A disconnect before setup finished must still release the waiting caller.
+                    if (created.complete(false)) clearConnecting(created)
                     scheduleReconnect()
                 }
             })
             created
         }
-        return pending.await()
+        // Play Store frozen or missing: give up instead of leaving the paywall and refresh hanging.
+        val connected = kotlinx.coroutines.withTimeoutOrNull(CONNECT_TIMEOUT_MS) { pending.await() }
+        if (connected == null && pending.complete(false)) clearConnecting(pending)
+        return connected == true
+    }
+
+    private fun clearConnecting(attempt: kotlinx.coroutines.CompletableDeferred<Boolean>) {
+        if (connecting === attempt) connecting = null
     }
 
     private fun scheduleReconnect() {
@@ -320,8 +329,10 @@ class BillingManager(context: Context) {
                 .apply()
         }
 
-        fun pendingAcks(): Set<String> =
-            if (!encrypted) emptySet() else prefs.getStringSet(KEY_PENDING_ACKS, emptySet()).orEmpty()
+        fun pendingAcks(): Set<String> {
+            if (!encrypted) return emptySet()
+            return prefs.getStringSet(KEY_PENDING_ACKS, emptySet()).orEmpty()
+        }
 
         fun addPendingAck(token: String) {
             if (!encrypted || token.isBlank()) return
@@ -344,5 +355,6 @@ class BillingManager(context: Context) {
     companion object {
         private const val MAX_RECONNECT = 3
         private const val RECONNECT_DELAY_MS = 1_500L
+        private const val CONNECT_TIMEOUT_MS = 15_000L
     }
 }

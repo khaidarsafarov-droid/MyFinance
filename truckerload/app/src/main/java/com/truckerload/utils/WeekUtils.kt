@@ -119,22 +119,18 @@ fun getLastWeekStartAndEnd(
 
 /** Дата первого Pick Up (PU) или load.date. */
 fun getPickUpDate(load: Load): String? {
-    val yearHint = load.date.take(4).toIntOrNull()
     val fromStops = load.stops
         .filter { it.type == StopType.PU }
-        .mapNotNull { parseDateFromScheduledTime(it.scheduledTime, yearHint, trustDefaultYear = yearHint != null) }
+        .mapNotNull { stopDateForLoad(it.scheduledTime, load.date) }
         .minOrNull()
     return fromStops ?: load.date.takeIf { it.length >= 10 }
 }
 
 /** Дата последней доставки (DEL), если есть. */
-fun getDeliveryDate(load: Load): String? {
-    val yearHint = load.date.take(4).toIntOrNull()
-    return load.stops
-        .filter { it.type == StopType.DEL }
-        .mapNotNull { parseDateFromScheduledTime(it.scheduledTime, yearHint, trustDefaultYear = yearHint != null) }
-        .maxOrNull()
-}
+fun getDeliveryDate(load: Load): String? = load.stops
+    .filter { it.type == StopType.DEL }
+    .mapNotNull { stopDateForLoad(it.scheduledTime, load.date) }
+    .maxOrNull()
 
 /**
  * Reporting week for a load: PU week by default (loads week-start from Settings).
@@ -167,16 +163,11 @@ fun Load.withReportingWeek(): Load {
     )
 }
 
-/** Year hint from load.date (YYYY-MM-DD…) for Relay MM/DD stop times. */
-private fun loadDateYearHint(load: Load): Int? =
-    load.date.takeIf { it.length >= 4 }?.substring(0, 4)?.toIntOrNull()
-
 /** First PU stop datetime (millis) or load.date at start of day. */
 fun getFirstPickUpMillis(load: Load): Long? {
-    val yearHint = loadDateYearHint(load)
     val fromStops = load.stops
         .filter { it.type == StopType.PU }
-        .mapNotNull { parseScheduledTimeToMillis(it.scheduledTime, yearHint, trustDefaultYear = yearHint != null) }
+        .mapNotNull { stopMillisForLoad(it.scheduledTime, load.date) }
         .minOrNull()
     if (fromStops != null) return fromStops
     return load.date.takeIf { it.length >= 10 }?.let { dateStringToStartOfDayMillis(it) }
@@ -184,13 +175,11 @@ fun getFirstPickUpMillis(load: Load): Long? {
 
 /** Last DEL stop datetime (millis) or load.date at start of day. */
 fun getLastDeliveryMillis(load: Load): Long? {
-    val yearHint = loadDateYearHint(load)
     val puMs = getFirstPickUpMillis(load)
     val fromStops = load.stops
         .filter { it.type == StopType.DEL }
         .mapNotNull { stop ->
-            val ms = parseScheduledTimeToMillis(stop.scheduledTime, yearHint, trustDefaultYear = yearHint != null)
-                ?: return@mapNotNull null
+            val ms = stopMillisForLoad(stop.scheduledTime, load.date) ?: return@mapNotNull null
             // FIX: New Year trip (12/30 → 01/02) — bump DEL into next year when before PU
             if (puMs != null && ms < puMs) {
                 Calendar.getInstance(Locale.getDefault()).apply {
@@ -206,14 +195,13 @@ fun getLastDeliveryMillis(load: Load): Long? {
     return load.date.takeIf { it.length >= 10 }?.let { dateStringToStartOfDayMillis(it) }
 }
 
+private const val MAX_LOAD_RANGE_DAYS = 62
+
 /** Для груза возвращает множество дат (YYYY-MM-DD), когда груз активен: от первой до последней остановки включительно. */
 fun getLoadDateRange(load: Load): Set<String> {
     val dates = mutableSetOf<String>()
     canonicalDateString(load.date)?.let { dates.add(it) }
-    val yearHint = load.date.take(4).toIntOrNull()
-    val stopDates = load.stops.mapNotNull {
-        parseDateFromScheduledTime(it.scheduledTime, yearHint, trustDefaultYear = yearHint != null)
-    }
+    val stopDates = load.stops.mapNotNull { stopDateForLoad(it.scheduledTime, load.date) }
     if (stopDates.isNotEmpty()) {
         val sorted = stopDates.sorted()
         val start = sorted.first()
@@ -227,10 +215,14 @@ fun getLoadDateRange(load: Load): Set<String> {
             cal.set(p1[0], p1[1] - 1, p1[2])
             val endCal = Calendar.getInstance()
             endCal.set(p2[0], p2[1] - 1, p2[2])
-            while (!cal.after(endCal)) {
+            // A trip never lasts months; a bad stop date must not paint the load on every day.
+            var days = 0
+            while (!cal.after(endCal) && days < MAX_LOAD_RANGE_DAYS) {
                 dates.add("%04d-%02d-%02d".format(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH) + 1, cal.get(Calendar.DAY_OF_MONTH)))
                 cal.add(Calendar.DAY_OF_YEAR, 1)
+                days++
             }
+            dates.add(end)
         }
     } else {
         load.actualFinishDate?.takeIf { it.length >= 10 }?.let { dates.add(it.take(10)) }

@@ -52,4 +52,15 @@ class WidgetDataStoreIsolationTest {
         assertEquals(9, WidgetDataStore.load(context).loadsCount)
         assertEquals("B", WidgetDataStore.load(context).weekLabel)
     }
+
+    @Test
+    fun legacyCacheIsHandedOverOnlyOnce() {
+        val context = RuntimeEnvironment.getApplication()
+        val legacy = context.getSharedPreferences("truckerload_widget", android.content.Context.MODE_PRIVATE)
+        legacy.edit().putInt("loads_count", 4).putLong("updated_at", 5L).commit()
+        AuthStore(context).logout()
+
+        assertEquals(4, WidgetDataStore.load(context).loadsCount)
+        assertEquals(true, legacy.all.isEmpty())
+    }
 }

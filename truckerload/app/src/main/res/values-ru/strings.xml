@@ -222,7 +222,7 @@
     <string name="about_guide_paycheck_title">6. Зарплата</string>
     <string name="about_guide_paycheck_body">Меню → «Зарплата» открывает журнал выплат. Сразу видны все предыдущие зарплаты; можно выбрать неделю или найти по сумме и файлу. Нажмите карточку, чтобы изменить сумму; нажмите имя файла, чтобы открыть оригинал. Плюс (+) открывает форму: файл/фото, Telegram или сумма вручную. В «Мои цифры» зарплата и дизель рядом по цветам — без вычета.</string>
     <string name="about_guide_tax_title">7. Налоги</string>
-    <string name="about_guide_tax_body">Меню → «Налоги»: оценка квартала по гроссу грузов, вычет дизеля и per diem ($69/день). Это ориентир, а не налоговая консультация.</string>
+    <string name="about_guide_tax_body">Меню → «Налоги»: оценка квартала по гроссу грузов, вычет дизеля и per diem ($80/день, вычет 80%). Это ориентир, а не налоговая консультация.</string>
     <string name="about_guide_reports_title">8. Отчёты</string>
     <string name="about_guide_reports_body">Меню → «Отчёты»: доход по неделям и маршрутам, зарплата и дизель рядом по цветам (без вычета), экспорт CSV.</string>
     <string name="about_guide_map_title">9. Карта</string>
@@ -499,7 +499,7 @@
     <string name="tax_income">Доход</string>
     <string name="tax_deductions">Вычеты</string>
     <string name="tax_diesel_deduction">Дизель: -$%1$.2f</string>
-    <string name="tax_per_diem">Per Diem (%1$d дн. × $69): -$%2$.2f</string>
+    <string name="tax_per_diem">Per Diem (%1$d дн. × $80 × 80%%): -$%2$.2f</string>
     <string name="tax_total_deductions">Итого вычетов: -$%1$.2f</string>
     <string name="taxable_income">Налогооблагаемый доход</string>
     <string name="tax_total_owed">Итого к уплате: $%1$.2f</string>
