@@ -36,21 +36,6 @@ internal fun SettingsStylePreview(
             SettingsSectionHeader(stringResource(R.string.settings_section_data))
             SettingsCard {
                 SettingsNavRow(
-                    icon = AppIcons.CloudStorage,
-                    title = stringResource(R.string.drive_sync_title),
-                    subtitle = if (model.phase == SettingsPremiumPhase.ACTIVE) {
-                        stringResource(R.string.settings_row_drive_today, "09:41")
-                    } else {
-                        stringResource(R.string.settings_row_drive_subtitle)
-                    },
-                    mark = if (model.phase == SettingsPremiumPhase.ACTIVE) {
-                        SettingsPremiumMark.CROWN
-                    } else {
-                        SettingsPremiumMark.LOCK
-                    },
-                    onClick = {},
-                )
-                SettingsNavRow(
                     icon = AppIcons.Backup,
                     title = stringResource(R.string.settings_row_backup),
                     subtitle = stringResource(R.string.settings_row_backup_subtitle),

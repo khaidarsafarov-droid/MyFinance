@@ -12,18 +12,15 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.R
-import com.truckerload.data.backup.GoogleDriveBackupService
 import com.truckerload.domain.premium.PremiumFeature
 import com.truckerload.domain.units.DisplayUnits
 import com.truckerload.domain.units.DistanceUnitPolicy
@@ -38,7 +35,6 @@ import com.truckerload.presentation.theme.screenEnterAnimation
 import com.truckerload.presentation.utils.useNavigationRail
 import com.truckerload.utils.AppLanguageManager
 import java.text.DateFormatSymbols
-import java.time.ZoneId
 
 @Composable
 fun SettingsScreen(
@@ -64,7 +60,6 @@ fun SettingsScreen(
     val dieselWeekStartDay = settings.dieselWeekStartDay
     val thresholds by hiltViewModel<RpmThresholdsViewModel>().thresholds.collectAsStateWithLifecycle()
     val premium by rememberPremiumAccess().status.collectAsStateWithLifecycle()
-    val context = LocalContext.current
     val locale = androidx.compose.ui.platform.LocalLocale.current.platformLocale
     val tablet = useNavigationRail()
     val motionReduced = LocalReduceMotion.current
@@ -73,23 +68,11 @@ fun SettingsScreen(
 
     var detail by remember { mutableStateOf<SettingsDetail?>(null) }
     var paywallOpen by remember { mutableStateOf(false) }
-    var syncToken by remember { mutableIntStateOf(0) }
     var cardsShown by remember { mutableStateOf(motionSettled) }
     LaunchedEffect(motionSettled) {
         if (motionSettled) cardsShown = true
     }
 
-    val lastSyncAt = remember(syncToken, context) {
-        GoogleDriveBackupService.prefs(context).lastSyncAt
-    }
-    val syncMoment = remember(lastSyncAt) {
-        SettingsPremiumState.syncMoment(lastSyncAt, System.currentTimeMillis(), ZoneId.systemDefault())
-    }
-    val driveSubtitle = when {
-        syncMoment == null -> stringResource(R.string.settings_row_drive_never)
-        syncMoment.isToday -> stringResource(R.string.settings_row_drive_today, syncMoment.clock)
-        else -> stringResource(R.string.settings_row_drive_at, syncMoment.dateTime)
-    }
     val languageValue = AppLanguageManager.getSupportedLanguages()
         .firstOrNull { it.code == AppLanguageManager.getCurrentLanguageCode() }
         ?.nativeName
@@ -161,8 +144,6 @@ fun SettingsScreen(
                 enter = screenEnterAnimation(motionReduced),
             ) {
                 SettingsBody(
-                    driveSubtitle = driveSubtitle,
-                    driveMark = SettingsPremiumState.mark(true, premium.allows(PremiumFeature.DRIVE)),
                     csvMark = SettingsPremiumState.mark(true, premium.allows(PremiumFeature.EXPORT)),
                     telegramMark = SettingsPremiumState.mark(true, premium.allows(PremiumFeature.TELEGRAM)),
                     languageValue = languageValue,
@@ -177,7 +158,6 @@ fun SettingsScreen(
                     notifyMissingWeek = notifyMissingWeek,
                     notifyMaintenance = notifyMaintenance,
                     settingsViewModel = settingsViewModel,
-                    onDrive = { openPremium(PremiumFeature.DRIVE, SettingsDetail.DRIVE) },
                     onBackup = { detail = SettingsDetail.DATA },
                     onCsv = { openPremium(PremiumFeature.EXPORT, SettingsDetail.DATA) },
                     onLanguage = onOpenLanguage,
@@ -203,10 +183,7 @@ fun SettingsScreen(
             quietHoursEnd = quietHoursEnd,
             settingsViewModel = settingsViewModel,
             onOpenPrivacy = onOpenPrivacy,
-            onDismiss = {
-                if (open == SettingsDetail.DRIVE) syncToken += 1
-                detail = null
-            },
+            onDismiss = { detail = null },
         )
     }
     if (paywallOpen) {

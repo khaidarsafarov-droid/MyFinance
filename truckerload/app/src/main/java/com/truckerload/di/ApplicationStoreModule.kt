@@ -1,7 +1,6 @@
 package com.truckerload.di
 
 import android.content.Context
-import com.truckerload.data.preferences.AuthCredentialsStore
 import com.truckerload.data.preferences.AuthStore
 import com.truckerload.data.preferences.SettingsDataStore
 import com.truckerload.data.preferences.UserProfileStore
@@ -25,12 +24,6 @@ object ApplicationStoreModule {
     @Provides
     @Singleton
     fun provideAuthStore(@ApplicationContext context: Context): AuthStore = AuthStore(context)
-
-    @Provides
-    @Singleton
-    fun provideAuthCredentialsStore(
-        @ApplicationContext context: Context,
-    ): AuthCredentialsStore = AuthCredentialsStore(context)
 
     @Provides
     @Singleton

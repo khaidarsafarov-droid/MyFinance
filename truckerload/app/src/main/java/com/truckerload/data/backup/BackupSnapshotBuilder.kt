@@ -13,7 +13,7 @@ import com.truckerload.data.repository.PaycheckRepository
 import com.truckerload.domain.model.MaintenanceArchiveEntry
 import com.truckerload.domain.model.MaintenanceTask
 
-/** Builds a full-account [BackupData] (journal + ТО + settings) for Drive / cloud / file. */
+/** Builds a full-account [BackupData] (journal + ТО + settings) for a backup file. */
 object BackupSnapshotBuilder {
 
     suspend fun build(context: Context, db: AppDatabase): BackupData {

@@ -162,6 +162,9 @@ class TruckerLoadApp : Application(), Configuration.Provider {
         }
         DynamicColors.applyToActivitiesIfAvailable(this)
         cancelRetiredCloudWork()
+        appScope.launch(Dispatchers.IO) {
+            com.truckerload.data.backup.RemovedDriveSyncCleanup.runOnce(this@TruckerLoadApp)
+        }
         // Do not force SYSTEM here — that races the saved Light/Dark preference and can
         // recreate MainActivity in a loop with Compose's themeMode initialValue.
         if (DatabasePassphraseStore.isRobolectric()) {
@@ -330,6 +333,8 @@ class TruckerLoadApp : Application(), Configuration.Provider {
             "push_token_registration",
             "server_telegram_inbox_oneshot",
             "server_telegram_inbox_periodic",
+            // Google Drive sync (removed).
+            "drive_sync_periodic",
         ).forEach { name ->
             wm.cancelUniqueWork(name)
         }

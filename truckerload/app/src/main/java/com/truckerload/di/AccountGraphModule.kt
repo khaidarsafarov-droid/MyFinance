@@ -2,7 +2,6 @@ package com.truckerload.di
 
 import android.content.Context
 import com.truckerload.data.local.AppDatabase
-import com.truckerload.data.preferences.AuthCredentialsStore
 import com.truckerload.data.preferences.AuthStore
 import com.truckerload.data.preferences.ConsentStore
 import com.truckerload.data.preferences.RegistrationProgressStore
@@ -59,7 +58,6 @@ object AccountGraphModule {
             progressStore = progressStore,
             userProfileStore = userProfileStore,
             authStore = AuthStore(app),
-            credentialsStore = AuthCredentialsStore(app),
         )
         return Bundle(
             identity = identity,

@@ -536,10 +536,9 @@ internal fun PlayProfile() {
                 onClick = {},
             )
             ProfileNavRow(
-                icon = AppIcons.CloudStorage,
-                title = stringResource(R.string.drive_sync_title),
-                subtitle = stringResource(R.string.profile_drive_never),
-                premiumLocked = false,
+                icon = AppIcons.Backup,
+                title = stringResource(R.string.settings_row_backup),
+                subtitle = stringResource(R.string.settings_row_backup_subtitle),
                 onClick = {},
             )
         }

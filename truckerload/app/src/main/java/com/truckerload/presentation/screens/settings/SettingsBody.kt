@@ -15,8 +15,6 @@ import com.truckerload.presentation.icons.AppIcons
 
 @Composable
 internal fun SettingsBody(
-    driveSubtitle: String,
-    driveMark: SettingsPremiumMark,
     csvMark: SettingsPremiumMark,
     telegramMark: SettingsPremiumMark,
     languageValue: String,
@@ -31,7 +29,6 @@ internal fun SettingsBody(
     notifyMissingWeek: Boolean,
     notifyMaintenance: Boolean,
     settingsViewModel: SettingsViewModel,
-    onDrive: () -> Unit,
     onBackup: () -> Unit,
     onCsv: () -> Unit,
     onLanguage: () -> Unit,
@@ -46,13 +43,6 @@ internal fun SettingsBody(
     Column(modifier = modifier.fillMaxWidth()) {
         SettingsSectionHeader(stringResource(R.string.settings_section_data))
         SettingsCard {
-            SettingsNavRow(
-                icon = AppIcons.CloudStorage,
-                title = stringResource(R.string.drive_sync_title),
-                subtitle = driveSubtitle,
-                mark = driveMark,
-                onClick = onDrive,
-            )
             SettingsNavRow(
                 icon = AppIcons.Backup,
                 title = stringResource(R.string.settings_row_backup),

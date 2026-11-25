@@ -126,7 +126,6 @@ fun ProfileScreen(
                         ProfileAccountCard(
                             givenName = uiState.givenName,
                             familyName = uiState.familyName,
-                            subscribed = uiState.subscribed,
                             premiumPhase = uiState.premiumPhase,
                             premiumPrice = uiState.premiumPrice,
                             onEditName = {

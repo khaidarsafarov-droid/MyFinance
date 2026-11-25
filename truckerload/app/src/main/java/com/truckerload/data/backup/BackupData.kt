@@ -11,7 +11,7 @@ import com.truckerload.domain.model.Paycheck
  * Photos/scans binaries are not in this JSON; a manual export packs them beside it in a
  * [BackupArchive] zip.
  * Schema v2 adds maintenance (ТО), archive receipts metadata, and app settings
- * so cloud / Drive / file restore brings back the full account, not only the journal.
+ * so a file restore brings back the full account, not only the journal.
  *
  * [schemaVersion] is the backup-format version. [version] is the legacy alias
  * written by older app builds; readers accept either.

@@ -31,7 +31,6 @@ import com.truckerload.R
 import com.truckerload.data.local.DatabaseStartup
 import com.truckerload.data.local.DbState
 import com.truckerload.data.preferences.AppThemeMode
-import com.truckerload.data.preferences.AuthCredentialsStore
 import com.truckerload.data.preferences.AuthProvider
 import com.truckerload.data.preferences.AuthStore
 import com.truckerload.data.preferences.SettingsDataStore
@@ -71,9 +70,6 @@ class MainActivity : AppCompatActivity() {
 
     @Inject
     lateinit var authStore: AuthStore
-
-    @Inject
-    lateinit var authCredentialsStore: AuthCredentialsStore
 
     @Inject
     lateinit var userProfileStore: UserProfileStore
@@ -144,15 +140,6 @@ class MainActivity : AppCompatActivity() {
                                 runSessionRepairsIfNeeded(activeUserId, deps.loadRepository)
                             }.onFailure { e ->
                                 android.util.Log.w("MainActivity", "Load repair failed", e)
-                            }
-                            if (com.truckerload.data.backup.DriveSyncEligibility
-                                    .shouldEnqueuePeriodic(activeUserId)
-                            ) {
-                                com.truckerload.data.backup.DriveSyncWorker.enqueuePeriodic(applicationContext)
-                                runCatching {
-                                    com.truckerload.data.backup.GoogleDriveBackupService
-                                        .pushAutoBackupIfEnabled(applicationContext)
-                                }
                             }
                         }
                     } else {

@@ -6,7 +6,7 @@ import com.truckerload.presentation.screens.auth.FirstRunNameScreen
 
 /**
  * First launch gate: optional first + last name. Skip is allowed.
- * Google Drive backup is connected later from Settings.
+ * Backups are files the user saves from Settings.
  */
 @Composable
 @Suppress("UNUSED_PARAMETER")

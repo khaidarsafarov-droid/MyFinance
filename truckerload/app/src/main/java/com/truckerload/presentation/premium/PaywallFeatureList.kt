@@ -207,9 +207,4 @@ private fun PremiumFeature.row(): PaywallFeatureCopy = when (this) {
         R.string.premium_feature_export_title,
         R.string.premium_feature_export_benefit,
     )
-    PremiumFeature.DRIVE -> PaywallFeatureCopy(
-        AppIcons.CloudStorage,
-        R.string.premium_feature_drive_title,
-        R.string.premium_feature_drive_benefit,
-    )
 }

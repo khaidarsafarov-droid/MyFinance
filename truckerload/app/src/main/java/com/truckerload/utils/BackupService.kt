@@ -87,9 +87,6 @@ object BackupService {
         File(dir, fileName).writeTextAtomically(json)
         pruneAutoBackups(appContext, DEFAULT_KEEP_COUNT)
         Log.d(TAG, "createAutoBackup saved $fileName (${backup.loads.size} loads)")
-        runCatching {
-            com.truckerload.data.backup.GoogleDriveBackupService.pushAutoBackupIfEnabled(appContext)
-        }.onFailure { e -> Log.e(TAG, "Drive auto-push failed", LogRedactor.redactThrowable(e)) }
     }
 
     suspend fun restoreFromFile(context: Context, file: File): Result<Int> = withContext(Dispatchers.IO) {
@@ -139,10 +136,10 @@ object BackupService {
     }
 
     /**
-     * Full-account JSON (journal + maintenance + settings) for a local file or Google Drive.
+     * Full-account JSON (journal + maintenance + settings) for a local backup file.
      * The Room file itself is SQLCipher-encrypted. This export reads decrypted rows through
-     * Room and writes JSON. Restore inserts that JSON back through Room, so Drive never
-     * needs the raw database or the passphrase.
+     * Room and writes JSON. Restore inserts that JSON back through Room, so a backup file never
+     * holds the raw database or the passphrase.
      */
     suspend fun createBackupJson(context: Context): String? = withContext(Dispatchers.IO) {
         runCatching {
