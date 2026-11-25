@@ -24,8 +24,7 @@ object VerifiedFileCopy {
     }
 
     /** True when both files exist with the same length and the same CRC32. */
-    fun sameContent(a: File, b: File): Boolean =
-        a.isFile && b.isFile && a.length() == b.length() && crc(a) == crc(b)
+    fun sameContent(a: File, b: File): Boolean = a.isFile && b.isFile && a.length() == b.length() && crc(a) == crc(b)
 
     /**
      * Copies [source] to [target] through a temp file beside it, syncs it to disk, checks

@@ -33,12 +33,7 @@ internal object BackupArchiveRestore {
         return read == head.size && BackupArchive.isZip(head)
     }
 
-    suspend fun restore(
-        context: Context,
-        uri: Uri,
-        allowUnboundAccount: Boolean,
-        maxJsonBytes: Int,
-    ): Result<BackupData> {
+    suspend fun restore(context: Context, uri: Uri, allowUnbound: Boolean, maxJsonBytes: Int): Result<BackupData> {
         val app = context.applicationContext
         val staging = File(app.filesDir, STAGING)
         staging.deleteRecursively()
@@ -56,7 +51,7 @@ internal object BackupArchiveRestore {
                 presentScanIds = db.scanDao().getAllScansOnce().idsWithFile { it.id to it.filePath },
             )
             val placement = BackupMediaPlacer.place(contents, backup, targets)
-            BackupService.restoreDecoded(app, placement.backup, allowUnboundAccount)
+            BackupService.restoreDecoded(app, placement.backup, allowUnbound)
                 .onFailure { BackupMediaPlacer.discard(placement.created) }
         } catch (e: CancellationException) {
             throw e

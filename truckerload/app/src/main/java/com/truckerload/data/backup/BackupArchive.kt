@@ -39,15 +39,16 @@ object BackupArchive {
 
     class Contents(val json: String, val photos: Map<String, File>, val scans: Map<String, File>)
 
-    fun fileName(exportedAt: Long): String =
-        BackupSchema.jsonFileName(exportedAt).removeSuffix(".json") + ".zip"
+    fun fileName(exportedAt: Long): String = BackupSchema.jsonFileName(exportedAt).removeSuffix(".json") + ".zip"
 
     /** Zip local-file signature `PK\u0003\u0004`. */
     val ZIP_MAGIC = "PK\u0003\u0004".toByteArray(Charsets.ISO_8859_1)
 
     /** True when [head] starts with [ZIP_MAGIC]. */
-    fun isZip(head: ByteArray): Boolean =
-        head.size >= ZIP_MAGIC.size && ZIP_MAGIC.indices.all { head[it] == ZIP_MAGIC[it] }
+    fun isZip(head: ByteArray): Boolean {
+        if (head.size < ZIP_MAGIC.size) return false
+        return ZIP_MAGIC.indices.all { head[it] == ZIP_MAGIC[it] }
+    }
 
     /** Photo and scan files of [backup] that exist on this device. */
     fun mediaEntries(backup: BackupData): List<MediaEntry> {

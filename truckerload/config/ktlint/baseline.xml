@@ -17,13 +17,13 @@
     </file>
     <file name="src/main/java/com/truckerload/TruckerLoadApp.kt">
         <error line="3" column="1" source="standard:import-ordering" />
-        <error line="71" column="24" source="standard:class-signature" />
-        <error line="71" column="39" source="standard:class-signature" />
-        <error line="245" column="9" source="standard:class-signature" />
-        <error line="246" column="9" source="standard:class-signature" />
+        <error line="73" column="24" source="standard:class-signature" />
+        <error line="73" column="39" source="standard:class-signature" />
         <error line="247" column="9" source="standard:class-signature" />
-        <error line="247" column="49" source="standard:class-signature" />
-        <error line="312" column="20" source="standard:trailing-comma-on-call-site" />
+        <error line="248" column="9" source="standard:class-signature" />
+        <error line="249" column="9" source="standard:class-signature" />
+        <error line="249" column="49" source="standard:class-signature" />
+        <error line="314" column="20" source="standard:trailing-comma-on-call-site" />
     </file>
     <file name="src/main/java/com/truckerload/data/auth/PasswordPolicy.kt">
         <error line="29" column="1" source="standard:blank-line-between-when-conditions" />
@@ -52,10 +52,10 @@
         <error line="73" column="9" source="standard:function-signature" />
         <error line="74" column="9" source="standard:function-signature" />
         <error line="74" column="38" source="standard:function-signature" />
-        <error line="106" column="58" source="standard:function-signature" />
-        <error line="115" column="43" source="standard:wrapping" />
-        <error line="117" column="13" source="standard:wrapping" />
-        <error line="122" column="57" source="standard:function-signature" />
+        <error line="124" column="58" source="standard:function-signature" />
+        <error line="133" column="43" source="standard:wrapping" />
+        <error line="135" column="13" source="standard:wrapping" />
+        <error line="140" column="57" source="standard:function-signature" />
     </file>
     <file name="src/main/java/com/truckerload/data/backup/BackupSnapshotBuilder.kt">
         <error line="47" column="60" source="standard:function-signature" />
@@ -120,8 +120,8 @@
     </file>
     <file name="src/main/java/com/truckerload/data/local/AppDatabase.kt">
         <error line="95" column="21" source="standard:property-naming" />
-        <error line="172" column="68" source="standard:function-expression-body" />
-        <error line="205" column="54" source="standard:function-signature" />
+        <error line="173" column="68" source="standard:function-expression-body" />
+        <error line="206" column="54" source="standard:function-signature" />
     </file>
     <file name="src/main/java/com/truckerload/data/local/CrowdRateMapper.kt">
         <error line="22" column="99" source="standard:function-signature" />
@@ -3665,26 +3665,6 @@
         <error line="77" column="1" source="standard:blank-line-between-when-conditions" />
         <error line="79" column="1" source="standard:blank-line-between-when-conditions" />
     </file>
-    <file name="src/main/java/com/truckerload/presentation/screens/gallery/GalleryScreen.kt">
-        <error line="3" column="1" source="standard:import-ordering" />
-        <error line="162" column="1" source="standard:blank-line-between-when-conditions" />
-        <error line="163" column="1" source="standard:blank-line-between-when-conditions" />
-        <error line="188" column="1" source="standard:blank-line-between-when-conditions" />
-        <error line="279" column="5" source="standard:function-signature" />
-        <error line="280" column="5" source="standard:function-signature" />
-        <error line="281" column="5" source="standard:function-signature" />
-        <error line="281" column="35" source="standard:function-signature" />
-        <error line="312" column="5" source="standard:function-signature" />
-        <error line="313" column="5" source="standard:function-signature" />
-        <error line="314" column="5" source="standard:function-signature" />
-        <error line="314" column="25" source="standard:function-signature" />
-        <error line="373" column="5" source="standard:function-signature" />
-        <error line="374" column="5" source="standard:function-signature" />
-        <error line="375" column="5" source="standard:function-signature" />
-        <error line="376" column="5" source="standard:function-signature" />
-        <error line="377" column="5" source="standard:function-signature" />
-        <error line="377" column="35" source="standard:function-signature" />
-    </file>
     <file name="src/main/java/com/truckerload/presentation/screens/gallery/GalleryThumbnail.kt">
         <error line="3" column="1" source="standard:import-ordering" />
     </file>
@@ -5259,16 +5239,16 @@
     </file>
     <file name="src/main/java/com/truckerload/share/ShareImportPipeline.kt">
         <error line="3" column="1" source="standard:import-ordering" />
-        <error line="23" column="5" source="standard:class-signature" />
         <error line="24" column="5" source="standard:class-signature" />
         <error line="25" column="5" source="standard:class-signature" />
-        <error line="25" column="34" source="standard:class-signature" />
-        <error line="111" column="1" source="standard:blank-line-between-when-conditions" />
+        <error line="26" column="5" source="standard:class-signature" />
+        <error line="26" column="34" source="standard:class-signature" />
         <error line="112" column="1" source="standard:blank-line-between-when-conditions" />
-        <error line="172" column="9" source="standard:function-signature" />
+        <error line="113" column="1" source="standard:blank-line-between-when-conditions" />
         <error line="173" column="9" source="standard:function-signature" />
         <error line="174" column="9" source="standard:function-signature" />
-        <error line="174" column="30" source="standard:function-signature" />
+        <error line="175" column="9" source="standard:function-signature" />
+        <error line="175" column="30" source="standard:function-signature" />
         <error line="256" column="9" source="standard:class-signature" />
         <error line="257" column="9" source="standard:class-signature" />
         <error line="258" column="9" source="standard:class-signature" />
@@ -5907,67 +5887,72 @@
     <file name="src/main/java/com/truckerload/utils/BackupService.kt">
         <error line="2" column="1" source="standard:import-ordering" />
         <error line="5" column="1" source="standard:no-consecutive-blank-lines" />
-        <error line="49" column="5" source="standard:spacing-between-declarations-with-comments" />
-        <error line="55" column="1" source="standard:spacing-between-declarations-with-annotations" />
-        <error line="58" column="9" source="standard:class-signature" />
+        <error line="50" column="5" source="standard:spacing-between-declarations-with-comments" />
+        <error line="56" column="1" source="standard:spacing-between-declarations-with-annotations" />
         <error line="59" column="9" source="standard:class-signature" />
         <error line="60" column="9" source="standard:class-signature" />
-        <error line="60" column="55" source="standard:class-signature" />
-        <error line="97" column="88" source="standard:trailing-comma-on-call-site" />
-        <error line="106" column="55" source="standard:function-signature" />
-        <error line="114" column="88" source="standard:trailing-comma-on-call-site" />
-        <error line="120" column="58" source="standard:function-signature" />
+        <error line="61" column="9" source="standard:class-signature" />
+        <error line="61" column="55" source="standard:class-signature" />
+        <error line="98" column="88" source="standard:trailing-comma-on-call-site" />
+        <error line="107" column="55" source="standard:function-signature" />
+        <error line="115" column="88" source="standard:trailing-comma-on-call-site" />
+        <error line="121" column="58" source="standard:function-signature" />
+        <error line="124" column="55" source="standard:function-signature" />
         <error line="161" column="9" source="standard:function-signature" />
         <error line="162" column="9" source="standard:function-signature" />
         <error line="163" column="9" source="standard:function-signature" />
         <error line="163" column="46" source="standard:function-signature" />
-        <error line="205" column="1" source="standard:no-trailing-spaces" />
-        <error line="205" column="9" source="standard:no-blank-line-before-rbrace" />
-        <error line="209" column="1" source="standard:no-trailing-spaces" />
-        <error line="209" column="9" source="standard:no-blank-line-before-rbrace" />
         <error line="213" column="1" source="standard:no-trailing-spaces" />
         <error line="213" column="9" source="standard:no-blank-line-before-rbrace" />
-        <error line="219" column="1" source="standard:no-trailing-spaces" />
-        <error line="219" column="9" source="standard:no-blank-line-before-rbrace" />
-        <error line="234" column="57" source="standard:trailing-comma-on-call-site" />
-        <error line="249" column="57" source="standard:trailing-comma-on-call-site" />
-        <error line="254" column="9" source="standard:function-signature" />
-        <error line="255" column="9" source="standard:function-signature" />
-        <error line="256" column="9" source="standard:function-signature" />
-        <error line="256" column="46" source="standard:function-signature" />
-        <error line="257" column="25" source="standard:function-signature" />
-        <error line="275" column="39" source="standard:trailing-comma-on-call-site" />
-        <error line="285" column="1" source="standard:no-trailing-spaces" />
-        <error line="285" column="9" source="standard:no-blank-line-before-rbrace" />
-        <error line="289" column="1" source="standard:no-trailing-spaces" />
-        <error line="289" column="9" source="standard:no-blank-line-before-rbrace" />
+        <error line="217" column="1" source="standard:no-trailing-spaces" />
+        <error line="217" column="9" source="standard:no-blank-line-before-rbrace" />
+        <error line="221" column="1" source="standard:no-trailing-spaces" />
+        <error line="221" column="9" source="standard:no-blank-line-before-rbrace" />
+        <error line="227" column="1" source="standard:no-trailing-spaces" />
+        <error line="227" column="9" source="standard:no-blank-line-before-rbrace" />
+        <error line="242" column="57" source="standard:trailing-comma-on-call-site" />
+        <error line="257" column="57" source="standard:trailing-comma-on-call-site" />
+        <error line="262" column="9" source="standard:function-signature" />
+        <error line="263" column="9" source="standard:function-signature" />
+        <error line="264" column="9" source="standard:function-signature" />
+        <error line="264" column="46" source="standard:function-signature" />
+        <error line="265" column="25" source="standard:function-signature" />
         <error line="293" column="1" source="standard:no-trailing-spaces" />
         <error line="293" column="9" source="standard:no-blank-line-before-rbrace" />
-        <error line="299" column="1" source="standard:no-trailing-spaces" />
-        <error line="299" column="9" source="standard:no-blank-line-before-rbrace" />
-        <error line="328" column="35" source="standard:trailing-comma-on-call-site" />
-        <error line="358" column="67" source="standard:function-signature" />
-        <error line="379" column="9" source="standard:function-signature" />
-        <error line="380" column="9" source="standard:function-signature" />
-        <error line="381" column="9" source="standard:function-signature" />
-        <error line="381" column="46" source="standard:function-signature" />
-        <error line="405" column="1" source="standard:no-trailing-spaces" />
-        <error line="405" column="9" source="standard:no-blank-line-before-rbrace" />
-        <error line="409" column="1" source="standard:no-trailing-spaces" />
-        <error line="409" column="9" source="standard:no-blank-line-before-rbrace" />
-        <error line="413" column="1" source="standard:no-trailing-spaces" />
-        <error line="413" column="9" source="standard:no-blank-line-before-rbrace" />
-        <error line="419" column="1" source="standard:no-trailing-spaces" />
-        <error line="419" column="9" source="standard:no-blank-line-before-rbrace" />
+        <error line="297" column="1" source="standard:no-trailing-spaces" />
+        <error line="297" column="9" source="standard:no-blank-line-before-rbrace" />
+        <error line="301" column="1" source="standard:no-trailing-spaces" />
+        <error line="301" column="9" source="standard:no-blank-line-before-rbrace" />
+        <error line="307" column="1" source="standard:no-trailing-spaces" />
+        <error line="307" column="9" source="standard:no-blank-line-before-rbrace" />
+        <error line="333" column="35" source="standard:trailing-comma-on-call-site" />
+        <error line="338" column="86" source="standard:function-signature" />
+        <error line="380" column="67" source="standard:function-signature" />
+        <error line="401" column="9" source="standard:function-signature" />
+        <error line="402" column="9" source="standard:function-signature" />
+        <error line="403" column="9" source="standard:function-signature" />
+        <error line="403" column="46" source="standard:function-signature" />
+        <error line="415" column="9" source="standard:function-signature" />
+        <error line="416" column="9" source="standard:function-signature" />
+        <error line="417" column="9" source="standard:function-signature" />
+        <error line="417" column="38" source="standard:function-signature" />
+        <error line="435" column="1" source="standard:no-trailing-spaces" />
+        <error line="435" column="9" source="standard:no-blank-line-before-rbrace" />
+        <error line="439" column="1" source="standard:no-trailing-spaces" />
+        <error line="439" column="9" source="standard:no-blank-line-before-rbrace" />
         <error line="443" column="1" source="standard:no-trailing-spaces" />
         <error line="443" column="9" source="standard:no-blank-line-before-rbrace" />
-        <error line="455" column="1" source="standard:no-trailing-spaces" />
-        <error line="455" column="9" source="standard:no-blank-line-before-rbrace" />
-        <error line="467" column="1" source="standard:no-trailing-spaces" />
-        <error line="467" column="9" source="standard:no-blank-line-before-rbrace" />
-        <error line="479" column="1" source="standard:no-trailing-spaces" />
-        <error line="479" column="9" source="standard:no-blank-line-before-rbrace" />
-        <error line="483" column="54" source="standard:function-signature" />
+        <error line="449" column="1" source="standard:no-trailing-spaces" />
+        <error line="449" column="9" source="standard:no-blank-line-before-rbrace" />
+        <error line="473" column="1" source="standard:no-trailing-spaces" />
+        <error line="473" column="9" source="standard:no-blank-line-before-rbrace" />
+        <error line="485" column="1" source="standard:no-trailing-spaces" />
+        <error line="485" column="9" source="standard:no-blank-line-before-rbrace" />
+        <error line="497" column="1" source="standard:no-trailing-spaces" />
+        <error line="497" column="9" source="standard:no-blank-line-before-rbrace" />
+        <error line="509" column="1" source="standard:no-trailing-spaces" />
+        <error line="509" column="9" source="standard:no-blank-line-before-rbrace" />
+        <error line="513" column="54" source="standard:function-signature" />
     </file>
     <file name="src/main/java/com/truckerload/utils/BrandConstants.kt">
         <error line="8" column="5" source="standard:spacing-between-declarations-with-comments" />
@@ -6138,16 +6123,16 @@
     </file>
     <file name="src/main/java/com/truckerload/utils/PDFGenerator.kt">
         <error line="3" column="1" source="standard:import-ordering" />
-        <error line="37" column="9" source="standard:function-signature" />
-        <error line="38" column="9" source="standard:function-signature" />
-        <error line="39" column="9" source="standard:function-signature" />
-        <error line="39" column="34" source="standard:function-signature" />
-        <error line="123" column="9" source="standard:function-signature" />
-        <error line="124" column="9" source="standard:function-signature" />
-        <error line="124" column="48" source="standard:function-signature" />
-        <error line="168" column="5" source="standard:class-signature" />
-        <error line="169" column="5" source="standard:class-signature" />
-        <error line="169" column="24" source="standard:class-signature" />
+        <error line="33" column="9" source="standard:function-signature" />
+        <error line="34" column="9" source="standard:function-signature" />
+        <error line="35" column="9" source="standard:function-signature" />
+        <error line="35" column="34" source="standard:function-signature" />
+        <error line="119" column="9" source="standard:function-signature" />
+        <error line="120" column="9" source="standard:function-signature" />
+        <error line="120" column="48" source="standard:function-signature" />
+        <error line="164" column="5" source="standard:class-signature" />
+        <error line="165" column="5" source="standard:class-signature" />
+        <error line="165" column="24" source="standard:class-signature" />
     </file>
     <file name="src/main/java/com/truckerload/utils/PaycheckSourceFiles.kt">
         <error line="85" column="67" source="standard:function-signature" />
@@ -6197,19 +6182,19 @@
         <error line="77" column="44" source="standard:function-signature" />
     </file>
     <file name="src/main/java/com/truckerload/utils/PhotoManager.kt">
-        <error line="37" column="55" source="standard:string-template" />
-        <error line="80" column="9" source="standard:function-signature" />
-        <error line="81" column="9" source="standard:function-signature" />
-        <error line="82" column="9" source="standard:function-signature" />
-        <error line="83" column="9" source="standard:function-signature" />
-        <error line="83" column="31" source="standard:function-signature" />
-        <error line="137" column="67" source="standard:function-signature" />
-        <error line="142" column="54" source="standard:function-signature" />
-        <error line="164" column="13" source="standard:function-signature" />
-        <error line="165" column="13" source="standard:function-signature" />
-        <error line="166" column="13" source="standard:function-signature" />
-        <error line="166" column="34" source="standard:function-signature" />
-        <error line="167" column="21" source="standard:function-signature" />
+        <error line="33" column="55" source="standard:string-template" />
+        <error line="76" column="9" source="standard:function-signature" />
+        <error line="77" column="9" source="standard:function-signature" />
+        <error line="78" column="9" source="standard:function-signature" />
+        <error line="79" column="9" source="standard:function-signature" />
+        <error line="79" column="31" source="standard:function-signature" />
+        <error line="133" column="67" source="standard:function-signature" />
+        <error line="138" column="54" source="standard:function-signature" />
+        <error line="160" column="13" source="standard:function-signature" />
+        <error line="161" column="13" source="standard:function-signature" />
+        <error line="162" column="13" source="standard:function-signature" />
+        <error line="162" column="34" source="standard:function-signature" />
+        <error line="163" column="21" source="standard:function-signature" />
     </file>
     <file name="src/main/java/com/truckerload/utils/RuntimePermissionSnapshot.kt">
         <error line="15" column="5" source="standard:class-signature" />

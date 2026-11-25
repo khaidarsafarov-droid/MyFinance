@@ -23,11 +23,16 @@ object MediaStorage {
     fun backupsRoot(context: Context): File = File(context.applicationContext.filesDir, BACKUPS)
 
     /** Where older builds kept the same folders. Null when external storage is unavailable. */
-    fun legacyRoot(context: Context): File? =
-        runCatching { context.applicationContext.getExternalFilesDir(null) }.getOrNull()
+    fun legacyRoot(context: Context): File? {
+        val app = context.applicationContext
+        return runCatching { app.getExternalFilesDir(null) }.getOrNull()
+    }
 
     fun legacyBackupsRoot(context: Context): File? = legacyRoot(context)?.let { File(it, BACKUPS) }
 
-    private fun ensureDir(context: Context, name: String): File =
-        File(context.applicationContext.filesDir, name).apply { mkdirs() }
+    private fun ensureDir(context: Context, name: String): File {
+        val dir = File(context.applicationContext.filesDir, name)
+        dir.mkdirs()
+        return dir
+    }
 }

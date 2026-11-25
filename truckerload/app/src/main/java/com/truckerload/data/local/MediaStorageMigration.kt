@@ -8,6 +8,8 @@ import com.truckerload.utils.MediaStorage
 import com.truckerload.utils.VerifiedFileCopy
 import java.io.File
 
+private typealias IdPath = Pair<String, String>
+
 /**
  * One-time move of photos, scans and local backup copies from app-specific external
  * storage to internal `filesDir`. Safe to run on every start and after a crash:
@@ -48,10 +50,12 @@ object MediaStorageMigration {
                         copied++
                         true
                     }
+
                     VerifiedFileCopy.sameContent(source, target) -> {
                         same++
                         true
                     }
+
                     // A different file already holds that name: keep both, never overwrite.
                     else -> false
                 }
@@ -104,13 +108,8 @@ object MediaStorageMigration {
     }
 
     /** Rows of [table] under [prefix] whose internal copy holds the same bytes (or the old file is gone). */
-    private fun verifiedMoves(
-        db: SupportSQLiteDatabase,
-        table: String,
-        prefix: String,
-        internal: File,
-    ): List<Pair<String, String>> {
-        val rows = mutableListOf<Pair<String, String>>()
+    private fun verifiedMoves(db: SupportSQLiteDatabase, table: String, prefix: String, internal: File): List<IdPath> {
+        val rows = mutableListOf<IdPath>()
         db.query(
             "SELECT id, filePath FROM $table WHERE substr(filePath, 1, ?) = ?",
             arrayOf<Any>(prefix.length, prefix),
@@ -138,8 +137,10 @@ object MediaStorageMigration {
         }
     }
 
-    private fun isTemp(file: File): Boolean =
-        file.name.endsWith(VerifiedFileCopy.TEMP_SUFFIX) || file.name.endsWith(".tmp")
+    private fun isTemp(file: File): Boolean {
+        val name = file.name
+        return name.endsWith(VerifiedFileCopy.TEMP_SUFFIX) || name.endsWith(".tmp")
+    }
 
     private fun pruneEmptyDirs(legacy: File) {
         val roots = listOf(MediaStorage.PHOTOS, MediaStorage.SCANS, MediaStorage.BACKUPS).map { File(legacy, it) }
