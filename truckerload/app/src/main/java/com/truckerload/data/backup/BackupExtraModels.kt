@@ -46,10 +46,7 @@ data class BackupMiscExpense(
 }
 
 @Keep
-data class BackupPerDiemOverride(
-    val date: String = "",
-    val included: Boolean = false,
-) {
+data class BackupPerDiemOverride(val date: String = "", val included: Boolean = false) {
     fun toEntity() = PerDiemDayOverrideEntity(date = date, included = included)
 
     companion object {
