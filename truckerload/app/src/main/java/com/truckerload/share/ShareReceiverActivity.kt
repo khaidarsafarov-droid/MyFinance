@@ -21,12 +21,12 @@ import com.truckerload.presentation.theme.TruckerLoadTheme
 import com.truckerload.utils.AppLocale
 import com.truckerload.utils.CrashReporting
 import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class ShareReceiverActivity : AppCompatActivity() {
@@ -96,12 +96,16 @@ class ShareReceiverActivity : AppCompatActivity() {
                     )
                     openLoads()
                 }
+
                 is ShareOutcome.Duplicate -> {
                     viewLoadId = outcome.loadId
                     show(ShareReceiverMessage.DUPLICATE)
                 }
+
                 ShareOutcome.Rejected -> show(ShareReceiverMessage.REJECTED)
+
                 ShareOutcome.TooLarge -> show(ShareReceiverMessage.TOO_LARGE)
+
                 ShareOutcome.Unreadable -> show(ShareReceiverMessage.UNREADABLE)
             }
         }

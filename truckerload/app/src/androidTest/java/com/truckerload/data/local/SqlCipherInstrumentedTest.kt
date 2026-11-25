@@ -7,7 +7,6 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.sqlite.db.SupportSQLiteOpenHelper
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import com.truckerload.data.local.migrations.MIGRATION_25_26
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -171,14 +170,13 @@ class SqlCipherInstrumentedTest {
             })
             .build()
 
-    private fun openCipher(dbFile: java.io.File, passphrase: ByteArray): CipherDatabase =
-        CipherDatabase.openDatabase(
-            dbFile.absolutePath,
-            passphrase,
-            null,
-            CipherDatabase.OPEN_READONLY,
-            null,
-        )
+    private fun openCipher(dbFile: java.io.File, passphrase: ByteArray): CipherDatabase = CipherDatabase.openDatabase(
+        dbFile.absolutePath,
+        passphrase,
+        null,
+        CipherDatabase.OPEN_READONLY,
+        null,
+    )
 
     private fun assertPhotoMetadata(database: CipherDatabase) {
         database.rawQuery(
