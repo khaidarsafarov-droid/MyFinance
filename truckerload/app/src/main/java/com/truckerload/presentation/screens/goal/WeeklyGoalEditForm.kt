@@ -24,6 +24,7 @@ import com.truckerload.presentation.components.TlOutlinedButton as OutlinedButto
 import com.truckerload.presentation.theme.AppTextFieldDefaults
 import com.truckerload.presentation.theme.LocalBrandPalette
 import com.truckerload.presentation.theme.UiDimens
+import com.truckerload.presentation.utils.MoneyFormat
 
 @Composable
 internal fun WeeklyGoalEditForm(
@@ -44,7 +45,7 @@ internal fun WeeklyGoalEditForm(
             onValueChange = onGoalInputChange,
             modifier = Modifier.fillMaxWidth(),
             label = { Text(stringResource(R.string.goal_target_amount)) },
-            prefix = { Text("$") },
+            prefix = { Text(MoneyFormat.currencySymbol) },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
             isError = goalError != null,
             supportingText = goalError?.let { { Text(it) } },

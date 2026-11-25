@@ -1171,7 +1171,7 @@
     <string name="settings_oled_dark_title">OLED чёрный</string>
     <string name="settings_oled_dark_desc">Чисто чёрный фон для экономии батареи и комфорта ночью</string>
     <string name="settings_dynamic_color_title">Динамические цвета</string>
-    <string name="settings_dynamic_color_desc">Акценты подстраиваются под тему системы (Material You / One UI)</string>
+    <string name="settings_dynamic_color_desc">Акценты подстраиваются под тему системы (Material You / One UI). Проверенный контраст приложения при этом больше не действует.</string>
     <string name="settings_accessibility_title">Доступность</string>
     <string name="settings_accessibility_desc">Меньше движения — спокойнее интерфейс</string>
     <string name="settings_biometric_unlock_label">Разблокировка по биометрии</string>
@@ -2062,7 +2062,12 @@
     <string name="share_import_view_load">Открыть груз</string>
     <string name="share_load_added">Груз добавлен</string>
     <string name="share_load_added_missing">Груз добавлен. Заполните: %1$s.</string>
-    <string name="share_loads_added">Добавлено грузов: %1$d</string>
+    <plurals name="share_loads_added">
+        <item quantity="one">Добавлен %d груз</item>
+        <item quantity="few">Добавлено %d груза</item>
+        <item quantity="many">Добавлено %d грузов</item>
+        <item quantity="other">Добавлено грузов: %d</item>
+    </plurals>
     <string name="share_field_rate">ставку</string>
     <string name="share_field_pickup">погрузку</string>
     <string name="share_field_delivery">выгрузку</string>

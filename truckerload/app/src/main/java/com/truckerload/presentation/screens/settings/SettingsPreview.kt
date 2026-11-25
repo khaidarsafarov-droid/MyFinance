@@ -73,7 +73,7 @@ internal fun SettingsStylePreview(
                 SettingsSwitchRow(
                     icon = AppIcons.Palette,
                     title = stringResource(R.string.settings_dynamic_color_title),
-                    subtitle = stringResource(R.string.settings_dynamic_subtitle),
+                    subtitle = stringResource(R.string.settings_dynamic_color_desc),
                     checked = false,
                     onCheckedChange = {},
                 )

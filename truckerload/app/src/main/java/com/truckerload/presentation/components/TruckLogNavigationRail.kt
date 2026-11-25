@@ -36,6 +36,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -254,11 +258,21 @@ private fun CompactRailItem(
 ) {
     val bg = if (selected) MaterialTheme.colorScheme.primaryContainer else Color.Transparent
     val fg = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+    val spoken = if (badgeCount > 0) {
+        stringResource(R.string.nav_profile_due_badge, badgeCount)
+    } else {
+        label
+    }
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
             .background(bg)
+            .semantics(mergeDescendants = true) {
+                this.selected = selected
+                role = Role.Tab
+                contentDescription = spoken
+            }
             .clickable(role = Role.Tab, onClick = onClick)
             .heightIn(min = UiDimens.TouchTarget)
             .padding(vertical = 6.dp, horizontal = 2.dp),
@@ -279,7 +293,7 @@ private fun CompactRailItem(
         Text(
             text = label,
             color = fg,
-            maxLines = 1,
+            maxLines = 2,
             overflow = TextOverflow.Ellipsis,
             style = MaterialTheme.typography.labelSmall,
             fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
@@ -325,11 +339,21 @@ private fun SoftSidebarItem(
 ) {
     val bg = if (selected) MaterialTheme.colorScheme.primaryContainer else Color.Transparent
     val fg = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+    val spoken = if (badgeCount > 0) {
+        stringResource(R.string.nav_profile_due_badge, badgeCount)
+    } else {
+        label
+    }
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(18.dp))
             .background(bg)
+            .semantics(mergeDescendants = true) {
+                this.selected = selected
+                role = Role.Tab
+                contentDescription = spoken
+            }
             .clickable(role = Role.Tab, onClick = onClick)
             .heightIn(min = UiDimens.TouchTarget)
             .padding(horizontal = 14.dp, vertical = 12.dp),
@@ -353,7 +377,7 @@ private fun SoftSidebarItem(
                 fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
             ),
             color = fg,
-            maxLines = 1,
+            maxLines = 2,
             overflow = TextOverflow.Ellipsis,
         )
     }
@@ -431,12 +455,17 @@ private fun RailQuickAction(compact: Boolean, onClick: () -> Unit) {
             )
         }
     } else {
+        val quickLabel = stringResource(R.string.quick_actions_title)
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 8.dp)
                 .clip(RoundedCornerShape(18.dp))
                 .background(cs.primary)
+                .semantics(mergeDescendants = true) {
+                    role = Role.Button
+                    contentDescription = quickLabel
+                }
                 .clickable(role = Role.Button, onClick = {
                     FeedbackManager.onNavSelect()
                     onClick()
@@ -453,9 +482,9 @@ private fun RailQuickAction(compact: Boolean, onClick: () -> Unit) {
                 modifier = Modifier.size(UiDimens.IconNav),
             )
             Text(
-                text = stringResource(R.string.quick_actions_title),
+                text = quickLabel,
                 color = cs.onPrimary,
-                maxLines = 1,
+                maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
                 style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
             )

@@ -3,12 +3,17 @@ package com.truckerload.presentation.utils
 import com.truckerload.domain.money.Money
 import com.truckerload.domain.units.DisplayUnits
 import com.truckerload.domain.units.MeasurementUnits
+import java.text.NumberFormat
 import java.util.Locale
 import kotlin.math.abs
 
 /** Единое форматирование сумм и чисел (US: запятая в тысячах, точка в десятичных). */
 object MoneyFormat {
     private val locale = Locale.US
+
+    /** Currency symbol from the US currency formatter (USD). */
+    val currencySymbol: String
+        get() = NumberFormat.getCurrencyInstance(locale).currency?.symbol ?: "$"
 
     fun formatCurrency(value: Double, decimals: Int = 0): String =
         if (decimals == 0) {
