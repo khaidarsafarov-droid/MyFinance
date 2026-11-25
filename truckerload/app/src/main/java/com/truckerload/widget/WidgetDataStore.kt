@@ -69,6 +69,9 @@ object WidgetDataStore {
             putFloat(KEY_ACTIVE_DAYS, legacy.getFloat(KEY_ACTIVE_DAYS, 0f))
             putLong(KEY_UPDATED, legacy.getLong(KEY_UPDATED, 0L))
         }
+        // The legacy file belongs to whoever used the widget first. Hand it over once,
+        // so the next account's widget never starts with someone else's week totals.
+        legacy.edit(commit = true) { clear() }
     }
 
     fun save(context: Context, stats: WidgetStats) {
