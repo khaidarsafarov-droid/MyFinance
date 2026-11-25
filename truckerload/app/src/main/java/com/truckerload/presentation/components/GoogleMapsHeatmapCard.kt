@@ -1,5 +1,7 @@
 package com.truckerload.presentation.components
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.Dispatchers
 
 
 import com.truckerload.presentation.icons.AppIcons
@@ -35,6 +37,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -48,6 +51,8 @@ import androidx.lifecycle.LifecycleEventObserver
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.MapView
 import com.google.android.gms.maps.model.LatLng
+import java.util.concurrent.atomic.AtomicReference
+import java.util.concurrent.atomic.AtomicBoolean
 import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.maps.android.data.geojson.GeoJsonLayer
 import com.google.maps.android.data.geojson.GeoJsonPolygonStyle
@@ -105,7 +110,13 @@ fun GoogleMapsHeatmapCard(
     onExpandClick: (() -> Unit)? = null,
 ) {
     val context = LocalContext.current
-    val geoJson = remember { loadGeoJsonFromRaw(context) }
+    val appContext = context.applicationContext
+    val geoJson by produceState(
+        initialValue = peekCachedGeoJson(),
+        key1 = appContext,
+    ) {
+        value = withContext(Dispatchers.Default) { loadGeoJsonFromRaw(appContext) }
+    }
     val byCode = metrics.associateBy { it.code }
     val selected = if (selectedCode.isNotBlank()) byCode[selectedCode] else null
 
@@ -129,6 +140,23 @@ fun GoogleMapsHeatmapCard(
                 var mapView by remember { mutableStateOf<MapView?>(null) }
                 var geoJsonLayer by remember { mutableStateOf<GeoJsonLayer?>(null) }
                 val lifecycleOwner = LocalLifecycleOwner.current
+
+                LaunchedEffect(geoJson, mapView) {
+                    val json = geoJson ?: return@LaunchedEffect
+                    val view = mapView ?: return@LaunchedEffect
+                    if (geoJsonLayer != null) return@LaunchedEffect
+                    view.getMapAsync { googleMap ->
+                        if (geoJsonLayer != null) return@getMapAsync
+                        attachGeoJsonLayer(
+                            googleMap = googleMap,
+                            json = json,
+                            byCode = byCode,
+                            selectedCode = selectedCode,
+                            onStateSelected = onStateSelected,
+                            onReady = { geoJsonLayer = it },
+                        )
+                    }
+                }
 
                 LaunchedEffect(metrics, selectedCode, geoJsonLayer) {
                     geoJsonLayer?.let { layer ->
@@ -196,23 +224,14 @@ fun GoogleMapsHeatmapCard(
                                 )
                                 googleMap.setMapStyle(MapStyleOptions(MAP_STYLE))
                                 geoJson?.let { json ->
-                                    try {
-                                        val layer = GeoJsonLayer(googleMap, json)
-                                        layer.addLayerToMap()
-                                        geoJsonLayer = layer
-                                        applyStateStyles(layer, byCode, selectedCode)
-                                        layer.setOnFeatureClickListener { feature ->
-                                            val name = feature.getProperty("name") ?: return@setOnFeatureClickListener
-                                            val code = STATE_NAME_TO_ABBR[name] ?: name
-                                            onStateSelected(code)
-                                        }
-                                    } catch (e: IllegalArgumentException) {
-                                        logFailure("GoogleMapsHeatmap", "GeoJSON layer failed", e)
-                                    } catch (e: CancellationException) {
-                                        throw e
-                                    } catch (e: IllegalStateException) {
-                                        logFailure("GoogleMapsHeatmap", "GeoJSON layer failed", e)
-                                    }
+                                    attachGeoJsonLayer(
+                                        googleMap = googleMap,
+                                        json = json,
+                                        byCode = byCode,
+                                        selectedCode = selectedCode,
+                                        onStateSelected = onStateSelected,
+                                        onReady = { geoJsonLayer = it },
+                                    )
                                 }
                             }
                         }
@@ -389,16 +408,56 @@ fun GoogleMapsHeatmapCard(
     }
 }
 
+private val cachedGeoJson = AtomicReference<JSONObject?>()
+private val geoJsonCacheReady = AtomicBoolean(false)
+
+private fun peekCachedGeoJson(): JSONObject? =
+    if (geoJsonCacheReady.get()) cachedGeoJson.get() else null
+
 private fun loadGeoJsonFromRaw(context: Context): JSONObject? {
-    return try {
-        val json = context.resources.openRawResource(R.raw.us_states).bufferedReader().readText()
-        JSONObject(json)
-    } catch (e: java.io.IOException) {
-        logFailure("GoogleMapsHeatmap", "state outlines failed", e)
-        null
-    } catch (e: org.json.JSONException) {
-        logFailure("GoogleMapsHeatmap", "state outlines failed", e)
-        null
+    peekCachedGeoJson()?.let { return it }
+    synchronized(cachedGeoJson) {
+        peekCachedGeoJson()?.let { return it }
+        val parsed = try {
+            val json = context.resources.openRawResource(R.raw.us_states).bufferedReader().readText()
+            JSONObject(json)
+        } catch (e: java.io.IOException) {
+            logFailure("GoogleMapsHeatmap", "state outlines failed", e)
+            null
+        } catch (e: org.json.JSONException) {
+            logFailure("GoogleMapsHeatmap", "state outlines failed", e)
+            null
+        }
+        cachedGeoJson.set(parsed)
+        geoJsonCacheReady.set(true)
+        return parsed
+    }
+}
+
+private fun attachGeoJsonLayer(
+    googleMap: com.google.android.gms.maps.GoogleMap,
+    json: JSONObject,
+    byCode: Map<String, USStateMetric>,
+    selectedCode: String,
+    onStateSelected: (String) -> Unit,
+    onReady: (GeoJsonLayer) -> Unit,
+) {
+    try {
+        val layer = GeoJsonLayer(googleMap, json)
+        layer.addLayerToMap()
+        applyStateStyles(layer, byCode, selectedCode)
+        layer.setOnFeatureClickListener { feature ->
+            val name = feature.getProperty("name") ?: return@setOnFeatureClickListener
+            val code = STATE_NAME_TO_ABBR[name] ?: name
+            onStateSelected(code)
+        }
+        onReady(layer)
+    } catch (e: IllegalArgumentException) {
+        logFailure("GoogleMapsHeatmap", "GeoJSON layer failed", e)
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: IllegalStateException) {
+        logFailure("GoogleMapsHeatmap", "GeoJSON layer failed", e)
     }
 }
 

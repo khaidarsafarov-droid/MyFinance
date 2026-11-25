@@ -41,6 +41,7 @@ import com.truckerload.domain.model.Load
 import com.truckerload.domain.money.Money
 import com.truckerload.domain.money.MoneyInput
 import com.truckerload.presentation.theme.AppTextFieldDefaults
+import com.truckerload.presentation.utils.MoneyFormat
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.utils.dateStringToUtcDatePickerMillis
 import com.truckerload.utils.utcDatePickerMillisToDateString
@@ -230,7 +231,7 @@ fun DisputeSection(
                         )
                     },
                     label = { Text(stringResource(R.string.dispute_amount_label)) },
-                    prefix = { Text("$") },
+                    prefix = { Text(MoneyFormat.currencySymbol) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     singleLine = true,
                     modifier = Modifier.weight(1f),

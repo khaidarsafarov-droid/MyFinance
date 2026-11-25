@@ -17,6 +17,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -57,7 +60,12 @@ private fun QuickTile(
 ) {
     val cs = MaterialTheme.colorScheme
     Column(
-        modifier = modifier,
+        modifier = modifier
+            .semantics(mergeDescendants = true) {
+                contentDescription = label
+                role = Role.Button
+            }
+            .clickable(role = Role.Button, onClick = onClick),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
@@ -66,8 +74,7 @@ private fun QuickTile(
                 .size(64.dp)
                 .pressScale()
                 .clip(RoundedCornerShape(22.dp))
-                .background(cs.surface)
-                .clickable(role = Role.Button, onClick = onClick),
+                .background(cs.surface),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {
@@ -83,7 +90,7 @@ private fun QuickTile(
             style = MaterialTheme.typography.labelMedium,
             color = cs.onSurface,
             textAlign = TextAlign.Center,
-            maxLines = 1,
+            maxLines = 2,
             overflow = TextOverflow.Ellipsis,
         )
     }

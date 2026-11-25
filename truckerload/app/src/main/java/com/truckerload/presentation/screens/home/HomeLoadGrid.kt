@@ -64,6 +64,29 @@ fun pagedLoadRowCount(itemCount: Int, columns: Int): Int {
     return (itemCount + cols - 1) / cols
 }
 
+/**
+ * Key a paged grid row by load ids once every item in the row has loaded.
+ * Placeholder rows keep a stable index key so LazyColumn does not jump
+ * when a mid-fling peek flips from null to an id.
+ */
+fun pagedLoadRowKey(
+    rowIndex: Int,
+    columns: Int,
+    itemCount: Int,
+    peekId: (itemIndex: Int) -> String?,
+): String {
+    val cols = columns.coerceAtLeast(1)
+    val start = rowIndex * cols
+    val end = minOf(start + cols, itemCount)
+    if (start >= end) return "page_row_$rowIndex"
+    val ids = (start until end).map { peekId(it) }
+    return if (ids.isNotEmpty() && ids.all { it != null }) {
+        "loads_${ids.joinToString("_")}"
+    } else {
+        "page_row_$rowIndex"
+    }
+}
+
 @Composable
 internal fun HomeLoadCardRow(
     cards: List<LoadCardModel>,

@@ -21,7 +21,6 @@ import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -114,8 +113,8 @@ internal fun SoftBottomBar(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(82.dp)
-                .padding(horizontal = 8.dp),
+                .heightIn(min = 82.dp)
+                .padding(horizontal = 8.dp, vertical = 4.dp),
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -236,7 +235,7 @@ private fun PhoneNavTab(
         Text(
             text = label,
             color = tint,
-            maxLines = 1,
+            maxLines = 2,
             overflow = TextOverflow.Ellipsis,
             fontSize = 13.sp,
             fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,

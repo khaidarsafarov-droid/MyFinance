@@ -92,4 +92,30 @@ class HomeLoadGridTest {
         assertEquals(2, pagedLoadRowCount(3, 2))
         assertEquals(5, pagedLoadRowCount(10, 2))
     }
+
+    @Test
+    fun pagedLoadRowKey_usesLoadIdsWhenRowIsLoaded() {
+        val ids = listOf("a", "b", "c")
+        assertEquals(
+            "loads_a_b",
+            pagedLoadRowKey(0, 2, ids.size) { ids.getOrNull(it) },
+        )
+        assertEquals(
+            "loads_c",
+            pagedLoadRowKey(1, 2, ids.size) { ids.getOrNull(it) },
+        )
+    }
+
+    @Test
+    fun pagedLoadRowKey_keepsIndexKeyWhileAPlaceholderRemains() {
+        val ids = listOf("a", null, "c")
+        assertEquals(
+            "page_row_0",
+            pagedLoadRowKey(0, 2, ids.size) { ids.getOrNull(it) },
+        )
+        assertEquals(
+            "loads_c",
+            pagedLoadRowKey(1, 2, ids.size) { ids.getOrNull(it) },
+        )
+    }
 }
