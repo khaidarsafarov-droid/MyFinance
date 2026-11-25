@@ -87,7 +87,7 @@ fun FinishDateField(
             confirmButton = {
                 TextButton(onClick = {
                     dateState.selectedDateMillis?.let { ms ->
-                        utcDatePickerMillisToDateString(ms)?.let(onDatePicked)
+                        onDatePicked(utcDatePickerMillisToDateString(ms))
                     }
                     showDatePicker = false
                     showTimePicker = true

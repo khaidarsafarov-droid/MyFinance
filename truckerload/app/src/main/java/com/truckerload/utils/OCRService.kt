@@ -41,7 +41,7 @@ class OCRService(context: Context) {
         val pages = result.pages ?: return OcrResult("", false)
         if (pages.isEmpty()) return OcrResult("", false)
         val pageResults = pages.mapNotNull { page ->
-            page.imageUri?.let { uri -> recognizeFromUri(context, uri) }
+            recognizeFromUri(context, page.imageUri)
         }
         if (pageResults.isEmpty()) return OcrResult("", false)
         val combined = pageResults.joinToString(separator = "\n\n—\n\n") { it.text }

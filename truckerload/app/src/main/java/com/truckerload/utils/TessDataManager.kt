@@ -39,7 +39,7 @@ object TessDataManager {
             val request = Request.Builder().url(url).build()
             client.newCall(request).execute().use { response ->
                 if (!response.isSuccessful) return false
-                val body = response.body ?: return false
+                val body = response.body
                 dest.outputStream().use { out -> body.byteStream().copyTo(out) }
                 dest.exists() && dest.length() > 50_000
             }
