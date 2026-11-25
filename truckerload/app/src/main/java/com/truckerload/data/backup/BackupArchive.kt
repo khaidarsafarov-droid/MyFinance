@@ -1,5 +1,6 @@
 package com.truckerload.data.backup
 
+import android.annotation.SuppressLint
 import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
 import java.io.ByteArrayOutputStream
@@ -158,6 +159,9 @@ object BackupArchive {
         return target
     }
 
+    // A floor that stops a restore before the disk fills up, not an allocation: usableSpace is the
+    // conservative number we want here (cached data the system could clear is not counted on).
+    @SuppressLint("UsableSpace")
     private fun requireSpace(dir: File, minFreeBytes: Long) {
         if (dir.usableSpace < minFreeBytes) throw IOException("not enough free space")
     }
