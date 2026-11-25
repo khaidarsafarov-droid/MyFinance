@@ -10,8 +10,8 @@ import com.truckerload.data.repository.LoadRepository
 /**
  * Shared full-replace restore used by local backup import and cloud full hydration.
  *
- * Photos/scans are **not** wiped wholesale: after journal replace, [pruneOrphanMedia] removes
- * only rows whose [loadId] no longer exists. Unlinked media and media for restored loads stay.
+ * Photos/scans are **not** wiped wholesale: after journal replace, [pruneOrphanMedia] unlinks
+ * (never deletes) rows whose [loadId] no longer exists. Unlinked media and media for restored loads stay.
  * Maintenance receipt [photoPath] files are kept when the archive row is restored.
  *
  * Schema v1 backups never carried ТО — local maintenance tables are left untouched on restore.
@@ -59,6 +59,37 @@ object BackupRoomApplier {
             if (replaceMaintenance) {
                 applyMaintenanceInsideTransaction(db, backup)
             }
+            applyExtrasInsideTransaction(db, backup, newLoadIds)
+        }
+    }
+
+    /**
+     * Tables that older files did not carry. A null list means "not in this file": the local
+     * rows stay. Photo and scan records are merged, never wiped, and a record that points at a
+     * load the file does not restore is kept unlinked instead of dropped.
+     */
+    private suspend fun applyExtrasInsideTransaction(
+        db: AppDatabase,
+        backup: BackupData,
+        restoredLoadIds: Set<String>,
+    ) {
+        backup.miscExpenses?.let { rows ->
+            db.miscExpenseDao().deleteAll()
+            rows.forEach { db.miscExpenseDao().upsert(it.toEntity()) }
+        }
+        backup.perDiemOverrides?.let { rows ->
+            db.perDiemDayOverrideDao().deleteAll()
+            rows.forEach { db.perDiemDayOverrideDao().upsert(it.toEntity()) }
+        }
+        backup.photos?.forEach { photo ->
+            if (photo.id.isBlank() || db.photoDao().getById(photo.id) != null) return@forEach
+            val link = photo.loadId?.takeIf { it in restoredLoadIds }
+            db.photoDao().insert(photo.toEntity(link))
+        }
+        backup.scans?.forEach { scan ->
+            if (scan.id.isBlank() || db.scanDao().getById(scan.id) != null) return@forEach
+            val link = scan.loadId?.takeIf { it in restoredLoadIds }
+            db.scanDao().insert(scan.toEntity(link))
         }
     }
 
@@ -87,7 +118,7 @@ object BackupRoomApplier {
         }
     }
 
-    /** Drops photo/scan rows (and files) tied to load ids removed by [applyFullReplace]. */
+    /** Unlinks photo/scan rows tied to load ids removed by [applyFullReplace]. Rows and files stay. */
     suspend fun pruneOrphanMedia(db: AppDatabase): Int =
         LoadRepository(db).cleanupOrphanAttachments()
 }

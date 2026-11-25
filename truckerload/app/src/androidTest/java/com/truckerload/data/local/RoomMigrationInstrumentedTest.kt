@@ -266,6 +266,40 @@ class RoomMigrationInstrumentedTest {
 
     @Test
     @Throws(IOException::class)
+    fun migrate43To44_keepsMaintenanceRowsAndAddsRepeatInterval() {
+        val db = helper.createDatabase(testDb, 43)
+        db.execSQL(
+            """
+            INSERT INTO maintenance_tasks (
+              title, startDate, reminderType, isCompleted, createdAt, updatedAt
+            ) VALUES ('Oil change', '2026-01-01', 'DATE', 0, 1, 2)
+            """.trimIndent(),
+        )
+        db.close()
+        val migrated = helper.runMigrationsAndValidate(testDb, 44, true, MIGRATION_43_44)
+        migrated.query("SELECT title, repeatIntervalDays FROM maintenance_tasks").use { c ->
+            assertTrue(c.moveToFirst())
+            assertEquals("Oil change", c.getString(0))
+            assertTrue(c.isNull(1))
+            assertEquals(1, c.count)
+        }
+    }
+
+    /** Every exported schema from 28 up to the current one is reached by the registered chain. */
+    @Test
+    @Throws(IOException::class)
+    fun migrateChain28ToCurrent_matchesTheExportedSchema() {
+        helper.createDatabase(testDb, 28).close()
+        helper.runMigrationsAndValidate(
+            testDb,
+            44,
+            true,
+            *ALL_ROOM_MIGRATIONS.filter { it.startVersion >= 28 }.toTypedArray(),
+        ).close()
+    }
+
+    @Test
+    @Throws(IOException::class)
     fun migrate42To43_convertsMoneyToCents() {
         val db = helper.createDatabase(testDb, 42)
         db.execSQL(

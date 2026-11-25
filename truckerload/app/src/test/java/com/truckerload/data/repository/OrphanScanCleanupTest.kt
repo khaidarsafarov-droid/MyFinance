@@ -72,7 +72,7 @@ class OrphanScanCleanupTest {
     }
 
     @Test
-    fun cleanupOrphanAttachments_removesScanRowsForMissingLoad() = runBlocking {
+    fun cleanupOrphanAttachments_unlinksScanRowsForMissingLoadAndKeepsFile() = runBlocking {
         val load = sampleLoad("load-alive")
         loadRepo.insertLoad(load, playFeedback = false)
         val orphanFile = File(scansDir, "stale.pdf").apply { writeText("%PDF-stale") }
@@ -92,8 +92,10 @@ class OrphanScanCleanupTest {
         val removed = loadRepo.cleanupOrphanAttachments()
 
         assertEquals(1, removed)
-        assertTrue(db.scanDao().getAllScansOnce().isEmpty())
-        assertFalse(orphanFile.exists())
+        val rows = db.scanDao().getAllScansOnce()
+        assertEquals(1, rows.size)
+        assertEquals(null, rows.single().loadId)
+        assertTrue(orphanFile.exists())
         assertEquals(1, loadRepo.getAllLoadsOnce().size)
     }
 

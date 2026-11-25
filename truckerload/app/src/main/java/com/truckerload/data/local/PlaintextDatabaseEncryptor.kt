@@ -31,6 +31,7 @@ internal object PlaintextDatabaseEncryptor {
 
     fun ensureEncrypted(context: Context, databaseName: String, passphrase: ByteArray) {
         val dbFile = context.getDatabasePath(databaseName)
+        recoverInterruptedSwap(dbFile)
         if (!dbFile.exists() || dbFile.length() == 0L) return
         if (!isPlaintextSqlite(dbFile)) return
         loadSqlCipher()
@@ -111,6 +112,20 @@ internal object PlaintextDatabaseEncryptor {
             restorePlaintextAfterFailedEncryption(tmp, backup, plain, movedOriginal, error)
         } catch (error: IllegalArgumentException) {
             restorePlaintextAfterFailedEncryption(tmp, backup, plain, movedOriginal, error)
+        }
+    }
+
+    /**
+     * The swap in [stageEncryptedDatabase] moves the plaintext file aside before the encrypted
+     * file takes its name. A crash between those two renames leaves no database under the real
+     * name, and Room would create an empty one. Put the plaintext file back so the next
+     * [ensureEncrypted] pass encrypts it again.
+     */
+    internal fun recoverInterruptedSwap(plain: File) {
+        val backup = File(plain.path + ".plaintext-bak")
+        if (plain.exists() || !backup.exists() || backup.length() == 0L) return
+        if (backup.renameTo(plain)) {
+            File(plain.path + ".encrypting").delete()
         }
     }
 

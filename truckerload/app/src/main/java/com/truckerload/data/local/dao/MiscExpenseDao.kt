@@ -24,4 +24,7 @@ interface MiscExpenseDao {
 
     @Query("DELETE FROM misc_expenses WHERE id = :id")
     suspend fun deleteById(id: Int)
+
+    @Query("DELETE FROM misc_expenses")
+    suspend fun deleteAll()
 }

@@ -6,10 +6,10 @@ import com.truckerload.data.local.entities.PhotoEntity
 import com.truckerload.data.local.entities.ScanEntity
 import com.truckerload.data.repository.LoadRepository
 import com.truckerload.domain.model.Load
+import com.truckerload.domain.money.Money
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -18,7 +18,6 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 import java.io.File
-import com.truckerload.domain.money.Money
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [28])
@@ -48,7 +47,7 @@ class BackupScopedRestoreTest {
     }
 
     @Test
-    fun scopedRestore_keepsMediaForRestoredLoadsAndUnlinked() = runBlocking {
+    fun scopedRestore_keepsMediaFilesAndUnlinksRemovedLoads() = runBlocking {
         val keptLoad = BackupTestFixtures.sampleLoad(id = "load-kept")
         val removedLoad = sampleLoad(id = "load-removed", tripId = "T-REMOVED")
         loadRepo.insertLoad(keptLoad, playFeedback = false)
@@ -71,15 +70,17 @@ class BackupScopedRestoreTest {
         BackupRoomApplier.pruneOrphanMedia(db)
 
         val photoIds = db.photoDao().getAllPhotosOnce().map { it.id }.toSet()
-        assertEquals(setOf("photo-kept", "photo-unlinked"), photoIds)
+        assertEquals(setOf("photo-kept", "photo-unlinked", "photo-removed"), photoIds)
+        assertEquals(null, db.photoDao().getAllPhotosOnce().first { it.id == "photo-removed" }.loadId)
         assertTrue(keptPhotoFile.exists())
         assertTrue(unlinkedPhotoFile.exists())
-        assertFalse(removedPhotoFile.exists())
+        // A photo whose load is not in the file is unlinked, never deleted (GPS/date/time stay).
+        assertTrue(removedPhotoFile.exists())
         assertEquals(1, loadRepo.getAllLoadsOnce().size)
     }
 
     @Test
-    fun scopedRestore_prunesScansForRemovedLoads() = runBlocking {
+    fun scopedRestore_unlinksScansForRemovedLoads() = runBlocking {
         val keptLoad = BackupTestFixtures.sampleLoad(id = "load-a")
         val staleLoad = sampleLoad(id = "load-b", tripId = "T-B")
         loadRepo.insertLoad(keptLoad, playFeedback = false)
@@ -118,9 +119,12 @@ class BackupScopedRestoreTest {
         )
         BackupRoomApplier.pruneOrphanMedia(db)
 
-        assertEquals(listOf("scan-kept"), db.scanDao().getAllScansOnce().map { it.id })
+        val scans = db.scanDao().getAllScansOnce().associateBy { it.id }
+        assertEquals(setOf("scan-kept", "scan-stale"), scans.keys)
+        assertEquals(keptLoad.id, scans.getValue("scan-kept").loadId)
+        assertEquals(null, scans.getValue("scan-stale").loadId)
         assertTrue(keptScanFile.exists())
-        assertFalse(staleScanFile.exists())
+        assertTrue(staleScanFile.exists())
     }
 
     private suspend fun insertPhoto(id: String, file: File, loadId: String?) {
@@ -140,8 +144,7 @@ class BackupScopedRestoreTest {
         )
     }
 
-    private fun mediaFile(name: String): File =
-        File(mediaDir, name).apply { writeText("media-$name") }
+    private fun mediaFile(name: String): File = File(mediaDir, name).apply { writeText("media-$name") }
 
     private fun sampleLoad(id: String, tripId: String) = Load(
         id = id,

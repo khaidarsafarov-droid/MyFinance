@@ -17,4 +17,10 @@ interface PerDiemDayOverrideDao {
 
     @Query("DELETE FROM per_diem_day_overrides WHERE date = :date")
     suspend fun deleteByDate(date: String)
+
+    @Query("SELECT * FROM per_diem_day_overrides")
+    suspend fun getAll(): List<PerDiemDayOverrideEntity>
+
+    @Query("DELETE FROM per_diem_day_overrides")
+    suspend fun deleteAll()
 }
