@@ -266,7 +266,9 @@ jobs:
           disable-animations: true
           emulator-options: -no-window -no-audio -no-boot-anim -gpu swiftshader_indirect
           working-directory: truckerload
-          script: sh ./gradlew -Dorg.gradle.java.home="$JAVA_HOME" :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.truckerload.data.local.RoomMigrationInstrumentedTest,com.truckerload.data.MultiUserIsolationInstrumentedTest --no-daemon
+          script: sh ./gradlew -Dorg.gradle.java.home="$JAVA_HOME" :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.truckerload.data.local.RoomMigrationInstrumentedTest,com.truckerload.data.MultiUserIsolationInstrumentedTest,com.truckerload.data.local.SqlCipherInstrumentedTest --no-daemon
+      - name: Require SQLCipher tests to have run
+        run: python3 .github/scripts/require-tests-ran.py truckerload/app/build/outputs/androidTest-results com.truckerload.data.local.SqlCipherInstrumentedTest 5
       - name: Upload instrumented test reports
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2

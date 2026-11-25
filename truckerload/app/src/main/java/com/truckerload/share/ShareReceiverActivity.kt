@@ -19,6 +19,7 @@ import com.truckerload.di.UserComponentManager
 import com.truckerload.presentation.MainActivity
 import com.truckerload.presentation.theme.TruckerLoadTheme
 import com.truckerload.utils.AppLocale
+import com.truckerload.utils.CrashReporting
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
@@ -85,6 +86,7 @@ class ShareReceiverActivity : AppCompatActivity() {
                 throw cancelled
             } catch (error: Exception) {
                 Log.w(TAG, "share import failed", error)
+                CrashReporting.recordException(error)
                 ShareOutcome.Unreadable
             } ?: return@launch
             when (outcome) {
