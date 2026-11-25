@@ -9,7 +9,7 @@ import com.truckerload.data.repository.ScanRepository
 import com.truckerload.presentation.ScreenPhase
 import com.truckerload.presentation.reloadList
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -18,6 +18,8 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.withContext
+import javax.inject.Inject
 
 data class GalleryUiState(
     val tab: GalleryKind = GalleryKind.PHOTOS,
@@ -32,9 +34,14 @@ data class GalleryUiState(
 class GalleryViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     photoRepository: PhotoRepository,
-    scanRepository: ScanRepository,
+    private val scanRepository: ScanRepository,
     loadRepository: LoadRepository,
 ) : ViewModel() {
+
+    /** Removes scan files on disk that no database row references. Failures are non-fatal. */
+    suspend fun cleanupOrphanScanFiles(scansDir: java.io.File) {
+        withContext(Dispatchers.IO) { runCatching { scanRepository.cleanupOrphanScanFiles(scansDir) } }
+    }
 
     private val controls = MutableStateFlow(
         GalleryControls(tab = GalleryKind.fromRoute(savedStateHandle.get<String>("tab"))),

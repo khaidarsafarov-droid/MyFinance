@@ -1,7 +1,5 @@
 package com.truckerload.presentation.screens.settings
 
-import com.truckerload.presentation.icons.AppIcons
-
 import android.os.Handler
 import android.os.Looper
 import android.widget.Toast
@@ -31,23 +29,23 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.R
-import com.truckerload.data.backup.GoogleDriveBackupService
 import com.truckerload.data.backup.BackupRestoreErrors
+import com.truckerload.data.backup.BackupRestoreException
+import com.truckerload.data.backup.DriveConnectInterpreter
 import com.truckerload.data.backup.DriveConnectOutcome
 import com.truckerload.data.backup.DriveConnectPending
-import com.truckerload.data.backup.DriveConnectInterpreter
-import com.truckerload.data.backup.BackupRestoreException
+import com.truckerload.data.backup.GoogleDriveBackupService
 import com.truckerload.data.preferences.AuthProvider
 import com.truckerload.data.remote.GoogleSignInClients
 import com.truckerload.presentation.auth.DriveSha1Dialog
 import com.truckerload.presentation.auth.GoogleSignInSupport
-import com.truckerload.presentation.components.TlButton as Button
-import com.truckerload.presentation.components.TlOutlinedButton as OutlinedButton
 import com.truckerload.presentation.connectivity.ConnectivityObserver
 import com.truckerload.presentation.connectivity.ConnectivityStatus
-import com.truckerload.presentation.di.LocalAuthStore
+import com.truckerload.presentation.di.AccountSessionViewModel
+import com.truckerload.presentation.icons.AppIcons
 import com.truckerload.presentation.theme.AppSwitchDefaults
 import com.truckerload.presentation.theme.BentoGlassSection
 import com.truckerload.presentation.theme.TruckColorPalette
@@ -58,6 +56,8 @@ import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import com.truckerload.presentation.components.TlButton as Button
+import com.truckerload.presentation.components.TlOutlinedButton as OutlinedButton
 
 @Composable
 internal fun GoogleDriveSyncSection(tc: TruckColorPalette) {
@@ -65,7 +65,7 @@ internal fun GoogleDriveSyncSection(tc: TruckColorPalette) {
     val resources = LocalResources.current
     val activity = context.findActivity()
     val scope = rememberCoroutineScope()
-    val authProvider = LocalAuthStore.current.authProvider()
+    val authProvider = hiltViewModel<AccountSessionViewModel>().authProvider()
     val prefs = remember { GoogleDriveBackupService.prefs(context) }
     val connectivity by ConnectivityObserver.observe(context)
         .collectAsStateWithLifecycle(initialValue = ConnectivityStatus.Online)
@@ -140,7 +140,7 @@ internal fun GoogleDriveSyncSection(tc: TruckColorPalette) {
                         err.message ?: context.getString(R.string.drive_sync_api_error, "")
                     },
                 )
-            }
+            },
         )
     }
 
@@ -155,7 +155,7 @@ internal fun GoogleDriveSyncSection(tc: TruckColorPalette) {
     }
 
     val driveSignInLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
+        ActivityResultContracts.StartActivityForResult(),
     ) { result ->
         val parsed = if (pendingConnect == DriveConnectPending.TokenConsent) {
             GoogleDriveBackupService.ParsedSignIn(null, false, null)
@@ -178,6 +178,7 @@ internal fun GoogleDriveSyncSection(tc: TruckColorPalette) {
                 toastMessage(context.getString(R.string.drive_sync_connected), long = false)
                 scope.launch { pushToDrive() }
             }
+
             is DriveConnectOutcome.RequestDriveConsent -> {
                 val host = activity ?: context.findActivity()
                 if (host == null) {
@@ -190,14 +191,17 @@ internal fun GoogleDriveSyncSection(tc: TruckColorPalette) {
                     )
                 }
             }
+
             DriveConnectOutcome.RetryBackup -> {
                 pendingConnect = DriveConnectPending.None
                 scope.launch { pushToDrive() }
             }
+
             DriveConnectOutcome.Cancelled -> {
                 pendingConnect = DriveConnectPending.None
                 toastMessage(resources.getString(R.string.drive_sync_connect_cancelled))
             }
+
             is DriveConnectOutcome.Failed -> {
                 pendingConnect = DriveConnectPending.None
                 val failure = outcome.error?.let { GoogleSignInSupport.failure(context, it) }
@@ -255,11 +259,15 @@ internal fun GoogleDriveSyncSection(tc: TruckColorPalette) {
                 when {
                     !linkedEmail.isNullOrBlank() && authProvider == AuthProvider.GOOGLE ->
                         R.string.drive_sync_google_linked_hint
+
                     linkedEmail.isNullOrBlank() && authProvider == AuthProvider.GOOGLE ->
                         R.string.drive_sync_google_user_hint
+
                     linkedEmail.isNullOrBlank() && authProvider == AuthProvider.LOCAL ->
                         R.string.drive_sync_local_user_hint
+
                     linkedEmail.isNullOrBlank() -> R.string.drive_sync_email_user_hint
+
                     else -> R.string.drive_sync_email_linked_hint
                 },
             ),
@@ -282,8 +290,11 @@ internal fun GoogleDriveSyncSection(tc: TruckColorPalette) {
         Text(
             text = stringResource(
                 R.string.drive_sync_last,
-                if (lastSyncAt > 0L) dateFormat.format(Date(lastSyncAt))
-                else stringResource(R.string.drive_sync_last_never),
+                if (lastSyncAt > 0L) {
+                    dateFormat.format(Date(lastSyncAt))
+                } else {
+                    stringResource(R.string.drive_sync_last_never)
+                },
             ),
             style = MaterialTheme.typography.labelSmall,
             color = tc.TextSecondary,
@@ -325,9 +336,11 @@ internal fun GoogleDriveSyncSection(tc: TruckColorPalette) {
                 ) {
                     val connectLabel = when {
                         authProvider == AuthProvider.LOCAL -> R.string.drive_sync_now
+
                         authProvider == AuthProvider.GOOGLE &&
                             GoogleDriveBackupService.isDriveScopeGranted(context) ->
                             R.string.drive_sync_now
+
                         else -> R.string.drive_sync_connect
                     }
                     Icon(AppIcons.Cloud, contentDescription = stringResource(connectLabel))
@@ -487,7 +500,7 @@ internal fun GoogleDriveSyncSection(tc: TruckColorPalette) {
                                 toastResult(result)
                             }
                         }
-                    }
+                    },
                 ) {
                     Text(stringResource(R.string.drive_sync_restore_now))
                 }

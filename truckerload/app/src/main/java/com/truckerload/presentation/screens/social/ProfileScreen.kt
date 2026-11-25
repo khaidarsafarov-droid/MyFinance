@@ -5,8 +5,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.lazy.LazyColumn
@@ -28,9 +28,9 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.R
-import com.truckerload.presentation.di.LocalRpmThresholdsStore
 import com.truckerload.presentation.premium.PremiumPaywallDialog
 import com.truckerload.presentation.premium.rememberPremiumAccess
+import com.truckerload.presentation.screens.settings.RpmThresholdsViewModel
 import com.truckerload.presentation.theme.LocalBrandPalette
 import com.truckerload.presentation.theme.LocalOledDarkEnabled
 import com.truckerload.presentation.theme.LocalReduceMotion
@@ -53,7 +53,7 @@ fun ProfileScreen(
     val profile = uiState.profile
     val tablet = useNavigationRail()
     val reduceMotion = LocalReduceMotion.current
-    val thresholds by LocalRpmThresholdsStore.current.thresholds.collectAsStateWithLifecycle()
+    val thresholds by hiltViewModel<RpmThresholdsViewModel>().thresholds.collectAsStateWithLifecycle()
     val page = if (LocalOledDarkEnabled.current) SoftUiColors.BackgroundOled else LocalBrandPalette.current.page
     val listState = rememberLazyListState()
     var nameOpen by remember { mutableStateOf(false) }

@@ -145,8 +145,8 @@
     <ID>LongMethod:AnalyticsScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun AnalyticsScreen( onBack: () -&gt; Unit = {}, onLoadClick: (String) -&gt; Unit = {}, onAbout: () -&gt; Unit = {}, onImprove: () -&gt; Unit = {}, embedded: Boolean = false, )</ID>
     <ID>LongMethod:AnimatedCircularProgress.kt$@Composable fun AnimatedCircularProgress( progressPercent: Float, gross: Double, goal: Double, paceStatus: PaceStatus = PaceStatus.ON_TRACK, modifier: Modifier = Modifier, size: Dp = UiDimens.HomeProgressRingSize, strokeWidth: Dp = 12.dp, showPercent: Boolean = true, onDarkBackground: Boolean = true, )</ID>
     <ID>LongMethod:AppFilterChip.kt$@Composable fun AppFilterChip( selected: Boolean, onClick: () -&gt; Unit, label: @Composable () -&gt; Unit, modifier: Modifier = Modifier, enabled: Boolean = true, leadingIcon: @Composable (() -&gt; Unit)? = null, trailingIcon: @Composable (() -&gt; Unit)? = null, )</ID>
-    <ID>LongMethod:AttachLoadPickScreen.kt$@Composable private fun AttachLoadRow( load: Load, onClick: () -&gt; Unit, )</ID>
-    <ID>LongMethod:AttachLoadPickScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun AttachLoadPickScreen( mode: AttachPickMode, onLoadSelected: (Load) -&gt; Unit, onCancel: () -&gt; Unit, onAddLoad: () -&gt; Unit = onCancel, loadRepository: LoadRepository = LocalLoadRepository.current, )</ID>
+    <ID>LongMethod:AttachLoadPickScreen.kt$@Composable private fun AttachLoadRow(load: Load, onClick: () -&gt; Unit)</ID>
+    <ID>LongMethod:AttachLoadPickScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun AttachLoadPickScreen( mode: AttachPickMode, onLoadSelected: (Load) -&gt; Unit, onCancel: () -&gt; Unit, onAddLoad: () -&gt; Unit = onCancel, viewModel: AttachLoadPickViewModel = hiltViewModel(), )</ID>
     <ID>LongMethod:AuthStore.kt$AuthStore$fun login( userId: String, email: String, rememberMe: Boolean = true, accessToken: String? = null, refreshToken: String? = null, googleSub: String? = null, provider: AuthProvider = AuthProvider.LOCAL, googleIdToken: String? = null, )</ID>
     <ID>LongMethod:AutoRestoreDialog.kt$@Composable fun AutoRestoreDialog(loadRepository: LoadRepository)</ID>
     <ID>LongMethod:BackupService.kt$BackupService$private suspend fun restoreFromJson( context: Context, json: String, allowUnboundAccount: Boolean = false, ): Result&lt;BackupData&gt;</ID>
@@ -167,7 +167,6 @@
     <ID>LongMethod:DieselQuickAddActivity.kt$DieselQuickAddActivity$override fun onCreate(savedInstanceState: Bundle?)</ID>
     <ID>LongMethod:DieselQuickAddScreen.kt$@Composable fun DieselQuickAddScreen( onDone: () -&gt; Unit, onCancel: () -&gt; Unit, imeBottom: Dp = 0.dp, )</ID>
     <ID>LongMethod:DieselReceiptCapture.kt$@Composable fun DieselReceiptCaptureRow( enabled: Boolean, isScanning: Boolean, onImagePicked: (Uri) -&gt; Unit, modifier: Modifier = Modifier, )</ID>
-    <ID>LongMethod:DisputeSection.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun DisputeSection( load: Load, onDisputeChanged: (Load) -&gt; Unit, modifier: Modifier = Modifier, )</ID>
     <ID>LongMethod:EditLoadFinishFields.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun FinishDateField( value: String, lastDelDate: String?, onValueChange: (String) -&gt; Unit, onDatePicked: (String) -&gt; Unit, onTimePicked: (hour: Int, minute: Int) -&gt; Unit, fieldColors: TextFieldColors, modifier: Modifier = Modifier, focusRequester: FocusRequester? = null, )</ID>
     <ID>LongMethod:EditLoadScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun EditLoadScreen( loadId: String, focusFinish: Boolean = false, focusMiles: Boolean = false, onSaved: () -&gt; Unit, onBack: () -&gt; Unit, onOptimisticUpdate: ((Load) -&gt; Unit)? = null, onRevertOptimistic: ((String) -&gt; Unit)? = null, )</ID>
     <ID>LongMethod:EditLoadViewModel.kt$EditLoadViewModel$fun save( saveErrorFormatter: (String) -&gt; String, onOptimisticUpdate: ((Load) -&gt; Unit)?, )</ID>
@@ -195,7 +194,7 @@
     <ID>LongMethod:ImportMessageHandler.kt$ImportMessageHandler$suspend fun handle( chatId: String, rawText: String, telegramApi: TelegramApi, ): String</ID>
     <ID>LongMethod:ImprovementFeedbackScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun ImprovementFeedbackScreen( onBack: () -&gt; Unit, )</ID>
     <ID>LongMethod:JournalListDetailHost.kt$@Composable fun JournalListDetailHost( navController: NavHostController, )</ID>
-    <ID>LongMethod:LegacyAbsorbDialog.kt$@Composable fun LegacyAbsorbDialog( onSessionRebuilt: (UserComponent) -&gt; Unit, )</ID>
+    <ID>LongMethod:LegacyAbsorbDialog.kt$@Composable fun LegacyAbsorbDialog(onSessionRebuilt: (UserComponent) -&gt; Unit)</ID>
     <ID>LongMethod:LoadCalendarWithDots.kt$@Composable fun LoadCalendarWithDots( year: Int, month: Int, datesWithLoads: Set&lt;String&gt;, selectedDate: String?, onDateSelect: (String) -&gt; Unit, onMonthChange: (year: Int, month: Int) -&gt; Unit, modifier: Modifier = Modifier )</ID>
     <ID>LongMethod:LoadCardOptionC.kt$@Composable internal fun LoadCardOptionC( card: LoadCardModel, onCameraClick: (() -&gt; Unit)?, onScanClick: (() -&gt; Unit)?, modifier: Modifier = Modifier, )</ID>
     <ID>LongMethod:LoadDetailActionChips.kt$@OptIn(ExperimentalLayoutApi::class) @Composable internal fun LoadDetailActionChips( load: Load, onEditMiles: () -&gt; Unit, onEditFinish: () -&gt; Unit, onSaveDeadhead: (Double) -&gt; Unit, onDisputeChanged: (Load) -&gt; Unit, modifier: Modifier = Modifier, )</ID>
@@ -245,7 +244,7 @@
     <ID>LongMethod:ProfileScreen.kt$@Composable fun ProfileScreen( onBack: () -&gt; Unit, onAddLoad: () -&gt; Unit = {}, onOpenSettings: () -&gt; Unit = {}, modifier: Modifier = Modifier, showBack: Boolean = true, motionSettled: Boolean = true, viewModel: ProfileViewModel = hiltViewModel(), )</ID>
     <ID>LongMethod:QuickActionsBottomSheet.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun QuickActionsBottomSheet( onDismiss: () -&gt; Unit, onAddLoad: () -&gt; Unit, onCamera: () -&gt; Unit, onScan: () -&gt; Unit, onAddDiesel: () -&gt; Unit, )</ID>
     <ID>LongMethod:ReceiptFieldExtractor.kt$ReceiptFieldExtractor$fun extract( text: String, fileName: String? = null, messageDateSeconds: Long? = null, ): ReceiptPreview</ID>
-    <ID>LongMethod:RegistrationFlowScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun RegistrationFlowScreen( onCompleted: () -&gt; Unit, viewModel: RegistrationViewModel = hiltViewModel(), )</ID>
+    <ID>LongMethod:RegistrationFlowScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun RegistrationFlowScreen(onCompleted: () -&gt; Unit, viewModel: RegistrationViewModel = hiltViewModel())</ID>
     <ID>LongMethod:RegistrationService.kt$RegistrationService$suspend fun completeBasicProfile( displayName: String, role: DriverRole, phoneNumber: String? = null, ): Result&lt;Unit&gt;</ID>
     <ID>LongMethod:ScanResultScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun ScanResultScreen( pending: PendingScan, sessionCount: Int = 1, isAttachedToLoad: Boolean = false, onSaveToApp: () -&gt; Unit, onSaveToPhone: () -&gt; Unit, onShare: () -&gt; Unit, onAddAnother: () -&gt; Unit, onOpenGallery: () -&gt; Unit, onCategoryChange: (ScanDocumentCategory) -&gt; Unit = {}, onClose: () -&gt; Unit, )</ID>
     <ID>LongMethod:ScannerScreen.kt$@Composable fun ScannerFlowScreen( onFinished: () -&gt; Unit, onOpenGallery: () -&gt; Unit, onCameraFallback: () -&gt; Unit = onFinished, attachLoadId: String? = null, attachTripId: String? = null, attachLoadDate: String? = null, viewModel: ScannerViewModel = hiltViewModel(), )</ID>
@@ -259,7 +258,6 @@
     <ID>LongMethod:ShareImportDecider.kt$ShareImportDecider$fun decide( text: String, fileName: String?, fileHash: String, index: ShareImportIndex, existingTripId: (String) -&gt; String? = { null }, ): ShareImportDecision</ID>
     <ID>LongMethod:ShareReceiverScreen.kt$@Composable internal fun ShareReceiverScreen( checking: Boolean, message: ShareReceiverMessage?, onDone: () -&gt; Unit, onViewLoad: (() -&gt; Unit)?, )</ID>
     <ID>LongMethod:SmartNotificationWorker.kt$SmartNotificationWorker$override suspend fun doWork(): Result</ID>
-    <ID>LongMethod:SoftBottomBar.kt$@Composable private fun PhoneNavTab( tab: PhoneTab, selected: Boolean, badgeCount: Int, onClick: () -&gt; Unit, )</ID>
     <ID>LongMethod:SwipeableLoadCard.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun SwipeableLoadCard( card: LoadCardModel, onClick: () -&gt; Unit, onDelete: () -&gt; Unit, modifier: Modifier = Modifier, onCameraClick: (() -&gt; Unit)? = null, onScanClick: (() -&gt; Unit)? = null, /** Bump to snap the card back to settled (e.g. after undoing a delete). */ settleKey: Any = Unit, /** Disable swipe-to-delete in multi-column tablet grids (gesture conflicts). */ enableSwipe: Boolean = true, )</ID>
     <ID>LongMethod:TabletHomeDashboard.kt$@Composable internal fun TabletHomeDashboard( paddingValues: PaddingValues, uiState: HomeUiState, periodSummary: HomeListItem.FilteredSectionHeader?, totals: LoadFilterUseCase.Totals, recentLoads: List&lt;Load&gt;, viewModel: HomeViewModel, onLoadClick: (String) -&gt; Unit, onAddLoad: () -&gt; Unit, onOpenWeeklyGoal: () -&gt; Unit, onOpenCalendar: () -&gt; Unit, onOpenMonthPicker: () -&gt; Unit, onSharePeriod: () -&gt; Unit = {}, )</ID>
     <ID>LongMethod:TabletHomeSoftCards.kt$@Composable internal fun SoftGoalCard( modifier: Modifier, weeklyGoal: Double, currentGross: Double, progress: Float, onOpenWeeklyGoal: () -&gt; Unit, )</ID>
@@ -279,7 +277,7 @@
     <ID>LongMethod:TelegramPairingBlock.kt$@Composable fun TelegramPairingBlock(onStatus: (String) -&gt; Unit)</ID>
     <ID>LongMethod:TelegramSettingsSection.kt$@Composable fun TelegramSettingsSection()</ID>
     <ID>LongMethod:TelegramUpdateDispatcher.kt$TelegramUpdateDispatcher$suspend fun handleUpdate( update: TelegramUpdate, loadRepository: LoadRepository, paycheckRepository: PaycheckRepository, dieselRepository: DieselRepository, chatRestore: TelegramChatRestore, prefs: SharedPreferences, stateMachine: TelegramStateMachine, )</ID>
-    <ID>LongMethod:ThemeSettingsSection.kt$@OptIn(ExperimentalLayoutApi::class) @Composable fun ThemeSettingsSection( selected: AppThemeMode, oledDark: Boolean, dynamicColor: Boolean, modifier: Modifier = Modifier, )</ID>
+    <ID>LongMethod:ThemeSettingsSection.kt$@OptIn(ExperimentalLayoutApi::class) @Composable fun ThemeSettingsSection(selected: AppThemeMode, oledDark: Boolean, dynamicColor: Boolean, modifier: Modifier = Modifier)</ID>
     <ID>LongMethod:ToolsNavGraph.kt$@OptIn(ExperimentalSharedTransitionApi::class) fun NavGraphBuilder.toolsNavGraph( navController: NavHostController, tablet: Boolean, reduceMotion: Boolean, sharedTransitionScope: SharedTransitionScope, )</ID>
     <ID>LongMethod:TrialEndReminderBanner.kt$@Composable internal fun TrialEndReminderBanner(onManage: () -&gt; Unit)</ID>
     <ID>LongMethod:TruckLogNavigationRail.kt$@Composable fun TruckLogNavigationRail( currentRoute: String?, onNavigate: (String) -&gt; Unit, onQuickAction: () -&gt; Unit, onDrawerNavigate: (DrawerDestination) -&gt; Unit, modifier: Modifier = Modifier, compact: Boolean = false, )</ID>
@@ -1441,6 +1439,7 @@
     <ID>MaxLineLength:FlexibleLoadParser.kt$FlexibleLoadParser$"""^(?:Trip\s*ID|Load\s*(?:ID|#|Number)|Confirmation(?:\s*(?:#|No\.?|Number))?|Total\s*Rate|Line\s*-?\s*Haul(?:\s*Rate)?|All[\s-]?in(?:\s*rate)?|Rate|Pay|Оплата|Ставка|Total\s*Loaded\s*Miles|Loaded\s*Miles|Miles|Мил[иь]|Distance|Pu[\s\-]*address|Pickup(?:\s*(?:Location|City))?|Origin|Shipper|Погрузка|Del[\s\-]*address|Delivery(?:\s*(?:Location|City))?|Destination|Consignee|Разгрузка|Date|Load\s*Date)\s*:?\s*$"""</ID>
     <ID>MaxLineLength:FlexibleLoadParser.kt$FlexibleLoadParser$Regex("""(?:Trip\s*ID|Load\s*(?:ID|#|Number)|Confirmation(?:\s*(?:#|No\.?|Number))?)\s*[:\|]?\s*([A-Z0-9\-]{4,})""", RegexOption.IGNORE_CASE)</ID>
     <ID>MaxLineLength:GalleryScreen.kt$icon = if (tab == GalleryKind.PHOTOS) AppIcons.PhotoCamera else AppIcons.DocumentScanner</ID>
+    <ID>MaxLineLength:GalleryScreen.kt$internal</ID>
     <ID>MaxLineLength:GalleryViewerScreen.kt$Icon(AppIcons.Delete, contentDescription = stringResource(R.string.common_delete), tint = brand.heroText)</ID>
     <ID>MaxLineLength:GoalViewModel.kt$GoalViewModel$_uiState.update { it.copy(goalError = appContext.getString(com.truckerload.R.string.goal_error_enter_amount)) }</ID>
     <ID>MaxLineLength:HomeListHeaders.kt$Text(text = stringResource(R.string.home_year_section, section.year), style = MaterialTheme.typography.titleLarge, color = tc.AccentPrimary)</ID>
@@ -1449,10 +1448,8 @@
     <ID>MaxLineLength:HomePeriodSummary.kt$LoadFilter.YESTERDAY -&gt; formatFilterLabel(app, app.getString(R.string.home_filter_yesterday), totals.loadCount)</ID>
     <ID>MaxLineLength:HomeViewModel.kt$HomeViewModel$initialValue = FilteredResult(emptyList(), LoadFilterUseCase.Totals(0, com.truckerload.domain.money.Money.ZERO, 0.0))</ID>
     <ID>MaxLineLength:HomeViewModel.kt$HomeViewModel$selectDate("%04d-%02d-%02d".format(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH) + 1, cal.get(Calendar.DAY_OF_MONTH)))</ID>
-    <ID>MaxLineLength:HomeWeekHero.kt$if (DisplayUnits.isMetric) R.string.home_stat_rate_per_mile_km else R.string.home_stat_rate_per_mile</ID>
     <ID>MaxLineLength:LoadDao.kt$LoadDao$*</ID>
     <ID>MaxLineLength:LoadDao.kt$LoadDao$@Query("SELECT * FROM loads WHERE tripId LIKE '%' || :query || '%' OR pointA LIKE '%' || :query || '%' OR pointB LIKE '%' || :query || '%' OR date LIKE '%' || :query || '%' ORDER BY parsedAt DESC")</ID>
-    <ID>MaxLineLength:LoadDetailScreen.kt$val linkedPhotos by photoRepository.watchPhotosByLoadId(loadId).collectAsStateWithLifecycle(initialValue = emptyList())</ID>
     <ID>MaxLineLength:LoadExporter.kt$LoadExporter$val totalMiles = loads.sumOf { ParseUtils.sanitizeLoadedMiles(it.totalMiles, it.totalRate) + it.deadheadMiles.coerceAtLeast(0.0) }</ID>
     <ID>MaxLineLength:LoadFilterUseCase.kt$LoadFilterUseCase.Totals$"$${String.format(Locale.US, "%.2f", com.truckerload.domain.units.MeasurementUnits.displayRatePerDistance(perMile))} / km"</ID>
     <ID>MaxLineLength:LoadImporter.kt$LoadImporter$"""^\s*(?:\d+\.\s*)?(\d{2}\.\d{2}\.\d{4})\s*\|\s*(.+?)\s*(?:→|-&gt;)\s*(.+?)\s*\|\s*([\d,]+)\s*mi\s*\|\s*\$?\s*([\d,]+(?:\.\d+)?)\s*$"""</ID>
@@ -1511,7 +1508,7 @@
     <ID>MaxLineLength:ServiceReceiptTextParser.kt$ServiceReceiptTextParser$"""total|итого|amount|date|дата|invoice|phone|tel|fax|www\.|http|receipt|thank|subtotal|tax|qty|item|visa|mastercard|cash|change\s+due|balance\s+due|miles?|mi\b|gal|gallon"""</ID>
     <ID>MaxLineLength:SettingsDataStore.kt$SettingsDataStore$return String(CharArray(PAIRING_CODE_LENGTH) { PAIRING_CODE_ALPHABET[random.nextInt(PAIRING_CODE_ALPHABET.length)] })</ID>
     <ID>MaxLineLength:SettingsPremiumState.kt$SettingsPremiumState$return SettingsPremiumHeroModel(SettingsPremiumPhase.ACTIVE, quote?.formattedPrice?.takeIf { it.isNotBlank() })</ID>
-    <ID>MaxLineLength:SettingsScreen.kt$val page = if (LocalOledDarkEnabled.current) SoftUiColors.BackgroundOled else com.truckerload.presentation.theme.LocalBrandPalette.current.page</ID>
+    <ID>MaxLineLength:SettingsRpmForm.kt$private fun storedRate(display: Double): Double</ID>
     <ID>MaxLineLength:StopLabelFormatter.kt$StopLabelFormatter$(street.isNotBlank() &amp;&amp; (street.contains(feature, ignoreCase = true) || feature.contains(street, ignoreCase = true)))</ID>
     <ID>MaxLineLength:StopTimeline.kt$stop.note?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }</ID>
     <ID>MaxLineLength:StopTimeline.kt$stop.puNumber?.let { Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant) }</ID>
@@ -1519,8 +1516,10 @@
     <ID>MaxLineLength:TaxTrackerViewModel.kt$TaxTrackerViewModel$discountHeader = if (metric) appContext.getString(R.string.workbook_col_discount_km) else "Цена со скидкой / гал"</ID>
     <ID>MaxLineLength:TelegramMessageDate.kt$TelegramMessageDate$"""(?im)^(?:\d{1,2}\s+(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?|январ[яь]|феврал[яь]|марта?|апрел[яь]|ма[йя]|июн[яь]|июл[яь]|августа?|сентябр[яь]|октябр[яь]|ноябр[яь]|декабр[яь])\.?\s+\d{2,4}|\d{1,2}\.\d{1,2}\.\d{2,4})\s*$"""</ID>
     <ID>MaxLineLength:TelegramMessageDate.kt$TelegramMessageDate$"""(?m)^[^\n]{1,80}\s+(\d{1,2})\.(\d{1,2})\.(\d{4})\s+(\d{1,2}):(\d{2}):(\d{2})(?:\s+UTC[+-]\d{2}:?\d{2})?\s*$"""</ID>
+    <ID>MaxLineLength:ThemeSettingsSection.kt$fun</ID>
     <ID>MaxLineLength:WeekPeriodUtils.kt$val endLabel = monthNamesShort.getOrNull((endM - 1).coerceIn(0, 11)).orEmpty().replace(".", "").lowercase(Locale.getDefault())</ID>
     <ID>MaxLineLength:WeekPeriodUtils.kt$val startLabel = monthNamesShort.getOrNull((startM - 1).coerceIn(0, 11)).orEmpty().replace(".", "").lowercase(Locale.getDefault())</ID>
+    <ID>MaxLineLength:WeekStartSettingsSection.kt$private</ID>
     <ID>MaxLineLength:WeekUtils.kt$/** Для груза возвращает множество дат (YYYY-MM-DD), когда груз активен: от первой до последней остановки включительно. */</ID>
     <ID>MaxLineLength:WeekUtils.kt$dates.add("%04d-%02d-%02d".format(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH) + 1, cal.get(Calendar.DAY_OF_MONTH)))</ID>
     <ID>MaxLineLength:WeeklyGoalPaceSection.kt$)</ID>

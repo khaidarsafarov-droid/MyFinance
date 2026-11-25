@@ -1,23 +1,21 @@
 package com.truckerload.presentation.screens.detail
-import android.database.sqlite.SQLiteException
-import java.io.IOException
-
-
 import android.app.Application
+import android.database.sqlite.SQLiteException
+import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
-import android.net.Uri
-import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import androidx.lifecycle.viewModelScope
 import com.truckerload.R
 import com.truckerload.data.repository.LoadRepository
+import com.truckerload.data.repository.PhotoRepository
+import com.truckerload.data.repository.ScanRepository
 import com.truckerload.domain.model.ActualFinishDate
 import com.truckerload.domain.model.DisputePayout
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.withRouteMetrics
-import java.util.concurrent.atomic.AtomicBoolean
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -25,16 +23,14 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import java.io.IOException
+import java.util.concurrent.atomic.AtomicBoolean
+import javax.inject.Inject
 
-data class LoadDetailUiState(
-    val isLoading: Boolean = true,
-    val load: Load? = null,
-    val loadError: String? = null,
-)
+data class LoadDetailUiState(val isLoading: Boolean = true, val load: Load? = null, val loadError: String? = null)
 
 sealed class LoadDetailEvent {
     data object Deleted : LoadDetailEvent()
@@ -45,8 +41,14 @@ sealed class LoadDetailEvent {
 class LoadDetailViewModel @Inject constructor(
     application: Application,
     private val loadRepository: LoadRepository,
+    private val photoRepository: PhotoRepository,
+    private val scanRepository: ScanRepository,
     savedStateHandle: SavedStateHandle,
 ) : AndroidViewModel(application) {
+
+    fun watchLinkedPhotos(loadId: String) = photoRepository.watchPhotosByLoadId(loadId)
+
+    fun watchLinkedScans(loadId: String) = scanRepository.watchScansByLoadId(loadId)
 
     private val loadId = Uri.decode(savedStateHandle.get<String>("loadId").orEmpty())
 
@@ -107,7 +109,6 @@ class LoadDetailViewModel @Inject constructor(
                         load = null,
                     )
                 }
-            
             } catch (e: IOException) {
                 if (generation != refreshGeneration) return@launch
                 _uiState.update {
@@ -117,7 +118,6 @@ class LoadDetailViewModel @Inject constructor(
                         load = null,
                     )
                 }
-            
             } catch (e: IllegalArgumentException) {
                 if (generation != refreshGeneration) return@launch
                 _uiState.update {
@@ -127,7 +127,6 @@ class LoadDetailViewModel @Inject constructor(
                         load = null,
                     )
                 }
-            
             } catch (e: CancellationException) {
                 throw e
             } catch (e: IllegalStateException) {
@@ -139,7 +138,6 @@ class LoadDetailViewModel @Inject constructor(
                         load = null,
                     )
                 }
-            
             }
         }
     }
@@ -154,16 +152,12 @@ class LoadDetailViewModel @Inject constructor(
                 throw e
             } catch (e: SQLiteException) {
                 _events.emit(LoadDetailEvent.Message(e.message ?: fallbackMessage))
-            
             } catch (e: IOException) {
                 _events.emit(LoadDetailEvent.Message(e.message ?: fallbackMessage))
-            
             } catch (e: IllegalArgumentException) {
                 _events.emit(LoadDetailEvent.Message(e.message ?: fallbackMessage))
-            
             } catch (e: IllegalStateException) {
                 _events.emit(LoadDetailEvent.Message(e.message ?: fallbackMessage))
-            
             } finally {
                 deleting.set(false)
             }
@@ -186,18 +180,14 @@ class LoadDetailViewModel @Inject constructor(
                     _uiState.update { it.copy(load = reloaded) }
                 } catch (e: SQLiteException) {
                     _events.emit(LoadDetailEvent.Message(e.message ?: saveErrorFallback))
-                
                 } catch (e: IOException) {
                     _events.emit(LoadDetailEvent.Message(e.message ?: saveErrorFallback))
-                
                 } catch (e: IllegalArgumentException) {
                     _events.emit(LoadDetailEvent.Message(e.message ?: saveErrorFallback))
-                
                 } catch (e: CancellationException) {
                     throw e
                 } catch (e: IllegalStateException) {
                     _events.emit(LoadDetailEvent.Message(e.message ?: saveErrorFallback))
-                
                 }
             }
         }
@@ -220,18 +210,14 @@ class LoadDetailViewModel @Inject constructor(
                     _uiState.update { it.copy(load = reloaded) }
                 } catch (e: SQLiteException) {
                     _events.emit(LoadDetailEvent.Message(e.message ?: saveErrorFallback))
-                
                 } catch (e: IOException) {
                     _events.emit(LoadDetailEvent.Message(e.message ?: saveErrorFallback))
-                
                 } catch (e: IllegalArgumentException) {
                     _events.emit(LoadDetailEvent.Message(e.message ?: saveErrorFallback))
-                
                 } catch (e: CancellationException) {
                     throw e
                 } catch (e: IllegalStateException) {
                     _events.emit(LoadDetailEvent.Message(e.message ?: saveErrorFallback))
-                
                 }
             }
         }
@@ -251,18 +237,14 @@ class LoadDetailViewModel @Inject constructor(
                     _uiState.update { it.copy(load = reloaded) }
                 } catch (e: SQLiteException) {
                     _events.emit(LoadDetailEvent.Message(e.message ?: saveErrorFallback))
-                
                 } catch (e: IOException) {
                     _events.emit(LoadDetailEvent.Message(e.message ?: saveErrorFallback))
-                
                 } catch (e: IllegalArgumentException) {
                     _events.emit(LoadDetailEvent.Message(e.message ?: saveErrorFallback))
-                
                 } catch (e: CancellationException) {
                     throw e
                 } catch (e: IllegalStateException) {
                     _events.emit(LoadDetailEvent.Message(e.message ?: saveErrorFallback))
-                
                 }
             }
         }

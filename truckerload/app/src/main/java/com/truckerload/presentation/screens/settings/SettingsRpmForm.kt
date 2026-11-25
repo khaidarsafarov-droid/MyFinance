@@ -22,20 +22,20 @@ import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.R
 import com.truckerload.domain.parser.DecimalInput
 import com.truckerload.domain.units.DisplayUnits
 import com.truckerload.domain.units.MeasurementUnits
 import com.truckerload.presentation.components.RpmColorLegend
-import com.truckerload.presentation.components.TlButton as Button
-import com.truckerload.presentation.di.LocalRpmThresholdsStore
 import com.truckerload.presentation.theme.AppTextFieldDefaults
 import com.truckerload.presentation.theme.LocalSemanticColors
+import com.truckerload.presentation.components.TlButton as Button
 
 @Composable
 internal fun SettingsRpmForm(modifier: Modifier = Modifier) {
-    val store = LocalRpmThresholdsStore.current
+    val store: RpmThresholdsViewModel = hiltViewModel()
     val context = LocalContext.current
     val resources = LocalResources.current
     val semantic = LocalSemanticColors.current
@@ -121,7 +121,9 @@ internal fun SettingsRpmForm(modifier: Modifier = Modifier) {
                 val target = DecimalInput.parse(targetInput)
                 when {
                     min == null -> error = resources.getString(R.string.settings_red_threshold_error)
+
                     target == null -> error = resources.getString(R.string.settings_green_threshold_error)
+
                     else -> store.save(storedRate(min), storedRate(target))
                         .onSuccess {
                             error = null
@@ -143,12 +145,10 @@ internal fun SettingsRpmForm(modifier: Modifier = Modifier) {
     }
 }
 
-private fun rateFieldText(perMile: Double): String =
-    if (DisplayUnits.isMetric) {
-        MeasurementUnits.formatInput(MeasurementUnits.displayRatePerDistance(perMile))
-    } else {
-        perMile.toString()
-    }
+private fun rateFieldText(perMile: Double): String = if (DisplayUnits.isMetric) {
+    MeasurementUnits.formatInput(MeasurementUnits.displayRatePerDistance(perMile))
+} else {
+    perMile.toString()
+}
 
-private fun storedRate(display: Double): Double =
-    if (DisplayUnits.isMetric) MeasurementUnits.storedRatePerDistance(display) else display
+private fun storedRate(display: Double): Double = if (DisplayUnits.isMetric) MeasurementUnits.storedRatePerDistance(display) else display

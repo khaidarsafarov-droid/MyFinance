@@ -1,7 +1,5 @@
 package com.truckerload.presentation.screens.settings
 
-import com.truckerload.presentation.icons.AppIcons
-
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -9,38 +7,27 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import com.truckerload.presentation.theme.AppFilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.truckerload.R
 import com.truckerload.data.preferences.AppThemeMode
-import com.truckerload.presentation.di.LocalSettingsDataStore
+import com.truckerload.presentation.icons.AppIcons
+import com.truckerload.presentation.theme.AppFilterChip
 import com.truckerload.presentation.theme.LocalBrandPalette
-import com.truckerload.presentation.theme.ThemeManager
-import com.truckerload.widget.WidgetRefresh
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun ThemeSettingsSection(
-    selected: AppThemeMode,
-    oledDark: Boolean,
-    dynamicColor: Boolean,
-    modifier: Modifier = Modifier,
-) {
+fun ThemeSettingsSection(selected: AppThemeMode, oledDark: Boolean, dynamicColor: Boolean, modifier: Modifier = Modifier) {
     val brand = LocalBrandPalette.current
-    val settingsDataStore = LocalSettingsDataStore.current
-    val scope = rememberCoroutineScope()
-    val context = LocalContext.current
+    val prefs: SettingsPreferencesViewModel = hiltViewModel()
     val darkActive = selected == AppThemeMode.DARK || selected == AppThemeMode.SYSTEM
     val showDynamicColor = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S
 
@@ -66,13 +53,7 @@ fun ThemeSettingsSection(
             AppThemeMode.entries.forEach { mode ->
                 AppFilterChip(
                     selected = selected == mode,
-                    onClick = {
-                        scope.launch {
-                            settingsDataStore.saveThemeMode(mode)
-                            ThemeManager.apply(mode)
-                            WidgetRefresh.refreshAndUpdateAsync(context)
-                        }
-                    },
+                    onClick = { prefs.setThemeMode(mode) },
                     leadingIcon = {
                         Icon(
                             imageVector = when (mode) {
@@ -104,12 +85,7 @@ fun ThemeSettingsSection(
                 title = stringResource(R.string.settings_dynamic_color_title),
                 subtitle = stringResource(R.string.settings_dynamic_color_desc),
                 checked = dynamicColor,
-                onCheckedChange = { enabled ->
-                    scope.launch {
-                        settingsDataStore.saveDynamicColor(enabled)
-                        WidgetRefresh.refreshAndUpdateAsync(context)
-                    }
-                },
+                onCheckedChange = prefs::setDynamicColor,
             )
         }
         if (darkActive) {
@@ -118,9 +94,7 @@ fun ThemeSettingsSection(
                 title = stringResource(R.string.settings_oled_dark_title),
                 subtitle = stringResource(R.string.settings_oled_subtitle),
                 checked = oledDark,
-                onCheckedChange = { enabled ->
-                    scope.launch { settingsDataStore.saveOledDark(enabled) }
-                },
+                onCheckedChange = prefs::setOledDark,
             )
         }
     }

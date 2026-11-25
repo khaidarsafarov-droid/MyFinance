@@ -10,19 +10,19 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.truckerload.R
-import com.truckerload.presentation.components.TlButton as Button
-import com.truckerload.presentation.components.TlOutlinedButton as OutlinedButton
-import com.truckerload.presentation.di.LocalAccountDeletionService
 import com.truckerload.presentation.icons.AppIcons
 import com.truckerload.presentation.theme.LocalTruckColors
 import kotlinx.coroutines.launch
+import com.truckerload.presentation.components.TlButton as Button
+import com.truckerload.presentation.components.TlOutlinedButton as OutlinedButton
 
 @Composable
 fun DeleteAccountSection() {
     val tc = LocalTruckColors.current
     val context = LocalContext.current
-    val deletion = LocalAccountDeletionService.current
+    val viewModel: DeleteAccountViewModel = hiltViewModel()
     val scope = rememberCoroutineScope()
     var confirm by remember { mutableStateOf(false) }
     var busy by remember { mutableStateOf(false) }
@@ -51,7 +51,7 @@ fun DeleteAccountSection() {
                         if (busy) return@Button
                         busy = true
                         scope.launch {
-                            val result = runCatching { deletion.deleteAccountAndSignOut() }
+                            val result = viewModel.deleteAccountAndSignOut()
                             busy = false
                             if (result.isSuccess) confirm = false
                             android.widget.Toast.makeText(
