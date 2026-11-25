@@ -80,7 +80,13 @@ internal const val PLAY_STORY_AT = 1_792_489_260_000L
  * demo loads (week 43, Sunday start).
  */
 internal val PLAY_STORY_NOW: Long = java.time.ZonedDateTime.of(
-    2026, 10, 20, 9, 41, 0, 0,
+    2026,
+    10,
+    20,
+    9,
+    41,
+    0,
+    0,
     java.time.ZoneId.of("America/New_York"),
 ).toInstant().toEpochMilli()
 
