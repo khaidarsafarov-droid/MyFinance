@@ -6,7 +6,6 @@ import android.util.Log
 import androidx.annotation.StringRes
 import com.truckerload.R
 import com.truckerload.data.preferences.SettingsDataStore
-import com.truckerload.data.remote.TelegramApi
 import com.truckerload.data.remote.TelegramBotFeatures
 import com.truckerload.data.remote.TelegramUpdate
 import com.truckerload.data.repository.DieselRepository
@@ -15,7 +14,6 @@ import com.truckerload.data.repository.PaycheckRepository
 import com.truckerload.sync.TelegramChatRestore
 import com.truckerload.sync.TelegramStatusMessages
 import com.truckerload.sync.import.ImportCommandHandler
-import com.truckerload.sync.import.ImportDocumentHandler
 import com.truckerload.sync.import.ImportSessionManager
 import com.truckerload.utils.LogRedactor
 import com.truckerload.utils.runCatchingCancellable
@@ -312,13 +310,7 @@ class TelegramUpdateDispatcher(
         val update = call.update
         return when {
             update.photoFileId != null || update.documentFileId != null -> {
-                handleDocumentUpdate(
-                    update = update,
-                    loadRepository = call.loadRepository,
-                    paycheckRepository = call.paycheckRepository,
-                    dieselRepository = call.dieselRepository,
-                    prefs = call.prefs,
-                )
+                documents().handle(update, call.loadRepository, call.prefs)
                 true
             }
 
@@ -394,98 +386,6 @@ class TelegramUpdateDispatcher(
             )
     }
 
-    private suspend fun handleDocumentUpdate(
-        update: TelegramUpdate,
-        loadRepository: LoadRepository,
-        paycheckRepository: PaycheckRepository,
-        dieselRepository: DieselRepository,
-        prefs: SharedPreferences,
-    ) {
-        val importSessions = ImportSessionManager(prefs)
-        val fileId = update.documentFileId
-        if (fileId != null) {
-            val isHtml = ImportDocumentHandler.isSupportedHtml(
-                update.documentFileName,
-                update.documentMimeType,
-            )
-            val isJson = ImportDocumentHandler.isSupportedJson(
-                update.documentFileName,
-                update.documentMimeType,
-            )
-            // FIX: only chat exports / an open /import session go to bulk import — a
-            // standalone load.json must reach the single-load ingest path instead.
-            val isChatExport = ImportDocumentHandler.isTelegramExportFileName(update.documentFileName) ||
-                ImportDocumentHandler.isResultJsonFileName(update.documentFileName)
-            if ((isHtml || isJson) && (isChatExport || importSessions.isActive(update.chatId))) {
-                if (!importSessions.isActive(update.chatId)) {
-                    importSessions.startSession(update.chatId)
-                }
-                val reply = messageParser.importDocumentHandler(loadRepository, prefs).handle(
-                    chatId = update.chatId,
-                    fileId = fileId,
-                    fileName = update.documentFileName,
-                    mimeType = update.documentMimeType,
-                    fileSize = update.documentFileSize,
-                    telegramApi = apiClient.api(),
-                )
-                if (reply.isNotBlank()) {
-                    apiClient.sendWithMenu(update.chatId, reply)
-                }
-                return
-            }
-            if (importSessions.isActive(update.chatId) && messageParser.isExportTextDocument(update)) {
-                ingestExportText(update, fileId, loadRepository, prefs)
-                return
-            }
-            if (messageParser.isExportTextDocument(update)) {
-                val reply = messageParser.importExportDocument(
-                    telegramApi = apiClient.api(),
-                    update = update,
-                    loadRepository = loadRepository,
-                )
-                apiClient.sendWithMenu(update.chatId, reply)
-                return
-            }
-        }
-        ingest().handleMedia(
-            update = update,
-            loadRepository = loadRepository,
-            prefs = prefs,
-        )
-    }
-
-    private suspend fun ingestExportText(
-        update: TelegramUpdate,
-        fileId: String,
-        loadRepository: LoadRepository,
-        prefs: SharedPreferences,
-    ) {
-        val declaredSize = update.documentFileSize
-        if (declaredSize != null && declaredSize > TelegramApi.MAX_DOWNLOAD_BYTES) {
-            apiClient.sendWithMenu(
-                update.chatId,
-                context.getString(
-                    R.string.sync_import_file_too_large,
-                    (TelegramApi.MAX_DOWNLOAD_BYTES / (1024 * 1024)).toInt(),
-                ),
-            )
-            return
-        }
-        val bytes = apiClient.downloadFile(fileId).getOrElse {
-            apiClient.sendWithMenu(
-                update.chatId,
-                context.getString(R.string.sync_import_error, it.message ?: "?"),
-            )
-            return
-        }
-        val text = bytes.toString(Charsets.UTF_8)
-        val reply = messageParser.importMessageHandler(loadRepository, prefs)
-            .handle(update.chatId, text, apiClient.api())
-        if (reply.isNotBlank()) {
-            apiClient.sendWithMenu(update.chatId, reply)
-        }
-    }
-
     private suspend fun replayUnpaired(chatId: String, call: UpdateCall) {
         val imported = TelegramPairingReplay.importPending(
             chatId = chatId,
@@ -521,6 +421,7 @@ class TelegramUpdateDispatcher(
     }
 
     private fun ingest(): TelegramFileIngestHandler = TelegramFileIngestHandler(context, apiClient, messageParser)
+    private fun documents() = TelegramDocumentUpdateHandler(context, apiClient, messageParser, ::ingest)
 
     suspend fun handleCommand(
         command: String,
