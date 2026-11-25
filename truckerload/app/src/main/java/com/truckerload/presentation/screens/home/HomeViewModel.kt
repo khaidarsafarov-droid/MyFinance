@@ -2,28 +2,24 @@ package com.truckerload.presentation.screens.home
 
 import android.app.Application
 import androidx.lifecycle.ViewModel
-import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import androidx.lifecycle.viewModelScope
-import com.truckerload.R
-import com.truckerload.data.local.DeletedLoadLedger
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
 import com.truckerload.data.repository.LoadRepository
-import com.truckerload.data.preferences.TelegramTokenStore
-import com.truckerload.data.remote.TelegramBotHealth
-import com.truckerload.sync.TelegramBotPoller
-import com.truckerload.sync.TelegramSyncWorker
-import com.truckerload.widget.WidgetDataUpdater
 import com.truckerload.domain.filter.LoadFilter
 import com.truckerload.domain.filter.LoadFilterUseCase
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.week.WeekStartRuntime
-import com.truckerload.utils.getWeekRange
-import com.truckerload.utils.runReportedSuspending
-import com.truckerload.utils.getCurrentWeekNumberAndYear
-import com.truckerload.utils.getPreviousWeekNumberAndYear
-import com.truckerload.utils.getWeekNumberAndYearFromDate
-import androidx.paging.PagingData
-import androidx.paging.cachedIn
+import com.truckerload.sync.TelegramBotPoller
+import com.truckerload.sync.TelegramSyncWorker
+import com.truckerload.widget.WidgetDataUpdater
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -33,37 +29,28 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.scan
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.scan
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.util.Calendar
 import java.util.concurrent.atomic.AtomicBoolean
-import com.truckerload.utils.FeedbackManager
+import javax.inject.Inject
 
 @OptIn(FlowPreview::class)
 @HiltViewModel
+@Suppress("ktlint:standard:function-signature", "ktlint:standard:class-signature")
 class HomeViewModel @Inject constructor(
     private val loadRepository: LoadRepository,
     private val app: Application,
 ) : ViewModel() {
 
     companion object {
-        private const val UNDO_DELETE_WINDOW_MS = 5_000L
-
         /** Foreground-сервис бота запускаем один раз за процесс, не при каждом recreate VM. */
         private val botServiceStarted = AtomicBoolean(false)
 
@@ -78,6 +65,7 @@ class HomeViewModel @Inject constructor(
     }
 
     private val filterUseCase = LoadFilterUseCase()
+    private val botStatus = HomeBotStatus(app)
 
     /** Survives onCleared. viewModelScope is already cancelled there, and runBlocking would ANR. */
     private val deleteScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
@@ -132,10 +120,10 @@ class HomeViewModel @Inject constructor(
             initialValue = emptyList(),
         )
 
-    private val _initialLoadDone = MutableStateFlow(false)
+    private val initialLoadDone = MutableStateFlow(false)
 
     /** true до первого эмита из Room. */
-    val isInitialLoading: StateFlow<Boolean> = _initialLoadDone
+    val isInitialLoading: StateFlow<Boolean> = initialLoadDone
         .map { done -> !done }
         .stateIn(
             scope = viewModelScope,
@@ -178,26 +166,23 @@ class HomeViewModel @Inject constructor(
         )
 
     /** Оптимистичные обновления: loadId -> Load. При сбое сохранения — откат через revertOptimisticUpdate. */
-    private val _optimisticOverlay = MutableStateFlow<Map<String, Load>>(emptyMap())
+    private val optimisticOverlay = MutableStateFlow<Map<String, Load>>(emptyMap())
 
-    /** IDs being deleted — excluded from merged list so they cannot reappear via overlay. */
-    private val _pendingDeleteIds = MutableStateFlow<Set<String>>(emptySet())
-
-    private val _pendingDeleteConfirmId = MutableStateFlow<String?>(null)
-    val pendingDeleteConfirmId: StateFlow<String?> = _pendingDeleteConfirmId.asStateFlow()
-
-    /** Load id waiting for Undo snackbar before hard delete. */
-    private val _undoDeleteLoadId = MutableStateFlow<String?>(null)
-    val undoDeleteLoadId: StateFlow<String?> = _undoDeleteLoadId.asStateFlow()
-
-    private var undoDeleteJob: Job? = null
-
-    private val _deleteError = MutableStateFlow<String?>(null)
-    val deleteError: StateFlow<String?> = _deleteError.asStateFlow()
-
-    /** Bumped when delete is undone so swipe cards snap back. */
-    private val _swipeSettleGeneration = MutableStateFlow(0)
-    val swipeSettleGeneration: StateFlow<Int> = _swipeSettleGeneration.asStateFlow()
+    private val deletes = HomeDeleteCoordinator(
+        app = app,
+        loadRepository = loadRepository,
+        scope = viewModelScope,
+        commitScope = deleteScope,
+        optimisticOverlay = optimisticOverlay,
+        tripIdOf = { id ->
+            displayedLoadsFromDb.value.firstOrNull { it.id == id }?.tripId
+                ?: optimisticOverlay.value[id]?.tripId
+        },
+    )
+    val pendingDeleteConfirmId: StateFlow<String?> = deletes.pendingDeleteConfirmId
+    val undoDeleteLoadId: StateFlow<String?> = deletes.undoDeleteLoadId
+    val deleteError: StateFlow<String?> = deletes.deleteError
+    val swipeSettleGeneration: StateFlow<Int> = deletes.swipeSettleGeneration
 
     /** SQL totals for ALL filter — avoids hydrating the full journal for header stats. */
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -222,62 +207,35 @@ class HomeViewModel @Inject constructor(
     @OptIn(ExperimentalCoroutinesApi::class)
     private val pagedFilterTotals: StateFlow<LoadFilterUseCase.Totals?> =
         combine(filterState, WeekStartRuntime.revision) { state, _ -> state }
-        .flatMapLatest { state -> HomePagedFilterTotals.observe(state, loadRepository) }
-        .stateIn(
-            scope = viewModelScope,
-            started = homeSharing,
-            initialValue = null,
-        )
+            .flatMapLatest { state -> HomePagedFilterTotals.observe(state, loadRepository) }
+            .stateIn(
+                scope = viewModelScope,
+                started = homeSharing,
+                initialValue = null,
+            )
 
-    private val _archiveYears = MutableStateFlow<List<Int>>(emptyList())
+    private val archiveYears = MutableStateFlow<List<Int>>(emptyList())
 
     /** Фильтрованный список + итоги. Calendar dots live in [calendarDatesWithLoads]. */
     val filteredLoadsAndTotals: StateFlow<FilteredResult> = combine(
         combine(
             displayedLoadsFromDb,
-            _optimisticOverlay,
-            _pendingDeleteIds,
+            optimisticOverlay,
+            deletes.pendingDeleteIds,
             filterState,
             allFilterTotals,
         ) { loads, overlay, pendingDeletes, filter, sqlTotals ->
-            Triple(loads to overlay, pendingDeletes to filter, sqlTotals)
+            HomeFilterInputs(loads, overlay, pendingDeletes, filter, sqlTotals, pagedTotals = null)
         },
         pagedFilterTotals,
-    ) { packed, pagedTotals ->
-        val (loadsOverlay, pendingFilter, sqlTotals) = packed
-        val (loads, overlay) = loadsOverlay
-        val (pendingDeletes, filter) = pendingFilter
-        val merged = mergeLoadsWithOptimisticOverlay(loads, overlay, pendingDeletes)
-        val filtered = filterUseCase.filterLoads(
-            loads = merged,
-            filter = filter.filter,
-            searchQuery = filter.searchQuery,
-            selectedDate = filter.selectedDate,
-            selectedWeekStart = filter.selectedWeekStart,
-            selectedWeekEnd = filter.selectedWeekEnd,
-            selectedYear = filter.selectedYear,
-            selectedMonthYear = filter.selectedMonthYear,
-            selectedMonth = filter.selectedMonth,
-            dateIndex = null,
-        )
-        val totals = when {
-            filter.filter == LoadFilter.ALL && sqlTotals != null -> sqlTotals
-            pagedTotals != null -> pagedTotals
-            else -> filterUseCase.calculateTotals(filtered)
-        }
-        val hideInMemoryList =
-            HomeRoomPagingPolicy.usesRoomPaging(filter.filter, filter.selectedYear) &&
-                filter.searchQuery.isBlank()
-        FilteredResult(
-            loads = if (hideInMemoryList) emptyList() else filtered,
-            totals = totals,
-        )
+    ) { inputs, pagedTotals ->
+        HomeFilteredResultBuilder.build(inputs.copy(pagedTotals = pagedTotals), filterUseCase)
     }
         .flowOn(Dispatchers.Default)
         .stateIn(
             scope = viewModelScope,
             started = homeSharing,
-            initialValue = FilteredResult(emptyList(), LoadFilterUseCase.Totals(0, com.truckerload.domain.money.Money.ZERO, 0.0)),
+            initialValue = HomeFilteredResultBuilder.EMPTY,
         )
 
     /**
@@ -293,182 +251,86 @@ class HomeViewModel @Inject constructor(
             initialValue = emptySet(),
         )
 
-    /**
-     * True Room SQL paging for week / dispute / ALL journal filters.
-     * Day/month filters stay in-memory after a scoped overlap query so
-     * spanning trips match header totals and calendar day selection.
-     */
     @OptIn(ExperimentalCoroutinesApi::class)
     val roomPagedLoads: Flow<PagingData<Load>> =
         combine(filterState, WeekStartRuntime.revision) { filter, _ -> filter }
-        .flatMapLatest { filter ->
-            val trimmed = filter.searchQuery.trim()
-            if (trimmed.isEmpty() &&
-                !HomeRoomPagingPolicy.usesRoomPaging(filter.filter, filter.selectedYear)
-            ) {
-                return@flatMapLatest flowOf(PagingData.empty())
-            }
-            when {
-                trimmed.isNotEmpty() -> loadRepository.pagingLoads(searchQuery = trimmed)
-                filter.filter == LoadFilter.DISPUTE -> loadRepository.pagingLoads(disputesOnly = true)
-                filter.filter == LoadFilter.ALL ->
-                    loadRepository.pagingLoads(journalYear = filter.selectedYear)
-                filter.filter == LoadFilter.THIS_WEEK -> {
-                    val (w, y) = getCurrentWeekNumberAndYear()
-                    loadRepository.pagingLoads(weekNumber = w, year = y)
-                }
-                filter.filter == LoadFilter.LAST_WEEK -> {
-                    val (w, y) = getPreviousWeekNumberAndYear()
-                    loadRepository.pagingLoads(weekNumber = w, year = y)
-                }
-                filter.filter == LoadFilter.CALENDAR_WEEK && !filter.selectedWeekStart.isNullOrBlank() -> {
-                    val (w, y) = getWeekNumberAndYearFromDate(filter.selectedWeekStart)
-                    loadRepository.pagingLoads(weekNumber = w, year = y)
-                }
-                else -> loadRepository.pagingLoads()
-            }
-        }
-        .cachedIn(viewModelScope)
+            .flatMapLatest { filter -> HomeRoomPagingFlow.observe(filter, loadRepository) }
+            .cachedIn(viewModelScope)
 
-    fun usesRoomPaging(filter: LoadFilter, selectedYear: Int?): Boolean =
-        HomeRoomPagingPolicy.usesRoomPaging(filter, selectedYear)
+    fun usesRoomPaging(filter: LoadFilter, year: Int?) = HomeRoomPagingPolicy.usesRoomPaging(filter, year)
+
     init {
         viewModelScope.launch {
-            runCatching { _archiveYears.value = loadRepository.getDistinctLoadYears() }
+            runCatching { archiveYears.value = loadRepository.getDistinctLoadYears() }
         }
         viewModelScope.launch {
             displayedLoadsFromDb.collect { list ->
-                if (!_initialLoadDone.value) {
-                    _initialLoadDone.value = true
+                if (!initialLoadDone.value) {
+                    initialLoadDone.value = true
                 }
                 _uiState.update { it.copy(loads = list) }
                 val ids = list.map { it.id }.toSet()
                 // Keep only optimistic inserts not yet present in Room.
-                _optimisticOverlay.update { current -> current.filterKeys { it !in ids } }
+                optimisticOverlay.update { current -> current.filterKeys { it !in ids } }
                 // Once Room confirms deletion, clear pending delete markers.
-                _pendingDeleteIds.update { pending -> pending.filter { it !in ids }.toSet() }
+                deletes.onRoomLoads(ids)
             }
         }
-        viewModelScope.launch {
-            runCatching {
-                val store = TelegramTokenStore(app)
-                if (!store.hasToken()) return@runCatching
-                val token = store.getToken()
-                val health = withContext(Dispatchers.IO) { TelegramBotHealth.check(token) }
-                _uiState.update { it.copy(botStatusActive = health.ok) }
-                if (health.ok && botServiceStarted.compareAndSet(false, true)) {
-                    TelegramBotPoller.start(app)
-                }
+        viewModelScope.launch { startBotPollerWhenActive() }
+    }
+
+    private suspend fun startBotPollerWhenActive() {
+        runCatching {
+            val state = botStatus.check()
+            if (state == HomeBotStatus.State.NOT_CONFIGURED) return@runCatching
+            val active = state == HomeBotStatus.State.ACTIVE
+            _uiState.update { it.copy(botStatusActive = active) }
+            if (active && botServiceStarted.compareAndSet(false, true)) {
+                TelegramBotPoller.start(app)
             }
         }
     }
 
     /** Оптимистичное обновление: сразу отобразить изменения в UI до сохранения в БД. */
     fun applyOptimisticUpdate(load: Load) {
-        _optimisticOverlay.update { it + (load.id to load) }
+        optimisticOverlay.update { it + (load.id to load) }
     }
 
     /** Откат оптимистичного обновления при ошибке сохранения. */
     fun revertOptimisticUpdate(loadId: String) {
-        _optimisticOverlay.update { it - loadId }
+        optimisticOverlay.update { it - loadId }
     }
 
-    fun deleteLoad(loadId: String) {
-        requestDeleteLoad(loadId)
-    }
+    fun deleteLoad(loadId: String) = deletes.request(loadId)
 
     /**
      * Soft-hides the load immediately and starts an Undo window before hard delete.
      * Keeps confirm APIs for callers that still use the dialog path.
      */
-    fun requestDeleteLoad(loadId: String) {
-        if (loadId.isBlank()) return
-        FeedbackManager.onDeleteGesture()
-        val previous = _undoDeleteLoadId.value
-        if (previous != null && previous != loadId) {
-            commitPendingDelete(previous)
-        }
-        undoDeleteJob?.cancel()
-        val tripId = displayedLoadsFromDb.value.firstOrNull { it.id == loadId }?.tripId
-            ?: _optimisticOverlay.value[loadId]?.tripId
-        _optimisticOverlay.update { it - loadId }
-        _pendingDeleteIds.update { it + loadId }
-        _undoDeleteLoadId.value = loadId
-        DeletedLoadLedger.markPending(app, loadId, tripId)
-        undoDeleteJob = viewModelScope.launch {
-            delay(UNDO_DELETE_WINDOW_MS)
-            commitPendingDelete(loadId)
-        }
-    }
+    fun requestDeleteLoad(loadId: String) = deletes.request(loadId)
 
-    fun undoDeleteLoad() {
-        val loadId = _undoDeleteLoadId.value ?: return
-        undoDeleteJob?.cancel()
-        undoDeleteJob = null
-        _undoDeleteLoadId.value = null
-        _pendingDeleteIds.update { it - loadId }
-        DeletedLoadLedger.cancelPending(app, loadId)
-        _swipeSettleGeneration.update { it + 1 }
-    }
+    fun undoDeleteLoad() = deletes.undo()
 
-    fun dismissDeleteLoad() {
-        _pendingDeleteConfirmId.value = null
-        undoDeleteLoad()
-    }
+    fun dismissDeleteLoad() = deletes.dismiss()
 
-    fun clearDeleteError() {
-        _deleteError.value = null
-    }
+    fun clearDeleteError() = deletes.clearError()
 
-    fun confirmDeleteLoad() {
-        val loadId = _pendingDeleteConfirmId.value ?: _undoDeleteLoadId.value ?: return
-        _pendingDeleteConfirmId.value = null
-        commitPendingDelete(loadId)
-    }
+    fun confirmDeleteLoad() = deletes.confirm()
 
-    private fun commitPendingDelete(loadId: String) {
-        if (loadId.isBlank()) return
-        undoDeleteJob?.cancel()
-        undoDeleteJob = null
-        if (_undoDeleteLoadId.value == loadId) {
-            _undoDeleteLoadId.value = null
-        }
-        viewModelScope.launch {
-            _optimisticOverlay.update { it - loadId }
-            _pendingDeleteIds.update { it + loadId }
-            runReportedSuspending(
-                block = {
-                    loadRepository.deleteLoad(loadId)
-                    WidgetDataUpdater.updateWidgetData(app.applicationContext)
-                    _pendingDeleteIds.update { it - loadId }
-                },
-                onFailure = { e ->
-                    _pendingDeleteIds.update { it - loadId }
-                    _swipeSettleGeneration.update { it + 1 }
-                    _deleteError.value = e.message?.takeIf { it.isNotBlank() }
-                        ?: app.getString(R.string.home_delete_failed)
-                },
-            )
-        }
-    }
+    /** Leaving Home / process death: hard-delete so the load cannot come back. */
+    fun commitPendingDeletesNow() = deletes.commitAllNow()
 
     fun selectWeek(weekStart: String, weekEnd: String, label: String) {
-        _uiState.update {
-            it.clearedMonthSelection().copy(
-                filter = LoadFilter.CALENDAR_WEEK,
-                selectedWeekStart = weekStart,
-                selectedWeekEnd = weekEnd,
-                selectedWeekLabel = label,
-                selectedDate = null,
-                selectedDateLabel = "",
-            )
-        }
+        _uiState.update { it.withCalendarWeek(weekStart, weekEnd, label) }
     }
 
     fun setSearchQuery(query: String) {
         _searchQuery.value = query
     }
-    fun setSearchExpanded(expanded: Boolean) { _uiState.update { it.copy(isSearchExpanded = expanded) } }
+
+    fun setSearchExpanded(expanded: Boolean) {
+        _uiState.update { it.copy(isSearchExpanded = expanded) }
+    }
 
     fun refreshHome() {
         if (_isRefreshing.value) return
@@ -490,31 +352,12 @@ class HomeViewModel @Inject constructor(
     }
 
     private suspend fun refreshBotStatusSuspend() {
-        val configured = TelegramTokenStore(app).hasToken()
-        if (!configured) {
-            _uiState.update { it.copy(botStatusActive = false) }
-            return
-        }
-        val token = TelegramTokenStore(app).getToken()
-        val health = withContext(Dispatchers.IO) { TelegramBotHealth.check(token) }
-        _uiState.update { it.copy(botStatusActive = health.ok) }
+        val active = botStatus.check() == HomeBotStatus.State.ACTIVE
+        _uiState.update { it.copy(botStatusActive = active) }
     }
 
     fun setFilter(filter: LoadFilter) {
-        _uiState.update {
-            it.copy(
-                filter = filter,
-                selectedYear = if (filter != LoadFilter.ALL) null else it.selectedYear,
-                selectedMonthYear = null,
-                selectedMonth = null,
-                selectedMonthLabel = "",
-                selectedWeekStart = if (filter == LoadFilter.CALENDAR_WEEK) it.selectedWeekStart else null,
-                selectedWeekEnd = if (filter == LoadFilter.CALENDAR_WEEK) it.selectedWeekEnd else null,
-                selectedWeekLabel = if (filter == LoadFilter.CALENDAR_WEEK) it.selectedWeekLabel else "",
-                selectedDate = if (filter == LoadFilter.CALENDAR_DATE) it.selectedDate else null,
-                selectedDateLabel = if (filter == LoadFilter.CALENDAR_DATE) it.selectedDateLabel else "",
-            )
-        }
+        _uiState.update { it.withFilter(filter) }
     }
 
     /** Whole calendar month totals (any past/current month). */
@@ -528,21 +371,12 @@ class HomeViewModel @Inject constructor(
     }
 
     fun setSelectedYear(year: Int?) {
-        _uiState.update { it.copy(selectedYear = year, filter = LoadFilter.ALL) }
+        _uiState.update { it.withArchiveYear(year) }
     }
 
     fun selectDate(date: String) {
         val label = formatDateLabel(date)
-        _uiState.update {
-            it.clearedMonthSelection().copy(
-                filter = LoadFilter.CALENDAR_DATE,
-                selectedDate = date,
-                selectedDateLabel = label,
-                selectedWeekStart = null,
-                selectedWeekEnd = null,
-                selectedWeekLabel = "",
-            )
-        }
+        _uiState.update { it.withCalendarDate(date, label) }
     }
 
     fun selectDateFromCalendar(dateMillis: Long) {
@@ -551,7 +385,7 @@ class HomeViewModel @Inject constructor(
     }
 
     /** Список годов с грузами для селектора архива (SQL, не filter-scoped). */
-    fun availableYears(): List<Int> = _archiveYears.value
+    fun availableYears(): List<Int> = archiveYears.value
         .ifEmpty { listOf(Calendar.getInstance().get(Calendar.YEAR)) }
 
     /** Заголовок с итогами выбранного периода — показывается над фильтром на главном экране. */
@@ -559,37 +393,9 @@ class HomeViewModel @Inject constructor(
         buildPeriodSummaryHeader(_uiState.value, totals, app)
 
     /** Плоский список для LazyColumn. */
-    fun flattenedListItems(
-        filteredLoads: List<Load>,
-        totals: LoadFilterUseCase.Totals
-    ): List<HomeListItem> {
+    fun flattenedListItems(filteredLoads: List<Load>, totals: LoadFilterUseCase.Totals): List<HomeListItem> {
         val state = _uiState.value
         return flattenedListItems(state.filter, state.selectedYear, filteredLoads)
-    }
-
-    /** Leaving Home / process death: hard-delete so the load cannot come back. */
-    fun commitPendingDeletesNow() {
-        val pending = (_pendingDeleteIds.value + listOfNotNull(_undoDeleteLoadId.value))
-            .filter { it.isNotBlank() }
-            .toSet()
-        if (pending.isEmpty()) return
-        undoDeleteJob?.cancel()
-        undoDeleteJob = null
-        _undoDeleteLoadId.value = null
-        deleteScope.launch {
-            val failed = mutableListOf<String>()
-            for (id in pending) {
-                runReportedSuspending(block = { loadRepository.deleteLoad(id) }) { e ->
-                    failed += id
-                    _deleteError.value = e.message?.takeIf { it.isNotBlank() }
-                        ?: app.getString(R.string.home_delete_failed)
-                }
-            }
-            _pendingDeleteIds.update { (it - pending) + failed }
-            if (failed.isEmpty()) {
-                WidgetDataUpdater.updateWidgetData(app.applicationContext)
-            }
-        }
     }
 
     override fun onCleared() {

@@ -1,6 +1,6 @@
 # Google Play release runbook — TruckoRig (`com.truckorig`)
 
-Ship checklist for version **1.6.0** (`versionCode` **18**, `targetSdk` **36**).
+Ship checklist for version **1.6.1** (`versionCode` **19**, `targetSdk` **36**).
 
 ## 0) Prerequisites (you must do once)
 
@@ -18,7 +18,7 @@ Ship checklist for version **1.6.0** (`versionCode` **18**, `targetSdk` **36**).
    - After first Play upload: add **App signing certificate** SHA-1 as a second Android client  
    - Restrict Maps API key (if used) to `com.truckorig` + signing certs
 
-3. **Privacy policy URL** — host `store/google-play/PRIVACY_POLICY.md` (or equivalent HTML) on HTTPS and paste the URL into Play Console.
+3. **Privacy policy URL** — host `store/google-play/PRIVACY_POLICY.md` (or equivalent HTML) on HTTPS and paste the URL into Play Console. That file is the canonical text for the rentry page and the Play form; `docs/release/PRIVACY_POLICY.md` is the bilingual Android + iOS version for the App Store and static hosting.
 
 ## 1) Build the release bundle
 
@@ -40,7 +40,7 @@ Confirm:
 
 - [ ] `verifyReleaseSecretsEmpty` passed (bot token empty)  
 - [ ] AAB is **signed** (keystore.properties present)  
-- [ ] `versionName=1.6.0`, `versionCode=18`
+- [ ] `versionName=1.6.1`, `versionCode=19`
 
 ## 2) Play Console — create / update listing
 
@@ -56,7 +56,7 @@ Confirm:
 | Feature graphic | `feature-graphic-en.png` / `feature-graphic-ru.png` |
 | Phone screenshots | `phone-en/` (7) · `phone-ru/` (8) · same English frames in `docs/play-store-screenshots-en/` |
 | Tablet | `tablet-10-en/` · `tablet-10-ru/` |
-| What’s new | `RELEASE_NOTES_1.6.0.md` (user-facing section) |
+| What’s new | `RELEASE_NOTES_1.6.1.md` (user-facing section) |
 
 ## 3) App content / policy forms
 

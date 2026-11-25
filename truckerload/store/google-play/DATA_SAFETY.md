@@ -4,7 +4,7 @@ Fill **Play Console → Policy → App content → Data safety** for `com.trucko
 
 Definitions used here are Google’s, from [Provide information for Google Play’s Data safety section](https://support.google.com/googleplay/android-developer/answer/10787469) (collected = sent off the device by the app **or by an SDK**, to the developer **or** a third party). On-device processing is not collection. End-to-end encryption (only sender and recipient can read it) is not collection. A user-initiated transfer the user reasonably expects is not **sharing**; Google’s Drive/Dropbox FAQ also says a backup the user sends to their own cloud account is not **collection** when the developer does not take a copy. Ephemeral processing (memory only, only long enough to answer that request, not used to build a profile) is still answered on the form, and Play hides it on the store listing.
 
-Audit date: 2026-11-23, re-checked the same day against main `7f98db9a`. Package `com.truckorig`, versionName 1.6.0, versionCode 18, targetSdk 36, compileSdk 37. The merged app manifest still has no `FOREGROUND_SERVICE`, no `FOREGROUND_SERVICE_DATA_SYNC`, and no `AD_ID`. Firebase Crashlytics is not a dependency; see Crash logs below.
+Audit date: 2026-11-23, re-checked the same day against main `7f98db9a`. Package `com.truckorig`, versionName 1.6.1, versionCode 19, targetSdk 36, compileSdk 37. The merged app manifest still has no `FOREGROUND_SERVICE`, no `FOREGROUND_SERVICE_DATA_SYNC`, and no `AD_ID`. Firebase Crashlytics is not a dependency; see Crash logs below.
 
 ## 1. Overview
 
