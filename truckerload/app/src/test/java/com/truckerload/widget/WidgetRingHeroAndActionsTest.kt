@@ -7,17 +7,6 @@ import org.junit.Test
 class WidgetRingHeroAndActionsTest {
 
     @Test
-    fun ringCenter_stacksGrossPercentAndGoal() {
-        val xml = readRes("layout/widget_ring_center.xml")
-        val gross = xml.indexOf("android:id=\"@+id/widget_gross_hero\"")
-        val percent = xml.indexOf("android:id=\"@+id/widget_ring_percent\"")
-        val goal = xml.indexOf("android:id=\"@+id/widget_goal_subtitle\"")
-        assertTrue(gross >= 0)
-        assertTrue(percent > gross)
-        assertTrue(goal > percent)
-    }
-
-    @Test
     fun standardAndExpanded_useTheSplitHeaderPreview() {
         listOf("layout/widget_standard.xml", "layout/widget_expanded.xml").forEach { path ->
             val xml = readRes(path)

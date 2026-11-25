@@ -2,10 +2,6 @@
 <resources>
     <!-- Brand plate. Live widgets use BrandPalettes, not wallpaper dynamic color. -->
     <color name="widget_bg">#FFFDFCFA</color>
-    <color name="widget_bg_bottom">#FFFDFCFA</color>
-    <color name="widget_glass_fill">#333F3D9E</color>
-    <color name="widget_bg_stroke">#FFE6E2D8</color>
-    <color name="widget_loading_bg">#FFFDFCFA</color>
     <color name="widget_loading_text">#FF16182B</color>
     <color name="widget_loading_text_secondary">#FF585A6E</color>
     <color name="widget_text_primary">#FF16182B</color>
@@ -14,22 +10,10 @@
     <color name="widget_primary">#FF3F3D9E</color>
     <color name="widget_secondary">#FFEAE9F4</color>
     <color name="widget_green">#FF3D6A55</color>
-    <color name="widget_value_emerald">#FF3F3D9E</color>
-    <color name="widget_value_gold">#FF16182B</color>
-    <color name="widget_metric_cell_bg">#FFEAE9F4</color>
-    <color name="widget_divider">#FFE6E2D8</color>
     <color name="widget_progress_track">#FFEAE9F4</color>
-    <color name="widget_progress_end">#FFC8A867</color>
-    <color name="widget_progress_fill">#FF3F3D9E</color>
     <color name="widget_success">#FF3D6A55</color>
-    <color name="widget_rpm_good">#FF3D6A55</color>
     <color name="widget_rpm_warn">#FF9A6400</color>
     <color name="widget_rpm_bad">#FFC4395A</color>
-    <color name="widget_remaining_warning">#FF9A6400</color>
-    <color name="widget_day_past">#FF3F3D9E</color>
-    <color name="widget_day_today">#FFEAE9F4</color>
-    <color name="widget_day_future">#FFC9C6DC</color>
-    <color name="widget_day_border">#FFC9C6DC</color>
     <color name="widget_day_past_empty">#FF585A6E</color>
     <color name="widget_day_future_stroke">#FFC9C6DC</color>
     <color name="widget_day_today_stroke">#FF3F3D9E</color>
@@ -37,21 +21,5 @@
     <color name="widget_action_scanner">#FFC98BA4</color>
     <color name="widget_action_camera">#FFD4B44A</color>
     <color name="widget_action_diesel">#FFD4783A</color>
-    <color name="widget_text_hint">#FF585A6E</color>
-    <color name="widget_surface">#00EAE9F4</color>
-    <color name="widget_cyan">#FF3F3D9E</color>
-    <color name="widget_outline_variant">#FFE6E2D8</color>
-    <color name="widget_hero_number">#FF16182B</color>
-    <color name="widget_hero_bg">#FFFDFCFA</color>
     <color name="widget_chip_bg">#FFEAE9F4</color>
-    <dimen name="widget_padding">20dp</dimen>
-    <dimen name="widget_progress_bar_height">10dp</dimen>
-    <dimen name="widget_days_badge_min_width">36dp</dimen>
-    <dimen name="widget_days_badge_min_height">32dp</dimen>
-    <dimen name="widget_ring_size">92dp</dimen>
-    <dimen name="widget_week_days_height">30dp</dimen>
-    <dimen name="widget_hero_text_size">22sp</dimen>
-    <dimen name="widget_goal_label_text_size">13sp</dimen>
-    <dimen name="widget_metrics_text_size">13sp</dimen>
-    <dimen name="widget_footer_text_size">11sp</dimen>
 </resources>
