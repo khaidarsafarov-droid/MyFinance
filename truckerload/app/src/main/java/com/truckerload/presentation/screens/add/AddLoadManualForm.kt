@@ -1,7 +1,5 @@
 package com.truckerload.presentation.screens.add
 
-import com.truckerload.presentation.icons.AppIcons
-
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -11,8 +9,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import com.truckerload.presentation.theme.AppChipLabel
-import com.truckerload.presentation.theme.AppFilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -33,32 +29,37 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.truckerload.R
+import com.truckerload.data.preferences.RpmThresholds
+import com.truckerload.domain.model.EquipmentType
+import com.truckerload.presentation.components.RpmTier
 import com.truckerload.presentation.components.blurGate
 import com.truckerload.presentation.components.errorSupport
 import com.truckerload.presentation.components.formKeyboard
 import com.truckerload.presentation.components.formKeyboardActions
 import com.truckerload.presentation.components.formatRpm
 import com.truckerload.presentation.components.rememberBlurGate
-import com.truckerload.presentation.components.RpmTier
 import com.truckerload.presentation.components.rpmTier
 import com.truckerload.presentation.components.rpmTierWord
-import com.truckerload.utils.FieldErrors
-import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.truckerload.R
-import com.truckerload.domain.model.EquipmentType
-import com.truckerload.presentation.components.TlOutlinedButton as OutlinedButton
-import com.truckerload.presentation.di.LocalRpmThresholdsStore
+import com.truckerload.presentation.icons.AppIcons
+import com.truckerload.presentation.screens.settings.RpmThresholdsViewModel
+import com.truckerload.presentation.theme.AppChipLabel
+import com.truckerload.presentation.theme.AppFilterChip
 import com.truckerload.presentation.theme.AppTextFieldDefaults
 import com.truckerload.presentation.theme.BentoGlassCard
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.LocalReduceMotion
 import com.truckerload.presentation.theme.LocalSemanticColors
 import com.truckerload.presentation.theme.LocalTruckColors
+import com.truckerload.utils.FieldErrors
 import com.truckerload.utils.dateStringToUtcDatePickerMillis
 import com.truckerload.utils.getYesterdayDate
 import com.truckerload.utils.utcDatePickerMillisToDateString
 import java.util.Calendar
+import com.truckerload.presentation.components.TlOutlinedButton as OutlinedButton
 
 @Composable
 fun AddLoadManualForm(
@@ -80,6 +81,8 @@ fun AddLoadManualForm(
     showPasteBanner: Boolean = false,
     onPaste: () -> Unit = {},
     onOpenDocuments: (() -> Unit)? = null,
+    rpmThresholds: RpmThresholds? = null,
+    rpmViewModel: RpmThresholdsViewModel = hiltViewModel(),
 ) {
     val tc = LocalTruckColors.current
     val cs = MaterialTheme.colorScheme
@@ -88,6 +91,8 @@ fun AddLoadManualForm(
     val milesGate = rememberBlurGate()
     val rateFocus = remember { FocusRequester() }
     val milesFocus = remember { FocusRequester() }
+    val observedThresholds by rpmViewModel.thresholds.collectAsStateWithLifecycle()
+    val thresholds = rpmThresholds ?: observedThresholds
     val rateError = FieldErrors.amountRes(fields.rate)
     val milesError = FieldErrors.milesRes(fields.miles)
     val showRate = rateGate.visibleRes(rateError, showFieldErrors)
@@ -232,6 +237,7 @@ fun AddLoadManualForm(
         LiveRpmRow(
             rate = fields.parsedRate(),
             miles = com.truckerload.domain.units.MeasurementUnits.storedDistance(fields.parsedMiles()),
+            thresholds = thresholds,
         )
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -380,10 +386,9 @@ private fun PasteBanner(onPaste: () -> Unit) {
 }
 
 @Composable
-private fun LiveRpmRow(rate: Double?, miles: Double) {
+private fun LiveRpmRow(rate: Double?, miles: Double, thresholds: RpmThresholds) {
     val cs = MaterialTheme.colorScheme
     val semantic = LocalSemanticColors.current
-    val thresholds by LocalRpmThresholdsStore.current.thresholds.collectAsStateWithLifecycle()
     val rpm = if (rate != null && rate > 0.0 && miles > 0.0) rate / miles else null
     val tier = rpmTier(rpm, thresholds.minProfit, thresholds.targetProfit)
     val rpmText = if (rpm != null) {
@@ -463,10 +468,7 @@ private fun isoToday(): String {
     )
 }
 
-internal fun applyPastedPreview(
-    viewModel: AddLoadViewModel,
-    load: com.truckerload.domain.model.Load,
-) {
+internal fun applyPastedPreview(viewModel: AddLoadViewModel, load: com.truckerload.domain.model.Load) {
     viewModel.setManualTripId(load.tripId)
     if (load.date.length >= 10) viewModel.setManualDate(load.date.take(10))
     if (load.totalRate.isPositive()) viewModel.setManualRate(load.totalRate.formatPlain())

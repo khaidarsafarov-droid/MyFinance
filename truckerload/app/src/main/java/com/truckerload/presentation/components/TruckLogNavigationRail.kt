@@ -46,20 +46,19 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.truckerload.R
 import com.truckerload.data.preferences.ProfileIdentity
-import com.truckerload.presentation.di.LocalMaintenanceRepository
-import com.truckerload.presentation.di.LocalProfileRepository
-import com.truckerload.presentation.di.LocalUserProfileStore
+import com.truckerload.presentation.di.DriverIdentityViewModel
+import com.truckerload.presentation.di.MaintenanceBadgeViewModel
 import com.truckerload.presentation.icons.AppIcons
 import com.truckerload.presentation.navigation.Routes
 import com.truckerload.presentation.theme.SoftUiColors
 import com.truckerload.presentation.theme.SoftUiShapes
 import com.truckerload.presentation.theme.UiDimens
 import com.truckerload.utils.FeedbackManager
-import kotlinx.coroutines.flow.map
 
 /**
  * Tablet navigation: compact icon rail on 7–10″ portrait, wide labeled sidebar
@@ -74,10 +73,11 @@ fun TruckLogNavigationRail(
     onDrawerNavigate: (DrawerDestination) -> Unit,
     modifier: Modifier = Modifier,
     compact: Boolean = false,
+    identity: DriverIdentityViewModel = hiltViewModel(),
+    maintenanceBadge: MaintenanceBadgeViewModel = hiltViewModel(),
 ) {
-    val socialProfile by LocalProfileRepository.current.watchMyEnhancedProfile()
-        .collectAsStateWithLifecycle(initialValue = null)
-    val userProfile by LocalUserProfileStore.current.profile.collectAsStateWithLifecycle()
+    val socialProfile by identity.socialProfile.collectAsStateWithLifecycle()
+    val userProfile by identity.profile.collectAsStateWithLifecycle()
     val defaultDriverName = stringResource(R.string.default_driver_name)
     val displayName = remember(socialProfile, userProfile, defaultDriverName) {
         socialProfile?.displayName
@@ -99,10 +99,7 @@ fun TruckLogNavigationRail(
         )
     }
 
-    val maintenance = LocalMaintenanceRepository.current
-    val overdue by remember(maintenance) {
-        maintenance.watchActiveProgress().map { items -> items.count { it.isDue } }
-    }.collectAsStateWithLifecycle(initialValue = 0)
+    val overdue by maintenanceBadge.overdueCount.collectAsStateWithLifecycle()
     val railColor = com.truckerload.presentation.theme.LocalBrandPalette.current.card
     Column(
         modifier = modifier

@@ -53,15 +53,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.R
-import com.truckerload.presentation.di.LocalMaintenanceRepository
+import com.truckerload.presentation.di.MaintenanceBadgeViewModel
 import com.truckerload.presentation.icons.AppIcons
 import com.truckerload.presentation.navigation.Routes
 import com.truckerload.presentation.theme.LocalBrandPalette
 import com.truckerload.presentation.theme.LocalReduceMotion
 import com.truckerload.utils.FeedbackManager
-import kotlinx.coroutines.flow.map
 
 private data class PhoneTab(val route: String, val icon: ImageVector, val selectedIcon: ImageVector, val labelRes: Int)
 
@@ -81,11 +81,9 @@ internal fun SoftBottomBar(
     onNavigate: (String) -> Unit,
     @Suppress("UNUSED_PARAMETER") onQuickAction: () -> Unit,
     modifier: Modifier = Modifier,
+    viewModel: MaintenanceBadgeViewModel = hiltViewModel(),
 ) {
-    val maintenance = LocalMaintenanceRepository.current
-    val overdue by remember(maintenance) {
-        maintenance.watchActiveProgress().map { items -> items.count { it.isDue } }
-    }.collectAsStateWithLifecycle(initialValue = 0)
+    val overdue by viewModel.overdueCount.collectAsStateWithLifecycle()
     val brand = LocalBrandPalette.current
     val shape = RoundedCornerShape(32.dp)
 

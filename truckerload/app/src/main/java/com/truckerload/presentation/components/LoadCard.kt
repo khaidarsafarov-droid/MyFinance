@@ -1,7 +1,7 @@
 package com.truckerload.presentation.components
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -28,11 +28,12 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.R
 import com.truckerload.data.preferences.RpmThresholds
 import com.truckerload.domain.model.Load
-import com.truckerload.presentation.di.LocalRpmThresholdsStore
+import com.truckerload.presentation.screens.settings.RpmThresholdsViewModel
 import com.truckerload.presentation.theme.AppTypography
 import com.truckerload.presentation.theme.LocalBrandPalette
 import com.truckerload.presentation.theme.LocalTruckColors
@@ -64,7 +65,7 @@ fun LoadCard(
             onScanClick = onScanClick,
         )
     } else {
-        val thresholds by LocalRpmThresholdsStore.current.thresholds.collectAsStateWithLifecycle()
+        val thresholds by hiltViewModel<RpmThresholdsViewModel>().thresholds.collectAsStateWithLifecycle()
         LoadCard(
             card = rememberLoadCard(load, thresholds),
             onClick = onClick,
@@ -173,11 +174,9 @@ private fun LoadCardContent(
 }
 
 /** Computes RPM. Returns null when miles are zero. */
-fun computeRpm(totalRate: Double, totalMiles: Double): Double? =
-    if (totalMiles > 0) totalRate / totalMiles else null
+fun computeRpm(totalRate: Double, totalMiles: Double): Double? = if (totalMiles > 0) totalRate / totalMiles else null
 
-fun computeRpm(totalRate: com.truckerload.domain.money.Money, totalMiles: Double): Double? =
-    computeRpm(totalRate.cents / 100.0, totalMiles)
+fun computeRpm(totalRate: com.truckerload.domain.money.Money, totalMiles: Double): Double? = computeRpm(totalRate.cents / 100.0, totalMiles)
 
 /** RPM = Total Amount / Total Miles. */
 fun formatRpm(totalRate: com.truckerload.domain.money.Money, totalMiles: Double, unitFormat: String): String =
@@ -197,11 +196,7 @@ fun formatRpm(totalRate: Double, totalMiles: Double, unitFormat: String): String
 }
 
 @Composable
-internal fun LoadCardSurface(
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    content: @Composable () -> Unit,
-) {
+internal fun LoadCardSurface(onClick: () -> Unit, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
     val brand = LocalBrandPalette.current
     val shape = RoundedCornerShape(22.dp)
     Surface(
@@ -224,10 +219,7 @@ internal fun LoadCardSurface(
 }
 
 @Composable
-internal fun DisputeCardChip(
-    hadDispute: Boolean,
-    modifier: Modifier = Modifier,
-) {
+internal fun DisputeCardChip(hadDispute: Boolean, modifier: Modifier = Modifier) {
     val label = if (hadDispute) {
         stringResource(R.string.dispute_was_dispute)
     } else {

@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -47,26 +46,6 @@ import com.truckerload.utils.CrashReporting
 import com.truckerload.presentation.components.AutoRestoreDialog
 import com.truckerload.presentation.components.LegacyAbsorbDialog
 import com.truckerload.sync.SessionTeardown
-import com.truckerload.presentation.di.LocalAiRepository
-import com.truckerload.presentation.di.LocalAnalyticsRepository
-import com.truckerload.presentation.di.LocalAuthCredentialsStore
-import com.truckerload.presentation.di.LocalAuthStore
-import com.truckerload.presentation.di.LocalDieselRepository
-import com.truckerload.presentation.di.LocalLoadRepository
-import com.truckerload.presentation.di.LocalMaintenanceRepository
-import com.truckerload.presentation.di.LocalPaycheckRepository
-import com.truckerload.presentation.di.LocalPhotoRepository
-import com.truckerload.presentation.di.LocalRegistrationService
-import com.truckerload.presentation.di.LocalAccountDeletionService
-import com.truckerload.presentation.di.LocalRpmThresholdsStore
-import com.truckerload.presentation.di.LocalScanRepository
-import com.truckerload.presentation.di.LocalSelectedStateStore
-import com.truckerload.presentation.di.LocalSettingsDataStore
-import com.truckerload.presentation.di.LocalProfileRepository
-import com.truckerload.presentation.di.LocalUserProfileStore
-import com.truckerload.presentation.di.LocalWeekRepository
-import com.truckerload.presentation.di.LocalLastUsedDefaultsStore
-import com.truckerload.presentation.di.LocalWeeklyProfitGoalStore
 import com.truckerload.presentation.navigation.AuthNavHost
 import com.truckerload.presentation.navigation.NavGraph
 import com.truckerload.presentation.startup.DatabaseStartupFailed
@@ -214,69 +193,43 @@ class MainActivity : AppCompatActivity() {
             ) {
                 when (val startup = dbState) {
                     DbState.Loading -> DatabaseStartupLoading()
+
                     is DbState.Failed -> DatabaseStartupFailed(
                         recoverable = startup.recoverable,
                         onRetry = { DatabaseStartup.retry() },
                         onRecover = { DatabaseStartup.restore() },
                     )
+
                     DbState.Ready -> Surface(
                         modifier = Modifier.fillMaxSize(),
                         color = MaterialTheme.colorScheme.background,
                     ) {
-                    when {
-                        !sessionReady -> {
-                            Box(
-                                modifier = Modifier.fillMaxSize(),
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                CircularProgressIndicator()
+                        when {
+                            !sessionReady -> {
+                                Box(
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    CircularProgressIndicator()
+                                }
                             }
-                        }
-                        !isLoggedIn || session == null -> {
-                            CompositionLocalProvider(
-                                LocalSettingsDataStore provides settingsDataStore,
-                                LocalAuthStore provides authStore,
-                                LocalAuthCredentialsStore provides authCredentialsStore,
-                                LocalUserProfileStore provides userProfileStore,
-                            ) {
+
+                            !isLoggedIn || session == null -> {
                                 AuthNavHost(
                                     authStore = authStore,
                                     onLoginSuccess = { /* session LaunchedEffect rebuilds deps */ },
                                 )
                             }
-                        }
-                        else -> {
-                            val deps = session
-                            if (deps != null) {
-                                val biometricStore = remember {
-                                    com.truckerload.data.preferences.BiometricUnlockStore(applicationContext)
-                                }
-                                val gateEnabled = authStore.authProvider() ==
-                                    AuthProvider.EMAIL &&
-                                    biometricStore.isEnabled()
-                                // Locals remain for screens that still collect Flows outside ViewModels.
-                                CompositionLocalProvider(
-                                    LocalSettingsDataStore provides settingsDataStore,
-                                    LocalAuthStore provides authStore,
-                                    LocalAuthCredentialsStore provides authCredentialsStore,
-                                    LocalUserProfileStore provides userProfileStore,
-                                    LocalLoadRepository provides deps.loadRepository,
-                                    LocalPaycheckRepository provides deps.paycheckRepository,
-                                    LocalDieselRepository provides deps.dieselRepository,
-                                    LocalWeekRepository provides deps.weekRepository,
-                                    LocalAiRepository provides deps.aiRepository,
-                                    LocalRpmThresholdsStore provides deps.rpmThresholdsStore,
-                                    LocalSelectedStateStore provides deps.selectedStateStore,
-                                    LocalWeeklyProfitGoalStore provides deps.weeklyProfitGoalStore,
-                                    LocalLastUsedDefaultsStore provides deps.lastUsedDefaultsStore,
-                                    LocalAnalyticsRepository provides deps.analyticsRepository,
-                                    LocalPhotoRepository provides deps.photoRepository,
-                                    LocalScanRepository provides deps.scanRepository,
-                                    LocalProfileRepository provides deps.profileRepository,
-                                    LocalMaintenanceRepository provides deps.maintenanceRepository,
-                                    LocalRegistrationService provides deps.registrationService,
-                                    LocalAccountDeletionService provides deps.accountDeletionService,
-                                ) {
+
+                            else -> {
+                                val deps = session
+                                if (deps != null) {
+                                    val biometricStore = remember {
+                                        com.truckerload.data.preferences.BiometricUnlockStore(applicationContext)
+                                    }
+                                    val gateEnabled = authStore.authProvider() ==
+                                        AuthProvider.EMAIL &&
+                                        biometricStore.isEnabled()
                                     com.truckerload.presentation.auth.BiometricUnlockGate(enabled = gateEnabled) {
                                         // Reset Nav/ViewModel stores when the account changes.
                                         key(deps.userId) {
@@ -298,7 +251,6 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
             }
-        }
         }
     }
 

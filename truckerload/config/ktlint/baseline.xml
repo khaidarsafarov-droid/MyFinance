@@ -2735,9 +2735,6 @@
         <error line="118" column="1" source="standard:indent" />
         <error line="151" column="1" source="standard:no-consecutive-blank-lines" />
     </file>
-    <file name="src/main/java/com/truckerload/presentation/di/AppProvider.kt">
-        <error line="3" column="1" source="standard:import-ordering" />
-    </file>
     <file name="src/main/java/com/truckerload/presentation/icons/AppIcons.kt">
         <error line="3" column="1" source="standard:import-ordering" />
     </file>

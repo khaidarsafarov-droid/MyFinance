@@ -1,6 +1,5 @@
 package com.truckerload.presentation.screens.home
 
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,7 +9,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.ui.Alignment
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Snackbar
@@ -26,35 +24,38 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.truckerload.R
 import com.truckerload.domain.filter.LoadFilter
 import com.truckerload.presentation.components.AuthStatusBanner
-import com.truckerload.presentation.components.LocalShareHighlightLoadIds
-import com.truckerload.presentation.premium.Day7SurveyBanner
 import com.truckerload.presentation.components.LocalOpenDrawer
+import com.truckerload.presentation.components.LocalShareHighlightLoadIds
 import com.truckerload.presentation.connectivity.ConnectivityObserver
 import com.truckerload.presentation.connectivity.ConnectivityStatus
-import com.truckerload.presentation.di.LocalRpmThresholdsStore
-import com.truckerload.presentation.di.LocalProfileRepository
-import com.truckerload.presentation.di.LocalUserProfileStore
+import com.truckerload.presentation.di.DriverIdentityViewModel
+import com.truckerload.presentation.di.HomeJournalStatsViewModel
+import com.truckerload.presentation.di.WeeklyProfitGoalViewModel
 import com.truckerload.presentation.icons.AppIcons
+import com.truckerload.presentation.premium.Day7SurveyBanner
+import com.truckerload.presentation.screens.settings.RpmThresholdsViewModel
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.theme.addLoadSharedBounds
 import com.truckerload.presentation.theme.pressScale
 import com.truckerload.presentation.theme.rememberMinVisible
-import com.truckerload.utils.getPreviousWeekNumberAndYear
-import com.truckerload.utils.getWeekRange
 import com.truckerload.share.ShareImportBus
 import com.truckerload.share.ShareImportCopy
 import com.truckerload.share.ShareImportUndo
 import com.truckerload.share.ShareNoticeKind
+import com.truckerload.utils.getPreviousWeekNumberAndYear
+import com.truckerload.utils.getWeekRange
 import com.truckerload.widget.WidgetDeepLink
 import kotlinx.coroutines.delay
 
@@ -77,9 +78,14 @@ fun HomeScreen(
     onOpenPaywall: () -> Unit = {},
 ) {
     val tc = LocalTruckColors.current
-    val socialProfile by LocalProfileRepository.current.watchMyEnhancedProfile()
-        .collectAsStateWithLifecycle(initialValue = null)
-    val userProfile by LocalUserProfileStore.current.profile.collectAsStateWithLifecycle()
+    val identity: DriverIdentityViewModel = hiltViewModel()
+    val socialProfile by identity.socialProfile.collectAsStateWithLifecycle()
+    val userProfile by identity.profile.collectAsStateWithLifecycle()
+    val profileComplete by identity.setupComplete.collectAsStateWithLifecycle()
+    val goalVm: WeeklyProfitGoalViewModel = hiltViewModel()
+    val weeklyGoal by goalVm.goalAmount.collectAsStateWithLifecycle()
+    val journalStats: HomeJournalStatsViewModel = hiltViewModel()
+    val totalLoadCount by journalStats.totalStats.collectAsStateWithLifecycle()
     val defaultDriverName = stringResource(R.string.default_driver_name)
     val welcomeName = remember(socialProfile, userProfile, defaultDriverName) {
         socialProfile?.displayName
@@ -118,11 +124,14 @@ fun HomeScreen(
     ) {
         when (uiState.filter) {
             LoadFilter.CALENDAR_DATE -> uiState.selectedDateLabel
+
             LoadFilter.CALENDAR_WEEK -> uiState.selectedWeekLabel
+
             LoadFilter.LAST_WEEK -> {
                 val (week, year) = getPreviousWeekNumberAndYear()
                 getWeekRange(week, year).third
             }
+
             else -> ""
         }
     }
@@ -150,8 +159,7 @@ fun HomeScreen(
     ) {
         viewModel.periodSummaryHeader(totals)
     }
-    val rpmStore = LocalRpmThresholdsStore.current
-    val rpmThresholds by rpmStore.thresholds.collectAsStateWithLifecycle()
+    val rpmThresholds by hiltViewModel<RpmThresholdsViewModel>().thresholds.collectAsStateWithLifecycle()
     var showCalendar by remember { mutableStateOf(false) }
     val cal = remember { java.util.Calendar.getInstance() }
     var calendarYear by remember { mutableStateOf(cal.get(java.util.Calendar.YEAR)) }
@@ -234,103 +242,106 @@ fun HomeScreen(
     val highlightedLoadIds = shareNotice?.loads?.map { it.loadId }?.toSet().orEmpty()
 
     CompositionLocalProvider(LocalShareHighlightLoadIds provides highlightedLoadIds) {
-    Scaffold(
-        containerColor = BentoGlassTheme.ScreenBackground,
-        topBar = {
-            if (!tabletChrome) {
-                HomeScreenTopBar(
-                    welcomeName = welcomeName,
-                    weekLabel = weekLabel,
-                    filter = uiState.filter,
-                    openDrawer = openDrawer,
-                    onSearchToggle = { viewModel.setSearchExpanded(!uiState.isSearchExpanded) },
-                    onOpenPrivacy = onOpenPrivacy,
-                    onAvatar = onAvatar,
-                    onShare = onSharePeriod,
-                )
-            }
-        },
-        snackbarHost = {
-            SnackbarHost(hostState = snackbarHostState) { data ->
-                Snackbar(
-                    snackbarData = data,
-                    containerColor = tc.CardBackground,
-                    contentColor = tc.TextPrimary,
-                    actionColor = tc.AccentPrimary,
-                )
-            }
-        },
-        content = { paddingValues ->
-            Box(modifier = Modifier.fillMaxSize()) {
-                Column(modifier = Modifier.fillMaxSize()) {
-                    if (connectivity == ConnectivityStatus.Offline) {
-                        Text(
-                            text = stringResource(R.string.connectivity_offline_banner),
-                            color = tc.TextPrimary,
-                            style = MaterialTheme.typography.labelMedium,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .background(tc.TextSecondary.copy(alpha = 0.16f))
-                                .padding(horizontal = 16.dp, vertical = 8.dp),
+        Scaffold(
+            containerColor = BentoGlassTheme.ScreenBackground,
+            topBar = {
+                if (!tabletChrome) {
+                    HomeScreenTopBar(
+                        welcomeName = welcomeName,
+                        weekLabel = weekLabel,
+                        filter = uiState.filter,
+                        openDrawer = openDrawer,
+                        onSearchToggle = { viewModel.setSearchExpanded(!uiState.isSearchExpanded) },
+                        onOpenPrivacy = onOpenPrivacy,
+                        onAvatar = onAvatar,
+                        onShare = onSharePeriod,
+                    )
+                }
+            },
+            snackbarHost = {
+                SnackbarHost(hostState = snackbarHostState) { data ->
+                    Snackbar(
+                        snackbarData = data,
+                        containerColor = tc.CardBackground,
+                        contentColor = tc.TextPrimary,
+                        actionColor = tc.AccentPrimary,
+                    )
+                }
+            },
+            content = { paddingValues ->
+                Box(modifier = Modifier.fillMaxSize()) {
+                    Column(modifier = Modifier.fillMaxSize()) {
+                        if (connectivity == ConnectivityStatus.Offline) {
+                            Text(
+                                text = stringResource(R.string.connectivity_offline_banner),
+                                color = tc.TextPrimary,
+                                style = MaterialTheme.typography.labelMedium,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(tc.TextSecondary.copy(alpha = 0.16f))
+                                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                            )
+                        }
+                        AuthStatusBanner()
+                        Day7SurveyBanner(onWantMore = onOpenPaywall)
+                        HomeScreenContent(
+                            paddingValues = paddingValues,
+                            uiState = uiState,
+                            listItems = listItems,
+                            periodSummary = periodSummary,
+                            rpmThresholds = rpmThresholds,
+                            viewModel = viewModel,
+                            filteredLoads = filteredLoads,
+                            useRoomPaging = useRoomPaging,
+                            pagedLoads = pagedLoads,
+                            onLoadClick = onLoadClick,
+                            context = context,
+                            onOpenCalendar = { openCalendarDialog() },
+                            onLoadCamera = onLoadCamera,
+                            onLoadScan = onLoadScan,
+                            onAddLoad = onAddLoad,
+                            onOpenWeeklyGoal = onWeeklyGoal,
+                            onAddDiesel = onAddDiesel,
+                            onOpenDiesel = onOpenDiesel,
+                            onOpenPaycheck = onOpenPaycheck,
+                            onOpenExpense = onOpenExpense,
+                            onOpenScanner = onOpenScanner,
+                            onOpenProfile = onSettings,
+                            periodTotals = totals,
+                            onOpenPrivacy = onOpenPrivacy,
+                            onSharePeriod = onSharePeriod,
+                            weeklyGoal = weeklyGoal,
+                            profileComplete = profileComplete,
+                            totalLoadCount = totalLoadCount.totalLoads,
+                            modifier = Modifier.weight(1f),
                         )
                     }
-                    AuthStatusBanner()
-                    Day7SurveyBanner(onWantMore = onOpenPaywall)
-                    HomeScreenContent(
-                        paddingValues = paddingValues,
-                        uiState = uiState,
-                        listItems = listItems,
-                        periodSummary = periodSummary,
-                        rpmThresholds = rpmThresholds,
-                        viewModel = viewModel,
-                        filteredLoads = filteredLoads,
-                        useRoomPaging = useRoomPaging,
-                        pagedLoads = pagedLoads,
-                        onLoadClick = onLoadClick,
-                        context = context,
-                        onOpenCalendar = { openCalendarDialog() },
-                        onLoadCamera = onLoadCamera,
-                        onLoadScan = onLoadScan,
-                        onAddLoad = onAddLoad,
-                        onOpenWeeklyGoal = onWeeklyGoal,
-                        onAddDiesel = onAddDiesel,
-                        onOpenDiesel = onOpenDiesel,
-                        onOpenPaycheck = onOpenPaycheck,
-                        onOpenExpense = onOpenExpense,
-                        onOpenScanner = onOpenScanner,
-                        onOpenProfile = onSettings,
-                        periodTotals = totals,
-                        onOpenPrivacy = onOpenPrivacy,
-                        onSharePeriod = onSharePeriod,
-                        modifier = Modifier.weight(1f),
+                    val showSkeleton = rememberMinVisible(
+                        HomeRefreshPolicy.shouldShowInitialOverlay(isInitialLoading, isRefreshing),
                     )
+                    if (showSkeleton) {
+                        HomeInitialLoadingOverlay()
+                    }
+                    if (!tabletChrome) {
+                        ExtendedFloatingActionButton(
+                            onClick = onAddLoad,
+                            modifier = Modifier
+                                .align(Alignment.BottomEnd)
+                                .padding(
+                                    end = 16.dp,
+                                    bottom = paddingValues.calculateBottomPadding() + 16.dp,
+                                )
+                                .addLoadSharedBounds()
+                                .pressScale(),
+                            shape = RoundedCornerShape(28.dp),
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary,
+                            icon = { Icon(AppIcons.Add, contentDescription = null) },
+                            text = { Text(stringResource(R.string.home_add_load_button)) },
+                        )
+                    }
                 }
-                val showSkeleton = rememberMinVisible(
-                    HomeRefreshPolicy.shouldShowInitialOverlay(isInitialLoading, isRefreshing),
-                )
-                if (showSkeleton) {
-                    HomeInitialLoadingOverlay()
-                }
-                if (!tabletChrome) {
-                    ExtendedFloatingActionButton(
-                        onClick = onAddLoad,
-                        modifier = Modifier
-                            .align(Alignment.BottomEnd)
-                            .padding(
-                                end = 16.dp,
-                                bottom = paddingValues.calculateBottomPadding() + 16.dp,
-                            )
-                            .addLoadSharedBounds()
-                            .pressScale(),
-                        shape = RoundedCornerShape(28.dp),
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary,
-                        icon = { Icon(AppIcons.Add, contentDescription = null) },
-                        text = { Text(stringResource(R.string.home_add_load_button)) },
-                    )
-                }
-            }
-        }
-    )
+            },
+        )
     }
 }

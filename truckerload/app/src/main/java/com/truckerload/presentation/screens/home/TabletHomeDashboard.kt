@@ -26,7 +26,6 @@ import com.truckerload.domain.filter.LoadFilterUseCase
 import com.truckerload.domain.model.Load
 import com.truckerload.presentation.components.HomePeriodFilterDropdown
 import com.truckerload.presentation.components.PeriodFilterStyle
-import com.truckerload.presentation.di.LocalWeeklyProfitGoalStore
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.utils.MoneyFormat
 import com.truckerload.presentation.utils.adaptiveHorizontalPadding
@@ -50,10 +49,9 @@ internal fun TabletHomeDashboard(
     onOpenCalendar: () -> Unit,
     onOpenMonthPicker: () -> Unit,
     onSharePeriod: () -> Unit = {},
+    weeklyGoal: Double = 0.0,
 ) {
     val tc = LocalTruckColors.current
-    val goalStore = LocalWeeklyProfitGoalStore.current
-    val weeklyGoal by goalStore.goalAmount.collectAsStateWithLifecycle()
     val periodLabel = periodSummary?.label
         ?: stringResource(R.string.home_filter_this_week)
     val gross = MoneyFormat.formatCurrency(totals.totalRate)

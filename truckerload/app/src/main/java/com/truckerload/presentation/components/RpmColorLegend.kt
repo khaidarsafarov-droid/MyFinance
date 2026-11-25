@@ -11,28 +11,25 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.R
 import com.truckerload.domain.units.DisplayUnits
 import com.truckerload.domain.units.MeasurementUnits
-import com.truckerload.presentation.di.LocalRpmThresholdsStore
+import com.truckerload.presentation.screens.settings.RpmThresholdsViewModel
 import com.truckerload.presentation.theme.LocalTruckColors
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun RpmColorLegend(
-    modifier: Modifier = Modifier,
-    compact: Boolean = false,
-) {
+fun RpmColorLegend(modifier: Modifier = Modifier, compact: Boolean = false) {
     val tc = LocalTruckColors.current
-    val rpmStore = LocalRpmThresholdsStore.current
-    val thresholds by rpmStore.thresholds.collectAsStateWithLifecycle()
+    val thresholds by hiltViewModel<RpmThresholdsViewModel>().thresholds.collectAsStateWithLifecycle()
     val min = thresholds.minProfit
     val target = thresholds.targetProfit
     val minShown = if (DisplayUnits.isMetric) MeasurementUnits.displayRatePerDistance(min) else min
