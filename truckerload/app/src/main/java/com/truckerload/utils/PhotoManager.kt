@@ -17,11 +17,7 @@ import java.util.concurrent.atomic.AtomicReference
 class PhotoManager(private val context: Context) {
 
     private val photosDir: File
-        get() {
-            val dir = File(context.getExternalFilesDir(null), "photos")
-            if (!dir.exists()) dir.mkdirs()
-            return dir
-        }
+        get() = MediaStorage.photosDir(context)
 
     fun savePhoto(
         bitmap: Bitmap,

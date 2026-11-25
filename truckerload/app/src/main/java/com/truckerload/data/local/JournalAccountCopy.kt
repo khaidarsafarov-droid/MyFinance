@@ -3,6 +3,7 @@ package com.truckerload.data.local
 import android.content.Context
 import android.content.SharedPreferences
 import com.truckerload.data.preferences.AccountIds
+import com.truckerload.utils.MediaStorage
 import java.io.File
 
 /**
@@ -36,11 +37,9 @@ internal object JournalAccountCopy {
             File(context.filesDir, "telegram_message_archive_$sourcePart.jsonl"),
             File(context.filesDir, "telegram_message_archive_$targetPart.jsonl"),
         )
-        val external = context.getExternalFilesDir(null) ?: return
-        copyTreeIfMissing(
-            File(external, "backups/$sourcePart"),
-            File(external, "backups/$targetPart"),
-        )
+        listOfNotNull(MediaStorage.backupsRoot(context), MediaStorage.legacyBackupsRoot(context)).forEach { root ->
+            copyTreeIfMissing(File(root, sourcePart), File(root, targetPart))
+        }
     }
 
     private fun copyPrefsIfTargetEmpty(context: Context, sourceName: String, targetName: String) {

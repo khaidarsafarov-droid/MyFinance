@@ -81,6 +81,8 @@ class AccountDeletionService(
     private companion object {
         val INTERNAL_MEDIA_DIRS = listOf(
             "backups",
+            "photos",
+            "scans",
             "avatars",
             "chat_attachments",
             "statuses",

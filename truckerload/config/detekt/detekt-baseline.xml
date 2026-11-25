@@ -55,7 +55,7 @@
     <ID>CyclomaticComplexMethod:AddPaycheckViewModel.kt$AddPaycheckViewModel$fun save()</ID>
     <ID>CyclomaticComplexMethod:AuthStore.kt$AuthStore$fun login( userId: String, email: String, rememberMe: Boolean = true, accessToken: String? = null, refreshToken: String? = null, googleSub: String? = null, provider: AuthProvider = AuthProvider.LOCAL, googleIdToken: String? = null, )</ID>
     <ID>CyclomaticComplexMethod:BackupPrefsApplier.kt$BackupPrefsApplier$suspend fun apply(context: Context, settings: BackupAppSettings?)</ID>
-    <ID>CyclomaticComplexMethod:BackupService.kt$BackupService$private suspend fun restoreFromJson( context: Context, json: String, allowUnboundAccount: Boolean = false, ): Result&lt;BackupData&gt;</ID>
+    <ID>CyclomaticComplexMethod:BackupService.kt$BackupService$internal suspend fun restoreDecoded( context: Context, backup: BackupData, allowUnboundAccount: Boolean, ): Result&lt;BackupData&gt;</ID>
     <ID>CyclomaticComplexMethod:CameraViewModel.kt$CameraViewModel$fun processCapturedImage(imageFile: File)</ID>
     <ID>CyclomaticComplexMethod:CameraViewModel.kt$CameraViewModel$private fun decodeBitmap(file: File): Bitmap?</ID>
     <ID>CyclomaticComplexMethod:CameraViewModel.kt$CameraViewModel$private suspend fun persistUnsavedPhotos(): Boolean</ID>
@@ -149,7 +149,7 @@
     <ID>LongMethod:AttachLoadPickScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun AttachLoadPickScreen( mode: AttachPickMode, onLoadSelected: (Load) -&gt; Unit, onCancel: () -&gt; Unit, onAddLoad: () -&gt; Unit = onCancel, viewModel: AttachLoadPickViewModel = hiltViewModel(), )</ID>
     <ID>LongMethod:AuthStore.kt$AuthStore$fun login( userId: String, email: String, rememberMe: Boolean = true, accessToken: String? = null, refreshToken: String? = null, googleSub: String? = null, provider: AuthProvider = AuthProvider.LOCAL, googleIdToken: String? = null, )</ID>
     <ID>LongMethod:AutoRestoreDialog.kt$@Composable fun AutoRestoreDialog(loadRepository: LoadRepository)</ID>
-    <ID>LongMethod:BackupService.kt$BackupService$private suspend fun restoreFromJson( context: Context, json: String, allowUnboundAccount: Boolean = false, ): Result&lt;BackupData&gt;</ID>
+    <ID>LongMethod:BackupService.kt$BackupService$internal suspend fun restoreDecoded( context: Context, backup: BackupData, allowUnboundAccount: Boolean, ): Result&lt;BackupData&gt;</ID>
     <ID>LongMethod:CabinSplitContent.kt$@Composable private fun DayBars( context: Context, week: WidgetStats, selectedOffset: Int, layout: CabinLayout, colors: WidgetCabinColors, today: LocalDate, )</ID>
     <ID>LongMethod:CabinSplitContent.kt$@Composable private fun SplitHeader( context: Context, shown: WidgetStats, layout: CabinLayout, colors: WidgetCabinColors, modifier: GlanceModifier, today: LocalDate, weekRange: String?, )</ID>
     <ID>LongMethod:CameraScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun CameraScreen( sessionCount: Int, onOpenBatch: () -&gt; Unit, onBack: () -&gt; Unit, viewModel: CameraViewModel, )</ID>
@@ -1569,7 +1569,7 @@
     <ID>ReturnCount:BackupNoteFormatter.kt$BackupNoteFormatter$fun extractBackupJson(content: String): String?</ID>
     <ID>ReturnCount:BackupRestoreParser.kt$BackupRestoreParser$fun parseToJson(bytes: ByteArray): Result&lt;String&gt;</ID>
     <ID>ReturnCount:BackupRestoreParser.kt$BackupRestoreParser$internal fun looksLikeChartNote(text: String): Boolean</ID>
-    <ID>ReturnCount:BackupService.kt$BackupService$private suspend fun restoreFromJson( context: Context, json: String, allowUnboundAccount: Boolean = false, ): Result&lt;BackupData&gt;</ID>
+    <ID>ReturnCount:BackupService.kt$BackupService$internal suspend fun restoreDecoded( context: Context, backup: BackupData, allowUnboundAccount: Boolean, ): Result&lt;BackupData&gt;</ID>
     <ID>ReturnCount:BatteryOptimizationHelper.kt$BatteryOptimizationHelper$fun requestIgnoreBatteryOptimizations(context: Context): Boolean</ID>
     <ID>ReturnCount:BillingManager.kt$BillingManager$private suspend fun connect(): Boolean</ID>
     <ID>ReturnCount:BillingManager.kt$BillingManager$suspend fun launchBillingFlow(activity: Activity): String?</ID>
@@ -1890,7 +1890,7 @@
     <ID>SpreadOperator:WeeklyRevenueLineChart.kt$(*entries.toTypedArray())</ID>
     <ID>SwallowedException:ShareImportPipeline.kt$ShareImportPipeline$error: IOException</ID>
     <ID>ThrowsCount:BackupDataCodec.kt$BackupDataCodec$fun decode(json: String): BackupData</ID>
-    <ID>ThrowsCount:BackupService.kt$BackupService$private suspend fun restoreFromJson( context: Context, json: String, allowUnboundAccount: Boolean = false, ): Result&lt;BackupData&gt;</ID>
+    <ID>ThrowsCount:BackupService.kt$BackupService$internal suspend fun restoreDecoded( context: Context, backup: BackupData, allowUnboundAccount: Boolean, ): Result&lt;BackupData&gt;</ID>
     <ID>ThrowsCount:GoogleDriveApiClient.kt$GoogleDriveApiClient$private fun accessToken(): String</ID>
     <ID>TooGenericExceptionCaught:AuthKeystoreOpen.kt$AuthKeystoreOpen$error: Throwable</ID>
     <ID>TooGenericExceptionCaught:DatabaseStartup.kt$DatabaseStartup$error: Throwable</ID>

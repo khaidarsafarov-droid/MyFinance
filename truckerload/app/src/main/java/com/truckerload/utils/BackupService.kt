@@ -9,6 +9,7 @@ import android.net.Uri
 import android.util.Log
 import androidx.core.content.edit
 import com.truckerload.R
+import com.truckerload.data.backup.BackupArchive
 import com.truckerload.data.backup.BackupData
 import com.truckerload.data.backup.BackupDataCodec
 import com.truckerload.data.backup.BackupPrefsApplier
@@ -120,19 +121,18 @@ object BackupService {
     internal fun isDecodableBackup(file: File): Boolean =
         runCatching { BackupDataCodec.decode(file.readText(Charsets.UTF_8)) }.isSuccess
 
-    fun getAutoBackups(context: Context): List<File> {
-        val dir = autoBackupDir(context)
-        if (!dir.isDirectory) return emptyList()
-        return dir.listFiles()
-            ?.filter { it.isFile && it.name.endsWith(".tlb", ignoreCase = true) }
-            ?.sortedByDescending { backupSortKey(it) }
-            .orEmpty()
-    }
+    fun getAutoBackups(context: Context): List<File> =
+        listOfNotNull(autoBackupDir(context), legacyAutoBackupDir(context))
+            .flatMap { dir -> tlbFiles(dir) }
+            .sortedByDescending { backupSortKey(it) }
 
     fun pruneAutoBackups(context: Context, keepCount: Int = DEFAULT_KEEP_COUNT) {
-        val files = getAutoBackups(context)
+        val files = tlbFiles(autoBackupDir(context)).sortedByDescending { backupSortKey(it) }
         files.drop(keepCount).forEach { runCatching { it.delete() } }
     }
+
+    private fun tlbFiles(dir: File): List<File> =
+        dir.listFiles()?.filter { it.isFile && it.name.endsWith(".tlb", ignoreCase = true) }.orEmpty()
 
     suspend fun hasAutoBackups(context: Context): Boolean = withContext(Dispatchers.IO) {
         getAutoBackups(context).isNotEmpty()
@@ -174,19 +174,27 @@ object BackupService {
             if (!BackupSnapshotBuilder.hasExportableContent(backup)) return@withContext null
             val json = BackupDataCodec.toJson(backup)
             val jsonBytes = BackupDataCodec.toUtf8Bytes(backup)
-            val fileName = BackupSchema.jsonFileName(backup.exportedAt)
+            // Photos and scans present: one zip with backup.json and the original files.
+            val media = BackupArchive.mediaEntries(backup)
+            val withMedia = media.isNotEmpty()
+            val fileName = if (withMedia) {
+                BackupArchive.fileName(backup.exportedAt)
+            } else {
+                BackupSchema.jsonFileName(backup.exportedAt)
+            }
+            val mimeType = if (withMedia) BackupArchive.MIME else BackupSchema.JSON_MIME
+            val writeBackup: (java.io.OutputStream) -> Unit = { out ->
+                if (withMedia) BackupArchive.write(out, jsonBytes, media) else out.write(jsonBytes)
+            }
             val storageHelper = StorageHelper(appContext)
 
             val saveResult = storageHelper.saveToPublicDownloads(
                 fileName,
                 BrandConstants.DOWNLOADS_FOLDER,
-                BackupSchema.JSON_MIME,
-            ) { out ->
-                out.write(jsonBytes)
-            } ?: run {
-                val file = storageHelper.saveToAppStorage(fileName, "backups") { out ->
-                    out.write(jsonBytes)
-                }
+                mimeType,
+                writeBackup,
+            ) ?: run {
+                val file = storageHelper.saveToAppStorage(fileName, "backups", writeBackup)
                 StorageHelper.SaveResult(
                     storageHelper.getShareableUri(file),
                     "${BrandConstants.DOWNLOADS_FOLDER}/$fileName",
@@ -197,7 +205,7 @@ object BackupService {
             CreateResult(
                 save = saveResult,
                 loadCount = backup.loads.size,
-                mimeType = BackupSchema.JSON_MIME,
+                mimeType = mimeType,
             )
         } catch (e: SQLiteException) {
             logFailure(TAG, "createManualBackup failed", e)
@@ -220,10 +228,10 @@ object BackupService {
         }
     }
 
-    fun shareBackupFile(context: Context, uri: Uri) {
+    fun shareBackupFile(context: Context, uri: Uri, mimeType: String = BackupSchema.JSON_MIME) {
         val appContext = context.applicationContext
         val intent = Intent(Intent.ACTION_SEND).apply {
-            type = BackupSchema.JSON_MIME
+            type = mimeType
             putExtra(Intent.EXTRA_STREAM, uri)
             putExtra(Intent.EXTRA_TITLE, appContext.getString(R.string.settings_backup_share_title))
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
@@ -257,6 +265,11 @@ object BackupService {
     ): Result<String> = withContext(Dispatchers.IO) {
         try {
             val appContext = context.applicationContext
+            if (BackupArchiveRestore.isArchive(appContext, uri)) {
+                return@withContext BackupArchiveRestore.restore(appContext, uri, allowUnboundAccount, MAX_RESTORE_BYTES)
+                    .map { backup -> restoreSuccessMessage(appContext, backup) }
+                    .onSuccess { WidgetDataUpdater.updateWidgetData(appContext) }
+            }
             val bytes = appContext.contentResolver.openInputStream(uri)?.use { input ->
                 input.readCapped(MAX_RESTORE_BYTES)
             } ?: return@withContext Result.failure(BackupRestoreException.ReadFailed())
@@ -268,12 +281,7 @@ object BackupService {
                 }
 
             restoreFromJson(appContext, json, allowUnboundAccount).map { backup ->
-                appContext.getString(
-                    R.string.backup_restore_success,
-                    backup.loads.size,
-                    backup.paychecks.size,
-                    backup.diesel.size
-                )
+                restoreSuccessMessage(appContext, backup)
             }
         } catch (e: CancellationException) {
             throw e
@@ -309,13 +317,10 @@ object BackupService {
 
         val userId = AuthStore(appContext).currentUserIdOrNull() ?: return@withContext null
         // FIX: only scan this account's companion dir — shared pool restored wrong user's journal
-        val dir = companionBackupDir(appContext, userId)
-        if (!dir.isDirectory) return@withContext null
-
-        val latest = dir.listFiles()
-            ?.filter { it.isFile && it.name.endsWith(".tlb", ignoreCase = true) }
-            ?.sortedByDescending { it.lastModified() }
-            ?.firstOrNull { isDecodableBackup(it) }
+        val latest = listOfNotNull(companionBackupDir(appContext, userId), legacyCompanionBackupDir(appContext, userId))
+            .flatMap { dir -> tlbFiles(dir) }
+            .sortedByDescending { it.lastModified() }
+            .firstOrNull { isDecodableBackup(it) }
             ?: return@withContext null
 
         Log.i(TAG, "Auto-restore from companion ${latest.name}")
@@ -330,13 +335,30 @@ object BackupService {
         }
     }
 
+    private fun restoreSuccessMessage(context: Context, backup: BackupData): String =
+        context.getString(
+            R.string.backup_restore_success,
+            backup.loads.size,
+            backup.paychecks.size,
+            backup.diesel.size,
+        )
+
     private fun autoBackupDir(context: Context, userId: String? = AuthStore(context).currentUserIdOrNull()): File {
         val part = AccountIds.sanitizeFilePart(userId ?: AccountIds.LOCAL_DEV)
-        return File(context.getExternalFilesDir(null), "backups/$part/auto")
+        return File(MediaStorage.backupsRoot(context), "$part/auto")
+    }
+
+    /** Same folder in older builds' external storage; read until the migration has moved it. */
+    private fun legacyAutoBackupDir(context: Context): File? {
+        val part = AccountIds.sanitizeFilePart(AuthStore(context).currentUserIdOrNull() ?: AccountIds.LOCAL_DEV)
+        return MediaStorage.legacyBackupsRoot(context)?.let { File(it, "$part/auto") }
     }
 
     private fun companionBackupDir(context: Context, userId: String): File =
-        File(context.getExternalFilesDir(null), "backups/${AccountIds.sanitizeFilePart(userId)}")
+        File(MediaStorage.backupsRoot(context), AccountIds.sanitizeFilePart(userId))
+
+    private fun legacyCompanionBackupDir(context: Context, userId: String): File? =
+        MediaStorage.legacyBackupsRoot(context)?.let { File(it, AccountIds.sanitizeFilePart(userId)) }
 
     private fun backupSortKey(file: File): String {
         val name = file.name
@@ -385,7 +407,15 @@ object BackupService {
         } catch (e: BackupRestoreException) {
             return Result.failure(e)
         }
+        return restoreDecoded(context, backup, allowUnboundAccount)
+    }
 
+    /** Writes an already decoded [backup] into the active journal (account check, snapshot, rollback). */
+    internal suspend fun restoreDecoded(
+        context: Context,
+        backup: BackupData,
+        allowUnboundAccount: Boolean,
+    ): Result<BackupData> {
         val app = context.applicationContext
         val db = AppDatabase.getInstanceForActiveUser(app)
             ?: return Result.failure(IllegalStateException("No active user session"))

@@ -82,16 +82,34 @@ object BackupRoomApplier {
             rows.forEach { db.perDiemDayOverrideDao().upsert(it.toEntity()) }
         }
         backup.photos?.forEach { photo ->
-            if (photo.id.isBlank() || db.photoDao().getById(photo.id) != null) return@forEach
+            if (photo.id.isBlank()) return@forEach
+            val existing = db.photoDao().getById(photo.id)
+            if (existing != null) {
+                // Keep the row; only repair a path whose file is gone when the backup brought one.
+                if (repairsPath(existing.filePath, photo.filePath)) {
+                    db.photoDao().insert(existing.copy(fileName = photo.fileName, filePath = photo.filePath))
+                }
+                return@forEach
+            }
             val link = photo.loadId?.takeIf { it in restoredLoadIds }
             db.photoDao().insert(photo.toEntity(link))
         }
         backup.scans?.forEach { scan ->
-            if (scan.id.isBlank() || db.scanDao().getById(scan.id) != null) return@forEach
+            if (scan.id.isBlank()) return@forEach
+            val existing = db.scanDao().getById(scan.id)
+            if (existing != null) {
+                if (repairsPath(existing.filePath, scan.filePath)) {
+                    db.scanDao().insert(existing.copy(fileName = scan.fileName, filePath = scan.filePath))
+                }
+                return@forEach
+            }
             val link = scan.loadId?.takeIf { it in restoredLoadIds }
             db.scanDao().insert(scan.toEntity(link))
         }
     }
+
+    private fun repairsPath(localPath: String, restoredPath: String): Boolean =
+        restoredPath != localPath && !java.io.File(localPath).isFile && java.io.File(restoredPath).isFile
 
     /** Replace ТО tables from backup (also used on incremental cloud pull). */
     suspend fun applyMaintenanceReplace(db: AppDatabase, backup: BackupData) {

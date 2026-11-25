@@ -76,13 +76,17 @@ class ScanRepository(
         }
     }
 
-    /** Deletes PDF files under scans/ that are not referenced by any DB row. */
-    suspend fun cleanupOrphanScanFiles(scansDir: File): Int {
+    /**
+     * Deletes only stale temp leftovers (`*.partial`, `*.tmp`) under scans/.
+     * Real documents are never deleted here: the folder is shared by every account on the
+     * device, and a restore or migration may have placed a file before its row exists.
+     */
+    suspend fun cleanupOrphanScanFiles(scansDir: File, now: Long = System.currentTimeMillis()): Int {
         if (!scansDir.isDirectory) return 0
-        val known = scanDao.getAllScansOnce().map { it.filePath }.toHashSet()
         var removed = 0
         scansDir.listFiles()?.forEach { file ->
-            if (file.isFile && file.absolutePath !in known) {
+            val temp = file.name.endsWith(".partial") || file.name.endsWith(".tmp")
+            if (file.isFile && temp && now - file.lastModified() > STALE_TEMP_MS) {
                 if (file.delete()) removed++
             }
         }
@@ -103,5 +107,9 @@ class ScanRepository(
         all.forEach { scan ->
             runCatching { File(scan.filePath).delete() }
         }
+    }
+
+    private companion object {
+        const val STALE_TEMP_MS = 24 * 60 * 60 * 1000L
     }
 }

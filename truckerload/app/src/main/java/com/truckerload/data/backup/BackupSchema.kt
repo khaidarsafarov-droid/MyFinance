@@ -18,6 +18,7 @@ object BackupSchema {
     val RESTORE_OPEN_MIME_TYPES = arrayOf(
         JSON_MIME,
         "text/json",
+        "application/zip",
         "application/octet-stream",
         "text/plain",
         "*/*",

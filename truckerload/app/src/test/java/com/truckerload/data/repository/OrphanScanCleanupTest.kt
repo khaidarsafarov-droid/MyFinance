@@ -48,9 +48,15 @@ class OrphanScanCleanupTest {
     }
 
     @Test
-    fun cleanupOrphanScanFiles_deletesUnreferencedPdfs() = runBlocking {
+    fun cleanupOrphanScanFiles_keepsDocumentsAndRemovesOnlyStaleTemps() = runBlocking {
         val kept = File(scansDir, "kept.pdf").apply { writeText("%PDF-kept") }
-        val orphan = File(scansDir, "orphan.pdf").apply { writeText("%PDF-orphan") }
+        // No row in this journal: another account's scan, or one a restore just placed.
+        val unknown = File(scansDir, "other-account.pdf").apply { writeText("%PDF-other") }
+        val staleTemp = File(scansDir, "x.pdf.partial").apply {
+            writeText("partial")
+            setLastModified(1_000L)
+        }
+        val freshTemp = File(scansDir, "y.pdf.partial").apply { writeText("partial") }
         db.scanDao().insert(
             ScanEntity(
                 id = "scan-kept",
@@ -64,11 +70,13 @@ class OrphanScanCleanupTest {
             ),
         )
 
-        val removed = scanRepo.cleanupOrphanScanFiles(scansDir)
+        val removed = scanRepo.cleanupOrphanScanFiles(scansDir, now = System.currentTimeMillis())
 
         assertEquals(1, removed)
         assertTrue(kept.exists())
-        assertFalse(orphan.exists())
+        assertTrue(unknown.exists())
+        assertFalse(staleTemp.exists())
+        assertTrue(freshTemp.exists())
     }
 
     @Test

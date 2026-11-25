@@ -59,9 +59,9 @@ import com.truckerload.presentation.theme.BentoGlassClickableCard
 import com.truckerload.presentation.theme.LocalBrandPalette
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.theme.appFormField
+import com.truckerload.utils.MediaStorage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.io.File
 import java.util.Calendar
 
 @Composable
@@ -77,7 +77,7 @@ fun GalleryScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     LaunchedEffect(Unit) {
-        val scansDir = withContext(Dispatchers.IO) { File(context.getExternalFilesDir(null), "scans") }
+        val scansDir = withContext(Dispatchers.IO) { MediaStorage.scansDir(context) }
         viewModel.cleanupOrphanScanFiles(scansDir)
     }
     val unlinked = stringResource(R.string.filter_unlinked)
