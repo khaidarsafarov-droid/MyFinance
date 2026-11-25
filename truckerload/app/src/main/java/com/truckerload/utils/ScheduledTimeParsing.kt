@@ -126,3 +126,50 @@ private fun resolveRelayParseYear(
     }
     return Calendar.getInstance(Locale.US).get(Calendar.YEAR)
 }
+
+private val YEARLESS_RELAY_DATE = Regex("""^\s*\d{1,2}/\d{1,2}(?:\s|$)""")
+private const val MAX_DAYS_FROM_LOAD_DATE = 183L
+
+/**
+ * Date (`YYYY-MM-DD`) of a stop on a load whose first day is [loadDate].
+ *
+ * Yearless Relay `MM/DD` times take the year of [loadDate], so a New Year trip
+ * (PU 12/30, DEL 01/02) would land its delivery a year *before* pickup. A yearless date more
+ * than half a year away from [loadDate] moves into the neighbouring year. Dated formats are
+ * returned as they are.
+ */
+fun stopDateForLoad(scheduledTime: String?, loadDate: String): String? {
+    val yearHint = loadDate.take(4).toIntOrNull()
+    val parsed = parseDateFromScheduledTime(scheduledTime, yearHint, trustDefaultYear = yearHint != null)
+        ?: return null
+    val shift = yearlessYearShift(scheduledTime, parsed, loadDate)
+    if (shift == 0) return parsed
+    return runCatching { java.time.LocalDate.parse(parsed).plusYears(shift.toLong()).toString() }.getOrDefault(parsed)
+}
+
+/** Epoch millis of a stop on a load whose first day is [loadDate]; same year rule as [stopDateForLoad]. */
+fun stopMillisForLoad(scheduledTime: String, loadDate: String): Long? {
+    val yearHint = loadDate.take(4).toIntOrNull()
+    val ms = parseScheduledTimeToMillis(scheduledTime, yearHint, trustDefaultYear = yearHint != null)
+        ?: return null
+    val parsed = parseDateFromScheduledTime(scheduledTime, yearHint, trustDefaultYear = yearHint != null)
+        ?: return ms
+    val shift = yearlessYearShift(scheduledTime, parsed, loadDate)
+    if (shift == 0) return ms
+    return Calendar.getInstance(Locale.getDefault()).apply {
+        timeInMillis = ms
+        add(Calendar.YEAR, shift)
+    }.timeInMillis
+}
+
+private fun yearlessYearShift(raw: String?, parsedDate: String, loadDate: String): Int {
+    if (raw == null || !YEARLESS_RELAY_DATE.containsMatchIn(raw)) return 0
+    val anchor = runCatching { java.time.LocalDate.parse(loadDate.take(10)) }.getOrNull() ?: return 0
+    val date = runCatching { java.time.LocalDate.parse(parsedDate) }.getOrNull() ?: return 0
+    val days = java.time.temporal.ChronoUnit.DAYS.between(anchor, date)
+    return when {
+        days < -MAX_DAYS_FROM_LOAD_DATE -> 1
+        days > MAX_DAYS_FROM_LOAD_DATE -> -1
+        else -> 0
+    }
+}
