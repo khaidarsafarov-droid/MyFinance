@@ -13,7 +13,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.truckerload.domain.week.WeekStartDay
 import com.truckerload.presentation.theme.LocalBrandPalette
-import com.truckerload.presentation.theme.LocalTruckColors
 
 internal enum class SettingsDetail {
     DATA,
@@ -39,7 +38,6 @@ internal fun SettingsDetailSheet(
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val brand = LocalBrandPalette.current
-    val tc = LocalTruckColors.current
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,

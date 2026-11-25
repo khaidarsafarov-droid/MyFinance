@@ -1,9 +1,9 @@
 package com.truckerload.data.backup
 
-import java.io.File
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.io.File
 
 /** Google Drive sync and Google Sign-In were removed on purpose. Keep them out. */
 class NoAccountSyncArchitectureTest {
@@ -30,8 +30,7 @@ class NoAccountSyncArchitectureTest {
         assertFalse(gradle.contains("GOOGLE_DRIVE_API_KEY"))
     }
 
-    private fun mainJavaDir(): File =
-        listOf(File("src/main/java"), File("app/src/main/java")).first(File::isDirectory)
+    private fun mainJavaDir(): File = listOf(File("src/main/java"), File("app/src/main/java")).first(File::isDirectory)
 
     private companion object {
         val FORBIDDEN = listOf(

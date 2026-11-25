@@ -29,8 +29,7 @@ object RemovedDriveSyncCleanup {
     )
     private const val DRIVE_PREFIX = "google_drive_backup_"
 
-    fun isRemovedSyncPrefs(name: String): Boolean =
-        name in EXACT_NAMES || name.startsWith(DRIVE_PREFIX)
+    fun isRemovedSyncPrefs(name: String): Boolean = name in EXACT_NAMES || name.startsWith(DRIVE_PREFIX)
 
     /** Safe to call on every start; does the work once. */
     fun runOnce(context: Context) {

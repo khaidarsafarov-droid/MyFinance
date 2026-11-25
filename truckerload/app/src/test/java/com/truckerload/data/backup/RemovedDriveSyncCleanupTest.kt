@@ -4,7 +4,6 @@ import android.content.Context
 import androidx.core.content.edit
 import com.truckerload.data.preferences.AuthStore
 import com.truckerload.data.preferences.SecurePreferences
-import java.io.File
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -15,6 +14,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
+import java.io.File
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])

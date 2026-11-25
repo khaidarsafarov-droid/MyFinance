@@ -2,13 +2,12 @@
 <baseline version="1.0">
     <file name="build.gradle.kts">
         <error line="48" column="50" source="standard:function-signature" />
-        <error line="173" column="37" source="standard:trailing-comma-on-call-site" />
-        <error line="371" column="1" source="standard:kdoc" />
-        <error line="394" column="1" source="standard:kdoc" />
-        <error line="514" column="1" source="standard:kdoc" />
-        <error line="563" column="1" source="standard:kdoc" />
-        <error line="613" column="1" source="standard:no-consecutive-blank-lines" />
-        <error line="665" column="1" source="standard:no-consecutive-blank-lines" />
+        <error line="165" column="37" source="standard:trailing-comma-on-call-site" />
+        <error line="361" column="1" source="standard:kdoc" />
+        <error line="384" column="1" source="standard:kdoc" />
+        <error line="492" column="1" source="standard:kdoc" />
+        <error line="541" column="1" source="standard:kdoc" />
+        <error line="591" column="1" source="standard:no-consecutive-blank-lines" />
     </file>
     <file name="src/androidTest/java/com/truckerload/data/MultiUserIsolationInstrumentedTest.kt">
         <error line="88" column="22" source="standard:wrapping" />
@@ -19,11 +18,11 @@
         <error line="3" column="1" source="standard:import-ordering" />
         <error line="73" column="24" source="standard:class-signature" />
         <error line="73" column="39" source="standard:class-signature" />
-        <error line="247" column="9" source="standard:class-signature" />
-        <error line="248" column="9" source="standard:class-signature" />
-        <error line="249" column="9" source="standard:class-signature" />
-        <error line="249" column="49" source="standard:class-signature" />
-        <error line="314" column="20" source="standard:trailing-comma-on-call-site" />
+        <error line="252" column="9" source="standard:class-signature" />
+        <error line="253" column="9" source="standard:class-signature" />
+        <error line="254" column="9" source="standard:class-signature" />
+        <error line="254" column="49" source="standard:class-signature" />
+        <error line="319" column="20" source="standard:trailing-comma-on-call-site" />
     </file>
     <file name="src/main/java/com/truckerload/data/auth/PasswordPolicy.kt">
         <error line="29" column="1" source="standard:blank-line-between-when-conditions" />
@@ -66,57 +65,6 @@
         <error line="53" column="1" source="standard:indent" />
         <error line="54" column="1" source="standard:indent" />
         <error line="55" column="1" source="standard:indent" />
-    </file>
-    <file name="src/main/java/com/truckerload/data/backup/DriveBackupFlow.kt">
-        <error line="62" column="9" source="standard:function-signature" />
-        <error line="63" column="9" source="standard:function-signature" />
-        <error line="63" column="46" source="standard:function-signature" />
-        <error line="92" column="22" source="standard:trailing-comma-on-call-site" />
-    </file>
-    <file name="src/main/java/com/truckerload/data/backup/DriveSyncPolicy.kt">
-        <error line="9" column="5" source="standard:spacing-between-declarations-with-comments" />
-        <error line="51" column="9" source="standard:function-signature" />
-        <error line="52" column="9" source="standard:function-signature" />
-        <error line="53" column="9" source="standard:function-signature" />
-        <error line="53" column="40" source="standard:function-signature" />
-    </file>
-    <file name="src/main/java/com/truckerload/data/backup/DriveSyncWorker.kt">
-        <error line="3" column="1" source="standard:import-ordering" />
-    </file>
-    <file name="src/main/java/com/truckerload/data/backup/GoogleDriveApiClient.kt">
-        <error line="3" column="1" source="standard:import-ordering" />
-        <error line="50" column="54" source="standard:function-signature" />
-        <error line="106" column="47" source="standard:function-signature" />
-        <error line="181" column="1" source="standard:no-consecutive-blank-lines" />
-        <error line="249" column="101" source="standard:function-expression-body" />
-    </file>
-    <file name="src/main/java/com/truckerload/data/backup/GoogleDriveBackupPrefs.kt">
-        <error line="13" column="5" source="standard:class-signature" />
-        <error line="14" column="5" source="standard:class-signature" />
-        <error line="14" column="87" source="standard:class-signature" />
-        <error line="24" column="35" source="standard:function-signature" />
-        <error line="77" column="9" source="standard:spacing-between-declarations-with-comments" />
-        <error line="82" column="48" source="standard:function-signature" />
-        <error line="85" column="56" source="standard:function-signature" />
-    </file>
-    <file name="src/main/java/com/truckerload/data/backup/GoogleDriveBackupService.kt">
-        <error line="30" column="51" source="standard:function-signature" />
-        <error line="47" column="63" source="standard:function-signature" />
-        <error line="53" column="67" source="standard:function-signature" />
-        <error line="57" column="9" source="standard:class-signature" />
-        <error line="58" column="9" source="standard:class-signature" />
-        <error line="59" column="9" source="standard:class-signature" />
-        <error line="59" column="31" source="standard:class-signature" />
-        <error line="62" column="56" source="standard:function-expression-body" />
-        <error line="106" column="62" source="standard:function-signature" />
-        <error line="110" column="9" source="standard:function-signature" />
-        <error line="111" column="9" source="standard:function-signature" />
-        <error line="111" column="46" source="standard:function-signature" />
-        <error line="116" column="69" source="standard:function-signature" />
-        <error line="149" column="65" source="standard:function-expression-body" />
-        <error line="152" column="1" source="standard:blank-line-between-when-conditions" />
-        <error line="154" column="1" source="standard:blank-line-between-when-conditions" />
-        <error line="158" column="1" source="standard:blank-line-between-when-conditions" />
     </file>
     <file name="src/main/java/com/truckerload/data/local/AppDatabase.kt">
         <error line="95" column="21" source="standard:property-naming" />
@@ -411,29 +359,29 @@
         <error line="115" column="34" source="standard:function-signature" />
         <error line="166" column="44" source="standard:multiline-if-else" />
         <error line="167" column="22" source="standard:multiline-if-else" />
-        <error line="185" column="46" source="standard:multiline-if-else" />
-        <error line="186" column="22" source="standard:multiline-if-else" />
-        <error line="187" column="47" source="standard:multiline-if-else" />
-        <error line="188" column="22" source="standard:multiline-if-else" />
-        <error line="223" column="1" source="standard:blank-line-between-when-conditions" />
-        <error line="224" column="1" source="standard:blank-line-between-when-conditions" />
-        <error line="225" column="1" source="standard:blank-line-between-when-conditions" />
-        <error line="226" column="1" source="standard:blank-line-between-when-conditions" />
-        <error line="227" column="1" source="standard:blank-line-between-when-conditions" />
-        <error line="269" column="76" source="standard:multiline-if-else" />
-        <error line="270" column="26" source="standard:multiline-if-else" />
-        <error line="271" column="77" source="standard:multiline-if-else" />
-        <error line="272" column="26" source="standard:multiline-if-else" />
-        <error line="273" column="52" source="standard:multiline-if-else" />
-        <error line="274" column="26" source="standard:multiline-if-else" />
-        <error line="383" column="1" source="standard:spacing-between-declarations-with-annotations" />
-        <error line="384" column="1" source="standard:spacing-between-declarations-with-annotations" />
-        <error line="401" column="21" source="standard:backing-property-naming" />
-        <error line="481" column="84" source="standard:function-signature" />
-        <error line="497" column="1" source="standard:blank-line-between-when-conditions" />
-        <error line="498" column="1" source="standard:blank-line-between-when-conditions" />
-        <error line="499" column="1" source="standard:blank-line-between-when-conditions" />
-        <error line="566" column="73" source="standard:function-signature" />
+        <error line="196" column="46" source="standard:multiline-if-else" />
+        <error line="197" column="22" source="standard:multiline-if-else" />
+        <error line="198" column="47" source="standard:multiline-if-else" />
+        <error line="199" column="22" source="standard:multiline-if-else" />
+        <error line="234" column="1" source="standard:blank-line-between-when-conditions" />
+        <error line="235" column="1" source="standard:blank-line-between-when-conditions" />
+        <error line="236" column="1" source="standard:blank-line-between-when-conditions" />
+        <error line="237" column="1" source="standard:blank-line-between-when-conditions" />
+        <error line="238" column="1" source="standard:blank-line-between-when-conditions" />
+        <error line="280" column="76" source="standard:multiline-if-else" />
+        <error line="281" column="26" source="standard:multiline-if-else" />
+        <error line="282" column="77" source="standard:multiline-if-else" />
+        <error line="283" column="26" source="standard:multiline-if-else" />
+        <error line="284" column="52" source="standard:multiline-if-else" />
+        <error line="285" column="26" source="standard:multiline-if-else" />
+        <error line="394" column="1" source="standard:spacing-between-declarations-with-annotations" />
+        <error line="395" column="1" source="standard:spacing-between-declarations-with-annotations" />
+        <error line="412" column="21" source="standard:backing-property-naming" />
+        <error line="492" column="84" source="standard:function-signature" />
+        <error line="508" column="1" source="standard:blank-line-between-when-conditions" />
+        <error line="509" column="1" source="standard:blank-line-between-when-conditions" />
+        <error line="510" column="1" source="standard:blank-line-between-when-conditions" />
+        <error line="577" column="73" source="standard:function-signature" />
     </file>
     <file name="src/main/java/com/truckerload/data/preferences/ConsentStore.kt">
         <error line="43" column="59" source="standard:function-signature" />
@@ -622,10 +570,6 @@
         <error line="159" column="13" source="standard:function-signature" />
         <error line="160" column="13" source="standard:function-signature" />
         <error line="160" column="42" source="standard:function-signature" />
-    </file>
-    <file name="src/main/java/com/truckerload/data/remote/GoogleSignInClients.kt">
-        <error line="40" column="49" source="standard:function-signature" />
-        <error line="45" column="59" source="standard:function-signature" />
     </file>
     <file name="src/main/java/com/truckerload/data/remote/TelegramApi.kt">
         <error line="3" column="1" source="standard:import-ordering" />
@@ -917,19 +861,17 @@
         <error line="64" column="30" source="standard:class-signature" />
     </file>
     <file name="src/main/java/com/truckerload/di/AccountGraphModule.kt">
+        <error line="29" column="9" source="standard:function-signature" />
         <error line="30" column="9" source="standard:function-signature" />
         <error line="31" column="9" source="standard:function-signature" />
         <error line="32" column="9" source="standard:function-signature" />
-        <error line="33" column="9" source="standard:function-signature" />
-        <error line="33" column="44" source="standard:function-signature" />
+        <error line="32" column="44" source="standard:function-signature" />
     </file>
     <file name="src/main/java/com/truckerload/di/ApplicationStoreModule.kt">
-        <error line="32" column="9" source="standard:function-signature" />
-        <error line="32" column="46" source="standard:function-signature" />
-        <error line="38" column="9" source="standard:function-signature" />
-        <error line="38" column="46" source="standard:function-signature" />
-        <error line="44" column="9" source="standard:function-signature" />
-        <error line="44" column="46" source="standard:function-signature" />
+        <error line="31" column="9" source="standard:function-signature" />
+        <error line="31" column="46" source="standard:function-signature" />
+        <error line="37" column="9" source="standard:function-signature" />
+        <error line="37" column="46" source="standard:function-signature" />
     </file>
     <file name="src/main/java/com/truckerload/di/SocialGraphModule.kt">
         <error line="21" column="9" source="standard:class-signature" />
@@ -1781,11 +1723,11 @@
         <error line="40" column="36" source="standard:class-signature" />
     </file>
     <file name="src/main/java/com/truckerload/domain/premium/PremiumPolicy.kt">
+        <error line="18" column="5" source="standard:class-signature" />
         <error line="19" column="5" source="standard:class-signature" />
-        <error line="20" column="5" source="standard:class-signature" />
-        <error line="20" column="27" source="standard:class-signature" />
-        <error line="59" column="53" source="standard:function-signature" />
-        <error line="66" column="98" source="standard:function-signature" />
+        <error line="19" column="27" source="standard:class-signature" />
+        <error line="58" column="53" source="standard:function-signature" />
+        <error line="65" column="98" source="standard:function-signature" />
     </file>
     <file name="src/main/java/com/truckerload/domain/premium/TrialReminderPolicy.kt">
         <error line="22" column="5" source="standard:class-signature" />
@@ -1984,86 +1926,6 @@
     </file>
     <file name="src/main/java/com/truckerload/presentation/MainActivity.kt">
         <error line="3" column="1" source="standard:import-ordering" />
-        <error line="217" column="1" source="standard:blank-line-between-when-conditions" />
-        <error line="222" column="1" source="standard:blank-line-between-when-conditions" />
-        <error line="226" column="1" source="standard:indent" />
-        <error line="227" column="1" source="standard:indent" />
-        <error line="228" column="1" source="standard:indent" />
-        <error line="229" column="1" source="standard:indent" />
-        <error line="230" column="1" source="standard:indent" />
-        <error line="231" column="1" source="standard:indent" />
-        <error line="232" column="1" source="standard:indent" />
-        <error line="233" column="1" source="standard:indent" />
-        <error line="234" column="1" source="standard:indent" />
-        <error line="235" column="1" source="standard:blank-line-between-when-conditions" />
-        <error line="235" column="1" source="standard:indent" />
-        <error line="236" column="1" source="standard:indent" />
-        <error line="237" column="1" source="standard:indent" />
-        <error line="238" column="1" source="standard:indent" />
-        <error line="239" column="1" source="standard:indent" />
-        <error line="240" column="1" source="standard:indent" />
-        <error line="241" column="1" source="standard:indent" />
-        <error line="242" column="1" source="standard:indent" />
-        <error line="243" column="1" source="standard:indent" />
-        <error line="244" column="1" source="standard:indent" />
-        <error line="245" column="1" source="standard:indent" />
-        <error line="246" column="1" source="standard:indent" />
-        <error line="247" column="1" source="standard:indent" />
-        <error line="248" column="1" source="standard:blank-line-between-when-conditions" />
-        <error line="248" column="1" source="standard:indent" />
-        <error line="249" column="1" source="standard:indent" />
-        <error line="250" column="1" source="standard:indent" />
-        <error line="251" column="1" source="standard:indent" />
-        <error line="252" column="1" source="standard:indent" />
-        <error line="253" column="1" source="standard:indent" />
-        <error line="254" column="1" source="standard:indent" />
-        <error line="255" column="1" source="standard:indent" />
-        <error line="256" column="1" source="standard:indent" />
-        <error line="257" column="1" source="standard:indent" />
-        <error line="258" column="1" source="standard:indent" />
-        <error line="259" column="1" source="standard:indent" />
-        <error line="260" column="1" source="standard:indent" />
-        <error line="261" column="1" source="standard:indent" />
-        <error line="262" column="1" source="standard:indent" />
-        <error line="263" column="1" source="standard:indent" />
-        <error line="264" column="1" source="standard:indent" />
-        <error line="265" column="1" source="standard:indent" />
-        <error line="266" column="1" source="standard:indent" />
-        <error line="267" column="1" source="standard:indent" />
-        <error line="268" column="1" source="standard:indent" />
-        <error line="269" column="1" source="standard:indent" />
-        <error line="270" column="1" source="standard:indent" />
-        <error line="271" column="1" source="standard:indent" />
-        <error line="272" column="1" source="standard:indent" />
-        <error line="273" column="1" source="standard:indent" />
-        <error line="274" column="1" source="standard:indent" />
-        <error line="275" column="1" source="standard:indent" />
-        <error line="276" column="1" source="standard:indent" />
-        <error line="277" column="1" source="standard:indent" />
-        <error line="278" column="1" source="standard:indent" />
-        <error line="279" column="1" source="standard:indent" />
-        <error line="280" column="1" source="standard:indent" />
-        <error line="281" column="1" source="standard:indent" />
-        <error line="282" column="1" source="standard:indent" />
-        <error line="283" column="1" source="standard:indent" />
-        <error line="284" column="1" source="standard:indent" />
-        <error line="285" column="1" source="standard:indent" />
-        <error line="286" column="1" source="standard:indent" />
-        <error line="287" column="1" source="standard:indent" />
-        <error line="288" column="1" source="standard:indent" />
-        <error line="289" column="1" source="standard:indent" />
-        <error line="290" column="1" source="standard:indent" />
-        <error line="291" column="1" source="standard:indent" />
-        <error line="292" column="1" source="standard:indent" />
-        <error line="293" column="1" source="standard:indent" />
-        <error line="294" column="1" source="standard:indent" />
-        <error line="295" column="1" source="standard:indent" />
-        <error line="296" column="1" source="standard:indent" />
-        <error line="297" column="1" source="standard:indent" />
-        <error line="298" column="1" source="standard:indent" />
-        <error line="299" column="1" source="standard:indent" />
-        <error line="300" column="1" source="standard:indent" />
-        <error line="301" column="1" source="standard:indent" />
     </file>
     <file name="src/main/java/com/truckerload/presentation/ScreenPhase.kt">
         <error line="18" column="62" source="standard:function-signature" />
@@ -2080,16 +1942,6 @@
         <error line="52" column="5" source="standard:function-signature" />
         <error line="53" column="5" source="standard:function-signature" />
         <error line="53" column="37" source="standard:function-signature" />
-    </file>
-    <file name="src/main/java/com/truckerload/presentation/auth/DriveSha1Dialog.kt">
-        <error line="20" column="5" source="standard:function-signature" />
-        <error line="21" column="5" source="standard:function-signature" />
-        <error line="22" column="5" source="standard:function-signature" />
-        <error line="22" column="27" source="standard:function-signature" />
-    </file>
-    <file name="src/main/java/com/truckerload/presentation/auth/GoogleSignInSupport.kt">
-        <error line="33" column="1" source="standard:blank-line-between-when-conditions" />
-        <error line="34" column="1" source="standard:blank-line-between-when-conditions" />
     </file>
     <file name="src/main/java/com/truckerload/presentation/components/ActivationChecklistCard.kt">
         <error line="29" column="5" source="standard:function-signature" />
@@ -2950,7 +2802,6 @@
         <error line="195" column="1" source="standard:blank-line-between-when-conditions" />
         <error line="200" column="1" source="standard:blank-line-between-when-conditions" />
         <error line="205" column="1" source="standard:blank-line-between-when-conditions" />
-        <error line="210" column="1" source="standard:blank-line-between-when-conditions" />
     </file>
     <file name="src/main/java/com/truckerload/presentation/premium/PaywallScreen.kt">
         <error line="43" column="5" source="standard:function-signature" />
@@ -4707,24 +4558,6 @@
         <error line="18" column="5" source="standard:function-signature" />
         <error line="18" column="35" source="standard:function-signature" />
     </file>
-    <file name="src/main/java/com/truckerload/presentation/screens/settings/GoogleDriveSyncSection.kt">
-        <error line="3" column="1" source="standard:import-ordering" />
-        <error line="143" column="14" source="standard:trailing-comma-on-call-site" />
-        <error line="158" column="57" source="standard:trailing-comma-on-call-site" />
-        <error line="181" column="1" source="standard:blank-line-between-when-conditions" />
-        <error line="193" column="1" source="standard:blank-line-between-when-conditions" />
-        <error line="197" column="1" source="standard:blank-line-between-when-conditions" />
-        <error line="201" column="1" source="standard:blank-line-between-when-conditions" />
-        <error line="258" column="1" source="standard:blank-line-between-when-conditions" />
-        <error line="260" column="1" source="standard:blank-line-between-when-conditions" />
-        <error line="262" column="1" source="standard:blank-line-between-when-conditions" />
-        <error line="263" column="1" source="standard:blank-line-between-when-conditions" />
-        <error line="285" column="38" source="standard:multiline-if-else" />
-        <error line="286" column="22" source="standard:multiline-if-else" />
-        <error line="328" column="1" source="standard:blank-line-between-when-conditions" />
-        <error line="331" column="1" source="standard:blank-line-between-when-conditions" />
-        <error line="490" column="22" source="standard:trailing-comma-on-call-site" />
-    </file>
     <file name="src/main/java/com/truckerload/presentation/screens/settings/LanguageSelectionScreen.kt">
         <error line="45" column="5" source="standard:function-signature" />
         <error line="46" column="5" source="standard:function-signature" />
@@ -4790,12 +4623,11 @@
         <error line="138" column="26" source="standard:multiline-if-else" />
     </file>
     <file name="src/main/java/com/truckerload/presentation/screens/settings/SettingsDetailSheet.kt">
-        <error line="57" column="1" source="standard:blank-line-between-when-conditions" />
-        <error line="58" column="1" source="standard:blank-line-between-when-conditions" />
-        <error line="63" column="1" source="standard:blank-line-between-when-conditions" />
-        <error line="64" column="1" source="standard:blank-line-between-when-conditions" />
-        <error line="65" column="1" source="standard:blank-line-between-when-conditions" />
-        <error line="70" column="1" source="standard:blank-line-between-when-conditions" />
+        <error line="54" column="1" source="standard:blank-line-between-when-conditions" />
+        <error line="59" column="1" source="standard:blank-line-between-when-conditions" />
+        <error line="60" column="1" source="standard:blank-line-between-when-conditions" />
+        <error line="61" column="1" source="standard:blank-line-between-when-conditions" />
+        <error line="66" column="1" source="standard:blank-line-between-when-conditions" />
     </file>
     <file name="src/main/java/com/truckerload/presentation/screens/settings/SettingsPremiumHeroHost.kt">
         <error line="21" column="5" source="standard:function-signature" />
@@ -4804,12 +4636,12 @@
         <error line="23" column="35" source="standard:function-signature" />
     </file>
     <file name="src/main/java/com/truckerload/presentation/screens/settings/SettingsPremiumState.kt">
-        <error line="16" column="5" source="standard:spacing-between-declarations-with-comments" />
-        <error line="18" column="5" source="standard:spacing-between-declarations-with-comments" />
-        <error line="20" column="5" source="standard:spacing-between-declarations-with-comments" />
-        <error line="25" column="5" source="standard:class-signature" />
-        <error line="26" column="5" source="standard:class-signature" />
-        <error line="26" column="24" source="standard:class-signature" />
+        <error line="13" column="5" source="standard:spacing-between-declarations-with-comments" />
+        <error line="15" column="5" source="standard:spacing-between-declarations-with-comments" />
+        <error line="17" column="5" source="standard:spacing-between-declarations-with-comments" />
+        <error line="22" column="5" source="standard:class-signature" />
+        <error line="23" column="5" source="standard:class-signature" />
+        <error line="23" column="24" source="standard:class-signature" />
     </file>
     <file name="src/main/java/com/truckerload/presentation/screens/settings/SettingsPreview.kt">
         <error line="17" column="5" source="standard:function-signature" />
@@ -4823,10 +4655,6 @@
         <error line="125" column="1" source="standard:blank-line-between-when-conditions" />
         <error line="146" column="53" source="standard:function-signature" />
         <error line="153" column="50" source="standard:function-signature" />
-    </file>
-    <file name="src/main/java/com/truckerload/presentation/screens/settings/SettingsScreen.kt">
-        <error line="3" column="1" source="standard:import-ordering" />
-        <error line="72" column="141" source="standard:max-line-length" />
     </file>
     <file name="src/main/java/com/truckerload/presentation/screens/settings/SettingsViewModel.kt">
         <error line="2" column="1" source="standard:import-ordering" />
@@ -4942,9 +4770,9 @@
         <error line="258" column="1" source="standard:blank-line-between-when-conditions" />
     </file>
     <file name="src/main/java/com/truckerload/presentation/screens/social/ProfileHeroState.kt">
-        <error line="25" column="5" source="standard:class-signature" />
-        <error line="26" column="5" source="standard:class-signature" />
-        <error line="26" column="24" source="standard:class-signature" />
+        <error line="22" column="5" source="standard:class-signature" />
+        <error line="23" column="5" source="standard:class-signature" />
+        <error line="23" column="24" source="standard:class-signature" />
     </file>
     <file name="src/main/java/com/truckerload/presentation/screens/social/ProfileNameSection.kt">
         <error line="3" column="1" source="standard:import-ordering" />
@@ -5003,9 +4831,6 @@
         <error line="23" column="5" source="standard:function-signature" />
         <error line="24" column="5" source="standard:function-signature" />
         <error line="24" column="35" source="standard:function-signature" />
-    </file>
-    <file name="src/main/java/com/truckerload/presentation/screens/social/ProfileScreen.kt">
-        <error line="3" column="1" source="standard:import-ordering" />
     </file>
     <file name="src/main/java/com/truckerload/presentation/screens/social/ProfileViewModel.kt">
         <error line="3" column="1" source="standard:import-ordering" />
@@ -5374,10 +5199,10 @@
         <error line="60" column="50" source="standard:function-signature" />
     </file>
     <file name="src/main/java/com/truckerload/sync/SessionTeardown.kt">
+        <error line="25" column="9" source="standard:function-signature" />
+        <error line="26" column="9" source="standard:function-signature" />
         <error line="27" column="9" source="standard:function-signature" />
-        <error line="28" column="9" source="standard:function-signature" />
-        <error line="29" column="9" source="standard:function-signature" />
-        <error line="29" column="32" source="standard:function-signature" />
+        <error line="27" column="32" source="standard:function-signature" />
     </file>
     <file name="src/main/java/com/truckerload/sync/SmartNotificationPlanner.kt">
         <error line="22" column="71" source="standard:function-signature" />
@@ -5893,66 +5718,66 @@
         <error line="60" column="9" source="standard:class-signature" />
         <error line="61" column="9" source="standard:class-signature" />
         <error line="61" column="55" source="standard:class-signature" />
-        <error line="98" column="88" source="standard:trailing-comma-on-call-site" />
-        <error line="107" column="55" source="standard:function-signature" />
-        <error line="115" column="88" source="standard:trailing-comma-on-call-site" />
-        <error line="121" column="58" source="standard:function-signature" />
-        <error line="124" column="55" source="standard:function-signature" />
-        <error line="161" column="9" source="standard:function-signature" />
-        <error line="162" column="9" source="standard:function-signature" />
-        <error line="163" column="9" source="standard:function-signature" />
-        <error line="163" column="46" source="standard:function-signature" />
-        <error line="213" column="1" source="standard:no-trailing-spaces" />
-        <error line="213" column="9" source="standard:no-blank-line-before-rbrace" />
-        <error line="217" column="1" source="standard:no-trailing-spaces" />
-        <error line="217" column="9" source="standard:no-blank-line-before-rbrace" />
-        <error line="221" column="1" source="standard:no-trailing-spaces" />
-        <error line="221" column="9" source="standard:no-blank-line-before-rbrace" />
-        <error line="227" column="1" source="standard:no-trailing-spaces" />
-        <error line="227" column="9" source="standard:no-blank-line-before-rbrace" />
-        <error line="242" column="57" source="standard:trailing-comma-on-call-site" />
-        <error line="257" column="57" source="standard:trailing-comma-on-call-site" />
-        <error line="262" column="9" source="standard:function-signature" />
-        <error line="263" column="9" source="standard:function-signature" />
-        <error line="264" column="9" source="standard:function-signature" />
-        <error line="264" column="46" source="standard:function-signature" />
-        <error line="265" column="25" source="standard:function-signature" />
-        <error line="293" column="1" source="standard:no-trailing-spaces" />
-        <error line="293" column="9" source="standard:no-blank-line-before-rbrace" />
-        <error line="297" column="1" source="standard:no-trailing-spaces" />
-        <error line="297" column="9" source="standard:no-blank-line-before-rbrace" />
-        <error line="301" column="1" source="standard:no-trailing-spaces" />
-        <error line="301" column="9" source="standard:no-blank-line-before-rbrace" />
-        <error line="307" column="1" source="standard:no-trailing-spaces" />
-        <error line="307" column="9" source="standard:no-blank-line-before-rbrace" />
-        <error line="333" column="35" source="standard:trailing-comma-on-call-site" />
-        <error line="338" column="86" source="standard:function-signature" />
-        <error line="380" column="67" source="standard:function-signature" />
-        <error line="401" column="9" source="standard:function-signature" />
-        <error line="402" column="9" source="standard:function-signature" />
-        <error line="403" column="9" source="standard:function-signature" />
-        <error line="403" column="46" source="standard:function-signature" />
-        <error line="415" column="9" source="standard:function-signature" />
-        <error line="416" column="9" source="standard:function-signature" />
-        <error line="417" column="9" source="standard:function-signature" />
-        <error line="417" column="38" source="standard:function-signature" />
-        <error line="435" column="1" source="standard:no-trailing-spaces" />
-        <error line="435" column="9" source="standard:no-blank-line-before-rbrace" />
-        <error line="439" column="1" source="standard:no-trailing-spaces" />
-        <error line="439" column="9" source="standard:no-blank-line-before-rbrace" />
-        <error line="443" column="1" source="standard:no-trailing-spaces" />
-        <error line="443" column="9" source="standard:no-blank-line-before-rbrace" />
-        <error line="449" column="1" source="standard:no-trailing-spaces" />
-        <error line="449" column="9" source="standard:no-blank-line-before-rbrace" />
-        <error line="473" column="1" source="standard:no-trailing-spaces" />
-        <error line="473" column="9" source="standard:no-blank-line-before-rbrace" />
-        <error line="485" column="1" source="standard:no-trailing-spaces" />
-        <error line="485" column="9" source="standard:no-blank-line-before-rbrace" />
-        <error line="497" column="1" source="standard:no-trailing-spaces" />
-        <error line="497" column="9" source="standard:no-blank-line-before-rbrace" />
-        <error line="509" column="1" source="standard:no-trailing-spaces" />
-        <error line="509" column="9" source="standard:no-blank-line-before-rbrace" />
-        <error line="513" column="54" source="standard:function-signature" />
+        <error line="95" column="88" source="standard:trailing-comma-on-call-site" />
+        <error line="104" column="55" source="standard:function-signature" />
+        <error line="112" column="88" source="standard:trailing-comma-on-call-site" />
+        <error line="118" column="58" source="standard:function-signature" />
+        <error line="121" column="55" source="standard:function-signature" />
+        <error line="158" column="9" source="standard:function-signature" />
+        <error line="159" column="9" source="standard:function-signature" />
+        <error line="160" column="9" source="standard:function-signature" />
+        <error line="160" column="46" source="standard:function-signature" />
+        <error line="210" column="1" source="standard:no-trailing-spaces" />
+        <error line="210" column="9" source="standard:no-blank-line-before-rbrace" />
+        <error line="214" column="1" source="standard:no-trailing-spaces" />
+        <error line="214" column="9" source="standard:no-blank-line-before-rbrace" />
+        <error line="218" column="1" source="standard:no-trailing-spaces" />
+        <error line="218" column="9" source="standard:no-blank-line-before-rbrace" />
+        <error line="224" column="1" source="standard:no-trailing-spaces" />
+        <error line="224" column="9" source="standard:no-blank-line-before-rbrace" />
+        <error line="239" column="57" source="standard:trailing-comma-on-call-site" />
+        <error line="254" column="57" source="standard:trailing-comma-on-call-site" />
+        <error line="259" column="9" source="standard:function-signature" />
+        <error line="260" column="9" source="standard:function-signature" />
+        <error line="261" column="9" source="standard:function-signature" />
+        <error line="261" column="46" source="standard:function-signature" />
+        <error line="262" column="25" source="standard:function-signature" />
+        <error line="290" column="1" source="standard:no-trailing-spaces" />
+        <error line="290" column="9" source="standard:no-blank-line-before-rbrace" />
+        <error line="294" column="1" source="standard:no-trailing-spaces" />
+        <error line="294" column="9" source="standard:no-blank-line-before-rbrace" />
+        <error line="298" column="1" source="standard:no-trailing-spaces" />
+        <error line="298" column="9" source="standard:no-blank-line-before-rbrace" />
+        <error line="304" column="1" source="standard:no-trailing-spaces" />
+        <error line="304" column="9" source="standard:no-blank-line-before-rbrace" />
+        <error line="330" column="35" source="standard:trailing-comma-on-call-site" />
+        <error line="335" column="86" source="standard:function-signature" />
+        <error line="377" column="67" source="standard:function-signature" />
+        <error line="398" column="9" source="standard:function-signature" />
+        <error line="399" column="9" source="standard:function-signature" />
+        <error line="400" column="9" source="standard:function-signature" />
+        <error line="400" column="46" source="standard:function-signature" />
+        <error line="412" column="9" source="standard:function-signature" />
+        <error line="413" column="9" source="standard:function-signature" />
+        <error line="414" column="9" source="standard:function-signature" />
+        <error line="414" column="38" source="standard:function-signature" />
+        <error line="432" column="1" source="standard:no-trailing-spaces" />
+        <error line="432" column="9" source="standard:no-blank-line-before-rbrace" />
+        <error line="436" column="1" source="standard:no-trailing-spaces" />
+        <error line="436" column="9" source="standard:no-blank-line-before-rbrace" />
+        <error line="440" column="1" source="standard:no-trailing-spaces" />
+        <error line="440" column="9" source="standard:no-blank-line-before-rbrace" />
+        <error line="446" column="1" source="standard:no-trailing-spaces" />
+        <error line="446" column="9" source="standard:no-blank-line-before-rbrace" />
+        <error line="470" column="1" source="standard:no-trailing-spaces" />
+        <error line="470" column="9" source="standard:no-blank-line-before-rbrace" />
+        <error line="482" column="1" source="standard:no-trailing-spaces" />
+        <error line="482" column="9" source="standard:no-blank-line-before-rbrace" />
+        <error line="494" column="1" source="standard:no-trailing-spaces" />
+        <error line="494" column="9" source="standard:no-blank-line-before-rbrace" />
+        <error line="506" column="1" source="standard:no-trailing-spaces" />
+        <error line="506" column="9" source="standard:no-blank-line-before-rbrace" />
+        <error line="510" column="54" source="standard:function-signature" />
     </file>
     <file name="src/main/java/com/truckerload/utils/BrandConstants.kt">
         <error line="8" column="5" source="standard:spacing-between-declarations-with-comments" />
@@ -6019,9 +5844,6 @@
     </file>
     <file name="src/main/java/com/truckerload/utils/GoalCelebrationStore.kt">
         <error line="3" column="1" source="standard:import-ordering" />
-    </file>
-    <file name="src/main/java/com/truckerload/utils/InstalledSigningSha1.kt">
-        <error line="24" column="53" source="standard:function-signature" />
     </file>
     <file name="src/main/java/com/truckerload/utils/LoadDateRepair.kt">
         <error line="28" column="9" source="standard:function-signature" />
@@ -6283,12 +6105,12 @@
         <error line="89" column="1" source="standard:indent" />
     </file>
     <file name="src/main/java/com/truckerload/utils/SpecificFailures.kt">
+        <error line="19" column="5" source="standard:function-signature" />
         <error line="20" column="5" source="standard:function-signature" />
-        <error line="21" column="5" source="standard:function-signature" />
-        <error line="21" column="33" source="standard:function-signature" />
-        <error line="55" column="5" source="standard:function-signature" />
-        <error line="56" column="5" source="standard:function-signature" />
-        <error line="56" column="33" source="standard:function-signature" />
+        <error line="20" column="33" source="standard:function-signature" />
+        <error line="52" column="5" source="standard:function-signature" />
+        <error line="53" column="5" source="standard:function-signature" />
+        <error line="53" column="33" source="standard:function-signature" />
     </file>
     <file name="src/main/java/com/truckerload/utils/StorageHelper.kt">
         <error line="2" column="1" source="standard:import-ordering" />
@@ -6870,19 +6692,6 @@
         <error line="21" column="9" source="standard:function-signature" />
         <error line="21" column="40" source="standard:function-signature" />
     </file>
-    <file name="src/test/java/com/truckerload/data/backup/DriveBackupFlowTest.kt">
-        <error line="170" column="67" source="standard:function-expression-body" />
-        <error line="175" column="69" source="standard:function-expression-body" />
-    </file>
-    <file name="src/test/java/com/truckerload/data/backup/DriveSyncPolicyExtraTest.kt">
-        <error line="15" column="14" source="standard:trailing-comma-on-call-site" />
-        <error line="26" column="14" source="standard:trailing-comma-on-call-site" />
-    </file>
-    <file name="src/test/java/com/truckerload/data/backup/DriveSyncPolicyTest.kt">
-        <error line="33" column="14" source="standard:trailing-comma-on-call-site" />
-        <error line="40" column="14" source="standard:trailing-comma-on-call-site" />
-        <error line="47" column="14" source="standard:trailing-comma-on-call-site" />
-    </file>
     <file name="src/test/java/com/truckerload/data/local/CrowdRateMapperSmokeTest.kt">
         <error line="3" column="1" source="standard:import-ordering" />
     </file>
@@ -6943,9 +6752,6 @@
     <file name="src/test/java/com/truckerload/data/preferences/SettingsDataStoreThemeTest.kt">
         <error line="68" column="1" source="standard:no-blank-line-before-rbrace" />
         <error line="71" column="1" source="standard:no-consecutive-blank-lines" />
-    </file>
-    <file name="src/test/java/com/truckerload/data/remote/GoogleAuthArchitectureTest.kt">
-        <error line="3" column="1" source="standard:import-ordering" />
     </file>
     <file name="src/test/java/com/truckerload/data/remote/TelegramBotBrandingTest.kt">
         <error line="3" column="1" source="standard:import-ordering" />
@@ -7381,9 +7187,6 @@
     <file name="src/test/java/com/truckerload/presentation/CameraEntryPointsTest.kt">
         <error line="3" column="1" source="standard:import-ordering" />
     </file>
-    <file name="src/test/java/com/truckerload/presentation/auth/GoogleSignInSupportTest.kt">
-        <error line="3" column="1" source="standard:import-ordering" />
-    </file>
     <file name="src/test/java/com/truckerload/presentation/components/DashboardScreenshotTest.kt">
         <error line="3" column="1" source="standard:import-ordering" />
     </file>
@@ -7518,13 +7321,7 @@
     <file name="src/test/java/com/truckerload/presentation/screens/scanner/DocumentsSearchScreenshotTest.kt">
         <error line="3" column="1" source="standard:import-ordering" />
     </file>
-    <file name="src/test/java/com/truckerload/presentation/screens/settings/SettingsPremiumStateTest.kt">
-        <error line="3" column="1" source="standard:import-ordering" />
-    </file>
     <file name="src/test/java/com/truckerload/presentation/screens/settings/SettingsScreenshotTest.kt">
-        <error line="3" column="1" source="standard:import-ordering" />
-    </file>
-    <file name="src/test/java/com/truckerload/presentation/screens/social/ProfileHeroStateTest.kt">
         <error line="3" column="1" source="standard:import-ordering" />
     </file>
     <file name="src/test/java/com/truckerload/presentation/screens/social/ProfileScreenshotTest.kt">
@@ -7566,26 +7363,6 @@
         <error line="489" column="165" source="standard:binary-expression-wrapping" />
         <error line="489" column="171" source="standard:argument-list-wrapping" />
         <error line="489" column="172" source="standard:argument-list-wrapping" />
-    </file>
-    <file name="src/test/java/com/truckerload/presentation/store/PlayListingScreens.kt">
-        <error line="3" column="1" source="standard:import-ordering" />
-        <error line="398" column="5" source="standard:function-signature" />
-        <error line="399" column="5" source="standard:function-signature" />
-        <error line="400" column="5" source="standard:function-signature" />
-        <error line="400" column="27" source="standard:function-signature" />
-        <error line="579" column="25" source="standard:argument-list-wrapping" />
-        <error line="579" column="48" source="standard:argument-list-wrapping" />
-        <error line="579" column="55" source="standard:argument-list-wrapping" />
-        <error line="579" column="90" source="standard:argument-list-wrapping" />
-        <error line="579" column="100" source="standard:argument-list-wrapping" />
-        <error line="579" column="103" source="standard:argument-list-wrapping" />
-        <error line="579" column="138" source="standard:argument-list-wrapping" />
-        <error line="579" column="141" source="standard:max-line-length" />
-        <error line="579" column="148" source="standard:argument-list-wrapping" />
-        <error line="579" column="149" source="standard:argument-list-wrapping" />
-        <error line="579" column="150" source="standard:argument-list-wrapping" />
-        <error line="579" column="151" source="standard:argument-list-wrapping" />
-        <error line="716" column="13" source="standard:function-naming" />
     </file>
     <file name="src/test/java/com/truckerload/presentation/theme/AppIconBrandColorTest.kt">
         <error line="3" column="1" source="standard:import-ordering" />
