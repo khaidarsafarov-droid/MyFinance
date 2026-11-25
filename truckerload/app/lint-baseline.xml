@@ -421,7 +421,7 @@
 
     <issue
         id="AndroidGradlePluginVersion"
-        message="A newer version of com.android.application than 9.3.1 is available: 9.5.2. (There is also a newer version of 9.3.𝑥 available, if upgrading to 9.5.2 is difficult: 9.3.3)"
+        message="A newer version of com.android.application than 9.3.1 is available: 9.5.3. (There is also a newer version of 9.3.𝑥 available, if upgrading to 9.5.3 is difficult: 9.3.3)"
         errorLine1="agp = &quot;9.3.1&quot;"
         errorLine2="      ~~~~~~~">
         <location
@@ -432,7 +432,7 @@
 
     <issue
         id="AndroidGradlePluginVersion"
-        message="A newer version of com.android.test than 9.3.1 is available: 9.5.2. (There is also a newer version of 9.3.𝑥 available, if upgrading to 9.5.2 is difficult: 9.3.3)"
+        message="A newer version of com.android.test than 9.3.1 is available: 9.5.3. (There is also a newer version of 9.3.𝑥 available, if upgrading to 9.5.3 is difficult: 9.3.3)"
         errorLine1="agp = &quot;9.3.1&quot;"
         errorLine2="      ~~~~~~~">
         <location

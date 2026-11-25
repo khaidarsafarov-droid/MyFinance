@@ -468,11 +468,11 @@ private fun applyStateStyles(layer: GeoJsonLayer, byCode: Map<String, USStateMet
             StateRating.NO_DATA -> COLOR_NO_DATA
         }
         val style = GeoJsonPolygonStyle().apply {
-            setFillColor(fillColor)
+            this.fillColor = fillColor
             setStrokeColor(if (isSelected) COLOR_SELECTED_SHADOW else COLOR_BORDER)
             setStrokeWidth(if (isSelected) STROKE_WIDTH_SELECTED else STROKE_WIDTH_NORMAL)
             if (isSelected) setZIndex(10f)
         }
-        feature.setPolygonStyle(style)
+        feature.polygonStyle = style
     }
 }
