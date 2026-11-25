@@ -6,8 +6,10 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -40,8 +42,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.truckerload.R
 import com.truckerload.domain.filter.LoadFilter
 import com.truckerload.domain.money.Money
@@ -125,13 +127,31 @@ internal fun HomeWeekHero(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = grossText,
-                    style = AppTypography.HeroNumberOnDark,
-                    color = onHero,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                )
+                BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+                    val maxPx = 40.sp
+                    val minPx = 22.sp
+                    val fitted = when {
+                        maxWidth < 160.dp -> 24.sp
+                        maxWidth < 200.dp -> 28.sp
+                        maxWidth < 240.dp -> 32.sp
+                        else -> maxPx
+                    }
+                    Text(
+                        text = grossText,
+                        style = AppTypography.HeroNumberOnDark.copy(
+                            fontSize = fitted,
+                            lineHeight = fitted * 1.1f,
+                        ),
+                        color = onHero,
+                        maxLines = 1,
+                        softWrap = false,
+                        autoSize = TextAutoSize.StepBased(
+                            minFontSize = minPx,
+                            maxFontSize = fitted,
+                            stepSize = 1.sp,
+                        ),
+                    )
+                }
                 if (showGoal) {
                     Text(
                         text = stringResource(

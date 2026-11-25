@@ -52,6 +52,7 @@ import androidx.paging.compose.LazyPagingItems
 import com.truckerload.R
 import com.truckerload.data.preferences.RpmThresholds
 import com.truckerload.domain.filter.LoadFilter
+import com.truckerload.utils.AppTime
 import com.truckerload.domain.model.Load
 import com.truckerload.presentation.components.HomePeriodFilterDropdown
 import com.truckerload.presentation.components.OneUiLargeTitleHeader
@@ -444,7 +445,7 @@ internal fun HomeScreenTopBar(
     onAvatar: () -> Unit = {},
     onShare: () -> Unit = {},
 ) {
-    val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+    val hour = AppTime.calendar().get(Calendar.HOUR_OF_DAY)
     val greeting = if (welcomeName.isBlank()) {
         stringResource(
             when {

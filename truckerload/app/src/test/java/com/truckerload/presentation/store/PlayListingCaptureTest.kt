@@ -46,6 +46,9 @@ import java.io.File
 import java.io.FileOutputStream
 import java.time.LocalDate
 import java.util.concurrent.TimeUnit
+import com.truckerload.utils.AppTime
+import com.truckerload.utils.getCurrentWeekNumberAndYear
+import java.util.TimeZone
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -96,6 +99,8 @@ class PlayListingCaptureTest {
     }
 
     private fun captureLocale(lang: String, tablet: Boolean) {
+        freezePlayStoryClock()
+        try {
         val loads = playLoads()
         val photo = demoCaptured(demoPhotoFile())
         val scan = demoPending(demoScanFile())
@@ -137,7 +142,11 @@ class PlayListingCaptureTest {
             assertListingBitmap(bitmap, minWidth = 1600)
             return
         }
-        val widget = renderGlanceWidget(DpSize(400.dp, 360.dp))
+        val widget = renderGlanceWidget(
+            DpSize(400.dp, 360.dp),
+            today = LocalDate.of(2026, 10, 20),
+            weekRange = if (lang == "ru") "18 – 24 окт" else "Oct 18 – 24",
+        )
         val shots = listOf(
             "journal" to @Composable { PlayJournal(loads, dense = false) },
             "widget" to @Composable { PlayWidgetLauncher(widget) },
@@ -158,9 +167,14 @@ class PlayListingCaptureTest {
             val bitmap = render(lang, name) { content() }
             assertListingBitmap(bitmap, minWidth = 1000)
         }
+        } finally {
+            AppTime.reset()
+        }
     }
 
     private fun captureEnglishFeatureSet() {
+        freezePlayStoryClock()
+        try {
         val loads = playLoads()
         val context = org.robolectric.RuntimeEnvironment.getApplication()
         val (db, maintenance) = playMaintenanceRepository(context)
@@ -201,11 +215,12 @@ class PlayListingCaptureTest {
         }
         val shots = listOf(
             "dashboard" to @Composable { PlayDashboard(loads, maintenance) },
+            "journal" to @Composable { PlayJournal(loads, dense = false) },
             "widget" to @Composable { PlayWidgetHome(wallpaper, large) },
             "photo" to @Composable { PlayCamera(photo, previewMaxEdgePx = 2048) },
             "scanner" to @Composable { PlayScanFrame(scan, page) },
             "maintenance" to @Composable { PlayMaintenance() },
-            "premium" to @Composable { PlayPaywall() },
+            "weekly_goal" to @Composable { PlayWeeklyGoal("en") },
             "analytics" to @Composable {
                 PlayPremiumAnalytics(playPremiumFinance(), playPremiumRoutes(), playPremiumWeeks())
             },
@@ -217,16 +232,27 @@ class PlayListingCaptureTest {
                         val opened = clickLabeled(activity, "recognized")
                         assertTrue("scanner OCR toggle was not clicked", opened)
                     }
-                    if (name == "premium") {
-                        val copy = waitForPaywall(activity)
-                        assertTrue("paywall stayed on a placeholder: $copy", paywallSettled(copy))
-                    }
                 }) { content() }
                 assertListingBitmap(bitmap, minWidth = 1000)
             }
         } finally {
             db.close()
         }
+        } finally {
+            AppTime.reset()
+        }
+    }
+
+
+    private fun freezePlayStoryClock() {
+        TimeZone.setDefault(TimeZone.getTimeZone("America/New_York"))
+        AppTime.millis = { PLAY_STORY_NOW }
+        val (week, year) = getCurrentWeekNumberAndYear()
+        val hour = AppTime.calendar().get(java.util.Calendar.HOUR_OF_DAY)
+        assertTrue(
+            "story clock should be Tue Oct 20, 2026 09:41 ET (week 43, morning), was week $week $year hour $hour now=${AppTime.now()}",
+            week == 43 && year == 2026 && hour == 9 && AppTime.now() == PLAY_STORY_NOW,
+        )
     }
 
     private fun render(
@@ -538,9 +564,9 @@ private fun PlayWeeklyGoal(lang: String) {
             currentGross = Money.fromDollars(6_840.0),
             progressPercent = 52.6f,
             remainingAmount = Money.fromDollars(6_160.0),
-            daysActiveCalendar = 2,
-            daysRemainingInWeek = 5,
-            totalActiveDays = 2.0,
+            daysActiveCalendar = 3,
+            daysRemainingInWeek = 4,
+            totalActiveDays = 3.0,
             actualDailyYield = Money.fromDollars(3_420.0),
             dailyTargetNeeded = Money.fromDollars(1_232.0),
             expectedGrossByNow = Money.fromDollars(3_714.0),
@@ -551,7 +577,7 @@ private fun PlayWeeklyGoal(lang: String) {
         ),
         dayPlan = WeeklyDayPlan.rows(
             weekStart = LocalDate.of(2026, 10, 18),
-            today = LocalDate.of(2026, 10, 19),
+            today = LocalDate.of(2026, 10, 20),
             grossCentsBySqliteDow = mapOf(0 to 250_000L, 1 to 434_000L),
             dailyNeeded = Money.fromDollars(1_232.0),
         ),
