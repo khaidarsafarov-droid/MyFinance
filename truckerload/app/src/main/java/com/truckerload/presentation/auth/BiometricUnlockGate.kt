@@ -2,7 +2,6 @@ package com.truckerload.presentation.auth
 
 import android.content.Context
 import androidx.biometric.BiometricManager
-import androidx.biometric.BiometricPrompt
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -23,7 +22,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import com.truckerload.R
 import com.truckerload.data.preferences.BiometricUnlockStore
@@ -48,10 +46,7 @@ object BiometricSession {
 }
 
 @Composable
-fun BiometricUnlockGate(
-    enabled: Boolean,
-    content: @Composable () -> Unit,
-) {
+fun BiometricUnlockGate(enabled: Boolean, content: @Composable () -> Unit) {
     var unlocked by remember { mutableStateOf(BiometricSession.unlockedThisProcess) }
     if (!enabled || unlocked) {
         content()
@@ -59,59 +54,43 @@ fun BiometricUnlockGate(
     }
     val context = LocalContext.current
     val resources = LocalResources.current
-    val tc = LocalTruckColors.current
     var error by remember { mutableStateOf<String?>(null) }
     val activity = context as? FragmentActivity
 
-    fun markUnlocked() {
-        BiometricSession.unlockedThisProcess = true
-        unlocked = true
-        error = null
-    }
-
-    fun launchPrompt() {
-        if (activity == null) {
-            error = context.getString(R.string.biometric_unlock_failed)
-            return
-        }
-        if (!canUseBiometricUnlock(context)) {
-            error = context.getString(R.string.biometric_unlock_failed)
-            return
-        }
-        val executor = ContextCompat.getMainExecutor(context)
-        val prompt = BiometricPrompt(
-            activity,
-            executor,
-            object : BiometricPrompt.AuthenticationCallback() {
-                override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
-                    markUnlocked()
-                }
-
-                override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-                    if (errorCode == BiometricPrompt.ERROR_USER_CANCELED ||
-                        errorCode == BiometricPrompt.ERROR_NEGATIVE_BUTTON
-                    ) {
-                        error = context.getString(R.string.biometric_unlock_cancelled)
-                    } else {
-                        error = errString.toString()
-                    }
-                }
-
-                override fun onAuthenticationFailed() {
-                    error = context.getString(R.string.biometric_unlock_failed)
-                }
+    val controller = remember(activity) {
+        BiometricUnlockController(
+            authenticator = activity?.let {
+                AndroidBiometricAuthenticator(
+                    activity = it,
+                    title = resources.getString(R.string.biometric_unlock_title),
+                    subtitle = resources.getString(R.string.biometric_unlock_subtitle),
+                    negativeText = resources.getString(R.string.common_cancel),
+                )
             },
+            messages = object : BiometricUnlockMessages {
+                override fun failed() = context.getString(R.string.biometric_unlock_failed)
+
+                override fun cancelled() = context.getString(R.string.biometric_unlock_cancelled)
+            },
+            onUnlocked = {
+                BiometricSession.unlockedThisProcess = true
+                unlocked = true
+                error = null
+            },
+            onError = { error = it },
         )
-        val info = BiometricPrompt.PromptInfo.Builder()
-            .setTitle(resources.getString(R.string.biometric_unlock_title))
-            .setSubtitle(resources.getString(R.string.biometric_unlock_subtitle))
-            .setNegativeButtonText(resources.getString(R.string.common_cancel))
-            .build()
-        prompt.authenticate(info)
     }
+
+    fun launchPrompt() = controller.launch()
 
     LaunchedEffect(Unit) { launchPrompt() }
 
+    BiometricLockedScreen(error = error, onRetry = { launchPrompt() })
+}
+
+@Composable
+private fun BiometricLockedScreen(error: String?, onRetry: () -> Unit) {
+    val tc = LocalTruckColors.current
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -136,7 +115,7 @@ fun BiometricUnlockGate(
             error?.let {
                 Text(text = it, color = tc.AccentExpense, style = MaterialTheme.typography.bodySmall)
             }
-            Button(onClick = { launchPrompt() }) {
+            Button(onClick = onRetry) {
                 Text(stringResource(R.string.biometric_unlock_retry))
             }
             // FIX: skip must not unlock — that bypassed biometric for anyone with the phone
