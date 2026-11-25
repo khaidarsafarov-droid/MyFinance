@@ -4,9 +4,8 @@ import android.app.Application
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
-import androidx.compose.ui.Modifier
 import androidx.compose.material3.Scaffold
-import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
@@ -14,24 +13,17 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.unit.dp
 import androidx.test.core.app.ApplicationProvider
-import com.truckerload.data.local.entities.LoadStatsAgg
 import com.truckerload.data.preferences.RpmThresholds
-import com.truckerload.data.preferences.UserProfileStore
-import com.truckerload.data.preferences.WeeklyProfitGoalStore
 import com.truckerload.data.repository.LoadRepository
 import com.truckerload.domain.filter.LoadFilter
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.money.Money
-import com.truckerload.presentation.di.LocalLoadRepository
-import com.truckerload.presentation.di.LocalUserProfileStore
-import com.truckerload.presentation.di.LocalWeeklyProfitGoalStore
 import com.truckerload.presentation.screens.home.HomeListItem
 import com.truckerload.presentation.screens.home.HomeScreenContent
 import com.truckerload.presentation.screens.home.HomeScreenTopBar
 import com.truckerload.presentation.screens.home.HomeUiState
 import com.truckerload.presentation.screens.home.HomeViewModel
 import com.truckerload.presentation.theme.TruckerLoadTheme
-import kotlinx.coroutines.flow.flowOf
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -57,46 +49,40 @@ class HomeDashboardUiTest {
     fun dashboard_showsDemoLoad_andScannerAction() {
         val app = ApplicationProvider.getApplicationContext<Application>()
         val loads = mock<LoadRepository>()
-        whenever(loads.watchTotalLoadStats()).thenReturn(flowOf(LoadStatsAgg(1, 850.0, 250_000L)))
         val viewModel = HomeViewModel(loads, app)
         val demo = demoLoad()
         var scannerOpened = false
 
         composeRule.setContent {
             TruckerLoadTheme(darkTheme = true, dynamicColor = false) {
-                CompositionLocalProvider(
-                    LocalLoadRepository provides loads,
-                    LocalWeeklyProfitGoalStore provides WeeklyProfitGoalStore(app),
-                    LocalUserProfileStore provides UserProfileStore(app),
-                ) {
-                    Scaffold { padding ->
-                        Column {
-                            HomeScreenTopBar(
-                                welcomeName = "Demo Driver",
-                                weekLabel = "",
-                                filter = LoadFilter.THIS_WEEK,
-                                openDrawer = {},
-                                onSearchToggle = {},
-                            )
-                            HomeScreenContent(
-                                paddingValues = PaddingValues(0.dp),
-                                uiState = HomeUiState(filter = LoadFilter.THIS_WEEK),
-                                listItems = listOf(HomeListItem.LoadItem(demo)),
-                                periodSummary = null,
-                                rpmThresholds = RpmThresholds(minProfit = 2.0, targetProfit = 2.5),
-                                viewModel = viewModel,
-                                filteredLoads = listOf(demo),
-                                useRoomPaging = false,
-                                pagedLoads = null,
-                                onLoadClick = {},
-                                context = app,
-                                onOpenCalendar = {},
-                                onLoadCamera = { _, _, _ -> },
-                                onLoadScan = { _, _, _ -> },
-                                onOpenScanner = { scannerOpened = true },
-                                modifier = Modifier.padding(padding),
-                            )
-                        }
+                Scaffold { padding ->
+                    Column {
+                        HomeScreenTopBar(
+                            welcomeName = "Demo Driver",
+                            weekLabel = "",
+                            filter = LoadFilter.THIS_WEEK,
+                            openDrawer = {},
+                            onSearchToggle = {},
+                        )
+                        HomeScreenContent(
+                            paddingValues = PaddingValues(0.dp),
+                            uiState = HomeUiState(filter = LoadFilter.THIS_WEEK),
+                            listItems = listOf(HomeListItem.LoadItem(demo)),
+                            periodSummary = null,
+                            rpmThresholds = RpmThresholds(minProfit = 2.0, targetProfit = 2.5),
+                            viewModel = viewModel,
+                            filteredLoads = listOf(demo),
+                            useRoomPaging = false,
+                            pagedLoads = null,
+                            onLoadClick = {},
+                            context = app,
+                            onOpenCalendar = {},
+                            onLoadCamera = { _, _, _ -> },
+                            onLoadScan = { _, _, _ -> },
+                            onOpenScanner = { scannerOpened = true },
+                            totalLoadCount = 1,
+                            modifier = Modifier.padding(padding),
+                        )
                     }
                 }
             }

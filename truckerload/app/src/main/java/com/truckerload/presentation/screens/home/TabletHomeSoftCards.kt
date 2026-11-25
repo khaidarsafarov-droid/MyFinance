@@ -1,7 +1,5 @@
 package com.truckerload.presentation.screens.home
 
-import com.truckerload.presentation.icons.AppIcons
-
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -33,13 +31,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.truckerload.R
-import com.truckerload.domain.units.DisplayUnits
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.truckerload.R
 import com.truckerload.domain.model.Load
+import com.truckerload.domain.units.DisplayUnits
 import com.truckerload.presentation.components.LoadCardModel
 import com.truckerload.presentation.components.rememberLoadCards
-import com.truckerload.presentation.di.LocalRpmThresholdsStore
+import com.truckerload.presentation.icons.AppIcons
+import com.truckerload.presentation.screens.settings.RpmThresholdsViewModel
 import com.truckerload.presentation.theme.AppTypography
 import com.truckerload.presentation.theme.LocalSemantics
 import com.truckerload.presentation.theme.LocalTruckColors
@@ -175,7 +175,7 @@ internal fun SoftRecentCard(
     onLoadClick: (String) -> Unit,
 ) {
     val tc = LocalTruckColors.current
-    val thresholds by LocalRpmThresholdsStore.current.thresholds.collectAsStateWithLifecycle()
+    val thresholds by hiltViewModel<RpmThresholdsViewModel>().thresholds.collectAsStateWithLifecycle()
     val cards = rememberLoadCards(loads, thresholds)
     Column(
         modifier = modifier

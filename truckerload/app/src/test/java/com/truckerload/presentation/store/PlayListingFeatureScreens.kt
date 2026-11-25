@@ -1,8 +1,8 @@
 package com.truckerload.presentation.store
 
+import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.graphics.Canvas as AndroidCanvas
 import android.graphics.Paint
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
@@ -26,7 +26,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -59,7 +58,7 @@ import com.truckerload.presentation.components.HomePeriodFilterDropdown
 import com.truckerload.presentation.components.LoadCard
 import com.truckerload.presentation.components.SoftAppPageScaffold
 import com.truckerload.presentation.components.SoftBottomBar
-import com.truckerload.presentation.di.LocalMaintenanceRepository
+import com.truckerload.presentation.di.MaintenanceBadgeViewModel
 import com.truckerload.presentation.navigation.Routes
 import com.truckerload.presentation.screens.home.HomeQuickActionRow
 import com.truckerload.presentation.screens.home.HomeScreenTopBar
@@ -68,9 +67,9 @@ import com.truckerload.presentation.screens.maintenance.MaintenanceTasksSection
 import com.truckerload.presentation.screens.scanner.PendingScan
 import com.truckerload.presentation.theme.BentoGlassScreenBackground
 import com.truckerload.utils.PhotoManager
-import android.content.Context
 import java.io.File
 import java.time.LocalDate
+import android.graphics.Canvas as AndroidCanvas
 
 /** 2026-10-20 09:41 UTC — the same instant on the photo stamp, the scan, and the home screen. */
 internal const val PLAY_STORY_AT = 1_792_489_260_000L
@@ -86,75 +85,75 @@ internal fun playMaintenanceRepository(context: Context): Pair<AppDatabase, Main
 @Composable
 internal fun PlayDashboard(loads: List<Load>, maintenance: MaintenanceRepository) {
     val shown = loads.take(2)
-    CompositionLocalProvider(LocalMaintenanceRepository provides maintenance) {
-        BentoGlassScreenBackground {
-            Box(modifier = Modifier.fillMaxSize()) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .verticalScroll(rememberScrollState())
-                        .padding(bottom = 108.dp),
-                ) {
-                    HomeScreenTopBar(
-                        welcomeName = "Alex",
-                        weekLabel = "",
-                        filter = LoadFilter.THIS_WEEK,
-                        openDrawer = {},
-                        onSearchToggle = {},
-                        onAvatar = {},
-                    )
-                    HomeWeekHero(
-                        periodLabel = "",
-                        filter = LoadFilter.THIS_WEEK,
-                        gross = Money.fromDollars(loads.sumOf { it.totalRate.cents } / 100.0),
-                        miles = loads.sumOf { it.drivenMiles },
-                        loadCount = loads.size,
-                        avgRpm = loads.sumOf { it.totalRate.cents } / 100.0 /
-                            loads.sumOf { it.drivenMiles }.coerceAtLeast(1.0),
-                        weeklyGoal = 13_000.0,
-                        summaryContentDescription = "",
-                        onOpenWeeklyGoal = {},
-                    )
-                    HomeQuickActionRow(
-                        onDiesel = {},
-                        onPaycheck = {},
-                        onExpense = {},
-                        onScanner = {},
-                    )
-                    Text(
-                        text = stringResource(R.string.home_recent_loads),
-                        style = MaterialTheme.typography.titleLarge,
-                        color = MaterialTheme.colorScheme.onBackground,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
-                    )
-                    HomePeriodFilterDropdown(
-                        currentFilter = LoadFilter.THIS_WEEK,
-                        selectedYear = 2026,
-                        selectedDateLabel = "",
-                        selectedWeekLabel = "",
-                        selectedMonthLabel = "",
-                        onFilterSelected = {},
-                        onOpenCalendar = {},
-                        onOpenMonthPicker = {},
-                    )
-                    shown.forEach { load ->
-                        LoadCard(
-                            load = load,
-                            onClick = {},
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
-                            rpmThresholds = PlayThresholds,
-                            onCameraClick = {},
-                            onScanClick = {},
-                        )
-                    }
-                }
-                SoftBottomBar(
-                    currentRoute = Routes.HOME,
-                    onNavigate = {},
-                    onQuickAction = {},
-                    modifier = Modifier.align(Alignment.BottomCenter),
+    val badge = remember(maintenance) { MaintenanceBadgeViewModel(maintenance) }
+    BentoGlassScreenBackground {
+        Box(modifier = Modifier.fillMaxSize()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(bottom = 108.dp),
+            ) {
+                HomeScreenTopBar(
+                    welcomeName = "Alex",
+                    weekLabel = "",
+                    filter = LoadFilter.THIS_WEEK,
+                    openDrawer = {},
+                    onSearchToggle = {},
+                    onAvatar = {},
                 )
+                HomeWeekHero(
+                    periodLabel = "",
+                    filter = LoadFilter.THIS_WEEK,
+                    gross = Money.fromDollars(loads.sumOf { it.totalRate.cents } / 100.0),
+                    miles = loads.sumOf { it.drivenMiles },
+                    loadCount = loads.size,
+                    avgRpm = loads.sumOf { it.totalRate.cents } / 100.0 /
+                        loads.sumOf { it.drivenMiles }.coerceAtLeast(1.0),
+                    weeklyGoal = 13_000.0,
+                    summaryContentDescription = "",
+                    onOpenWeeklyGoal = {},
+                )
+                HomeQuickActionRow(
+                    onDiesel = {},
+                    onPaycheck = {},
+                    onExpense = {},
+                    onScanner = {},
+                )
+                Text(
+                    text = stringResource(R.string.home_recent_loads),
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                )
+                HomePeriodFilterDropdown(
+                    currentFilter = LoadFilter.THIS_WEEK,
+                    selectedYear = 2026,
+                    selectedDateLabel = "",
+                    selectedWeekLabel = "",
+                    selectedMonthLabel = "",
+                    onFilterSelected = {},
+                    onOpenCalendar = {},
+                    onOpenMonthPicker = {},
+                )
+                shown.forEach { load ->
+                    LoadCard(
+                        load = load,
+                        onClick = {},
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
+                        rpmThresholds = PlayThresholds,
+                        onCameraClick = {},
+                        onScanClick = {},
+                    )
+                }
             }
+            SoftBottomBar(
+                currentRoute = Routes.HOME,
+                onNavigate = {},
+                onQuickAction = {},
+                modifier = Modifier.align(Alignment.BottomCenter),
+                viewModel = badge,
+            )
         }
     }
 }
@@ -371,6 +370,7 @@ private fun HomeGlyphMark(glyph: HomeGlyph) {
                     style = stroke,
                 )
             }
+
             HomeGlyph.Chat -> {
                 drawRoundRect(
                     ink,
@@ -381,6 +381,7 @@ private fun HomeGlyphMark(glyph: HomeGlyph) {
                 )
                 drawLine(ink, Offset(s * 0.28f, s * 0.7f), Offset(s * 0.22f, s * 0.9f), stroke.width, StrokeCap.Round)
             }
+
             HomeGlyph.Camera -> {
                 drawRoundRect(
                     ink,
@@ -391,6 +392,7 @@ private fun HomeGlyphMark(glyph: HomeGlyph) {
                 )
                 drawCircle(ink, radius = s * 0.16f, center = Offset(s * 0.5f, s * 0.56f), style = stroke)
             }
+
             HomeGlyph.Photo -> {
                 drawRoundRect(
                     ink,
@@ -401,6 +403,7 @@ private fun HomeGlyphMark(glyph: HomeGlyph) {
                 )
                 drawCircle(ink, radius = s * 0.08f, center = Offset(s * 0.32f, s * 0.36f))
             }
+
             HomeGlyph.Calendar -> {
                 drawRoundRect(
                     ink,
@@ -411,11 +414,13 @@ private fun HomeGlyphMark(glyph: HomeGlyph) {
                 )
                 drawLine(ink, Offset(s * 0.12f, s * 0.4f), Offset(s * 0.88f, s * 0.4f), stroke.width, StrokeCap.Round)
             }
+
             HomeGlyph.Clock -> {
                 drawCircle(ink, radius = s * 0.38f, center = Offset(s * 0.5f, s * 0.5f), style = stroke)
                 drawLine(ink, Offset(s * 0.5f, s * 0.5f), Offset(s * 0.5f, s * 0.28f), stroke.width, StrokeCap.Round)
                 drawLine(ink, Offset(s * 0.5f, s * 0.5f), Offset(s * 0.68f, s * 0.58f), stroke.width, StrokeCap.Round)
             }
+
             HomeGlyph.Folder -> {
                 drawRoundRect(
                     ink,
@@ -426,6 +431,7 @@ private fun HomeGlyphMark(glyph: HomeGlyph) {
                 )
                 drawLine(ink, Offset(s * 0.1f, s * 0.4f), Offset(s * 0.42f, s * 0.4f), stroke.width, StrokeCap.Round)
             }
+
             HomeGlyph.Gear -> {
                 val center = Offset(s * 0.5f, s * 0.5f)
                 drawCircle(ink, radius = s * 0.16f, center = center, style = stroke)
@@ -442,6 +448,7 @@ private fun HomeGlyphMark(glyph: HomeGlyph) {
                     )
                 }
             }
+
             HomeGlyph.Mail -> {
                 drawRoundRect(
                     ink,
@@ -453,6 +460,7 @@ private fun HomeGlyphMark(glyph: HomeGlyph) {
                 drawLine(ink, Offset(s * 0.12f, s * 0.28f), Offset(s * 0.5f, s * 0.52f), stroke.width, StrokeCap.Round)
                 drawLine(ink, Offset(s * 0.88f, s * 0.28f), Offset(s * 0.5f, s * 0.52f), stroke.width, StrokeCap.Round)
             }
+
             HomeGlyph.Note -> {
                 drawRoundRect(
                     ink,
@@ -464,6 +472,7 @@ private fun HomeGlyphMark(glyph: HomeGlyph) {
                 drawLine(ink, Offset(s * 0.34f, s * 0.36f), Offset(s * 0.66f, s * 0.36f), stroke.width, StrokeCap.Round)
                 drawLine(ink, Offset(s * 0.34f, s * 0.52f), Offset(s * 0.66f, s * 0.52f), stroke.width, StrokeCap.Round)
             }
+
             HomeGlyph.Cloud -> {
                 drawCircle(ink, radius = s * 0.2f, center = Offset(s * 0.38f, s * 0.48f), style = stroke)
                 drawCircle(ink, radius = s * 0.26f, center = Offset(s * 0.6f, s * 0.44f), style = stroke)
@@ -486,7 +495,15 @@ private fun HomeSearchPill() {
     ) {
         Canvas(modifier = Modifier.size(18.dp)) {
             val ink = Color(0xFF5C6370)
-            drawCircle(ink, radius = size.minDimension * 0.32f, center = Offset(size.width * 0.42f, size.height * 0.42f), style = Stroke(width = size.minDimension * 0.12f))
+            drawCircle(
+                ink,
+                radius = size.minDimension * 0.32f,
+                center = Offset(size.width * 0.42f, size.height * 0.42f),
+                style = Stroke(
+                    width =
+                    size.minDimension * 0.12f,
+                ),
+            )
             drawLine(
                 ink,
                 Offset(size.width * 0.64f, size.height * 0.64f),

@@ -28,31 +28,28 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.truckerload.R
-import com.truckerload.presentation.components.DashboardHero
 import com.truckerload.data.preferences.TelegramOnboardingStore
-import com.truckerload.presentation.components.ScreenLoading
 import com.truckerload.data.remote.TelegramTokenActivator
-import com.truckerload.presentation.di.LocalAuthStore
-import com.truckerload.presentation.components.TlButton as Button
-import com.truckerload.presentation.components.TlOutlinedButton as OutlinedButton
+import com.truckerload.presentation.components.DashboardHero
+import com.truckerload.presentation.components.ScreenLoading
 import com.truckerload.presentation.components.verticalContentScroll
+import com.truckerload.presentation.di.AccountSessionViewModel
 import com.truckerload.presentation.theme.AppTextFieldDefaults
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.LocalTruckColors
 import kotlinx.coroutines.launch
+import com.truckerload.presentation.components.TlButton as Button
+import com.truckerload.presentation.components.TlOutlinedButton as OutlinedButton
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TelegramOnboardingScreen(
-    onCompleted: () -> Unit,
-    onSkip: () -> Unit,
-) {
+fun TelegramOnboardingScreen(onCompleted: () -> Unit, onSkip: () -> Unit, account: AccountSessionViewModel = hiltViewModel()) {
     val tc = LocalTruckColors.current
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val authStore = LocalAuthStore.current
-    val userId = authStore.currentUserIdOrNull()
+    val userId = account.currentUserIdOrNull()
     val onboardingStore = remember(userId) { TelegramOnboardingStore(context, userId) }
     var tokenInput by remember { mutableStateOf("") }
     var showToken by remember { mutableStateOf(false) }
@@ -141,8 +138,11 @@ fun TelegramOnboardingScreen(
             ) {
                 Text(
                     stringResource(
-                        if (showToken) R.string.settings_telegram_hide_token
-                        else R.string.settings_telegram_show_token
+                        if (showToken) {
+                            R.string.settings_telegram_hide_token
+                        } else {
+                            R.string.settings_telegram_show_token
+                        },
                     ),
                     color = tc.AccentPrimary,
                 )
@@ -152,45 +152,51 @@ fun TelegramOnboardingScreen(
             }
             if (saving) {
                 ScreenLoading(rows = 2)
-            } else Button(
-                onClick = {
-                    if (saving) return@Button
-                    val token = tokenInput.trim()
-                    if (token.isBlank()) {
-                        error = context.getString(R.string.settings_telegram_token_missing)
-                        return@Button
-                    }
-                    scope.launch {
-                        saving = true
-                        error = null
-                        val result = TelegramTokenActivator.saveAndStart(context, token)
-                        saving = false
-                        result.fold(
-                            onSuccess = { finish(skipped = false) },
-                            onFailure = { err ->
-                                error = when (err.message) {
-                                    "token_missing" -> context.getString(R.string.settings_telegram_token_missing)
-                                    "token_invalid" -> context.getString(R.string.settings_telegram_invalid)
-                                    "token_secure_storage" -> context.getString(
-                                        R.string.auth_secure_storage_fallback_banner,
-                                    )
-                                    else -> err.message
-                                        ?: context.getString(R.string.settings_telegram_invalid)
-                                }
-                            },
-                        )
-                    }
-                },
-                modifier = Modifier.fillMaxWidth().height(52.dp),
-                enabled = tokenInput.isNotBlank() && !saving,
-            ) {
-                Text(
-                    if (saving) {
-                        stringResource(R.string.settings_telegram_checking)
-                    } else {
-                        stringResource(R.string.telegram_onboarding_save)
+            } else {
+                Button(
+                    onClick = {
+                        if (saving) return@Button
+                        val token = tokenInput.trim()
+                        if (token.isBlank()) {
+                            error = context.getString(R.string.settings_telegram_token_missing)
+                            return@Button
+                        }
+                        scope.launch {
+                            saving = true
+                            error = null
+                            val result = TelegramTokenActivator.saveAndStart(context, token)
+                            saving = false
+                            result.fold(
+                                onSuccess = { finish(skipped = false) },
+                                onFailure = { err ->
+                                    error = when (err.message) {
+                                        "token_missing" -> context.getString(R.string.settings_telegram_token_missing)
+
+                                        "token_invalid" -> context.getString(R.string.settings_telegram_invalid)
+
+                                        "token_secure_storage" -> context.getString(
+                                            R.string.auth_secure_storage_fallback_banner,
+                                        )
+
+                                        else ->
+                                            err.message
+                                                ?: context.getString(R.string.settings_telegram_invalid)
+                                    }
+                                },
+                            )
+                        }
                     },
-                )
+                    modifier = Modifier.fillMaxWidth().height(52.dp),
+                    enabled = tokenInput.isNotBlank() && !saving,
+                ) {
+                    Text(
+                        if (saving) {
+                            stringResource(R.string.settings_telegram_checking)
+                        } else {
+                            stringResource(R.string.telegram_onboarding_save)
+                        },
+                    )
+                }
             }
             TextButton(
                 onClick = { if (!saving) finish(skipped = true) },

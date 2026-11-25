@@ -3,17 +3,11 @@ package com.truckerload.presentation.screens.home
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.truckerload.data.local.entities.LoadStatsAgg
 import com.truckerload.domain.ux.ActivationChecklistFactory
 import com.truckerload.domain.ux.ActivationStep
 import com.truckerload.presentation.components.ActivationChecklistCard
-import com.truckerload.presentation.di.LocalLoadRepository
-import com.truckerload.presentation.di.LocalUserProfileStore
-import com.truckerload.presentation.di.LocalWeeklyProfitGoalStore
 
 /**
  * Newcomer-only next steps. The week hero lives in [PeriodSummarySection] so Home
@@ -25,25 +19,18 @@ fun HomeUxMotivators(
     onWeeklyGoal: () -> Unit,
     onAddDiesel: () -> Unit,
     onOpenProfile: () -> Unit,
+    totalLoadCount: Int,
+    profileComplete: Boolean,
+    weeklyGoal: Double,
 ) {
-    val loadRepository = LocalLoadRepository.current
-    val goalStore = LocalWeeklyProfitGoalStore.current
-    val userProfileStore = LocalUserProfileStore.current
-
-    val goal by goalStore.goalAmount.collectAsStateWithLifecycle()
-    val totalStats by loadRepository.watchTotalLoadStats()
-        .collectAsStateWithLifecycle(initialValue = LoadStatsAgg(0, 0.0, 0L))
-    val profileOk by userProfileStore.setupComplete.collectAsStateWithLifecycle()
-    val hasLoad = totalStats.totalLoads > 0
-
     // After the first load, hide the checklist — it nags drivers who already haul.
-    if (hasLoad) return
+    if (totalLoadCount > 0) return
 
-    val checklist = remember(profileOk, goal) {
+    val checklist = remember(profileComplete, weeklyGoal) {
         ActivationChecklistFactory.build(
-            profileComplete = profileOk,
+            profileComplete = profileComplete,
             hasLoad = false,
-            hasWeeklyGoal = goal > 0,
+            hasWeeklyGoal = weeklyGoal > 0,
             hasDiesel = false,
         )
     }

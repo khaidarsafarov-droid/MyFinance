@@ -22,7 +22,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -38,6 +37,7 @@ import androidx.compose.ui.unit.sp
 import com.truckerload.R
 import com.truckerload.data.preferences.AuthStore
 import com.truckerload.data.preferences.RpmThresholds
+import com.truckerload.data.preferences.UserProfileStore
 import com.truckerload.domain.filter.LoadFilter
 import com.truckerload.domain.model.Diesel
 import com.truckerload.domain.model.Load
@@ -59,15 +59,14 @@ import com.truckerload.presentation.components.TlButton
 import com.truckerload.presentation.components.charts.DailyDistributionChart
 import com.truckerload.presentation.components.charts.TopRoutesBarChart
 import com.truckerload.presentation.components.charts.WeeklyRevenueLineChart
-import com.truckerload.presentation.di.LocalAuthStore
-import com.truckerload.presentation.di.LocalRpmThresholdsStore
+import com.truckerload.presentation.di.AccountSessionViewModel
 import com.truckerload.presentation.icons.AppIcons
+import com.truckerload.presentation.premium.PaywallScreen
 import com.truckerload.presentation.screens.add.AddLoadInputMode
 import com.truckerload.presentation.screens.add.AddLoadManualForm
 import com.truckerload.presentation.screens.add.AddLoadModeSelector
 import com.truckerload.presentation.screens.add.DieselAmountFields
 import com.truckerload.presentation.screens.add.ManualLoadFields
-import com.truckerload.presentation.premium.PaywallScreen
 import com.truckerload.presentation.screens.analytics.AnalyticsFinanceSection
 import com.truckerload.presentation.screens.auth.TelegramOnboardingScreen
 import com.truckerload.presentation.screens.camera.CapturedPhoto
@@ -85,8 +84,8 @@ import com.truckerload.presentation.screens.social.ProfileHero
 import com.truckerload.presentation.screens.social.ProfileNavRow
 import com.truckerload.presentation.screens.social.ProfileSectionHeader
 import com.truckerload.presentation.screens.social.ProfileTotals
-import com.truckerload.presentation.theme.BentoGlassScreenBackground
 import com.truckerload.presentation.theme.BentoGlassCard
+import com.truckerload.presentation.theme.BentoGlassScreenBackground
 import com.truckerload.presentation.theme.LocalBrandPalette
 import com.truckerload.utils.LocationData
 import java.io.File
@@ -266,8 +265,6 @@ internal fun PlayTabletJournal(loads: List<Load>) {
 
 @Composable
 internal fun PlayAddLoad() {
-    val context = LocalContext.current
-    val store = remember { RpmThresholdsStoreSafe(context) }
     Column(modifier = Modifier.fillMaxSize().background(LocalBrandPalette.current.page)) {
         DashboardHero(
             title = stringResource(R.string.add_load_title),
@@ -279,25 +276,24 @@ internal fun PlayAddLoad() {
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             AddLoadModeSelector(selected = AddLoadInputMode.MANUAL, onSelect = {})
-            CompositionLocalProvider(LocalRpmThresholdsStore provides store) {
-                AddLoadManualForm(
-                    fields = ManualLoadFields(
-                        tripId = "T-116KYL6KW",
-                        date = "2026-10-19",
-                        rate = "2500.00",
-                        miles = "850",
-                        pointA = "Garner, NC",
-                        pointB = "Dallas, TX",
-                    ),
-                    onTripId = {},
-                    onDate = {},
-                    onRate = {},
-                    onMiles = {},
-                    onPointChange = { _, _ -> },
-                    onAddPoint = {},
-                    onRemovePoint = {},
-                )
-            }
+            AddLoadManualForm(
+                fields = ManualLoadFields(
+                    tripId = "T-116KYL6KW",
+                    date = "2026-10-19",
+                    rate = "2500.00",
+                    miles = "850",
+                    pointA = "Garner, NC",
+                    pointB = "Dallas, TX",
+                ),
+                onTripId = {},
+                onDate = {},
+                onRate = {},
+                onMiles = {},
+                onPointChange = { _, _ -> },
+                onAddPoint = {},
+                onRemovePoint = {},
+                rpmThresholds = PlayThresholds,
+            )
         }
         OneUiBottomActionBar {
             TlButton(onClick = {}, modifier = Modifier.fillMaxWidth()) {
@@ -394,11 +390,7 @@ internal fun PlayPaywall() {
  * already on the dashboard and the home-screen widget.
  */
 @Composable
-internal fun PlayPremiumAnalytics(
-    finance: PeriodFinance,
-    routes: List<RouteData>,
-    weeks: List<WeekData>,
-) {
+internal fun PlayPremiumAnalytics(finance: PeriodFinance, routes: List<RouteData>, weeks: List<WeekData>) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -504,9 +496,10 @@ internal fun PlayTelegram() {
         AuthStore.ignoreBootstrapForTests = true
         AuthStore(context)
     }
-    CompositionLocalProvider(LocalAuthStore provides auth) {
-        TelegramOnboardingScreen(onCompleted = {}, onSkip = {})
+    val account = remember {
+        AccountSessionViewModel(auth, UserProfileStore(context))
     }
+    TelegramOnboardingScreen(onCompleted = {}, onSkip = {}, account = account)
 }
 
 @Composable
@@ -576,7 +569,11 @@ internal fun PlayWidgetLauncher(widget: Bitmap) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Brush.verticalGradient(listOf(androidx.compose.ui.graphics.Color(0xFF3A4A5C), androidx.compose.ui.graphics.Color(0xFF1C2836)))),
+            .background(
+                Brush.verticalGradient(
+                    listOf(androidx.compose.ui.graphics.Color(0xFF3A4A5C), androidx.compose.ui.graphics.Color(0xFF1C2836)),
+                ),
+            ),
     ) {
         Column(
             modifier = Modifier.fillMaxSize().padding(top = 8.dp),
@@ -712,8 +709,3 @@ internal fun demoCaptured(
     locationData = locationData,
     timestamp = timestamp,
 )
-
-private fun RpmThresholdsStoreSafe(context: android.content.Context): com.truckerload.data.preferences.RpmThresholdsStore {
-    AuthStore.ignoreBootstrapForTests = true
-    return com.truckerload.data.preferences.RpmThresholdsStore(context)
-}

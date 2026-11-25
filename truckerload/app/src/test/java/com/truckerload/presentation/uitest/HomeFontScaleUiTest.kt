@@ -1,7 +1,6 @@
 package com.truckerload.presentation.uitest
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
@@ -11,7 +10,7 @@ import androidx.compose.ui.test.performClick
 import com.truckerload.data.repository.MaintenanceRepository
 import com.truckerload.domain.filter.LoadFilter
 import com.truckerload.presentation.components.SoftBottomBar
-import com.truckerload.presentation.di.LocalMaintenanceRepository
+import com.truckerload.presentation.di.MaintenanceBadgeViewModel
 import com.truckerload.presentation.navigation.Routes
 import com.truckerload.presentation.screens.home.HomeQuickActionRow
 import com.truckerload.presentation.screens.home.HomeScreenTopBar
@@ -53,30 +52,30 @@ class HomeFontScaleUiTest {
         var scannerOpened = false
         val maintenance = mock<MaintenanceRepository>()
         whenever(maintenance.watchActiveProgress()).thenReturn(flowOf(emptyList()))
+        val badge = MaintenanceBadgeViewModel(maintenance)
 
         composeRule.setContent {
             TruckerLoadTheme(darkTheme = true, dynamicColor = false) {
-                CompositionLocalProvider(LocalMaintenanceRepository provides maintenance) {
-                    Column {
-                        HomeScreenTopBar(
-                            welcomeName = "Demo Driver",
-                            weekLabel = "",
-                            filter = LoadFilter.THIS_WEEK,
-                            openDrawer = {},
-                            onSearchToggle = {},
-                        )
-                        HomeQuickActionRow(
-                            onDiesel = {},
-                            onPaycheck = {},
-                            onExpense = {},
-                            onScanner = { scannerOpened = true },
-                        )
-                        SoftBottomBar(
-                            currentRoute = Routes.HOME,
-                            onNavigate = {},
-                            onQuickAction = {},
-                        )
-                    }
+                Column {
+                    HomeScreenTopBar(
+                        welcomeName = "Demo Driver",
+                        weekLabel = "",
+                        filter = LoadFilter.THIS_WEEK,
+                        openDrawer = {},
+                        onSearchToggle = {},
+                    )
+                    HomeQuickActionRow(
+                        onDiesel = {},
+                        onPaycheck = {},
+                        onExpense = {},
+                        onScanner = { scannerOpened = true },
+                    )
+                    SoftBottomBar(
+                        currentRoute = Routes.HOME,
+                        onNavigate = {},
+                        onQuickAction = {},
+                        viewModel = badge,
+                    )
                 }
             }
         }

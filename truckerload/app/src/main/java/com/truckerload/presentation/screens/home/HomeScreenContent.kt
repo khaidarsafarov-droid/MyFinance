@@ -57,7 +57,6 @@ import com.truckerload.presentation.components.HomePeriodFilterDropdown
 import com.truckerload.presentation.components.OneUiLargeTitleHeader
 import com.truckerload.presentation.components.StatsCardSkeleton
 import com.truckerload.presentation.components.rememberLoadCards
-import com.truckerload.presentation.di.LocalWeeklyProfitGoalStore
 import com.truckerload.presentation.icons.AppIcons
 import com.truckerload.presentation.screens.privacy.PrivacyTrustBadge
 import com.truckerload.presentation.theme.BentoGlassScreenBackground
@@ -65,8 +64,8 @@ import com.truckerload.presentation.theme.LocalReduceMotion
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.theme.UiDimens
 import com.truckerload.presentation.utils.adaptiveLoadColumns
-import java.util.Calendar
 import com.truckerload.presentation.components.TlTextButton as TextButton
+import java.util.Calendar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -96,11 +95,13 @@ internal fun HomeScreenContent(
     periodTotals: com.truckerload.domain.filter.LoadFilterUseCase.Totals? = null,
     onOpenPrivacy: () -> Unit = {},
     onSharePeriod: () -> Unit = {},
+    weeklyGoal: Double = 0.0,
+    profileComplete: Boolean = true,
+    totalLoadCount: Int = 0,
     modifier: Modifier = Modifier,
 ) {
     val tc = LocalTruckColors.current
     val paging = if (useRoomPaging) pagedLoads else null
-    val weeklyGoal by LocalWeeklyProfitGoalStore.current.goalAmount.collectAsStateWithLifecycle()
     var showMonthPicker by remember { mutableStateOf(false) }
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
     val swipeSettleGeneration by viewModel.swipeSettleGeneration.collectAsStateWithLifecycle()
@@ -170,6 +171,7 @@ internal fun HomeScreenContent(
                     onOpenCalendar = onOpenCalendar,
                     onOpenMonthPicker = { showMonthPicker = true },
                     onSharePeriod = onSharePeriod,
+                    weeklyGoal = weeklyGoal,
                 )
                 PullToRefreshDefaults.Indicator(
                     modifier = Modifier.align(Alignment.TopCenter),
@@ -256,6 +258,9 @@ internal fun HomeScreenContent(
                         onWeeklyGoal = onOpenWeeklyGoal,
                         onAddDiesel = onAddDiesel,
                         onOpenProfile = onOpenProfile,
+                        totalLoadCount = totalLoadCount,
+                        profileComplete = profileComplete,
+                        weeklyGoal = weeklyGoal,
                     )
                 }
 
