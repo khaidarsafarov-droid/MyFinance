@@ -443,17 +443,6 @@
 
     <issue
         id="GradleDependency"
-        message="A newer version of com.google.devtools.ksp than 2.2.10-2.0.2 is available: 2.3.14"
-        errorLine1="ksp = &quot;2.2.10-2.0.2&quot;"
-        errorLine2="      ~~~~~~~~~~~~~~">
-        <location
-            file="../gradle/libs.versions.toml"
-            line="12"
-            column="7"/>
-    </issue>
-
-    <issue
-        id="GradleDependency"
         message="A newer version of androidx.core:core-ktx than 1.16.0 is available: 1.19.1"
         errorLine1="coreKtx = &quot;1.16.0&quot;"
         errorLine2="          ~~~~~~~~">
@@ -817,50 +806,6 @@
 
     <issue
         id="NewerVersionAvailable"
-        message="A newer version of org.jetbrains.kotlin.jvm than 2.2.10 is available: 2.4.21"
-        errorLine1="kotlin = &quot;2.2.10&quot;"
-        errorLine2="         ~~~~~~~~">
-        <location
-            file="../gradle/libs.versions.toml"
-            line="10"
-            column="10"/>
-    </issue>
-
-    <issue
-        id="NewerVersionAvailable"
-        message="A newer version of org.jetbrains.kotlin.multiplatform than 2.2.10 is available: 2.4.21"
-        errorLine1="kotlin = &quot;2.2.10&quot;"
-        errorLine2="         ~~~~~~~~">
-        <location
-            file="../gradle/libs.versions.toml"
-            line="10"
-            column="10"/>
-    </issue>
-
-    <issue
-        id="NewerVersionAvailable"
-        message="A newer version of org.jetbrains.kotlin.plugin.compose than 2.2.10 is available: 2.4.21"
-        errorLine1="kotlin = &quot;2.2.10&quot;"
-        errorLine2="         ~~~~~~~~">
-        <location
-            file="../gradle/libs.versions.toml"
-            line="10"
-            column="10"/>
-    </issue>
-
-    <issue
-        id="NewerVersionAvailable"
-        message="A newer version of org.jetbrains.kotlin.plugin.serialization than 2.2.10 is available: 2.4.21"
-        errorLine1="kotlin = &quot;2.2.10&quot;"
-        errorLine2="         ~~~~~~~~">
-        <location
-            file="../gradle/libs.versions.toml"
-            line="10"
-            column="10"/>
-    </issue>
-
-    <issue
-        id="NewerVersionAvailable"
         message="A newer version of org.jetbrains.kotlinx:kotlinx-serialization-json than 1.11.0 is available: 1.13.0"
         errorLine1="kotlinxSerialization = &quot;1.11.0&quot;"
         errorLine2="                       ~~~~~~~~">
@@ -872,28 +817,6 @@
 
     <issue
         id="NewerVersionAvailable"
-        message="A newer version of org.jetbrains.kotlinx:kotlinx-coroutines-play-services than 1.8.1 is available: 1.11.0"
-        errorLine1="kotlinxCoroutines = &quot;1.8.1&quot;"
-        errorLine2="                    ~~~~~~~">
-        <location
-            file="../gradle/libs.versions.toml"
-            line="14"
-            column="21"/>
-    </issue>
-
-    <issue
-        id="NewerVersionAvailable"
-        message="A newer version of org.jetbrains.kotlinx:kotlinx-coroutines-test than 1.8.1 is available: 1.11.0"
-        errorLine1="kotlinxCoroutines = &quot;1.8.1&quot;"
-        errorLine2="                    ~~~~~~~">
-        <location
-            file="../gradle/libs.versions.toml"
-            line="14"
-            column="21"/>
-    </issue>
-
-    <issue
-        id="NewerVersionAvailable"
         message="A newer version of com.google.code.gson:gson than 2.11.0 is available: 2.15.0"
         errorLine1="gson = &quot;2.11.0&quot;"
         errorLine2="       ~~~~~~~~">
@@ -901,28 +824,6 @@
             file="../gradle/libs.versions.toml"
             line="19"
             column="8"/>
-    </issue>
-
-    <issue
-        id="NewerVersionAvailable"
-        message="A newer version of com.google.maps.android:maps-compose than 4.3.0 is available: 9.0.1"
-        errorLine1="mapsCompose = &quot;4.3.0&quot;"
-        errorLine2="              ~~~~~~~">
-        <location
-            file="../gradle/libs.versions.toml"
-            line="42"
-            column="15"/>
-    </issue>
-
-    <issue
-        id="NewerVersionAvailable"
-        message="A newer version of com.google.maps.android:android-maps-utils than 3.8.2 is available: 7.0.1"
-        errorLine1="mapsUtils = &quot;3.8.2&quot;"
-        errorLine2="            ~~~~~~~">
-        <location
-            file="../gradle/libs.versions.toml"
-            line="43"
-            column="13"/>
     </issue>
 
     <issue
