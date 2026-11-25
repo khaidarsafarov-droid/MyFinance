@@ -111,7 +111,11 @@ fun DailyDistributionChart(
                                 .fillMaxWidth((day.gross / maxGross).toFloat().coerceIn(0.04f, 1f))
                                 .background(
                                     Brush.horizontalGradient(
-                                        listOf(SoftUiColors.ForestAccent, SoftUiColors.ForestMuted) // decorative fill; not body text,
+                                        // Decorative fill; not body text.
+                                        listOf(
+                                            SoftUiColors.ForestAccent,
+                                            SoftUiColors.ForestMuted,
+                                        ),
                                     ),
                                 ),
                         )

@@ -49,6 +49,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.MapView
 import com.google.android.gms.maps.model.LatLng
 import java.util.concurrent.atomic.AtomicReference
@@ -147,8 +148,7 @@ fun GoogleMapsHeatmapCard(
                     if (geoJsonLayer != null) return@LaunchedEffect
                     view.getMapAsync { googleMap ->
                         if (geoJsonLayer != null) return@getMapAsync
-                        attachGeoJsonLayer(
-                            googleMap = googleMap,
+                        googleMap.attachGeoJsonLayer(
                             json = json,
                             byCode = byCode,
                             selectedCode = selectedCode,
@@ -224,8 +224,7 @@ fun GoogleMapsHeatmapCard(
                                 )
                                 googleMap.setMapStyle(MapStyleOptions(MAP_STYLE))
                                 geoJson?.let { json ->
-                                    attachGeoJsonLayer(
-                                        googleMap = googleMap,
+                                    googleMap.attachGeoJsonLayer(
                                         json = json,
                                         byCode = byCode,
                                         selectedCode = selectedCode,
@@ -415,27 +414,26 @@ private fun peekCachedGeoJson(): JSONObject? =
     if (geoJsonCacheReady.get()) cachedGeoJson.get() else null
 
 private fun loadGeoJsonFromRaw(context: Context): JSONObject? {
-    peekCachedGeoJson()?.let { return it }
-    synchronized(cachedGeoJson) {
-        peekCachedGeoJson()?.let { return it }
-        val parsed = try {
-            val json = context.resources.openRawResource(R.raw.us_states).bufferedReader().readText()
-            JSONObject(json)
-        } catch (e: java.io.IOException) {
-            logFailure("GoogleMapsHeatmap", "state outlines failed", e)
-            null
-        } catch (e: org.json.JSONException) {
-            logFailure("GoogleMapsHeatmap", "state outlines failed", e)
-            null
+    return peekCachedGeoJson() ?: synchronized(cachedGeoJson) {
+        peekCachedGeoJson() ?: run {
+            val parsed = try {
+                val json = context.resources.openRawResource(R.raw.us_states).bufferedReader().readText()
+                JSONObject(json)
+            } catch (e: java.io.IOException) {
+                logFailure("GoogleMapsHeatmap", "state outlines failed", e)
+                null
+            } catch (e: org.json.JSONException) {
+                logFailure("GoogleMapsHeatmap", "state outlines failed", e)
+                null
+            }
+            cachedGeoJson.set(parsed)
+            geoJsonCacheReady.set(true)
+            parsed
         }
-        cachedGeoJson.set(parsed)
-        geoJsonCacheReady.set(true)
-        return parsed
     }
 }
 
-private fun attachGeoJsonLayer(
-    googleMap: com.google.android.gms.maps.GoogleMap,
+private fun GoogleMap.attachGeoJsonLayer(
     json: JSONObject,
     byCode: Map<String, USStateMetric>,
     selectedCode: String,
@@ -443,7 +441,7 @@ private fun attachGeoJsonLayer(
     onReady: (GeoJsonLayer) -> Unit,
 ) {
     try {
-        val layer = GeoJsonLayer(googleMap, json)
+        val layer = GeoJsonLayer(this, json)
         layer.addLayerToMap()
         applyStateStyles(layer, byCode, selectedCode)
         layer.setOnFeatureClickListener { feature ->

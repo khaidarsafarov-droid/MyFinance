@@ -438,10 +438,12 @@
     <string name="gallery_page">%1$d / %2$d</string>
     <plurals name="gallery_photo_count">
         <item quantity="one">%d photo</item>
+        <item quantity="many">%d de photos</item>
         <item quantity="other">%d photos</item>
     </plurals>
     <plurals name="gallery_scan_count">
         <item quantity="one">%d numérisation</item>
+        <item quantity="many">%d de numérisations</item>
         <item quantity="other">%d numérisations</item>
     </plurals>
     <string name="load_detail_photos">Photos du chargement</string>
@@ -994,10 +996,12 @@
     <string name="load_source_broker">COURTIER</string>
     <plurals name="load_card_duration_days">
         <item quantity="one">%d jour</item>
+        <item quantity="many">%d de jours</item>
         <item quantity="other">%d jours</item>
     </plurals>
     <plurals name="load_card_stops">
         <item quantity="one">%d arrêt</item>
+        <item quantity="many">%d d'arrêts</item>
         <item quantity="other">%d arrêts</item>
     </plurals>
     <string name="load_card_attach_photo">Prendre une photo pour le chargement</string>
@@ -1633,6 +1637,7 @@
     <string name="room_name">Nom de la salle</string>
     <plurals name="participants_count">
         <item quantity="one">%d participant</item>
+        <item quantity="many">%d de participants</item>
         <item quantity="other">%d participants</item>
     </plurals>
     <string name="voice_room_description">Description de la salle</string>
@@ -2048,6 +2053,7 @@
     <string name="share_load_added_missing">Chargement ajouté. Complétez : %1$s.</string>
     <plurals name="share_loads_added">
         <item quantity="one">%d chargement ajouté</item>
+        <item quantity="many">%d de chargements ajoutés</item>
         <item quantity="other">%d chargements ajoutés</item>
     </plurals>
     <string name="share_field_rate">tarif</string>
