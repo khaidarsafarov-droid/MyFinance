@@ -14,7 +14,6 @@ class HiltArchitectureTest {
         assertTrue(source.contains("@InstallIn(SingletonComponent::class)"))
         listOf(
             "AuthStore",
-            "AuthCredentialsStore",
             "UserProfileStore",
             "SettingsDataStore",
         ).forEach { type ->

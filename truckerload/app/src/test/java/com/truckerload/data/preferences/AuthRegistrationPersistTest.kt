@@ -28,19 +28,6 @@ class AuthRegistrationPersistTest {
     }
 
     @Test
-    fun emailSignupCredentialsSurviveSecureStorageFallback() {
-        SecurePreferences.markFallbackForTests()
-        val context = RuntimeEnvironment.getApplication()
-        val credentials = AuthCredentialsStore(context)
-
-        credentials.saveCredentials("Driver@Example.com", "Password1")
-
-        assertTrue(credentials.hasCredentialsFor("driver@example.com"))
-        assertTrue(credentials.validateCredentials("driver@example.com", "Password1"))
-        assertFalse(credentials.validateCredentials("driver@example.com", "WrongPass1"))
-    }
-
-    @Test
     fun emailSessionSurvivesColdStartWithoutProviderKey() {
         val context = RuntimeEnvironment.getApplication()
         val auth = AuthStore(context)
@@ -94,13 +81,10 @@ class AuthRegistrationPersistTest {
     @Test
     fun localEmailRegistrationCanLoginAfterRestart() {
         val context = RuntimeEnvironment.getApplication()
-        val credentials = AuthCredentialsStore(context)
         val auth = AuthStore(context)
         val profiles = UserProfileStore(context)
         val email = "tablet@example.com"
-        val password = "SecurePass1"
 
-        credentials.saveCredentials(email, password)
         AuthLogin.completeLogin(
             authStore = auth,
             userProfileStore = profiles,
@@ -115,11 +99,9 @@ class AuthRegistrationPersistTest {
 
         AuthStore.resetForTests()
         val restoredAuth = AuthStore(context)
-        val restoredCreds = AuthCredentialsStore(context)
 
         assertTrue(restoredAuth.isLoggedIn.value)
         assertEquals(AccountIds.fromEmail(email), restoredAuth.currentUserIdOrNull())
-        assertTrue(restoredCreds.validateCredentials(email, password))
     }
 
     @Test

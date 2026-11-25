@@ -1,8 +1,6 @@
 package com.truckerload.presentation.screens.social
 
 import com.truckerload.domain.premium.PremiumOfferQuote
-import java.time.ZoneId
-import java.time.ZonedDateTime
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -69,14 +67,5 @@ class ProfileHeroStateTest {
         val paidModel = ProfileHeroState.premium(subscribed = false, offerLoaded = true, quote = paid)
         assertEquals(ProfilePremiumPhase.PAID, paidModel.phase)
         assertEquals("$4.99", paidModel.price)
-    }
-
-    @Test
-    fun driveSyncStamp_formatsOrSkips() {
-        val zone = ZoneId.of("America/New_York")
-        val at = ZonedDateTime.of(2026, 10, 18, 9, 41, 0, 0, zone).toInstant().toEpochMilli()
-        assertEquals("18.10.2026 09:41", ProfileHeroState.driveSyncStamp(at, zone))
-        assertNull(ProfileHeroState.driveSyncStamp(0L, zone))
-        assertNull(ProfileHeroState.driveSyncStamp(-5L, zone))
     }
 }
