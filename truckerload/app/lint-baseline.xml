@@ -2292,7 +2292,7 @@
     <issue
         id="PluralsCandidate"
         message="Formatting %d followed by words (&quot;days&quot;): This should probably be a plural rather than a string"
-        errorLine1="    &lt;string name=&quot;tax_per_diem&quot;>Per Diem (%1$d days × $69): -$%2$.2f&lt;/string>"
+        errorLine1="    &lt;string name=&quot;tax_per_diem&quot;>Per Diem (%1$d days × $80 × 80%%): -$%2$.2f&lt;/string>"
         errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values-en/strings.xml"
@@ -2303,7 +2303,7 @@
     <issue
         id="PluralsCandidate"
         message="Formatting %d followed by words (&quot;days&quot;): This should probably be a plural rather than a string"
-        errorLine1="    &lt;string name=&quot;tax_per_diem&quot;>Per Diem (%1$d days × $69): -$%2$.2f&lt;/string>"
+        errorLine1="    &lt;string name=&quot;tax_per_diem&quot;>Per Diem (%1$d days × $80 × 80%%): -$%2$.2f&lt;/string>"
         errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"

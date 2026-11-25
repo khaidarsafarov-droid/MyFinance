@@ -222,7 +222,7 @@
     <string name="about_guide_paycheck_title">6. Chèque de paie</string>
     <string name="about_guide_paycheck_body">Menu → Chèque de paie ouvre le journal des versements. Vous voyez chaque paie précédente; choisissez une semaine ou recherchez par montant et par fichier. Appuyez sur une fiche pour modifier le montant; appuyez sur le nom du fichier pour ouvrir l\'original. Plus (+) ouvre le formulaire : fichier ou photo, Telegram, ou saisie du montant. Dans Mes chiffres, la paie et le diesel sont côte à côte, en couleur — sans soustraction.</string>
     <string name="about_guide_tax_title">7. Impôts</string>
-    <string name="about_guide_tax_body">Menu → Impôts : une estimation trimestrielle à partir du brut des chargements, de la déduction diesel et du per diem (69 $/jour). C\'est un guide, pas un avis fiscal.</string>
+    <string name="about_guide_tax_body">Menu → Impôts : une estimation trimestrielle à partir du brut des chargements, de la déduction diesel et du per diem (80 $/jour, déductible à 80 %). C\'est un guide, pas un avis fiscal.</string>
     <string name="about_guide_reports_title">8. Rapports</string>
     <string name="about_guide_reports_body">Menu → Rapports : revenu hebdomadaire et par trajet, paie et diesel côte à côte en couleur (sans soustraction), et exportation CSV.</string>
     <string name="about_guide_map_title">9. Carte</string>
@@ -493,7 +493,7 @@
     <string name="tax_income">Revenu</string>
     <string name="tax_deductions">Déductions</string>
     <string name="tax_diesel_deduction">Diesel : -$%1$.2f</string>
-    <string name="tax_per_diem">Per diem (%1$d jours × $69) : -$%2$.2f</string>
+    <string name="tax_per_diem">Per diem (%1$d jours × $80 × 80 %%) : -$%2$.2f</string>
     <string name="tax_total_deductions">Déductions totales : -$%1$.2f</string>
     <string name="taxable_income">Revenu imposable</string>
     <string name="tax_total_owed">Total dû : $%1$.2f</string>

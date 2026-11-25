@@ -163,7 +163,7 @@ class AccountantWorkbookBuilderTest {
             val perDiem = sheetRows(xml, "Суточные")
             assertEquals("ИТОГО (0 дн.)", perDiem[1][0].value)
             assertEquals("String", perDiem[1][0].type)
-            assertEquals(number("69.00", "Money"), perDiem[1][1])
+            assertEquals(number("80.00", "Money"), perDiem[1][1])
             assertEquals(number("0.00", "Money"), perDiem[1][2])
 
             val maintenance = sheetRows(xml, "ТО")
@@ -247,7 +247,7 @@ class AccountantWorkbookBuilderTest {
             byLabel.getValue("Дизель всего, USD"),
         )
         assertEquals(number("2", "Integer"), byLabel.getValue("Дней на рейсах (суточные)"))
-        assertEquals(number("69.00", "Money"), byLabel.getValue("Ставка суточных, USD/день"))
+        assertEquals(number("80.00", "Money"), byLabel.getValue("Ставка суточных, USD/день"))
         assertEquals(
             number(String.format(Locale.ROOT, "%.2f", PerDiemCalculator.amount(2)), "Money"),
             byLabel.getValue("Суточные всего, USD"),
@@ -327,11 +327,11 @@ class AccountantWorkbookBuilderTest {
         val rows = sheetRows(xml, "Суточные")
         assertEquals(listOf("Дата на рейсе", "Ставка, USD", "Сумма, USD"), rows[0].map { it.value })
         assertEquals(
-            listOf(date("2026-06-01"), number("69.00", "Money"), number("69.00", "Money")),
+            listOf(date("2026-06-01"), number("80.00", "Money"), number("80.00", "Money")),
             rows[1],
         )
         assertEquals(
-            listOf(date("2026-06-02"), number("69.00", "Money"), number("69.00", "Money")),
+            listOf(date("2026-06-02"), number("80.00", "Money"), number("80.00", "Money")),
             rows[2],
         )
         val total = String.format(
@@ -342,7 +342,7 @@ class AccountantWorkbookBuilderTest {
         assertEquals(
             listOf(
                 text("ИТОГО (${input.perDiemDates.size} дн.)"),
-                number("69.00", "Money"),
+                number("80.00", "Money"),
                 number(total, "Money"),
             ),
             rows[3],

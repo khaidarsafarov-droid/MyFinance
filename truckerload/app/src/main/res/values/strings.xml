@@ -222,7 +222,7 @@
     <string name="about_guide_paycheck_title">6. Paycheck</string>
     <string name="about_guide_paycheck_body">Menu → Paycheck opens the payout journal. You see every previous paycheck; pick a week or search by amount and file. Tap a card to edit the amount; tap the file name to open the original. Plus (+) opens the form: file/photo, Telegram, or enter the amount. In My numbers, paycheck and diesel sit side by side in color — no subtraction.</string>
     <string name="about_guide_tax_title">7. Taxes</string>
-    <string name="about_guide_tax_body">Menu → Taxes: a quarterly estimate from load gross, diesel deduction, and per diem ($69/day). It is a guide, not tax advice.</string>
+    <string name="about_guide_tax_body">Menu → Taxes: a quarterly estimate from load gross, diesel deduction, and per diem ($80/day, deductible at 80%). It is a guide, not tax advice.</string>
     <string name="about_guide_reports_title">8. Reports</string>
     <string name="about_guide_reports_body">Menu → Reports: weekly and route income, paycheck and diesel side by side in color (no subtraction), and CSV export.</string>
     <string name="about_guide_map_title">9. Map</string>
@@ -495,7 +495,7 @@
     <string name="tax_income">Income</string>
     <string name="tax_deductions">Deductions</string>
     <string name="tax_diesel_deduction">Diesel: -$%1$.2f</string>
-    <string name="tax_per_diem">Per Diem (%1$d days × $69): -$%2$.2f</string>
+    <string name="tax_per_diem">Per Diem (%1$d days × $80 × 80%%): -$%2$.2f</string>
     <string name="tax_total_deductions">Total deductions: -$%1$.2f</string>
     <string name="taxable_income">Taxable income</string>
     <string name="tax_total_owed">Total owed: $%1$.2f</string>
