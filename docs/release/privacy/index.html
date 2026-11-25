@@ -1,120 +1,14 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Privacy Policy for TruckoRig (com.truckorig). Local journal. Google Maps, ML Kit, Drive, Telegram, and Play billing are described with links.">
   <title>Privacy Policy — TruckoRig</title>
-  <style>
-    :root {
-      --bg: #0F1230;
-      --bg-soft: #1E2150;
-      --card: #f7f6f1;
-      --ink: #16141f;
-      --muted: #5c5870;
-      --line: #e4dfd2;
-      --accent-ink: #86542A;
-      --soft: #f3ead3;
-      --warn-bg: #fff4d6;
-      --warn-ink: #6a4b00;
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
-      background: linear-gradient(180deg, var(--bg-soft) 0%, var(--bg) 280px, #eceaf3 280px);
-      color: var(--ink);
-      line-height: 1.65;
-    }
-    .wrap { max-width: 840px; margin: 0 auto; padding: 32px 20px 64px; }
-    header, section {
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      padding: 24px 28px;
-      margin-bottom: 16px;
-    }
-    h1 { margin: 8px 0 6px; font-size: 1.85rem; }
-    h2 { margin: 0 0 12px; font-size: 1.25rem; }
-    h3 { margin: 18px 0 8px; font-size: 1.05rem; }
-    .meta, .eyebrow { color: var(--muted); }
-    .eyebrow { font-size: 13px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--accent-ink); }
-    a { color: var(--accent-ink); }
-    table { width: 100%; border-collapse: collapse; font-size: .95rem; }
-    th, td { text-align: left; vertical-align: top; padding: 8px; border-bottom: 1px solid var(--line); }
-    ul { padding-left: 1.2rem; }
-    .note, .todo { border-radius: 12px; padding: 14px 16px; margin: 12px 0; }
-    .note { background: var(--soft); }
-    .todo { background: var(--warn-bg); color: var(--warn-ink); }
-    footer { color: #d9c89a; text-align: center; margin-top: 24px; }
-  </style>
+  <link rel="canonical" href="https://khaidarsafarov-droid.github.io/MyFinance/privacy/">
+  <meta http-equiv="refresh" content="0; url=../../privacy/">
 </head>
 <body>
-  <div class="wrap">
-    <header>
-      <div class="eyebrow">TruckoRig · com.truckorig</div>
-      <h1>Политика конфиденциальности</h1>
-      <p class="meta">Privacy Policy · 23 November 2026 · Android package com.truckorig · Khaidar Safarov · <a href="mailto:truckorig@gmail.com">truckorig@gmail.com</a></p>
-      <p class="todo">Postal address is not in this repository. TODO: publish a real mailing address only if you have one. Do not invent one.</p>
-    </header>
-
-    <section id="ru" lang="ru">
-      <h2>Русский</h2>
-      <p>TruckoRig на Android — локальный журнал. Грузы, зарплаты, дизель и фото хранятся на телефоне. Разработчик не принимает журнал на свой сервер. Рекламы нет, данные не продаются. Код iOS в этом репозитории — только экран недельной цели: без журнала, iCloud и Telegram.</p>
-      <h3>На телефоне</h3>
-      <p>Журнал в зашифрованной базе Room. Имя при первом запуске — по желанию. Токен Telegram, если вы его ввели, остаётся в зашифрованных настройках. Системная автокопия Android выключена.</p>
-      <p>Штамп на фото — место, дата и время — основная функция. Вы ставите его, когда сами снимаете, чтобы показать компании, где и когда сделан снимок. В фоне приложение местоположение не собирает. Штамп рисуется на снимке и хранится на телефоне. Разработчик его не получает. В JSON-копию Google Drive фото не входят. Снимок уходит с телефона, только когда вы сами им делитесь.</p>
-      <h3>Кто получает данные</h3>
-      <ul>
-        <li><strong>Google Maps</strong> — если открыть карту. SDK отправляет Google сведения об устройстве, псевдонимный идентификатор, IP, жесты карты и метрики сбоев внутри SDK. Directions API приложение не вызывает. <a href="https://policies.google.com/privacy">Политика Google</a>. <a href="https://developers.google.com/maps/documentation/android-sdk/play-data-disclosure">Что указывает SDK</a>.</li>
-        <li><strong>Геокодер</strong> — если вы разрешили геолокацию: при съёмке фото, чтобы на штампе были город, штат и индекс, и при внесении заправки, чтобы подставить станцию или адрес. На телефоне с сервисами Google на эти запросы отвечает Google. Копии для TruckoRig нет. Карта ваш GPS не отправляет. Фона нет. Без разрешения штамп будет со временем и без места, поле заправки можно ввести вручную.</li>
-        <li><strong>ML Kit</strong> — сканер и распознавание текста. Снимок обрабатывается на устройстве; в Google уходит диагностика, не копия документа разработчику. <a href="https://policies.google.com/privacy">Политика Google</a>. <a href="https://developers.google.com/ml-kit/android-data-disclosure">Раскрытие ML Kit</a>.</li>
-        <li><strong>GitHub</strong> — скачивание языковых файлов английского и русского для офлайн-распознавания. Журнал не загружается. <a href="https://docs.github.com/en/site-policy/privacy-policies/github-privacy-statement">Политика GitHub</a>.</li>
-        <li><strong>Google Drive</strong> — по желанию, скрытая папка вашего аккаунта (её не видно в «Моём диске»). JSON журнала без файлов фото и без GPS-записей фото; текст станции или адреса с заправки может попасть в JSON. После включения копии она может уйти снова после правки и примерно раз в 12 часов при наличии сети. Это не сквозное шифрование. Почта Google только показывает привязанный аккаунт. Отключение в Настройках не удаляет уже лежащий файл. <a href="https://policies.google.com/privacy">Политика Google</a>. <a href="https://developers.google.com/drive/api/guides/appdata">Папка app data</a>.</li>
-        <li><strong>Telegram</strong> — ваш токен, Bot API <code>https://api.telegram.org</code>. Пока токен сохранён, приложение может опрашивать бота в фоне (это не foreground service). Telegram читает сообщения бота. <a href="https://telegram.org/privacy">Политика Telegram</a>.</li>
-        <li><strong>Google Play</strong> — оплата Premium (первый месяц может быть бесплатным, затем 2,99 $ в месяц в США). Номер карты приложение не получает. <a href="https://policies.google.com/privacy">Политика Google</a>.</li>
-      </ul>
-      <p>Экспорт и письмо уходят, только когда вы сами выбираете, куда их отправить.</p>
-      <h3>Чего нет</h3>
-      <p>Нет рекламы и рекламного идентификатора. Нет Firebase Crashlytics, даже если на компьютере сборки лежит google-services.json. Нет foreground service: эти разрешения удалены из манифеста. Нет загрузки «народных» ставок. Микрофон не запрашивается.</p>
-      <h3>Срок и удаление</h3>
-      <p>На телефоне данные лежат, пока вы не удалите аккаунт в приложении, не очистите данные или не удалите приложение. Скрытый файл Drive хранится, пока вы не удалите скрытые данные в Google Drive: <a href="https://support.google.com/drive/answer/2523073">инструкция</a>, <a href="https://myaccount.google.com/connections">подключённые приложения</a>. Telegram и диагностика Google хранятся по их правилам. У разработчика журнала нет.</p>
-      <p>Запросы: <a href="mailto:truckorig@gmail.com">truckorig@gmail.com</a>. Разработчик не может удалить файл в вашем Google-аккаунте или сообщение в Telegram.</p>
-      <h3>iOS</h3>
-      <p>Предложения про отдельное приложение для iPhone перенесены из черновика от 18 ноября 2026 и здесь не проверялись. Если такое приложение есть и вы включили iCloud, копия лежит в вашем iCloud, разработчик её не читает, а удаление фото на телефоне само не удаляет копию в iCloud.</p>
-      <p>Приложение не для детей младше 13 лет.</p>
-    </section>
-
-    <section id="en" lang="en">
-      <h2>English</h2>
-      <p>TruckoRig on Android is a local-first trucking journal. Loads, paychecks, diesel, and photos stay on your phone. The developer does not run a server that receives the journal. The app shows no ads and does not sell personal data. The iOS code in this repository is a weekly-goal screen only: no journal, no iCloud, and no Telegram.</p>
-      <h3>On the phone</h3>
-      <p>The journal is an on-device Room database encrypted with SQLCipher. The optional first-run name stays on the phone. A Telegram token you type stays in encrypted preferences. Android system backup of the app is off.</p>
-      <p>The photo stamp — location, date, and time — is a core feature. You add it when you take the photo, so you can show your trucking company where and when it was taken. The app does not collect location in the background. The stamp is drawn on the picture and stored on the phone. The developer does not receive it. Photo files are not in the Google Drive JSON. The photo leaves the phone only when you share or export it yourself.</p>
-      <h3>Who receives data</h3>
-      <ul>
-        <li><strong>Google Maps</strong> — if you open the map. The SDK sends Google device and request details, a pseudonymous Maps identifier, your IP address, pan and zoom, and crash metrics from inside the SDK. The app does not call the Directions API. <a href="https://policies.google.com/privacy">Google privacy policy</a>. <a href="https://developers.google.com/maps/documentation/android-sdk/play-data-disclosure">Maps SDK disclosure</a>.</li>
-        <li><strong>Geocoder</strong> — if you allow location: when you take a photo, so the stamp can include city, state, and ZIP, and when you add a diesel fill, to prefill the station or address. On a Play-services phone, Google answers those lookups. TruckoRig does not keep a copy. The map does not send your GPS. There is no background location. Without permission, the stamp has the time and no place, and the diesel field can be typed by hand.</li>
-        <li><strong>ML Kit</strong> — optional scanner and text recognition. The image is processed on the device. Google receives diagnostics, not a developer copy of the document. <a href="https://policies.google.com/privacy">Google privacy policy</a>. <a href="https://developers.google.com/ml-kit/android-data-disclosure">ML Kit disclosure</a>.</li>
-        <li><strong>GitHub</strong> — a download of English and Russian recognition files. Your journal is not uploaded. <a href="https://docs.github.com/en/site-policy/privacy-policies/github-privacy-statement">GitHub privacy statement</a>.</li>
-        <li><strong>Google Drive</strong> — optional hidden app-data folder in your account (not visible in My Drive). Journal JSON, without photo files or photo GPS records; diesel station or address text can be in the JSON. After you turn backup on, a later edit or a periodic check (about every 12 hours, when the phone has network) can upload again. Not end-to-end encrypted. Your Google email only shows which account is linked. Disconnect in Settings does not delete the file already stored. <a href="https://policies.google.com/privacy">Google privacy policy</a>. <a href="https://developers.google.com/drive/api/guides/appdata">App-data folder</a>.</li>
-        <li><strong>Telegram</strong> — your bot token, Bot API at https://api.telegram.org. Once the token is saved, the app can poll that bot in the background (not a foreground service). Telegram can read bot messages. <a href="https://telegram.org/privacy">Telegram privacy policy</a>.</li>
-        <li><strong>Google Play</strong> — Premium payment (first month can be free, then $2.99 per month in the United States). The app does not receive your card number. <a href="https://policies.google.com/privacy">Google privacy policy</a>.</li>
-      </ul>
-      <p>An export or feedback email leaves the phone only when you choose where it goes.</p>
-      <h3>What we do not do</h3>
-      <p>No ads and no advertising ID. No Firebase Crashlytics, even if google-services.json is on the build machine. No foreground service: those permissions are removed from the manifest. No upload of crowd rates. The microphone is not requested.</p>
-      <h3>Retention and deletion</h3>
-      <p>On the phone, data stays until you delete the account in the app, clear storage, or uninstall. The hidden Drive file stays until you delete hidden app data: <a href="https://support.google.com/drive/answer/2523073">Google’s steps</a>, <a href="https://myaccount.google.com/connections">connected apps</a>. Telegram messages and Google diagnostics follow those companies’ policies. The developer does not hold the journal.</p>
-      <p>Privacy requests: <a href="mailto:truckorig@gmail.com">truckorig@gmail.com</a>. The developer cannot delete a file in your Google account or a message on Telegram’s servers.</p>
-      <h3>iOS</h3>
-      <p>Sentences about a separate iPhone app were carried forward from the 18 November 2026 draft and were not re-checked here. If that app has an iCloud copy you turned on, it stays in your iCloud, the developer cannot read it, and deleting a photo on the phone does not by itself delete the iCloud copy.</p>
-      <p>TruckoRig is not directed at children under 13.</p>
-      <h3>Contact</h3>
-      <p>Khaidar Safarov — <a href="mailto:truckorig@gmail.com">truckorig@gmail.com</a></p>
-    </section>
-
-    <footer>TruckoRig · com.truckorig · Privacy Policy · 23 November 2026</footer>
-  </div>
+  <p>The TruckoRig privacy policy has moved: <a href="../../privacy/">khaidarsafarov-droid.github.io/MyFinance/privacy/</a></p>
+  <p lang="ru">Политика конфиденциальности TruckoRig переехала: <a href="../../privacy/">khaidarsafarov-droid.github.io/MyFinance/privacy/</a></p>
 </body>
 </html>

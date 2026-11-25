@@ -25,11 +25,11 @@ TruckoRig — локальный журнал для водителей: гру�
 
 ### 3. Ваши данные и ответственность
 
-Вы сохраняете права на данные журнала, которые вводите. Вы отвечаете за их точность и за то, чтобы хранить резервные копии, если они вам нужны (экспорт, Google Drive на Android или iCloud на iOS — по желанию).
+Вы сохраняете права на данные журнала, которые вводите. Вы отвечаете за их точность и за то, чтобы хранить резервные копии, если они вам нужны (файл бэкапа и экспорт на Android, iCloud на iOS — по желанию).
 
-Разблокировка устройства, токен Telegram, доступ к Google Drive и вход в iCloud — ваша ответственность. Не сообщайте токен бота посторонним.
+Разблокировка устройства, токен Telegram, сохранённые файлы бэкапа и вход в iCloud — ваша ответственность. Не сообщайте токен бота посторонним.
 
-Удаление приложения стирает локальные данные. Копии в вашем Drive или iCloud нужно удалять отдельно. Подписка при удалении приложения автоматически не отменяется.
+Удаление приложения стирает локальные данные. Файлы бэкапа, которые вы сохранили, и копии в iCloud нужно удалять отдельно. Подписка при удалении приложения автоматически не отменяется.
 
 ### 4. Не является консультацией
 
@@ -39,7 +39,7 @@ TruckoRig — локальный журнал для водителей: гру�
 
 Некоторые функции обращаются к сторонним сервисам, которые вы подключаете сами:
 
-- Google Play и Google Drive, карты Google (Android / карта);
+- Google Play и карты Google (Android / карта);
 - App Store и iCloud (iOS);
 - Telegram Bot API, если вы вводите свой токен.
 
@@ -57,7 +57,7 @@ TruckoRig — локальный журнал для водителей: гру�
 - Android: Google Play → Платежи и подписки.
 - iOS: Настройки iPhone → Подписки, либо App Store.
 - Оплату обрабатывает Google или Apple. Возвраты регулируются правилами соответствующего магазина.
-- Состав Premium указан в приложении и в Политике конфиденциальности; набор на Android и iOS может немного отличаться (Drive против файловой копии / iCloud).
+- Состав Premium указан в приложении и в Политике конфиденциальности; набор на Android и iOS может немного отличаться (файловая копия на Android, iCloud на iOS).
 
 Цены и налоги задаёт магазин. Мы можем менять состав Premium для будущих периодов; уже оплаченный период сохраняется до конца текущего цикла, если иное не требует закон.
 
@@ -111,11 +111,11 @@ We grant you a personal, non-exclusive, non-transferable license to use the app 
 
 ### 3. Your data and responsibilities
 
-You keep the rights to the journal data you enter. You are responsible for its accuracy and for keeping backups if you need them (export, optional Google Drive on Android, or optional iCloud on iOS).
+You keep the rights to the journal data you enter. You are responsible for its accuracy and for keeping backups if you need them (a backup file and export on Android, or optional iCloud on iOS).
 
-You are responsible for device unlock, your Telegram bot token, Google Drive access, and iCloud sign-in. Do not share your bot token with others.
+You are responsible for device unlock, your Telegram bot token, the backup files you save, and iCloud sign-in. Do not share your bot token with others.
 
-Uninstalling the app deletes on-device data. Copies in your Drive or iCloud must be deleted separately. Uninstalling does not cancel a subscription by itself.
+Uninstalling the app deletes on-device data. Backup files you saved and iCloud copies must be deleted separately. Uninstalling does not cancel a subscription by itself.
 
 ### 4. Not professional advice
 
@@ -125,7 +125,7 @@ Tax, profit, goal, and report tools are record-keeping aids. They are not tax, l
 
 Some features call third-party services that you choose to connect:
 
-- Google Play and Google Drive, and Google Maps (Android / the map);
+- Google Play and Google Maps (Android / the map);
 - the App Store and iCloud (iOS);
 - the Telegram Bot API, if you enter your own bot token.
 
@@ -143,7 +143,7 @@ An optional auto-renewing subscription, TruckoRig Premium (product ID `premium_m
 - Android: Google Play → Payments and subscriptions.
 - iOS: iPhone Settings → Subscriptions, or the App Store.
 - Google or Apple processes the payment. Refunds follow that store’s rules.
-- What Premium includes is listed in the app and in the Privacy Policy. The Android and iOS sets may differ slightly (Drive versus file backup / iCloud).
+- What Premium includes is listed in the app and in the Privacy Policy. The Android and iOS sets may differ slightly (file backup on Android, iCloud on iOS).
 
 The store sets prices and applicable taxes. We may change Premium features for future periods; a period you already paid for continues until the end of the current cycle unless the law requires otherwise.
 

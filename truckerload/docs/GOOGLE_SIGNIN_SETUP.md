@@ -1,3 +1,5 @@
+> **Removed in 1.6.2.** Google Drive sync and Google Sign-In are no longer in the app. This page is kept only as history.
+
 # Настройка Google Drive OAuth (Play Store)
 
 SHA-1 **нельзя задать в коде**. Это отпечаток ключа, которым подписан AAB/APK.

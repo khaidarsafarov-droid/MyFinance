@@ -4,13 +4,13 @@
 Android package: `com.truckorig`  
 Разработчик / Developer: Khaidar Safarov  
 Контакт / Contact: [truckorig@gmail.com](mailto:truckorig@gmail.com)  
-Последнее обновление / Last updated: 23 ноября 2026 / 23 November 2026
+Последнее обновление / Last updated: 25 ноября 2026 / 25 November 2026
 
 Почтовый адрес в этом репозитории не указан. **TODO:** добавьте настоящий адрес только если хотите его опубликовать. Не выдумывайте адрес.
 
 Postal address: none is stored in this repository. **TODO:** add a real mailing address only if you want it published.
 
-Скопируйте эту страницу на https://rentry.co/truckorig-privacy-policy перед отправкой формы Data safety. Репозиторий не может обновить rentry.
+Опубликованная версия: https://khaidarsafarov-droid.github.io/MyFinance/privacy/ (GitHub Pages). Удаление данных: https://khaidarsafarov-droid.github.io/MyFinance/delete-data/. Старую страницу rentry больше не используйте: там описан Google Drive.
 
 ---
 
@@ -18,11 +18,11 @@ Postal address: none is stored in this repository. **TODO:** add a real mailing 
 
 ### Кратко
 
-TruckoRig на Android — локальный журнал водителя. Грузы, зарплаты, дизель и фото хранятся на телефоне. Разработчик не поднимает сервер, который принимает журнал. Рекламы нет, данные не продаются.
+TruckoRig на Android — локальный журнал водителя. Грузы, зарплаты, дизель и фото хранятся на телефоне. В приложении **нет аккаунтов и входа** (ни по почте, ни через Google), а с версии 1.6.2 **нет синхронизации с Google Drive**. Разработчик не поднимает сервер, который принимает журнал. Рекламы нет, данные не продаются.
 
 Некоторые необязательные функции и библиотеки Google, которые входят в приложение, отправляют данные с телефона. Ниже каждый такой случай и ссылка на политику этой компании.
 
-Код iOS в этом репозитории — экран недельной цели. Он не хранит журнал, не использует iCloud и не подключается к Telegram. Раздел про отдельное приложение для iPhone ниже перенесён из черновика от 18 ноября 2026 и в этот раз по коду Apple не проверялся.
+Отдельное приложение TruckoRig для iPhone описано в разделе «iOS» ниже.
 
 ### Что остаётся на телефоне
 
@@ -41,7 +41,7 @@ TruckoRig на Android — локальный журнал водителя. Г�
 
 Место, дата и время на снимке — основная функция. Водитель ставит их, чтобы показать компании, где и когда сделано фото. Это происходит только когда вы снимаете. В фоне приложение местоположение не собирает.
 
-Штамп рисуется на снимке и хранится вместе с фото на этом телефоне. Разработчик его не получает. В копию Google Drive уходит JSON журнала, без файлов фото. Снимок со штампом уходит с телефона, только когда вы сами им делитесь или экспортируете его. Это ваше действие.
+Штамп рисуется на снимке и хранится вместе с фото на этом телефоне. Разработчик его не получает. Снимок со штампом уходит с телефона, только когда вы сами им делитесь, экспортируете его или сохраняете файл бэкапа. Это ваше действие.
 
 ### Когда данные уходят с телефона
 
@@ -65,15 +65,6 @@ TruckoRig на Android — локальный журнал водителя. Г�
 
 - Политика GitHub: https://docs.github.com/en/site-policy/privacy-policies/github-privacy-statement
 
-**Google Drive.** По желанию, в Premium. Вход через Google только к скрытой папке данных приложения. Почта Google нужна, чтобы показать, какой аккаунт привязан. Это не вход в TruckoRig.
-
-В эту скрытую папку вашего аккаунта уходит JSON: грузы, зарплаты, дизель, ТО и настройки. Файла не видно в «Моём диске». Фото в нём нет. Google может прочитать JSON. Это не сквозное шифрование. На сервер разработчика файл не приходит.
-
-После включения копии следующее изменение может отправиться снова, и примерно раз в 12 часов, если есть сеть, приложение может проверить и отправить копию снова. Если при внесении дизеля была включена геолокация, в JSON может попасть текст станции или адреса. Файлов фото и записей GPS с фото в нём нет. «Отключить» в Настройках останавливает новые отправки и выходит из аккаунта на телефоне. Уже лежащий скрытый файл это не удаляет.
-
-- Политика Google: https://policies.google.com/privacy
-- Папка app data: https://developers.google.com/drive/api/guides/appdata
-
 **Telegram.** По желанию. Если вы вставляете свой токен, приложение вызывает Bot API `https://api.telegram.org`. Пока токен сохранён, приложение может опрашивать этот бот в фоне (это не foreground service Android). Команда статуса может отправить в ваш чат количество записей, доход за неделю и мили. Файл, который вы экспортируете, может уйти документом. Входящие сообщения можно импортировать в журнал на этом телефоне. Telegram читает сообщения Bot API. Это не сквозное шифрование. Токен остаётся на телефоне. Бота ведёте вы, не разработчик.
 
 - Политика Telegram: https://telegram.org/privacy
@@ -88,6 +79,7 @@ TruckoRig на Android — локальный журнал водителя. Г�
 
 ### Чего мы не делаем
 
+- Нет аккаунтов, входа и облачной синхронизации. Приложение не входит в Google и не читает ваш адрес почты.
 - Не продаём данные и не показываем рекламу. Разрешение рекламного идентификатора не запрашивается.
 - Не отправляем Firebase Crashlytics, сессии Firebase и другие отчёты о сбоях Firebase. Файл `google-services.json` на компьютере сборки это не включает.
 - Не запускаем foreground service. Эти разрешения из манифеста удалены. Опрос Telegram — не служба Android с постоянным уведомлением.
@@ -108,26 +100,26 @@ TruckoRig на Android — локальный журнал водителя. Г�
 
 ### Сколько хранятся данные
 
-- На телефоне — пока вы не удалите аккаунт в приложении, не очистите данные приложения или не удалите приложение.
-- Скрытый файл Drive — пока вы не удалите скрытые данные приложения в Google Drive. У разработчика копий нет.
+- На телефоне — пока вы не нажмёте «Удалить все данные», не очистите данные приложения или не удалите приложение.
+- Файлы бэкапа, которые вы сохранили, — пока вы их не удалите. У разработчика копий нет.
+- Старая копия в Google Drive (только из версий до 1.6.2) — скрытый файл в вашем Google Drive, пока вы его не удалите.
 - Telegram — по правилам Telegram.
 - Диагностика Maps и ML Kit — по правилам Google. Разработчик её не получает.
 - Серверы разработчика — журнала там нет.
 
 ### Как удалить
 
-- Удалите аккаунт в приложении. Сотрутся журнал, фото, сканы и токен Telegram на телефоне.
-- Или очистите данные приложения, или удалите приложение. Это не отменяет Premium и не удаляет скрытый файл Drive.
-- Drive: Настройки → Google Drive → отключить. Затем в Google Drive в браузере: Настройки → Управление приложениями → удалить скрытые данные. Инструкция Google: https://support.google.com/drive/answer/2523073 . Подключённые приложения: https://myaccount.google.com/connections
+- В приложении: Настройки → Удалить все данные. Сотрутся журнал, фото, сканы и токен Telegram на телефоне.
+- Или очистите данные приложения, или удалите приложение. Это не отменяет Premium.
+- Файлы бэкапа удалите там, куда их сохраняли.
+- Только если версия до 1.6.2 делала копию в Google Drive: в Google Drive в браузере откройте Настройки → Управление приложениями → TruckoRig → удалить скрытые данные. Инструкция Google: https://support.google.com/drive/answer/2523073 . Подключённые приложения: https://myaccount.google.com/connections
 - Telegram: удалите токен в Настройках и, если нужно, чат в Telegram.
 - Подписку отмените в Google Play.
-- Запросы: [truckorig@gmail.com](mailto:truckorig@gmail.com) или обратная связь в Настройках. Разработчик не может удалить файл в вашем Google-аккаунте или сообщение на серверах Telegram.
+- Запросы: [truckorig@gmail.com](mailto:truckorig@gmail.com) или обратная связь в Настройках. Разработчик не может удалить файл на вашем устройстве, в вашем облаке или сообщение на серверах Telegram.
 
 ### iOS
 
-Эти предложения перенесены из черновика от 18 ноября 2026 для отдельного приложения Apple. В этом репозитории iOS их не делает. Перед публикацией сверьте их с тем приложением.
-
-Если вы пользуетесь приложением TruckoRig для iPhone из другого репозитория: журнал, если он там есть, хранится на устройстве. Копия iCloud, если вы её включили, лежит в вашем iCloud, и разработчик её не читает. Камера, медиатека и геолокация «при использовании» работают только с вашего разрешения. Удаление фото на телефоне само не удаляет копию в iCloud.
+Приложение TruckoRig для iPhone хранит журнал на устройстве. В нём нет аккаунтов и входа по почте или через Google. Копия iCloud, если вы её включили, сохраняется в iCloud Drive того Apple ID, который уже вошёл на iPhone, и разработчик её не читает. Камера, медиатека и геолокация «при использовании» работают только с вашего разрешения. Удаление фото на телефоне само не удаляет копию в iCloud.
 
 ### Дети
 
@@ -147,11 +139,11 @@ Khaidar Safarov — [truckorig@gmail.com](mailto:truckorig@gmail.com)
 
 ### Summary
 
-TruckoRig on Android is a local-first trucking journal. Loads, paychecks, diesel, and photos stay on your phone. The developer does not run a server that receives your journal. The app does not show ads and does not sell personal data.
+TruckoRig on Android is a local-first trucking journal. Loads, paychecks, diesel, and photos stay on your phone. The app has **no accounts and no sign-in** (no email login, no Google sign-in), and since version 1.6.2 it has **no Google Drive sync**. The developer does not run a server that receives your journal. The app does not show ads and does not sell personal data.
 
 Some optional features, and Google libraries inside the app, send data off the phone. Each case is listed below with that company’s policy.
 
-The iOS code in this repository is a weekly-goal screen. It does not store a journal, use iCloud, or connect to Telegram. The iPhone sentences further down were carried forward from the 18 November 2026 draft and were not re-checked against the Apple app in this change.
+The separate TruckoRig iPhone app is described under “iOS” below.
 
 ### Data that stays on the phone
 
@@ -170,7 +162,7 @@ Android system backup of the app is off. Biometric unlock, if you turn it on, st
 
 Putting location, date, and time on a photo is a core feature. Drivers use it so they can show their trucking company where and when a photo was taken. It happens only when you take the photo. It does not run in the background.
 
-The stamp is drawn onto the picture and saved with the photo on this phone. The developer does not receive it. The Google Drive backup is a JSON file of the journal and does not include photo files. The stamped photo leaves the phone only when you share or export it yourself. That share is your action.
+The stamp is drawn onto the picture and saved with the photo on this phone. The developer does not receive it. The stamped photo leaves the phone only when you share or export it, or save a backup file, yourself. That share is your action.
 
 ### When data leaves the phone
 
@@ -194,15 +186,6 @@ The first time offline recognition needs language files, the app may download En
 
 - GitHub privacy statement: https://docs.github.com/en/site-policy/privacy-policies/github-privacy-statement
 
-**Google Drive.** Optional. If you connect Drive in Settings, the app signs in with Google and asks only for Drive’s hidden app-data folder. Your Google email shows which account is linked. It is not a TruckoRig login.
-
-The app uploads a JSON backup (loads, paychecks, diesel, maintenance, settings) to that hidden folder in your Google account. The file does not appear in My Drive. Photo files are not in it. Google can read the JSON. This is not end-to-end encryption. The developer’s servers do not receive it.
-
-After you turn backup on, a later edit can upload again, and a periodic check (about every 12 hours, when the phone has network) can upload again. If you allowed location when adding diesel, the station or address text can be in that JSON. Photo files and photo GPS records are not. Disconnect in Settings stops new uploads and signs out on the phone. It does not delete the hidden file.
-
-- Google privacy policy: https://policies.google.com/privacy
-- Drive app-data folder: https://developers.google.com/drive/api/guides/appdata
-
 **Telegram.** Optional. If you paste your own bot token, the app calls `https://api.telegram.org`. Once the token is saved, the app can poll that bot in the background (this is not an Android foreground service). A status command can send counts, weekly income, and miles back to your chat. A file you export can be sent as a document. Incoming chats can be imported into the journal on this phone. Telegram can read Bot API messages. They are not end-to-end encrypted. The token stays on the phone. The developer does not run the bot.
 
 - Telegram privacy policy: https://telegram.org/privacy
@@ -217,6 +200,7 @@ The app does not receive your card number and does not send the purchase token t
 
 ### What we do not do
 
+- We do not have accounts, a login, or cloud sync. The app does not sign in to Google and does not read your email address.
 - We do not sell personal data and we do not show ads. The app does not request the advertising ID.
 - We do not send Firebase Crashlytics, Firebase sessions, or any other Firebase crash log. A `google-services.json` file on a build machine does not turn that on.
 - We do not run a foreground service. Those permissions are removed from the manifest. Telegram polling is not an Android foreground service.
@@ -237,26 +221,26 @@ You can deny camera, location, and notifications. The journal still opens.
 
 ### How long data is kept
 
-- On the phone: until you delete the account in the app, clear the app’s storage, or uninstall.
-- Hidden Drive file: until you delete hidden app data in Google Drive. The developer does not hold a copy.
+- On the phone: until you tap “Delete all data”, clear the app’s storage, or uninstall.
+- Backup files you saved: until you delete them. The developer does not hold a copy.
+- Old Google Drive copy (only versions before 1.6.2): a hidden file in your own Google Drive until you delete it.
 - Telegram: under Telegram’s policy.
 - Maps and ML Kit diagnostics: under Google’s policy. The developer does not receive them.
 - Developer servers: no journal is stored there.
 
 ### How to delete data
 
-- In the app, delete the account. That erases the on-device journal, photos, scans, and saved Telegram token.
-- Or clear the app’s storage, or uninstall. That does not cancel Premium and does not delete the hidden Drive file.
-- Drive: Settings → Google Drive → disconnect. Then in Google Drive on the web, open Settings → Manage apps and delete hidden app data. Google’s steps: https://support.google.com/drive/answer/2523073 . Connected apps: https://myaccount.google.com/connections
+- In the app, Settings → Delete all data. That erases the on-device journal, photos, scans, and saved Telegram token.
+- Or clear the app’s storage, or uninstall. That does not cancel Premium.
+- Delete backup files where you saved them.
+- Only if a version before 1.6.2 backed up to Google Drive: in Google Drive on the web, open Settings → Manage apps → TruckoRig and delete hidden app data. Google’s steps: https://support.google.com/drive/answer/2523073 . Connected apps: https://myaccount.google.com/connections
 - Telegram: remove the token in Settings, and delete the chat in Telegram if you want those messages gone.
 - Cancel Premium in Google Play → Payments and subscriptions.
-- Privacy requests: [truckorig@gmail.com](mailto:truckorig@gmail.com) or in-app Settings feedback. The developer cannot delete a file in your Google account or a message on Telegram’s servers.
+- Privacy requests: [truckorig@gmail.com](mailto:truckorig@gmail.com) or in-app Settings feedback. The developer cannot delete a file on your device, in your cloud storage, or a message on Telegram’s servers.
 
 ### iOS
 
-These sentences were carried forward from the 18 November 2026 draft for a separate Apple app. The iOS target in this repository does not do them. Check that app before you publish this section.
-
-If you use a TruckoRig iPhone app from another repository: a journal there, if that app has one, stays on the device. An iCloud copy, if you turned it on, stays in your iCloud, and the developer cannot read it. Camera, photo library, and While Using location run only with your permission. Deleting a photo on the phone does not by itself delete an iCloud copy.
+The TruckoRig iPhone app keeps the journal on the device. It has no accounts and no email or Google sign-in. An iCloud copy, if you turned it on, goes to iCloud Drive under the Apple ID already signed in on the iPhone, and the developer cannot read it. Camera, photo library, and While Using location run only with your permission. Deleting a photo on the phone does not by itself delete an iCloud copy.
 
 ### Children
 

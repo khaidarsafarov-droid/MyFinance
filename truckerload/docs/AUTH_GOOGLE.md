@@ -7,8 +7,8 @@ TruckoRig runs locally. There is no Google Sign-In for the journal.
 | Android (current) | **First-run name** (optional skip) → `local_dev` Room on this device |
 | iOS (planned) | Local journal; Sign in with Apple only if App Store requires it |
 
-Optional **Google Drive backup** is connected later from Settings. That OAuth is
-backup-only and does not become the app login.
+There is no Google Sign-In of any kind since 1.6.2: Google Drive sync was removed.
+Backups are files the user saves from Settings → Backup file.
 
 ## First launch
 
@@ -35,4 +35,3 @@ LOCAL_ONLY_MODE=false
 
 `LOCAL_ONLY_MODE=true` auto-opens `local_dev` for debugging (Diesel quick-add, etc.).
 
-Drive OAuth SHA-1: [GOOGLE_SIGNIN_SETUP.md](GOOGLE_SIGNIN_SETUP.md).
