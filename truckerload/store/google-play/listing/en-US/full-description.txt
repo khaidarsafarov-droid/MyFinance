@@ -1,4 +1,4 @@
-TruckoRig is a local-first logbook for truck drivers. Keep loads, paychecks, diesel, and weekly goals on your phone — with optional Telegram import and Google Drive backup.
+TruckoRig is a local-first logbook for truck drivers. Keep loads, paychecks, diesel, and weekly goals on your phone — no account, no sign-in, with optional Telegram import and backup to a file.
 
 WHAT YOU CAN DO
 • Paste or forward Amazon Relay / broker load messages and save them to your journal
@@ -7,22 +7,22 @@ WHAT YOU CAN DO
 • Scan documents and attach photos to loads
 • Home-screen widgets for quick diesel / camera / scan actions
 • Optional Telegram bot on the device to import chat history
-• Optional Google Sign-In + Drive backup (you stay in control)
+• Backup to a file you save yourself (journal + photos), restore any time
 
 SUBSCRIPTION
 The app is free to install. Loads, diesel, and paychecks stay free.
-TruckoRig Premium is optional: the first month is free, then Google Play charges $2.99 per month in the United States (the price can differ by country). Premium includes Telegram import, analytics, the weekly goal, the map, taxes, scanner, camera, export, and Drive backup. Loads, diesel, paychecks, and deadhead miles stay free. It renews every month until you cancel in Google Play → Payments and subscriptions.
+TruckoRig Premium is optional: the first month is free, then Google Play charges $2.99 per month in the United States (the price can differ by country). Premium includes Telegram import, analytics, the weekly goal, the map, taxes, scanner, camera, and export. Loads, diesel, paychecks, and deadhead miles stay free. It renews every month until you cancel in Google Play → Payments and subscriptions.
 
 PRIVACY BY DESIGN
 • Journal data lives in an on-device database (Room)
-• Cloud sync and Drive are optional — turn them on only if you need them
+• No account and no cloud sync: the developer never receives your journal
 • Camera and location are used only when you take geotagged photos or enable map features
 • No ads. No selling of load data
 
 GETTING STARTED
-1. Sign in with Google or continue with email
+1. Open the app — no account or sign-in needed
 2. Add your first load (paste a Relay message or enter manually)
-3. Optionally link Telegram or Google Drive in Settings
+3. Optionally link Telegram, and save a backup in Settings → Backup file
 
 Support: use in-app Settings → About / feedback, or truckorig@gmail.com.
 
