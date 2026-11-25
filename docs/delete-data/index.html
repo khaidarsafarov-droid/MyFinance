@@ -19,7 +19,7 @@
   <div class="meta">TruckoRig · Android app <code>com.truckorig</code> · Developer: TruckoRig</div>
   <h1>Delete your data in TruckoRig</h1>
   <p class="meta">Last updated: November 25, 2026</p>
-  <p>TruckoRig keeps your journal (loads, expenses, fuel, photos, scans) on your phone. The developer does not run a server that stores your journal and does not hold a copy of it. You do not create an account with the developer. You can sign in with your own Google account only to back up and sync your data to your own Google Drive.</p>
+  <p>TruckoRig keeps your journal (loads, expenses, fuel, photos, scans) on your phone. The developer does not run a server that stores your journal and does not hold a copy of it. The app has no accounts and no sign-in (no email login, no Google sign-in), and since version 1.6.2 it has no Google Drive sync. A backup is a file you save yourself.</p>
 </header>
 
 <section>
@@ -27,7 +27,8 @@
   <ol>
     <li><b>In the app:</b> open <b>Settings → Delete all data</b> and confirm. This erases the on-device journal, photos, scans, and the saved Telegram token.</li>
     <li><b>Or on the phone:</b> Android Settings → Apps → TruckoRig → Storage → <b>Clear storage</b>, or uninstall the app. This removes all data on that phone.</li>
-    <li><b>Google Drive backup (if you turned it on):</b> in the app, Settings → Google Drive → <b>Disconnect</b>. Then in Google Drive on the web open Settings → Manage apps → TruckoRig → <b>Delete hidden app data</b> (<a href="https://support.google.com/drive/answer/2523073">Google's steps</a>). You can also remove access at <a href="https://myaccount.google.com/connections">myaccount.google.com/connections</a>.</li>
+    <li><b>Backup files you saved:</b> delete them where you saved them (Downloads, a USB drive, your own cloud folder, a chat you sent them to).</li>
+    <li><b>Only if you used Google Drive backup in a version before 1.6.2:</b> that old copy is a hidden file in your own Google Drive. In Google Drive on the web open Settings → Manage apps → TruckoRig → <b>Delete hidden app data</b> (<a href="https://support.google.com/drive/answer/2523073">Google's steps</a>), and remove the app at <a href="https://myaccount.google.com/connections">myaccount.google.com/connections</a>. Version 1.6.2 and later never upload anything there.</li>
     <li><b>Telegram (if you connected it):</b> remove the bot token in Settings, and delete the chat in Telegram if you want those messages gone.</li>
     <li><b>Request by email:</b> write to <a href="mailto:truckorig@gmail.com?subject=TruckoRig%20data%20deletion">truckorig@gmail.com</a> with the subject “TruckoRig data deletion”. We cannot view, change, or delete the data in your app — only you can, with the steps above. We reply within 30 days and delete your support emails on request.</li>
   </ol>
@@ -38,7 +39,7 @@
   <h2>What is deleted and what is kept</h2>
   <ul>
     <li><b>Deleted right away:</b> everything on the phone — journal, photos (with their GPS, date and time stamp), scans, settings, tokens.</li>
-    <li><b>Kept in your own accounts until you delete it:</b> the hidden backup file in your Google Drive, and messages in your Telegram chat. The developer cannot access or delete files in your Google account.</li>
+    <li><b>Kept where you put it until you delete it:</b> backup files you saved outside the app, messages in your Telegram chat, and (only from versions before 1.6.2) an old hidden copy in your Google Drive. The developer cannot access or delete them.</li>
     <li><b>Kept by Google, not by us:</b> crash and diagnostic data sent by Google Play services, Maps SDK and ML Kit, under Google's own retention rules.</li>
     <li><b>Subscription:</b> deleting data or uninstalling does not cancel TruckoRig Premium. Cancel it in Google Play → Payments &amp; subscriptions. Google keeps purchase records under its own policy.</li>
     <li><b>Support emails:</b> deleted within 30 days of your request.</li>
@@ -50,7 +51,8 @@
   <ol>
     <li>В приложении: Настройки → Удалить все данные. Стираются журнал, фото, сканы и токен Telegram на телефоне.</li>
     <li>Или очистите данные приложения в настройках Android, или удалите приложение.</li>
-    <li>Google Drive: Настройки → Google Drive → Отключить, затем в Google Drive в браузере: Настройки → Управление приложениями → удалить скрытые данные.</li>
+    <li>Файлы бэкапа, которые вы сохранили, удалите там, куда их сохраняли.</li>
+    <li>Только если в версии до 1.6.2 вы включали копию в Google Drive: в Google Drive в браузере откройте Настройки → Управление приложениями → TruckoRig → удалить скрытые данные. С версии 1.6.2 приложение туда ничего не отправляет.</li>
     <li>Запрос по почте: <a href="mailto:truckorig@gmail.com">truckorig@gmail.com</a>, ответим в течение 30 дней. Мы не можем просматривать, изменять или удалять данные в вашем приложении — это можете сделать только вы.</li>
   </ol>
   <p>Подписка Premium при этом не отменяется — отмените её в Google Play → Платежи и подписки.</p>
