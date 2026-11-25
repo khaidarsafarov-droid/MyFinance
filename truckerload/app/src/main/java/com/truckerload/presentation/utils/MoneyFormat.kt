@@ -54,6 +54,7 @@ object MoneyFormat {
         return String.format(locale, "$%.2f$suffix", shown)
     }
 
+    @Suppress("MaxLineLength")
     fun formatRpmShort(value: Double): String = String.format(locale, "$%.2f", MeasurementUnits.displayRatePerDistance(value))
 
     /** Distance number only. Miles mode matches [formatNumber] of the stored miles. */

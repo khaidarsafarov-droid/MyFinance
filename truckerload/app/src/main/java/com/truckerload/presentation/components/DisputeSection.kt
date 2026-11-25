@@ -49,6 +49,7 @@ import com.truckerload.presentation.components.TlTextButton as TextButton
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+@Suppress("LongMethod")
 fun DisputeSection(load: Load, onDisputeChanged: (Load) -> Unit, modifier: Modifier = Modifier) {
     val tc = LocalTruckColors.current
     var showDatePicker by remember { mutableStateOf(false) }

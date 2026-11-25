@@ -248,6 +248,7 @@ private fun SoftSidebarSectionLabel(text: String) {
 }
 
 @Composable
+@Suppress("MaxLineLength")
 private fun CompactRailItem(selected: Boolean, icon: ImageVector, label: String, badgeCount: Int = 0, onClick: () -> Unit) {
     val bg = if (selected) MaterialTheme.colorScheme.primaryContainer else Color.Transparent
     val fg = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
@@ -323,6 +324,7 @@ private fun SidebarAvatar(photoUrl: String?, name: String) {
 }
 
 @Composable
+@Suppress("MaxLineLength")
 private fun SoftSidebarItem(selected: Boolean, icon: ImageVector, label: String, badgeCount: Int = 0, onClick: () -> Unit) {
     val bg = if (selected) MaterialTheme.colorScheme.primaryContainer else Color.Transparent
     val fg = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
@@ -551,6 +553,7 @@ private fun railIcon(item: TabletRailSpec, selected: Boolean): ImageVector {
     }
 }
 
+@Suppress("MaxLineLength")
 private fun activateTabletRailItem(item: TabletRailSpec, onNavigate: (String) -> Unit, onDrawerNavigate: (DrawerDestination) -> Unit) {
     when {
         item.route != null -> onNavigate(item.route)

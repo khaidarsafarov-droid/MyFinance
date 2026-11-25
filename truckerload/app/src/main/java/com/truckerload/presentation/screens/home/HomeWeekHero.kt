@@ -179,7 +179,11 @@ internal fun HomeWeekHero(
         ) {
             HeroStat(
                 stringResource(
-                    if (DisplayUnits.isMetric) R.string.home_stat_rate_per_mile_km else R.string.home_stat_rate_per_mile,
+                    if (DisplayUnits.isMetric) {
+                        R.string.home_stat_rate_per_mile_km
+                    } else {
+                        R.string.home_stat_rate_per_mile
+                    },
                 ),
                 rpmText,
                 onHero,

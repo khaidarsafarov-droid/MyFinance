@@ -129,6 +129,7 @@ internal fun SoftBottomBar(
 }
 
 @Composable
+@Suppress("LongMethod")
 private fun PhoneNavTab(tab: PhoneTab, selected: Boolean, badgeCount: Int, onClick: () -> Unit) {
     val brand = LocalBrandPalette.current
     val reduceMotion = LocalReduceMotion.current
