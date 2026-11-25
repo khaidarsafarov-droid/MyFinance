@@ -62,8 +62,8 @@ android {
         applicationId = "com.truckorig"
         minSdk = 24
         targetSdk = 36
-        versionCode = 19
-        versionName = "1.6.1"
+        versionCode = 20
+        versionName = "1.6.2"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         val localProps = Properties()
         rootProject.file("local.properties").takeIf { it.exists() }?.inputStream()?.use { stream ->
