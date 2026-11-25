@@ -26,7 +26,6 @@ CLASS_FLOORS = {
     "com/truckerload/domain/report/PeriodReportBuilder": 95,
     "com/truckerload/utils/PeriodReportPdf": 95,
     "com/truckerload/domain/share/ShareImportDecider": 90,
-    "com/truckerload/data/backup/DriveBackupFlow": 85,
 }
 
 
