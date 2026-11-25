@@ -1001,7 +1001,7 @@
     </plurals>
     <plurals name="load_card_stops">
         <item quantity="one">%d arrêt</item>
-        <item quantity="many">%d d'arrêts</item>
+        <item quantity="many">%d d\'arrêts</item>
         <item quantity="other">%d arrêts</item>
     </plurals>
     <string name="load_card_attach_photo">Prendre une photo pour le chargement</string>

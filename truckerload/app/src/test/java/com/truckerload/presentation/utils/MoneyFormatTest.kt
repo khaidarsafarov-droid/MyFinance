@@ -1,9 +1,9 @@
 package com.truckerload.presentation.utils
 
-import java.text.NumberFormat
-import java.util.Locale
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import java.text.NumberFormat
+import java.util.Locale
 
 class MoneyFormatTest {
     @Test
