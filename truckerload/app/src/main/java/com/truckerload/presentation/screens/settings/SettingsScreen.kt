@@ -25,8 +25,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.R
 import com.truckerload.data.backup.GoogleDriveBackupService
 import com.truckerload.domain.premium.PremiumFeature
+import com.truckerload.domain.units.DisplayUnits
+import com.truckerload.domain.units.DistanceUnitPolicy
+import com.truckerload.domain.units.MeasurementUnits
 import com.truckerload.presentation.components.verticalContentScroll
-import com.truckerload.presentation.di.LocalRpmThresholdsStore
 import com.truckerload.presentation.premium.PremiumPaywallDialog
 import com.truckerload.presentation.premium.rememberPremiumAccess
 import com.truckerload.presentation.theme.LocalOledDarkEnabled
@@ -34,9 +36,6 @@ import com.truckerload.presentation.theme.LocalReduceMotion
 import com.truckerload.presentation.theme.SoftUiColors
 import com.truckerload.presentation.theme.screenEnterAnimation
 import com.truckerload.presentation.utils.useNavigationRail
-import com.truckerload.domain.units.DisplayUnits
-import com.truckerload.domain.units.DistanceUnitPolicy
-import com.truckerload.domain.units.MeasurementUnits
 import com.truckerload.utils.AppLanguageManager
 import java.text.DateFormatSymbols
 import java.time.ZoneId
@@ -63,13 +62,14 @@ fun SettingsScreen(
     val notifyMaintenance = settings.notifyMaintenance
     val loadWeekStartDay = settings.loadWeekStartDay
     val dieselWeekStartDay = settings.dieselWeekStartDay
-    val thresholds by LocalRpmThresholdsStore.current.thresholds.collectAsStateWithLifecycle()
+    val thresholds by hiltViewModel<RpmThresholdsViewModel>().thresholds.collectAsStateWithLifecycle()
     val premium by rememberPremiumAccess().status.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val locale = androidx.compose.ui.platform.LocalLocale.current.platformLocale
     val tablet = useNavigationRail()
     val motionReduced = LocalReduceMotion.current
-    val page = if (LocalOledDarkEnabled.current) SoftUiColors.BackgroundOled else com.truckerload.presentation.theme.LocalBrandPalette.current.page
+    val brandPage = com.truckerload.presentation.theme.LocalBrandPalette.current.page
+    val page = if (LocalOledDarkEnabled.current) SoftUiColors.BackgroundOled else brandPage
 
     var detail by remember { mutableStateOf<SettingsDetail?>(null) }
     var paywallOpen by remember { mutableStateOf(false) }

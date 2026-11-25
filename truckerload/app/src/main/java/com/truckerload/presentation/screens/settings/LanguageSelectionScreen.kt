@@ -17,37 +17,25 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.truckerload.R
-import com.truckerload.data.preferences.AppLanguage
-import com.truckerload.domain.units.DisplayUnits
-import com.truckerload.domain.units.DistanceUnitPolicy
 import com.truckerload.presentation.components.SoftAppPageScaffold
-import com.truckerload.presentation.di.LocalSettingsDataStore
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.theme.TruckerLoadTheme
 import com.truckerload.presentation.utils.adaptiveHorizontalPadding
 import com.truckerload.presentation.utils.useNavigationRail
 import com.truckerload.utils.AppLanguageManager
 import com.truckerload.utils.LanguageItem
-import com.truckerload.widget.WidgetRefresh
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LanguageSelectionScreen(
-    onBack: () -> Unit,
-    showBack: Boolean = true,
-) {
-    val settingsDataStore = LocalSettingsDataStore.current
-    val context = LocalContext.current
-    val scope = rememberCoroutineScope()
+fun LanguageSelectionScreen(onBack: () -> Unit, showBack: Boolean = true) {
+    val prefs: SettingsPreferencesViewModel = hiltViewModel()
     val tabletChrome = useNavigationRail()
 
     LanguageSelectionContent(
@@ -56,13 +44,7 @@ fun LanguageSelectionScreen(
         onBack = onBack,
         onSelect = { item ->
             if (item.code == AppLanguageManager.getCurrentLanguageCode()) return@LanguageSelectionContent
-            scope.launch {
-                settingsDataStore.saveLanguage(AppLanguage.fromTag(item.code))
-                AppLanguageManager.setLanguage(item.code)
-                val explicit = settingsDataStore.getExplicitDistanceUnitOnce()
-                DisplayUnits.install(DistanceUnitPolicy.resolve(explicit, item.code))
-                WidgetRefresh.refreshAndUpdateAsync(context)
-            }
+            prefs.setLanguage(item.code)
         },
     )
 }
@@ -114,11 +96,7 @@ internal fun LanguageSelectionContent(
 }
 
 @Composable
-private fun LanguageOptionCard(
-    item: LanguageItem,
-    selected: Boolean,
-    onClick: () -> Unit,
-) {
+private fun LanguageOptionCard(item: LanguageItem, selected: Boolean, onClick: () -> Unit) {
     val tc = LocalTruckColors.current
     Card(
         modifier = Modifier

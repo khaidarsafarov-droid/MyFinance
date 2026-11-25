@@ -12,11 +12,12 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.truckerload.R
 import com.truckerload.data.local.LegacyDatabaseAbsorb
 import com.truckerload.di.UserComponent
 import com.truckerload.di.userComponentManager
-import com.truckerload.presentation.di.LocalAuthStore
+import com.truckerload.presentation.di.AccountSessionViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -28,15 +29,13 @@ import kotlinx.coroutines.withContext
  * after a successful absorb (Room pool was closed during copy).
  */
 @Composable
-fun LegacyAbsorbDialog(
-    onSessionRebuilt: (UserComponent) -> Unit,
-) {
+fun LegacyAbsorbDialog(onSessionRebuilt: (UserComponent) -> Unit) {
     val context = LocalContext.current
-    val authStore = LocalAuthStore.current
+    val account: AccountSessionViewModel = hiltViewModel()
     val scope = rememberCoroutineScope()
     var visible by remember { mutableStateOf(false) }
     var busy by remember { mutableStateOf(false) }
-    val userId = authStore.currentUserIdOrNull()
+    val userId = account.currentUserIdOrNull()
 
     LaunchedEffect(userId) {
         visible = userId != null && LegacyDatabaseAbsorb.hasPendingPrompt(context, userId)

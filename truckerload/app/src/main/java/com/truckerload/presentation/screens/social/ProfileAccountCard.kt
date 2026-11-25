@@ -5,13 +5,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.R
 import com.truckerload.data.backup.GoogleDriveBackupPrefs
 import com.truckerload.data.preferences.AccountIds
 import com.truckerload.data.preferences.AuthProvider
-import com.truckerload.presentation.di.LocalAuthStore
-import com.truckerload.presentation.di.LocalUserProfileStore
+import com.truckerload.presentation.di.AccountSessionViewModel
 import com.truckerload.presentation.icons.AppIcons
 import com.truckerload.utils.AnalyticsOwnerName
 import java.time.ZoneId
@@ -28,9 +28,9 @@ internal fun ProfileAccountCard(
     onPremium: () -> Unit,
 ) {
     val context = LocalContext.current
-    val authStore = LocalAuthStore.current
-    val user by LocalUserProfileStore.current.profile.collectAsStateWithLifecycle()
-    val session = authStore.sessionOrNull()
+    val account: AccountSessionViewModel = hiltViewModel()
+    val user by account.profile.collectAsStateWithLifecycle()
+    val session = account.sessionOrNull()
     val googleEmail = user?.email?.takeIf { !user?.googleId.isNullOrBlank() }
         ?: session?.email?.takeIf { session.provider == AuthProvider.GOOGLE }
     val prefs = remember(session?.userId) {

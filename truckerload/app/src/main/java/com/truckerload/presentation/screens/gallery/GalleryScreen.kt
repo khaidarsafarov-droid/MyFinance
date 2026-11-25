@@ -52,18 +52,17 @@ import com.truckerload.presentation.components.EmptyStateButton
 import com.truckerload.presentation.components.ScreenLoadError
 import com.truckerload.presentation.components.ScreenLoading
 import com.truckerload.presentation.components.SoftAppPageScaffold
-import com.truckerload.presentation.di.LocalScanRepository
 import com.truckerload.presentation.icons.AppIcons
 import com.truckerload.presentation.theme.AppFilterChip
 import com.truckerload.presentation.theme.AppTextFieldDefaults
+import com.truckerload.presentation.theme.BentoGlassClickableCard
 import com.truckerload.presentation.theme.LocalBrandPalette
 import com.truckerload.presentation.theme.LocalTruckColors
-import com.truckerload.presentation.theme.BentoGlassClickableCard
 import com.truckerload.presentation.theme.appFormField
-import java.io.File
-import java.util.Calendar
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.io.File
+import java.util.Calendar
 
 @Composable
 fun GalleryScreen(
@@ -77,12 +76,9 @@ fun GalleryScreen(
     viewModel.ensureInitialTab(initialTab)
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
-    val scanRepository = LocalScanRepository.current
     LaunchedEffect(Unit) {
-        withContext(Dispatchers.IO) {
-            val scansDir = File(context.getExternalFilesDir(null), "scans")
-            runCatching { scanRepository.cleanupOrphanScanFiles(scansDir) }
-        }
+        val scansDir = withContext(Dispatchers.IO) { File(context.getExternalFilesDir(null), "scans") }
+        viewModel.cleanupOrphanScanFiles(scansDir)
     }
     val unlinked = stringResource(R.string.filter_unlinked)
     val locale = LocalConfiguration.current.locales[0]
@@ -159,7 +155,9 @@ internal fun GalleryScreenContent(
             }
             when (phase) {
                 ScreenPhase.Loading -> ScreenLoading(modifier = Modifier.padding(horizontal = 16.dp))
+
                 ScreenPhase.Error -> ScreenLoadError(onRetry = onRetry)
+
                 ScreenPhase.Empty -> EmptyState(
                     icon = if (tab == GalleryKind.PHOTOS) AppIcons.PhotoLibrary else AppIcons.DocumentScanner,
                     title = stringResource(
@@ -185,6 +183,7 @@ internal fun GalleryScreenContent(
                         }
                     },
                 )
+
                 ScreenPhase.Content -> LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(16.dp),
@@ -275,11 +274,7 @@ private fun GalleryFilterRow(filter: GalleryFilter, onFilter: (GalleryFilter) ->
 }
 
 @Composable
-private fun GallerySearchField(
-    value: String,
-    onValueChange: (String) -> Unit,
-    modifier: Modifier = Modifier,
-) {
+private fun GallerySearchField(value: String, onValueChange: (String) -> Unit, modifier: Modifier = Modifier) {
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
@@ -308,11 +303,7 @@ private fun GallerySearchField(
 }
 
 @Composable
-private fun GalleryLoadCardRow(
-    card: GalleryLoadCard,
-    kind: GalleryKind,
-    onClick: () -> Unit,
-) {
+private fun GalleryLoadCardRow(card: GalleryLoadCard, kind: GalleryKind, onClick: () -> Unit) {
     val tc = LocalTruckColors.current
     val count = pluralStringResource(
         if (kind == GalleryKind.PHOTOS) R.plurals.gallery_photo_count else R.plurals.gallery_scan_count,
@@ -369,13 +360,7 @@ private fun GalleryLoadCardRow(
 }
 
 @Composable
-internal fun GalleryThumb(
-    path: String,
-    kind: GalleryKind,
-    maxEdgePx: Int,
-    contentDescription: String?,
-    modifier: Modifier = Modifier,
-) {
+internal fun GalleryThumb(path: String, kind: GalleryKind, maxEdgePx: Int, contentDescription: String?, modifier: Modifier = Modifier) {
     val tc = LocalTruckColors.current
     val bitmap = rememberGalleryThumbnail(path, maxEdgePx)
     Box(

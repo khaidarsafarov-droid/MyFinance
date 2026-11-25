@@ -1,26 +1,21 @@
 package com.truckerload.presentation.screens.attach
 
-import com.truckerload.presentation.components.DashboardHero
-import com.truckerload.presentation.icons.AppIcons
-
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -36,21 +31,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.truckerload.R
-import com.truckerload.data.repository.LoadRepository
 import com.truckerload.domain.attach.AttachLoadSelection
 import com.truckerload.domain.model.Load
-import com.truckerload.presentation.components.TlOutlinedButton as OutlinedButton
-import com.truckerload.presentation.components.TlTextButton as TextButton
-import com.truckerload.presentation.di.LocalLoadRepository
+import com.truckerload.presentation.components.DashboardHero
+import com.truckerload.presentation.components.LoadListSkeleton
+import com.truckerload.presentation.icons.AppIcons
 import com.truckerload.presentation.theme.AppTextFieldDefaults
 import com.truckerload.presentation.theme.BentoGlassClickableCard
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.LocalTruckColors
 import java.util.Locale
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import com.truckerload.presentation.components.LoadListSkeleton
+import com.truckerload.presentation.components.TlOutlinedButton as OutlinedButton
+import com.truckerload.presentation.components.TlTextButton as TextButton
 
 enum class AttachPickMode {
     CAMERA,
@@ -74,7 +68,7 @@ fun AttachLoadPickScreen(
     onLoadSelected: (Load) -> Unit,
     onCancel: () -> Unit,
     onAddLoad: () -> Unit = onCancel,
-    loadRepository: LoadRepository = LocalLoadRepository.current,
+    viewModel: AttachLoadPickViewModel = hiltViewModel(),
 ) {
     val tc = LocalTruckColors.current
     var browseMode by remember { mutableStateOf(AttachPickBrowseMode.THIS_WEEK) }
@@ -84,25 +78,20 @@ fun AttachLoadPickScreen(
     var hasAnyLoads by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
-        weekLoads = withContext(Dispatchers.IO) {
-            loadRepository.getRecentLoadsThisWeek(AttachLoadSelection.QUICK_PICK_LIMIT)
-        }
+        weekLoads = viewModel.recentLoadsThisWeek()
         // Detect empty journal for empty-state CTA without loading full list yet.
-        hasAnyLoads = withContext(Dispatchers.IO) {
-            loadRepository.getLoadsForLinking(limit = 1).isNotEmpty()
-        }
+        hasAnyLoads = viewModel.hasLoadsToLink()
     }
 
     LaunchedEffect(browseMode) {
         if (browseMode == AttachPickBrowseMode.ALL && allLoads == null) {
-            allLoads = withContext(Dispatchers.IO) {
-                loadRepository.getLoadsForLinking(limit = 200)
-            }
+            allLoads = viewModel.loadsForLinking()
         }
     }
 
     val displayedLoads: List<Load>? = when (browseMode) {
         AttachPickBrowseMode.THIS_WEEK -> weekLoads
+
         AttachPickBrowseMode.ALL -> allLoads?.let {
             AttachLoadSelection.filterBrowse(it, searchQuery)
         }
@@ -139,6 +128,7 @@ fun AttachLoadPickScreen(
                         .padding(padding),
                 )
             }
+
             browseMode == AttachPickBrowseMode.THIS_WEEK && displayedLoads.isEmpty() -> {
                 Column(
                     modifier = Modifier
@@ -187,6 +177,7 @@ fun AttachLoadPickScreen(
                     }
                 }
             }
+
             else -> {
                 LazyColumn(
                     modifier = Modifier
@@ -202,8 +193,10 @@ fun AttachLoadPickScreen(
                                 when {
                                     browseMode == AttachPickBrowseMode.ALL ->
                                         R.string.attach_pick_browse_hint
+
                                     mode == AttachPickMode.CAMERA ->
                                         R.string.attach_pick_camera_hint
+
                                     else -> R.string.attach_pick_scanner_hint
                                 },
                             ),
@@ -272,10 +265,7 @@ fun AttachLoadPickScreen(
 }
 
 @Composable
-private fun AttachLoadRow(
-    load: Load,
-    onClick: () -> Unit,
-) {
+private fun AttachLoadRow(load: Load, onClick: () -> Unit) {
     val tc = LocalTruckColors.current
     val routeLabel = load.route.ifBlank {
         listOf(load.pointA, load.pointB).filter { it.isNotBlank() }.joinToString(" → ")

@@ -18,7 +18,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.R
 import com.truckerload.data.preferences.AuthSessionHealth
 import com.truckerload.data.preferences.SecurePreferences
-import com.truckerload.presentation.di.LocalAuthStore
+import com.truckerload.presentation.di.AccountSessionViewModel
 import com.truckerload.presentation.theme.LocalTruckColors
 
 /**
@@ -27,9 +27,9 @@ import com.truckerload.presentation.theme.LocalTruckColors
  */
 @Composable
 fun AuthStatusBanner(modifier: Modifier = Modifier) {
-    val authStore = LocalAuthStore.current
-    val health by authStore.sessionHealth.collectAsStateWithLifecycle()
-    val userId by authStore.userId.collectAsStateWithLifecycle()
+    val account: AccountSessionViewModel = hiltViewModel()
+    val health by account.sessionHealth.collectAsStateWithLifecycle()
+    val userId by account.userId.collectAsStateWithLifecycle()
     val viewModel: AuthStatusBannerViewModel = hiltViewModel()
     val retryResult by viewModel.retryResult.collectAsStateWithLifecycle()
     val needsBackfillRetry = remember(userId, retryResult) { viewModel.needsBackfillRetry(userId) }

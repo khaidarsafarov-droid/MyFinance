@@ -9,26 +9,16 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.truckerload.R
-import com.truckerload.sync.MaintenanceReminderCoordinator
-import com.truckerload.presentation.di.LocalSettingsDataStore
 import com.truckerload.presentation.theme.LocalTruckColors
-import kotlinx.coroutines.launch
 
 @Composable
-fun NotificationSettingsSection(
-    notifyMissingWeek: Boolean,
-    notifyMaintenance: Boolean,
-    modifier: Modifier = Modifier,
-) {
-    val settingsDataStore = LocalSettingsDataStore.current
-    val context = LocalContext.current
-    val scope = rememberCoroutineScope()
+fun NotificationSettingsSection(notifyMissingWeek: Boolean, notifyMaintenance: Boolean, modifier: Modifier = Modifier) {
+    val prefs: SettingsPreferencesViewModel = hiltViewModel()
 
     Column(modifier = modifier) {
         SettingsSwitchRow(
@@ -36,68 +26,46 @@ fun NotificationSettingsSection(
             title = stringResource(R.string.settings_notify_missing_week),
             subtitle = stringResource(R.string.settings_notify_missing_subtitle),
             checked = notifyMissingWeek,
-            onCheckedChange = { enabled ->
-                scope.launch { settingsDataStore.saveNotifyMissingWeek(enabled) }
-            },
+            onCheckedChange = prefs::setNotifyMissingWeek,
         )
         SettingsSwitchRow(
             icon = com.truckerload.presentation.icons.AppIcons.Build,
             title = stringResource(R.string.settings_notify_maintenance),
             subtitle = stringResource(R.string.settings_notify_maint_subtitle),
             checked = notifyMaintenance,
-            onCheckedChange = { enabled ->
-                scope.launch {
-                    settingsDataStore.saveNotifyMaintenance(enabled)
-                    MaintenanceReminderCoordinator.sync(context)
-                }
-            },
+            onCheckedChange = prefs::setNotifyMaintenance,
         )
     }
 }
 
 @Composable
-internal fun QuietHoursEditor(
-    quietHoursEnabled: Boolean,
-    quietHoursStart: Int,
-    quietHoursEnd: Int,
-) {
-    val settingsDataStore = LocalSettingsDataStore.current
-    val scope = rememberCoroutineScope()
+internal fun QuietHoursEditor(quietHoursEnabled: Boolean, quietHoursStart: Int, quietHoursEnd: Int) {
+    val prefs: SettingsPreferencesViewModel = hiltViewModel()
     Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp)) {
         SettingsSwitchRow(
             icon = com.truckerload.presentation.icons.AppIcons.Schedule,
             title = stringResource(R.string.settings_quiet_hours_title),
             subtitle = stringResource(R.string.settings_quiet_hours_desc),
             checked = quietHoursEnabled,
-            onCheckedChange = { enabled ->
-                scope.launch { settingsDataStore.saveQuietHoursEnabled(enabled) }
-            },
+            onCheckedChange = prefs::setQuietHoursEnabled,
         )
         if (quietHoursEnabled) {
             QuietHourSlider(
                 label = stringResource(R.string.settings_quiet_hours_start),
                 hour = quietHoursStart,
-                onChange = { hour ->
-                    scope.launch { settingsDataStore.saveQuietHoursStart(hour) }
-                },
+                onChange = prefs::setQuietHoursStart,
             )
             QuietHourSlider(
                 label = stringResource(R.string.settings_quiet_hours_end),
                 hour = quietHoursEnd,
-                onChange = { hour ->
-                    scope.launch { settingsDataStore.saveQuietHoursEnd(hour) }
-                },
+                onChange = prefs::setQuietHoursEnd,
             )
         }
     }
 }
 
 @Composable
-private fun QuietHourSlider(
-    label: String,
-    hour: Int,
-    onChange: (Int) -> Unit,
-) {
+private fun QuietHourSlider(label: String, hour: Int, onChange: (Int) -> Unit) {
     val tc = LocalTruckColors.current
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(

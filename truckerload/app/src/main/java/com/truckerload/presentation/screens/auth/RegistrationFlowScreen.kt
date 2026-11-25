@@ -1,7 +1,5 @@
 package com.truckerload.presentation.screens.auth
 
-import com.truckerload.presentation.components.DashboardHero
-import com.truckerload.presentation.theme.AppFilterChip
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -13,8 +11,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -31,24 +27,22 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.R
-import com.truckerload.presentation.icons.AppIcons
 import com.truckerload.domain.account.DriverRole
-import com.truckerload.presentation.components.TlButton as Button
+import com.truckerload.presentation.components.DashboardHero
 import com.truckerload.presentation.components.verticalContentScroll
-import com.truckerload.presentation.di.LocalUserProfileStore
+import com.truckerload.presentation.di.AccountSessionViewModel
+import com.truckerload.presentation.theme.AppFilterChip
 import com.truckerload.presentation.theme.AppTextFieldDefaults
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.LocalTruckColors
+import com.truckerload.presentation.components.TlButton as Button
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RegistrationFlowScreen(
-    onCompleted: () -> Unit,
-    viewModel: RegistrationViewModel = hiltViewModel(),
-) {
+fun RegistrationFlowScreen(onCompleted: () -> Unit, viewModel: RegistrationViewModel = hiltViewModel()) {
     val tc = LocalTruckColors.current
     val context = LocalContext.current
-    val userProfile by LocalUserProfileStore.current.profile.collectAsStateWithLifecycle()
+    val userProfile by hiltViewModel<AccountSessionViewModel>().profile.collectAsStateWithLifecycle()
     val step by viewModel.step.collectAsStateWithLifecycle()
     BackHandler(enabled = step > 0) { viewModel.goToPreviousStep() }
     var displayName by remember {
@@ -84,7 +78,10 @@ fun RegistrationFlowScreen(
             )
             OutlinedTextField(
                 value = displayName,
-                onValueChange = { displayName = it; error = null },
+                onValueChange = {
+                    displayName = it
+                    error = null
+                },
                 label = { Text(stringResource(R.string.social_display_name)) },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,

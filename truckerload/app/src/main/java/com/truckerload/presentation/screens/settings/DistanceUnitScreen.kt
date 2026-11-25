@@ -2,7 +2,6 @@ package com.truckerload.presentation.screens.settings
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -20,33 +19,24 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.truckerload.R
 import com.truckerload.domain.units.DisplayUnits
 import com.truckerload.domain.units.DistanceUnit
 import com.truckerload.presentation.components.SoftAppPageScaffold
-import com.truckerload.presentation.di.LocalSettingsDataStore
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.utils.adaptiveHorizontalPadding
 import com.truckerload.presentation.utils.useNavigationRail
-import com.truckerload.widget.WidgetRefresh
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DistanceUnitScreen(
-    onBack: () -> Unit,
-    showBack: Boolean = true,
-) {
-    val store = LocalSettingsDataStore.current
-    val context = LocalContext.current
-    val scope = rememberCoroutineScope()
+fun DistanceUnitScreen(onBack: () -> Unit, showBack: Boolean = true) {
+    val prefs: SettingsPreferencesViewModel = hiltViewModel()
     val tabletChrome = useNavigationRail()
     var selected by remember { mutableStateOf(DisplayUnits.current) }
     DistanceUnitContent(
@@ -54,17 +44,7 @@ fun DistanceUnitScreen(
         showBack = showBack && !tabletChrome,
         onBack = onBack,
         onSelect = { unit ->
-            scope.launch {
-                val explicit = store.getExplicitDistanceUnitOnce()
-                if (explicit == unit) {
-                    selected = unit
-                    return@launch
-                }
-                store.saveDistanceUnit(unit)
-                DisplayUnits.install(unit)
-                selected = unit
-                WidgetRefresh.refreshAndUpdateAsync(context)
-            }
+            prefs.setDistanceUnit(unit) { selected = unit }
         },
     )
 }
@@ -118,11 +98,7 @@ internal fun DistanceUnitContent(
 }
 
 @Composable
-private fun UnitOptionCard(
-    label: String,
-    selected: Boolean,
-    onClick: () -> Unit,
-) {
+private fun UnitOptionCard(label: String, selected: Boolean, onClick: () -> Unit) {
     val tc = LocalTruckColors.current
     Card(
         modifier = Modifier

@@ -1,8 +1,5 @@
 package com.truckerload.presentation.screens.detail
 
-import com.truckerload.presentation.icons.AppIcons
-
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,7 +18,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -29,22 +25,23 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.truckerload.R
 import com.truckerload.domain.model.withRouteMetrics
 import com.truckerload.presentation.components.DashboardHero
 import com.truckerload.presentation.components.LoadDetailSkeleton
-import com.truckerload.presentation.theme.focusAfterNavigate
-import com.truckerload.presentation.di.LocalPhotoRepository
-import com.truckerload.presentation.di.LocalScanRepository
+import com.truckerload.presentation.icons.AppIcons
 import com.truckerload.presentation.screens.privacy.PrivacyTrustBadge
 import com.truckerload.presentation.theme.BentoGlassTheme
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.theme.UiDimens
+import com.truckerload.presentation.theme.focusAfterNavigate
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -62,12 +59,10 @@ fun LoadDetailScreen(
     onOpenPrivacy: () -> Unit = {},
 ) {
     val tc = LocalTruckColors.current
-    val photoRepository = LocalPhotoRepository.current
-    val scanRepository = LocalScanRepository.current
     val viewModel: LoadDetailViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val linkedPhotos by photoRepository.watchPhotosByLoadId(loadId).collectAsStateWithLifecycle(initialValue = emptyList())
-    val linkedScans by scanRepository.watchScansByLoadId(loadId).collectAsStateWithLifecycle(initialValue = emptyList())
+    val linkedPhotos by viewModel.watchLinkedPhotos(loadId).collectAsStateWithLifecycle(initialValue = emptyList())
+    val linkedScans by viewModel.watchLinkedScans(loadId).collectAsStateWithLifecycle(initialValue = emptyList())
     val snackbarHostState = remember { SnackbarHostState() }
     val deleteFailed = stringResource(R.string.load_delete_failed)
     val saveErrorEmpty = stringResource(R.string.common_save_error, "")
@@ -145,11 +140,13 @@ fun LoadDetailScreen(
             ) {
                 Text(uiState.loadError ?: stringResource(R.string.load_error_generic), color = tc.TextPrimary)
             }
+
             uiState.isLoading || uiState.load == null -> LoadDetailSkeleton(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding),
             )
+
             else -> {
                 val raw = uiState.load ?: return@Scaffold
                 val l = remember(raw) { raw.withRouteMetrics() }
