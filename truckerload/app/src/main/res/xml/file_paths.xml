@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
   FileProvider may only share these app-specific folders.
+  Photos, scans and local backup copies live in filesDir (photos/, scans/, backups/).
+  The external-files-path entries stay for files not yet moved by MediaStorageMigration.
   https://developer.android.com/reference/androidx/core/content/FileProvider
   Public Downloads are not listed. The explicit "save to phone" action uses
   MediaStore (API 29+) or Download/TruckoRig/ (older Android).
@@ -18,6 +20,8 @@
     <external-files-path name="external_backups" path="backups/" />
     <external-path name="truckorig_downloads" path="Download/TruckoRig/" />
     <files-path name="backups" path="backups/" />
+    <files-path name="photos_private" path="photos/" />
+    <files-path name="scans_private" path="scans/" />
     <files-path name="avatars" path="avatars/" />
     <files-path name="chat_attachments" path="chat_attachments/" />
     <files-path name="statuses" path="statuses/" />

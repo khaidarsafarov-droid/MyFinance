@@ -20,10 +20,12 @@ import androidx.work.WorkManager
 import androidx.work.Configuration
 import androidx.hilt.work.HiltWorkerFactory
 import com.truckerload.BuildConfig
+import com.truckerload.data.local.AppDatabase
 import com.truckerload.data.local.DatabasePassphraseStore
 import com.truckerload.data.local.DatabaseStartup
 import com.truckerload.data.local.InstalledJournalRecovery
 import com.truckerload.data.local.JournalRecoveryGate
+import com.truckerload.data.local.MediaStorageMigration
 import com.truckerload.data.preferences.AuthStore
 import com.truckerload.data.repository.LoadPendingDeleteApplier
 import com.truckerload.data.preferences.StartupRepairStore
@@ -348,6 +350,11 @@ class TruckerLoadApp : Application(), Configuration.Provider {
             )
             val userId = authStore.currentUserIdOrNull() ?: return@launch
             val repo = userComponentManager.startSession(userId).loadRepository
+            // Before anything reads photos, scans or local backups: move them to internal storage.
+            runCatching {
+                val db = AppDatabase.getInstance(this@TruckerLoadApp, userId)
+                MediaStorageMigration.run(this@TruckerLoadApp, db.openHelper.writableDatabase)
+            }.onFailure { e -> Log.e(TAG, "Media storage migration failed", e) }
             val repairStore = StartupRepairStore(this@TruckerLoadApp)
             runCatching { LoadPendingDeleteApplier.apply(repo) }
                 .onFailure { e -> Log.e(TAG, "Pending load deletes failed", e) }

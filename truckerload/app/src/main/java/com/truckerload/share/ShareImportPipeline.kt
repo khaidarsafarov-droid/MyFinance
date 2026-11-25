@@ -16,6 +16,7 @@ import com.truckerload.domain.share.SharePayloadPolicy
 import com.truckerload.domain.share.ShareTextBundle
 import com.truckerload.utils.AttachmentNaming
 import com.truckerload.utils.LoadDocumentTextExtractor
+import com.truckerload.utils.MediaStorage
 import java.io.File
 import java.io.IOException
 
@@ -209,8 +210,7 @@ internal class ShareImportPipeline(
     }
 
     private fun copyToScans(tripId: String, date: String, source: File, index: Int, extension: String): File {
-        val root = context.getExternalFilesDir(null) ?: context.filesDir
-        val scans = File(root, "scans").apply { mkdirs() }
+        val scans = MediaStorage.scansDir(context)
         val name = uniqueName(scans, tripId, date, index, extension)
         val dest = File(scans, name)
         source.copyTo(dest, overwrite = true)

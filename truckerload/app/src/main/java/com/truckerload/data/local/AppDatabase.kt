@@ -128,6 +128,7 @@ abstract class AppDatabase : RoomDatabase() {
                     dbName,
                 )
                     .addMigrations(*ALL_ROOM_MIGRATIONS)
+                    .addCallback(MediaPathCallback(context.applicationContext))
                     .openHelperFactory(
                         RecoveryGatedOpenHelperFactory(
                             appContext = context.applicationContext,

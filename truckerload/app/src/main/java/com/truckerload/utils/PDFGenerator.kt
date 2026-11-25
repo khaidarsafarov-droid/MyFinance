@@ -27,11 +27,7 @@ class PDFGenerator(private val context: Context) {
     }
 
     private val scansDir: File
-        get() {
-            val dir = File(context.getExternalFilesDir(null), "scans")
-            if (!dir.exists()) dir.mkdirs()
-            return dir
-        }
+        get() = MediaStorage.scansDir(context)
 
     fun buildScanFileName(
         timestamp: Long = System.currentTimeMillis(),

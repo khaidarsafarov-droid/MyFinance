@@ -8,7 +8,8 @@ import com.truckerload.domain.model.Paycheck
 /**
  * JSON backup payload shared by export and import ([BackupDataCodec]).
  *
- * Photos/scans binaries stay on disk (optional media sync is separate).
+ * Photos/scans binaries are not in this JSON; a manual export packs them beside it in a
+ * [BackupArchive] zip.
  * Schema v2 adds maintenance (ТО), archive receipts metadata, and app settings
  * so cloud / Drive / file restore brings back the full account, not only the journal.
  *

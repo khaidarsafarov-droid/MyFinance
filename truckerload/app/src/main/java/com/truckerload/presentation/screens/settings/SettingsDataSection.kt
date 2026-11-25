@@ -183,7 +183,7 @@ fun SettingsDataSection(
                             ),
                             Toast.LENGTH_LONG,
                         ).show()
-                        BackupService.shareBackupFile(context, it.save.uri)
+                        BackupService.shareBackupFile(context, it.save.uri, it.mimeType)
                     } ?: Toast.makeText(
                         context,
                         context.getString(R.string.settings_backup_error),
