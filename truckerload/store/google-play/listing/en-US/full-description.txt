@@ -1,30 +1,26 @@
-TruckoRig is a local-first logbook for truck drivers. Keep loads, paychecks, diesel, and weekly goals on your phone. No account, no sign-in — with optional Telegram import and backup to a file.
+TruckoRig is a local logbook for truck drivers. Loads, paychecks, diesel, and weekly goals are stored only on your phone. No account, no sign-in.
 
 WHAT YOU CAN DO
-• Paste or forward Amazon Relay / broker load messages and save them to your journal
+• Paste or forward Amazon Relay / broker load messages into your journal
 • Track paychecks and diesel receipts in one place
-• Set a weekly profit goal and see pace at a glance
-• Scan documents and attach photos to loads
-• Home-screen widgets for quick diesel / camera / scan actions
-• Optional Telegram bot on the device to import chat history
-• Backup file you save yourself (journal + photos), restore it any time
+• Set a weekly profit goal and see your pace at a glance
+• Scan documents and attach photos to loads, stamped with place, date, and time
+• Home-screen widgets: quick diesel / camera / scan
+• Optional Telegram bot on the device (import chat history)
+• Backup to a file that you keep yourself
 
 SUBSCRIPTION
 The app is free to install. Loads, diesel, and paychecks stay free.
-TruckoRig Premium is optional: the first month is free, then Google Play charges $2.99 per month in the United States (the price can differ by country). Premium includes Telegram import, analytics, the weekly goal, the map, taxes, scanner, camera, and export. Loads, diesel, paychecks, and deadhead miles stay free. It renews every month until you cancel in Google Play → Payments and subscriptions.
+TruckoRig Premium is optional: the first month is free, then Google Play charges $2.99 per month in the United States (the price can differ by country). Premium includes Telegram import, analytics, the weekly goal, the map, taxes, scanner, camera, and export. It renews every month until you cancel in Google Play → Payments and subscriptions.
 
-PRIVACY BY DESIGN
-• Your journal lives in an encrypted database on your phone
-• No account and no cloud sync: the developer never receives your journal
-• Telegram is optional — turn it on only if you need it
-• Camera and location are used when you take geotagged photos or add a diesel fill (to prefill the place). The map does not use your GPS
-• No ads. No selling of load data
+PRIVACY
+• Your data is only yours: the journal stays on your phone, we never see it and never share it
+• No developer cloud: you keep the backup file yourself
+• Camera and location are used only for the photo stamp (place, date, time) and to prefill the place of a diesel fill. The map does not use your GPS
+• No ads. We don't sell data
 
 GETTING STARTED
-1. Enter a name on first launch, or skip
-2. Add your first load (paste a Relay message or enter it manually)
-3. Optionally link Telegram, and save a backup in Settings → Backup file
+1. Add your first load (paste a Relay message or enter it manually)
+2. Optionally connect Telegram in Settings
 
-Support: in-app Settings feedback, or truckorig@gmail.com
-
-Package: com.truckorig
+Support and suggestions: truckorig@gmail.com

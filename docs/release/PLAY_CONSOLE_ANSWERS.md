@@ -161,7 +161,7 @@ Activate the offer, the base plan, and the subscription. License testers: add yo
 
 Repo files live in `truckerload/store/google-play/listing/`. Fix these when you paste into Console:
 
-1. **Title length.** Play’s limit is **30**. The en-US title is **decided:** `TruckoRig: Driver Logbook` (25 characters). The current repo EN title is 40 characters and the current RU title is 31; the suggested RU title is in the table.
+1. **Title length.** Play’s limit is **30**. The en-US title is **decided:** `TruckoRig: Driver Logbook` (25 characters). The RU title is `TruckoRig: журнал водителя` (26 characters).
 2. **Getting started** is fixed in the repo listing files: no sign-in, local first-run name, backup to a file. Google Drive sync was removed in 1.6.2.
 
 ### Title (max 30)
@@ -169,7 +169,7 @@ Repo files live in `truckerload/store/google-play/listing/`. Fix these when you 
 | Locale | Paste this | Length | Status |
 | --- | --- | --- | --- |
 | en-US | `TruckoRig: Driver Logbook` | 25 | Decided |
-| ru-RU | `TruckoRig — журнал водителя` | 27 | Suggested |
+| ru-RU | `TruckoRig: журнал водителя` | 26 | Decided |
 
 ### Short description (max 80) — existing text is within the limit
 
@@ -180,71 +180,63 @@ Repo files live in `truckerload/store/google-play/listing/`. Fix these when you 
 ### Full description — EN (corrected)
 
 ```
-TruckoRig is a local-first logbook for truck drivers. Keep loads, paychecks, diesel, and weekly goals on your phone. No account, no sign-in — with optional Telegram import and backup to a file.
+TruckoRig is a local logbook for truck drivers. Loads, paychecks, diesel, and weekly goals are stored only on your phone. No account, no sign-in.
 
 WHAT YOU CAN DO
-• Paste or forward Amazon Relay / broker load messages and save them to your journal
+• Paste or forward Amazon Relay / broker load messages into your journal
 • Track paychecks and diesel receipts in one place
-• Set a weekly profit goal and see pace at a glance
-• Scan documents and attach photos to loads
-• Home-screen widgets for quick diesel / camera / scan actions
-• Optional Telegram bot on the device to import chat history
-• Backup file you save yourself (journal + photos), restore it any time
+• Set a weekly profit goal and see your pace at a glance
+• Scan documents and attach photos to loads, stamped with place, date, and time
+• Home-screen widgets: quick diesel / camera / scan
+• Optional Telegram bot on the device (import chat history)
+• Backup to a file that you keep yourself
 
 SUBSCRIPTION
 The app is free to install. Loads, diesel, and paychecks stay free.
-TruckoRig Premium is optional: the first month is free, then Google Play charges $2.99 per month in the United States (the price can differ by country). Premium includes Telegram import, analytics, the weekly goal, the map, taxes, scanner, camera, and export. Loads, diesel, paychecks, and deadhead miles stay free. It renews every month until you cancel in Google Play → Payments and subscriptions.
+TruckoRig Premium is optional: the first month is free, then Google Play charges $2.99 per month in the United States (the price can differ by country). Premium includes Telegram import, analytics, the weekly goal, the map, taxes, scanner, camera, and export. It renews every month until you cancel in Google Play → Payments and subscriptions.
 
-PRIVACY BY DESIGN
-• Your journal lives in an encrypted database on your phone
-• No account and no cloud sync: the developer never receives your journal
-• Telegram is optional — turn it on only if you need it
-• Camera and location are used when you take geotagged photos or add a diesel fill (to prefill the place). The map does not use your GPS
-• No ads. No selling of load data
+PRIVACY
+• Your data is only yours: the journal stays on your phone, we never see it and never share it
+• No developer cloud: you keep the backup file yourself
+• Camera and location are used only for the photo stamp (place, date, time) and to prefill the place of a diesel fill. The map does not use your GPS
+• No ads. We don't sell data
 
 GETTING STARTED
-1. Enter a name on first launch, or skip
-2. Add your first load (paste a Relay message or enter it manually)
-3. Optionally link Telegram, and save a backup in Settings → Backup file
+1. Add your first load (paste a Relay message or enter it manually)
+2. Optionally connect Telegram in Settings
 
-Support: in-app Settings feedback, or truckorig@gmail.com
-
-Package: com.truckorig
+Support and suggestions: truckorig@gmail.com
 ```
 
 ### Full description — RU (corrected)
 
 ```
-TruckoRig — локальный журнал для водителей. Лоуды, зарплаты, дизель и недельные цели на телефоне. Без аккаунта и входа; по желанию — импорт из Telegram и бэкап в файл.
+TruckoRig — локальный журнал для водителей. Лоуды, зарплаты, дизель и недельные цели хранятся только на вашем телефоне.
 
 ЧТО УМЕЕТ
 • Вставка или пересылка сообщений Amazon Relay / брокера в журнал
 • Учёт зарплат и чеков на дизель в одном месте
 • Недельная цель по прибыли и наглядный темп
-• Сканер документов и фото к лоудам
+• Сканер документов и фото к лоудам со штампом места, даты и времени
 • Виджеты: быстрый дизель / камера / скан
 • Опциональный Telegram-бот на устройстве (импорт истории чата)
-• Файл-бэкап, который вы сохраняете сами (журнал + фото), восстановление в любой момент
+• Резервная копия в файл, которую вы храните сами
 
 ПОДПИСКА
 Приложение бесплатно в установке. Грузы, дизель и зарплаты остаются бесплатными.
-TruckoRig Premium — по желанию: первый месяц бесплатно, затем Google Play списывает 2,99 $ в месяц в США (в других странах цена может отличаться). В Premium входят импорт из Telegram, аналитика, недельная цель, карта, налоги, сканер, камера и экспорт. Грузы, дизель, зарплаты и deadhead остаются бесплатными. Подписка продлевается каждый месяц, пока вы не отмените её в Google Play → Платежи и подписки.
+TruckoRig Premium — по желанию: первый месяц бесплатно, затем Google Play списывает 2,99 $ в месяц в США (в других странах цена может отличаться). В Premium входят импорт из Telegram, аналитика, недельная цель, карта, налоги, сканер, камера и экспорт. Подписка продлевается каждый месяц, пока вы не отмените её в Google Play → Платежи и подписки.
 
 ПРИВАТНОСТЬ
-• Журнал хранится в зашифрованной базе на телефоне
-• Без аккаунта и облачной синхронизации: разработчик не получает ваш журнал
-• Telegram включается только по вашему желанию
-• Камера и геолокация — только для геотега фото и подстановки места заправки. Карта ваш GPS не использует
-• Без рекламы. Данные лоудов не продаём
+• Ваши данные — только ваши: журнал хранится на телефоне, мы его не видим и никому не передаём
+• Без облака разработчика: копию в файл вы храните сами
+• Камера и геолокация — только для штампа на фото и карты
+• Без рекламы. Данные не продаём
 
 СТАРТ
-1. Укажите имя при первом запуске или пропустите шаг
-2. Добавьте первый лоуд (вставьте сообщение Relay или введите вручную)
-3. При необходимости подключите Telegram и сохраните бэкап: Настройки → Файл резервной копии
+1. Добавьте первый лоуд (вставьте сообщение Relay или введите вручную)
+2. При желании подключите Telegram в Настройках
 
-Поддержка: обратная связь в Настройках или truckorig@gmail.com
-
-Пакет: com.truckorig
+Поддержка и предложения: truckorig@gmail.com.
 ```
 
 Graphics: `play-store-assets/` and `truckerload/store/google-play/` (icon 512, feature graphic 1024×500, phone and tablet screenshots). Upload map is in `truckerload/store/google-play/README.md`.
