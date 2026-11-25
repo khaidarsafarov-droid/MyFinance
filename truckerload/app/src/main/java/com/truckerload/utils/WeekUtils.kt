@@ -127,12 +127,10 @@ fun getPickUpDate(load: Load): String? {
 }
 
 /** Дата последней доставки (DEL), если есть. */
-fun getDeliveryDate(load: Load): String? {
-    return load.stops
-        .filter { it.type == StopType.DEL }
-        .mapNotNull { stopDateForLoad(it.scheduledTime, load.date) }
-        .maxOrNull()
-}
+fun getDeliveryDate(load: Load): String? = load.stops
+    .filter { it.type == StopType.DEL }
+    .mapNotNull { stopDateForLoad(it.scheduledTime, load.date) }
+    .maxOrNull()
 
 /**
  * Reporting week for a load: PU week by default (loads week-start from Settings).

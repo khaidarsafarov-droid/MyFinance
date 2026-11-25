@@ -1339,8 +1339,8 @@
         <error line="37" column="29" source="standard:class-signature" />
     </file>
     <file name="src/main/java/com/truckerload/domain/model/ActualFinishDate.kt">
-        <error line="33" column="42" source="standard:function-signature" />
-        <error line="36" column="41" source="standard:function-signature" />
+        <error line="34" column="42" source="standard:function-signature" />
+        <error line="37" column="41" source="standard:function-signature" />
     </file>
     <file name="src/main/java/com/truckerload/domain/model/DieselJournalFilter.kt">
         <error line="12" column="83" source="standard:function-signature" />
@@ -1926,12 +1926,12 @@
         <error line="26" column="40" source="standard:function-signature" />
     </file>
     <file name="src/main/java/com/truckerload/domain/tax/PerDiemCalculator.kt">
-        <error line="17" column="9" source="standard:function-signature" />
-        <error line="18" column="9" source="standard:function-signature" />
-        <error line="19" column="9" source="standard:function-signature" />
-        <error line="19" column="44" source="standard:function-signature" />
-        <error line="29" column="54" source="standard:function-signature" />
-        <error line="34" column="55" source="standard:function-signature" />
+        <error line="23" column="9" source="standard:function-signature" />
+        <error line="24" column="9" source="standard:function-signature" />
+        <error line="25" column="9" source="standard:function-signature" />
+        <error line="25" column="44" source="standard:function-signature" />
+        <error line="35" column="54" source="standard:function-signature" />
+        <error line="40" column="55" source="standard:function-signature" />
     </file>
     <file name="src/main/java/com/truckerload/domain/tax/PerDiemDayOverrides.kt">
         <error line="10" column="5" source="standard:class-signature" />
@@ -6499,12 +6499,12 @@
         <error line="102" column="10" source="standard:function-signature" />
         <error line="113" column="5" source="standard:function-signature" />
         <error line="113" column="53" source="standard:function-signature" />
-        <error line="166" column="30" source="standard:trailing-comma-on-call-site" />
+        <error line="162" column="30" source="standard:trailing-comma-on-call-site" />
         <error line="171" column="49" source="standard:function-signature" />
-        <error line="246" column="5" source="standard:function-signature" />
-        <error line="247" column="5" source="standard:function-signature" />
-        <error line="247" column="53" source="standard:function-signature" />
-        <error line="248" column="21" source="standard:function-signature" />
+        <error line="238" column="5" source="standard:function-signature" />
+        <error line="239" column="5" source="standard:function-signature" />
+        <error line="239" column="53" source="standard:function-signature" />
+        <error line="240" column="21" source="standard:function-signature" />
     </file>
     <file name="src/main/java/com/truckerload/utils/ocr/HybridOCRService.kt">
         <error line="20" column="56" source="standard:function-signature" />
@@ -6571,10 +6571,10 @@
         <error line="47" column="9" source="standard:function-signature" />
         <error line="48" column="9" source="standard:function-signature" />
         <error line="48" column="51" source="standard:function-signature" />
-        <error line="125" column="61" source="standard:trailing-comma-on-call-site" />
-        <error line="129" column="55" source="standard:function-signature" />
-        <error line="132" column="61" source="standard:function-signature" />
-        <error line="147" column="62" source="standard:function-signature" />
+        <error line="128" column="61" source="standard:trailing-comma-on-call-site" />
+        <error line="132" column="55" source="standard:function-signature" />
+        <error line="135" column="61" source="standard:function-signature" />
+        <error line="150" column="62" source="standard:function-signature" />
     </file>
     <file name="src/main/java/com/truckerload/widget/WidgetDayCaption.kt">
         <error line="8" column="9" source="standard:function-signature" />

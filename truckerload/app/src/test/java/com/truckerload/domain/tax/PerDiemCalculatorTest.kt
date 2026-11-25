@@ -23,7 +23,6 @@ class PerDiemCalculatorTest {
         assertEquals(setOf("2026-06-01", "2026-06-02", "2026-06-03"), dates)
         assertEquals(3, PerDiemCalculator.dayCount(listOf(load), 2026))
         assertEquals(3 * 80.0, PerDiemCalculator.amount(listOf(load), 2026), 0.01)
-        assertEquals(3 * 64.0, PerDiemCalculator.deductibleAmount(3), 0.001)
     }
 
     @Test
@@ -149,4 +148,10 @@ class PerDiemCalculatorTest {
         state = "ST",
         zip = "",
     )
+
+    @Test
+    fun deductibleAmount_isEightyPercentOfTheIrsRate() {
+        assertEquals(80.0, PerDiemCalculator.DAILY_RATE, 0.0)
+        assertEquals(3 * 64.0, PerDiemCalculator.deductibleAmount(3), 0.001)
+    }
 }

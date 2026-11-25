@@ -42,5 +42,7 @@ object PerDiemCalculator {
 
     /** Part of the per diem a DOT-regulated driver can deduct (80% meal limit). */
     fun deductibleAmount(dayCount: Int): Double =
-        kotlin.math.round(amount(dayCount) * DEDUCTIBLE_SHARE * 100.0) / 100.0
+        kotlin.math.round(amount(dayCount) * DEDUCTIBLE_SHARE * CENTS_PER_DOLLAR) / CENTS_PER_DOLLAR
+
+    private const val CENTS_PER_DOLLAR = 100.0
 }

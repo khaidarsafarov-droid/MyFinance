@@ -32,7 +32,6 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.withTimeoutOrNull
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
@@ -59,7 +58,6 @@ class BillingManager(context: Context) {
     val isSubscribed: StateFlow<Boolean> = _isSubscribed.asStateFlow()
 
     private var reconnectAttempt = 0
-    @Volatile
     private var connecting: kotlinx.coroutines.CompletableDeferred<Boolean>? = null
     private val reconnectScheduled = AtomicBoolean(false)
 
@@ -291,7 +289,7 @@ class BillingManager(context: Context) {
             created
         }
         // Play Store frozen or missing: give up instead of leaving the paywall and refresh hanging.
-        val connected = withTimeoutOrNull(CONNECT_TIMEOUT_MS) { pending.await() }
+        val connected = kotlinx.coroutines.withTimeoutOrNull(CONNECT_TIMEOUT_MS) { pending.await() }
         if (connected == null && pending.complete(false)) clearConnecting(pending)
         return connected == true
     }
@@ -331,8 +329,10 @@ class BillingManager(context: Context) {
                 .apply()
         }
 
-        fun pendingAcks(): Set<String> =
-            if (!encrypted) emptySet() else prefs.getStringSet(KEY_PENDING_ACKS, emptySet()).orEmpty()
+        fun pendingAcks(): Set<String> {
+            if (!encrypted) return emptySet()
+            return prefs.getStringSet(KEY_PENDING_ACKS, emptySet()).orEmpty()
+        }
 
         fun addPendingAck(token: String) {
             if (!encrypted || token.isBlank()) return
