@@ -60,9 +60,12 @@ class WidgetBudgetRingActionsTest {
     @Test
     fun themeSettings_repaintWidgetWhenDynamicColorChanges() {
         val src = readSource("presentation/screens/settings/ThemeSettingsSection.kt")
-        assertTrue(src.contains("saveDynamicColor"))
-        assertTrue(src.contains("WidgetRefresh.refreshAndUpdateAsync"))
-        assertTrue(src.contains("saveThemeMode"))
+        val prefs = readSource("presentation/screens/settings/SettingsPreferencesViewModel.kt")
+        assertTrue(src.contains("setDynamicColor"))
+        assertTrue(src.contains("setThemeMode"))
+        assertTrue(prefs.contains("saveDynamicColor"))
+        assertTrue(prefs.contains("WidgetRefresh.refreshAndUpdateAsync"))
+        assertTrue(prefs.contains("saveThemeMode"))
     }
 
     @Test
