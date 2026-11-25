@@ -25,13 +25,14 @@ Audit date: 2026-11-23, re-checked the same day against main `7f98db9a`. Package
 
 ## 2. Data types to tick
 
+> Update 2026-11-25 (main `c5dd13dc`): **Email address is not ticked.** Google Sign-In stores the email only on the phone for the user's own Drive backup; it never leaves the device to the developer, and signing in to one's own Google account is user-initiated. The app has no developer accounts.
+
 Tick only the rows in this section. For each, Play asks collected vs shared, ephemeral, optional vs required, and purposes.
 
 | Data type | Collected | Shared | Ephemeral | Optional or required | Purposes |
 | --- | --- | --- | --- | --- | --- |
 | Location → Precise location | Yes | Yes | Yes | Optional | App functionality |
 | Location → Approximate location | Yes | Yes | Yes | Optional | App functionality |
-| Personal info → Email address | Yes | No | No | Optional | App functionality, Account management |
 | App info and performance → Crash logs | Yes | Yes | No | Optional | Analytics |
 | App info and performance → Diagnostics | Yes | Yes | No | Optional | Analytics |
 | App activity → App interactions | Yes | Yes | No | Optional | Analytics |
