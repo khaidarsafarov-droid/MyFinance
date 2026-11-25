@@ -8,6 +8,18 @@
 - Sign in with Apple is reserved (`AuthProvider.APPLE`) and not implemented.
 - Roadmap: `docs/KMP_IOS_ROADMAP.md`.
 
+## [1.6.1] — 2026-11-25 (`versionCode` 19)
+
+- PDF statements and reports: replace iText with PdfBox-Android (Apache 2.0). PDF text stays English-only.
+- Accessibility: TalkBack names for quick actions and the tablet drawer, larger profile target, text wraps at large font sizes, reduced-motion respects the system setting.
+- Battery: in-app Telegram polling stops after 10 minutes in the background and WorkManager takes over; the maintenance alarm no longer blocks the main thread.
+- Startup: widget, share shortcut, and day-7 poll wait until after the first frame.
+- Database: maintenance miles are summed in SQL.
+- Import: plain-text file import and Telegram history import use the shared parser.
+- Data layer: repositories emit write events; widgets, backups, and reminders react in the app layer.
+- Play Data safety answers and the privacy policy match what the app does.
+- CI: lint, detekt, ktlint, coverage floors, 16 KB alignment, and Play bundle checks on every PR; compileSdk 37.
+
 ## [1.6.0] — Legacy audit complete (`v1.6.0-legacy-audit-complete`)
 
 End-to-end quality/architecture pass: Room migration hardening, Hilt account scope,

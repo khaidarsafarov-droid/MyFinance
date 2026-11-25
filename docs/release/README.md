@@ -17,6 +17,8 @@ These drafts are based on the Android repo (`MyFinance`, `main` at `b431f9b`, ve
 | [PLAY_CONSOLE_ANSWERS.md](PLAY_CONSOLE_ANSWERS.md) | Data safety, IARC, target audience, ads, app access, listing fixes, 1.6.0 release notes. |
 | [APP_STORE_ANSWERS.md](APP_STORE_ANSWERS.md) | App Privacy labels, age rating, export compliance, listing copy, review notes. |
 
+For the Google Play listing and the rentry page, the canonical policy is `truckerload/store/google-play/PRIVACY_POLICY.md` (English, Android). This folder’s bilingual file also covers iOS and is for the App Store and static hosting.
+
 Existing repo drafts this set supersedes (do not delete them in this PR):
 
 - `truckerload/store/google-play/PRIVACY_POLICY.md` (23 November 2026, Android)
