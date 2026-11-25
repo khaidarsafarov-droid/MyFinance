@@ -49,7 +49,7 @@ class TelegramBotSyncEngine(private val context: Context) {
                     pollLockContention = true,
                 )
             is TelegramPollCoordinator.PollLockResult.Acquired ->
-                lockResult.value ?: SyncRunResult(skipped = true, processedUpdates = 0, nextDelaySeconds = 15)
+                lockResult.value
         }
     }
 
