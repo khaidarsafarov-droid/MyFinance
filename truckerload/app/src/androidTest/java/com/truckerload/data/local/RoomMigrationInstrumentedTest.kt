@@ -1,5 +1,6 @@
 package com.truckerload.data.local
 
+import androidx.room.migration.Migration
 import androidx.room.testing.MigrationTestHelper
 import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.sqlite.db.SupportSQLiteOpenHelper
@@ -15,9 +16,11 @@ import java.io.IOException
 
 /**
  * MigrationTestHelper coverage for Room forward path.
- * Schemas 28/29 are exported under app/schemas and mounted as androidTest assets.
- * Older start versions use a fixture DB (no historical schema JSON) then
- * [MigrationTestHelper.runMigrationsAndValidate] with validate=false.
+ * Exported schemas (28–44) are mounted as androidTest assets and used with
+ * [MigrationTestHelper.runMigrationsAndValidate].
+ * Older start versions have no historical schema JSON, so those tests build a
+ * fixture and apply migrations directly. The helper's boolean flag only
+ * controls dropped-table checks; it does not skip schema validation.
  */
 @RunWith(AndroidJUnit4::class)
 class RoomMigrationInstrumentedTest {
@@ -35,7 +38,7 @@ class RoomMigrationInstrumentedTest {
     @Test
     @Throws(IOException::class)
     fun migrate6To36_smoke() {
-        createFixtureDatabase(6) {
+        val db = migrateFixture(6, 36, ALL_MIGRATIONS_FROM_V6) {
             execSQL(V6_LOADS_DDL)
             execSQL(
                 """
@@ -52,10 +55,6 @@ class RoomMigrationInstrumentedTest {
             execSQL(DIESEL_DDL)
             execSQL(PAYCHECKS_DDL)
         }
-
-        // validate=false: pre-v6 core tables (stops/penalties/…) were never created by
-        // forward migrations; we assert row survival + key columns via PRAGMA instead.
-        val db = helper.runMigrationsAndValidate(testDb, 36, false, *ALL_MIGRATIONS_FROM_V6)
         db.query("SELECT COUNT(*) FROM loads").use { c ->
             assertTrue(c.moveToFirst())
             assertEquals(1, c.getInt(0))
@@ -86,7 +85,7 @@ class RoomMigrationInstrumentedTest {
     @Test
     @Throws(IOException::class)
     fun migrate22To23() {
-        createFixtureDatabase(22) {
+        val db = migrateFixture(22, 23, arrayOf(MIGRATION_22_23)) {
             execSQL(DIESEL_DDL)
             execSQL(PAYCHECKS_DDL)
             execSQL(
@@ -94,7 +93,6 @@ class RoomMigrationInstrumentedTest {
                     "VALUES ('d1', '2026-01-01', 10.0, 3.0, 30.0, 'X', 1, 2026, 1)",
             )
         }
-        val db = helper.runMigrationsAndValidate(testDb, 23, false, MIGRATION_22_23)
         db.query("SELECT COUNT(*) FROM diesel").use { c ->
             assertTrue(c.moveToFirst())
             assertEquals(1, c.getInt(0))
@@ -106,7 +104,7 @@ class RoomMigrationInstrumentedTest {
     @Test
     @Throws(IOException::class)
     fun migrate25To26() {
-        createFixtureDatabase(25) {
+        val db = migrateFixture(25, 26, arrayOf(MIGRATION_25_26)) {
             execSQL(PHOTOS_V25_DDL)
             execSQL(SCANS_V25_DDL)
             execSQL(
@@ -114,7 +112,6 @@ class RoomMigrationInstrumentedTest {
                     "VALUES ('p1', 'a.jpg', '/a', 1, NULL, NULL, NULL)",
             )
         }
-        val db = helper.runMigrationsAndValidate(testDb, 26, false, MIGRATION_25_26)
         assertTrue(db.hasColumn("photos", "cloudMediaId"))
         assertTrue(db.hasColumn("photos", "cloudSyncStatus"))
         assertTrue(db.hasColumn("scans", "cloudSyncStatus"))
@@ -130,14 +127,13 @@ class RoomMigrationInstrumentedTest {
     @Test
     @Throws(IOException::class)
     fun migrate27To28() {
-        createFixtureDatabase(27) {
+        val db = migrateFixture(27, 28, arrayOf(MIGRATION_27_28)) {
             execSQL(MAINTENANCE_ARCHIVE_V27_DDL)
             execSQL(
                 "INSERT INTO maintenance_archive (id, serviceDate, description, amount, createdAt) " +
                     "VALUES (1, '2026-01-01', 'oil', 50.0, 1)",
             )
         }
-        val db = helper.runMigrationsAndValidate(testDb, 28, false, MIGRATION_27_28)
         assertTrue(db.hasColumn("maintenance_archive", "serviceName"))
         db.query("SELECT serviceName FROM maintenance_archive WHERE id = 1").use { c ->
             assertTrue(c.moveToFirst())
@@ -319,29 +315,45 @@ class RoomMigrationInstrumentedTest {
     }
 
     /**
-     * Builds a named DB at [version] without requiring an exported schema JSON
-     * (historical schemas are not committed; only 28–41 are).
+     * Builds a named DB at [startVersion] without an exported schema JSON
+     * (historical schemas below 28 are not committed) and applies [migrations]
+     * up to [endVersion].
      */
-    private fun createFixtureDatabase(version: Int, setup: SupportSQLiteDatabase.() -> Unit) {
+    private fun migrateFixture(
+        startVersion: Int,
+        endVersion: Int,
+        migrations: Array<out Migration>,
+        setup: SupportSQLiteDatabase.() -> Unit,
+    ): SupportSQLiteDatabase {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         context.deleteDatabase(testDb)
         val config = SupportSQLiteOpenHelper.Configuration.builder(context)
             .name(testDb)
             .callback(
-                object : SupportSQLiteOpenHelper.Callback(version) {
+                object : SupportSQLiteOpenHelper.Callback(startVersion) {
                     override fun onCreate(db: SupportSQLiteDatabase) {
                         db.setup()
                     }
 
-                    override fun onUpgrade(
-                        db: SupportSQLiteDatabase,
-                        oldVersion: Int,
-                        newVersion: Int,
-                    ) = Unit
+                    override fun onUpgrade(db: SupportSQLiteDatabase, oldVersion: Int, newVersion: Int) = Unit
                 },
             )
             .build()
-        FrameworkSQLiteOpenHelperFactory().create(config).writableDatabase.close()
+        val db = FrameworkSQLiteOpenHelperFactory().create(config).writableDatabase
+        var version = startVersion
+        for (migration in migrations.sortedBy { it.startVersion }) {
+            if (migration.startVersion == version && migration.endVersion <= endVersion) {
+                migration.migrate(db)
+                version = migration.endVersion
+                db.version = version
+            }
+        }
+        assertEquals(
+            "fixture migrations stopped at $version, expected $endVersion",
+            endVersion,
+            version,
+        )
+        return db
     }
 
     private fun indexExists(db: SupportSQLiteDatabase, name: String): Boolean {

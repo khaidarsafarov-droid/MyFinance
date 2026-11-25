@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fail if string resource key sets differ across values / values-en / values-ru."""
+"""Fail if string resource key sets differ across default, en, ru, es, and fr."""
 from __future__ import annotations
 
 import re
@@ -7,7 +7,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1] / "app" / "src" / "main" / "res"
-FOLDERS = ("values", "values-en", "values-ru")
+FOLDERS = ("values", "values-en", "values-ru", "values-es", "values-fr")
 NAME_RE = re.compile(r'<string\s+name="([^"]+)"')
 
 

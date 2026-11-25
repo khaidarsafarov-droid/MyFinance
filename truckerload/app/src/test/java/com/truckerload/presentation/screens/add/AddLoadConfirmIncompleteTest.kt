@@ -1,7 +1,6 @@
 package com.truckerload.presentation.screens.add
 
 import androidx.lifecycle.SavedStateHandle
-import com.truckerload.data.preferences.SettingsDataStore
 import com.truckerload.data.repository.AiRepository
 import com.truckerload.data.repository.LoadRepository
 import com.truckerload.domain.model.Load
@@ -53,7 +52,6 @@ class AddLoadConfirmIncompleteTest {
             application = RuntimeEnvironment.getApplication(),
             loadRepository = loadRepository,
             aiRepository = AiRepository(),
-            settingsDataStore = SettingsDataStore(RuntimeEnvironment.getApplication()),
             savedStateHandle = SavedStateHandle(),
         )
     }

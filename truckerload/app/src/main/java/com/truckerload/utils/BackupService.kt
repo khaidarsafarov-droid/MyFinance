@@ -43,7 +43,6 @@ import java.util.concurrent.atomic.AtomicReference
 object BackupService {
 
     private const val PREFS = "backup_companion"
-    private const val AUTO_BACKUP_SUBDIR = "backups/auto" // legacy; prefer [autoBackupDir] per user
     private const val DEFAULT_KEEP_COUNT = 5
     private const val TAG = "BackupRestore"
     private const val AUTO_BACKUP_DEBOUNCE_MS = 45_000L

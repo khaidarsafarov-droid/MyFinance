@@ -946,7 +946,6 @@
     <string name="settings_section_about">About</string>
     <string name="settings_row_share_subtitle">Store link</string>
     <string name="settings_row_version">Version</string>
-    <string name="settings_dynamic_subtitle">Android 12+</string>
     <string name="settings_oled_subtitle">True black at night</string>
     <string name="settings_motion_subtitle">Shorter transitions</string>
     <string name="settings_sound_subtitle">On add and at the goal</string>

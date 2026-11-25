@@ -46,7 +46,9 @@ fun buildHomeGridRows(items: List<HomeListItem>, columns: Int): List<HomeGridRow
                 pending += item.load
                 if (pending.size >= columns) flush()
             }
+
             is HomeListItem.FilteredSectionHeader -> Unit
+
             else -> {
                 flush()
                 rows += HomeGridRow.FullWidth(item)
@@ -69,12 +71,7 @@ fun pagedLoadRowCount(itemCount: Int, columns: Int): Int {
  * Placeholder rows keep a stable index key so LazyColumn does not jump
  * when a mid-fling peek flips from null to an id.
  */
-fun pagedLoadRowKey(
-    rowIndex: Int,
-    columns: Int,
-    itemCount: Int,
-    peekId: (itemIndex: Int) -> String?,
-): String {
+fun pagedLoadRowKey(rowIndex: Int, columns: Int, itemCount: Int, peekId: (itemIndex: Int) -> String?): String {
     val cols = columns.coerceAtLeast(1)
     val start = rowIndex * cols
     val end = minOf(start + cols, itemCount)

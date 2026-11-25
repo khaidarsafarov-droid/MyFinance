@@ -1,11 +1,8 @@
 package com.truckerload.presentation.screens.home
 
-import com.truckerload.presentation.icons.AppIcons
-
 import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,6 +19,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -48,7 +46,6 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import java.util.Calendar
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
@@ -56,18 +53,20 @@ import com.truckerload.R
 import com.truckerload.data.preferences.RpmThresholds
 import com.truckerload.domain.filter.LoadFilter
 import com.truckerload.domain.model.Load
-import com.truckerload.presentation.components.OneUiLargeTitleHeader
 import com.truckerload.presentation.components.HomePeriodFilterDropdown
+import com.truckerload.presentation.components.OneUiLargeTitleHeader
 import com.truckerload.presentation.components.StatsCardSkeleton
-import com.truckerload.presentation.components.TlTextButton as TextButton
-import com.truckerload.presentation.di.LocalWeeklyProfitGoalStore
-import com.truckerload.presentation.screens.privacy.PrivacyTrustBadge
 import com.truckerload.presentation.components.rememberLoadCards
+import com.truckerload.presentation.di.LocalWeeklyProfitGoalStore
+import com.truckerload.presentation.icons.AppIcons
+import com.truckerload.presentation.screens.privacy.PrivacyTrustBadge
 import com.truckerload.presentation.theme.BentoGlassScreenBackground
 import com.truckerload.presentation.theme.LocalReduceMotion
 import com.truckerload.presentation.theme.LocalTruckColors
 import com.truckerload.presentation.theme.UiDimens
 import com.truckerload.presentation.utils.adaptiveLoadColumns
+import java.util.Calendar
+import com.truckerload.presentation.components.TlTextButton as TextButton
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -139,7 +138,6 @@ internal fun HomeScreenContent(
         )
     }
 
-
     if (tabletChrome) {
         val totals = periodTotals ?: periodSummary?.totals
             ?: com.truckerload.domain.filter.LoadFilterUseCase.Totals(0, com.truckerload.domain.money.Money.ZERO, 0.0)
@@ -207,198 +205,144 @@ internal fun HomeScreenContent(
                     onRefresh = { onRefresh() },
                 ),
         ) {
-        LazyColumn(
-            state = listState,
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues),
-            contentPadding = PaddingValues(start = 0.dp, top = 0.dp, end = 0.dp, bottom = 88.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            item(key = "search", contentType = "search") {
-                Column {
-                    if (tabletChrome) {
-                        PrivacyTrustBadge(
-                            onClick = onOpenPrivacy,
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
-                        )
-                    }
-                    HomeJournalSearchField(
-                        viewModel = viewModel,
-                        placeholder = stringResource(R.string.home_search_hint),
-                        visibleWhenBlank = uiState.isSearchExpanded,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                    )
-                }
-            }
-
-            periodSummary?.let { summary ->
-                item(key = "period_summary_${summary.label}", contentType = "summary") {
-                    PeriodSummarySection(
-                        header = summary,
-                        currentFilter = uiState.filter,
-                        weeklyGoal = weeklyGoal,
-                        onOpenWeeklyGoal = onOpenWeeklyGoal,
-                    )
-                }
-            }
-
-            item(key = "quick_actions", contentType = "actions") {
-                HomeQuickActionRow(
-                    onDiesel = onOpenDiesel,
-                    onPaycheck = onOpenPaycheck,
-                    onExpense = onOpenExpense,
-                    onScanner = onOpenScanner,
-                )
-            }
-
-            item(key = "newcomer_next", contentType = "header") {
-                HomeUxMotivators(
-                    onAddLoad = onAddLoad,
-                    onWeeklyGoal = onOpenWeeklyGoal,
-                    onAddDiesel = onAddDiesel,
-                    onOpenProfile = onOpenProfile,
-                )
-            }
-
-            val hasLoads = (paging != null && paging.itemCount > 0) ||
-                (paging == null && listItems.isNotEmpty())
-            val showRecentHeader = hasLoads || periodSummary != null
-            if (periodSummary == null) {
-                item(key = "period_filter", contentType = "filter") {
-                    HomePeriodFilterDropdown(
-                        currentFilter = uiState.filter,
-                        selectedYear = uiState.selectedYear,
-                        selectedDateLabel = uiState.selectedDateLabel,
-                        selectedWeekLabel = uiState.selectedWeekLabel,
-                        selectedMonthLabel = uiState.selectedMonthLabel,
-                        onFilterSelected = viewModel::setFilter,
-                        onOpenCalendar = onOpenCalendar,
-                        onOpenMonthPicker = { showMonthPicker = true },
-                        modifier = Modifier.padding(bottom = 4.dp),
-                    )
-                }
-            }
-
-            if (showRecentHeader) {
-                item(key = "recent_header", contentType = "header") {
-                    HomeRecentHeader(
-                        uiState = uiState,
-                        showFilter = periodSummary != null,
-                        onFilterSelected = viewModel::setFilter,
-                        onOpenCalendar = onOpenCalendar,
-                        onOpenMonthPicker = { showMonthPicker = true },
-                    )
-                }
-            }
-
-            val visibleItemCount = paging?.itemCount ?: listItems.size
-            val pagingRefreshLoading = paging != null &&
-                paging.loadState.refresh is LoadState.Loading
-            if (HomeRefreshPolicy.shouldShowEmptyJournal(visibleItemCount, pagingRefreshLoading)) {
-                item(key = "empty_${uiState.filter}", contentType = "empty") {
-                    HomeEmptyJournal(
-                        title = when (uiState.filter) {
-                            LoadFilter.ALL -> stringResource(R.string.home_empty_all_title)
-                            LoadFilter.CALENDAR_WEEK -> stringResource(R.string.home_empty_calendar_week)
-                            LoadFilter.CALENDAR_DATE -> stringResource(R.string.home_empty_calendar_date)
-                            LoadFilter.YESTERDAY -> stringResource(R.string.home_empty_yesterday)
-                            LoadFilter.THIS_WEEK -> stringResource(R.string.home_empty_this_week)
-                            LoadFilter.LAST_WEEK -> stringResource(R.string.home_empty_last_week)
-                            LoadFilter.THIS_MONTH -> stringResource(R.string.home_empty_this_month)
-                            LoadFilter.DISPUTE -> stringResource(R.string.home_empty_dispute)
-                        },
-                        body = if (uiState.filter == LoadFilter.THIS_WEEK || uiState.filter == LoadFilter.ALL) {
-                            stringResource(R.string.ux_home_empty_reciprocity)
-                        } else {
-                            stringResource(R.string.home_empty_filtered_body)
-                        },
-                        ctaLabel = stringResource(
-                            if (uiState.filter == LoadFilter.ALL || uiState.filter == LoadFilter.THIS_WEEK) {
-                                R.string.empty_add_first_load
-                            } else {
-                                R.string.home_empty_cta
-                            },
-                        ),
-                        onCta = onAddLoad,
-                        modifier = Modifier.padding(horizontal = 16.dp),
-                    )
-                }
-            } else if (paging != null) {
-                val rowCount = pagedLoadRowCount(paging.itemCount, loadColumns)
-                items(
-                    count = rowCount,
-                    key = { rowIndex ->
-                        pagedLoadRowKey(
-                            rowIndex = rowIndex,
-                            columns = loadColumns,
-                            itemCount = paging.itemCount,
-                            peekId = { index -> paging.peek(index)?.id },
-                        )
-                    },
-                    contentType = { "load" },
-                ) { rowIndex ->
-                    val start = rowIndex * loadColumns
-                    val rowLoads = (0 until loadColumns).mapNotNull { offset ->
-                        paging[start + offset]
-                    }
-                    if (rowLoads.isEmpty()) return@items
-                    HomeLoadCardRow(
-                        cards = rememberLoadCards(rowLoads, rpmThresholds),
-                        columns = loadColumns,
-                        settleKey = swipeSettleGeneration,
-                        onLoadClick = onLoadClick,
-                        onDelete = { id -> viewModel.requestDeleteLoad(id) },
-                        onLoadCamera = onLoadCamera,
-                        onLoadScan = onLoadScan,
-                        modifier = if (reduceMotion) Modifier else Modifier.animateItem(),
-                    )
-                }
-            } else {
-                itemsIndexed(
-                    items = gridRows,
-                    key = { _, row ->
-                        when (row) {
-                            is HomeGridRow.FullWidth -> when (val item = row.item) {
-                                is HomeListItem.YearHeader -> "year_${item.section.year}"
-                                is HomeListItem.MonthHeader ->
-                                    "month_${item.section.year}_${item.section.month}"
-                                is HomeListItem.FilteredSectionHeader -> "filtered_${item.label}"
-                                is HomeListItem.LoadItem -> "load_${item.load.id}"
-                            }
-                            is HomeGridRow.Loads ->
-                                "loads_${row.loads.joinToString("_") { it.id }}"
-                        }
-                    },
-                    contentType = { _, row ->
-                        when (row) {
-                            is HomeGridRow.Loads -> "load"
-                            is HomeGridRow.FullWidth -> when (row.item) {
-                                is HomeListItem.LoadItem -> "load"
-                                is HomeListItem.FilteredSectionHeader -> "summary"
-                                else -> "header"
-                            }
-                        }
-                    },
-                ) { _, row ->
-                    when (row) {
-                        is HomeGridRow.FullWidth -> when (val item = row.item) {
-                            is HomeListItem.YearHeader -> YearSectionHeader(section = item.section)
-                            is HomeListItem.MonthHeader -> MonthSectionHeader(section = item.section)
-                            is HomeListItem.FilteredSectionHeader -> Unit
-                            is HomeListItem.LoadItem -> HomeLoadCardRow(
-                                cards = rememberLoadCards(listOf(item.load), rpmThresholds),
-                                columns = 1,
-                                settleKey = swipeSettleGeneration,
-                                onLoadClick = onLoadClick,
-                                onDelete = { id -> viewModel.requestDeleteLoad(id) },
-                                onLoadCamera = onLoadCamera,
-                                onLoadScan = onLoadScan,
-                                modifier = if (reduceMotion) Modifier else Modifier.animateItem(),
+            LazyColumn(
+                state = listState,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
+                contentPadding = PaddingValues(start = 0.dp, top = 0.dp, end = 0.dp, bottom = 88.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                item(key = "search", contentType = "search") {
+                    Column {
+                        if (tabletChrome) {
+                            PrivacyTrustBadge(
+                                onClick = onOpenPrivacy,
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
                             )
                         }
-                        is HomeGridRow.Loads -> HomeLoadCardRow(
-                            cards = rememberLoadCards(row.loads, rpmThresholds),
+                        HomeJournalSearchField(
+                            viewModel = viewModel,
+                            placeholder = stringResource(R.string.home_search_hint),
+                            visibleWhenBlank = uiState.isSearchExpanded,
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                        )
+                    }
+                }
+
+                periodSummary?.let { summary ->
+                    item(key = "period_summary_${summary.label}", contentType = "summary") {
+                        PeriodSummarySection(
+                            header = summary,
+                            currentFilter = uiState.filter,
+                            weeklyGoal = weeklyGoal,
+                            onOpenWeeklyGoal = onOpenWeeklyGoal,
+                        )
+                    }
+                }
+
+                item(key = "quick_actions", contentType = "actions") {
+                    HomeQuickActionRow(
+                        onDiesel = onOpenDiesel,
+                        onPaycheck = onOpenPaycheck,
+                        onExpense = onOpenExpense,
+                        onScanner = onOpenScanner,
+                    )
+                }
+
+                item(key = "newcomer_next", contentType = "header") {
+                    HomeUxMotivators(
+                        onAddLoad = onAddLoad,
+                        onWeeklyGoal = onOpenWeeklyGoal,
+                        onAddDiesel = onAddDiesel,
+                        onOpenProfile = onOpenProfile,
+                    )
+                }
+
+                val hasLoads = (paging != null && paging.itemCount > 0) ||
+                    (paging == null && listItems.isNotEmpty())
+                val showRecentHeader = hasLoads || periodSummary != null
+                if (periodSummary == null) {
+                    item(key = "period_filter", contentType = "filter") {
+                        HomePeriodFilterDropdown(
+                            currentFilter = uiState.filter,
+                            selectedYear = uiState.selectedYear,
+                            selectedDateLabel = uiState.selectedDateLabel,
+                            selectedWeekLabel = uiState.selectedWeekLabel,
+                            selectedMonthLabel = uiState.selectedMonthLabel,
+                            onFilterSelected = viewModel::setFilter,
+                            onOpenCalendar = onOpenCalendar,
+                            onOpenMonthPicker = { showMonthPicker = true },
+                            modifier = Modifier.padding(bottom = 4.dp),
+                        )
+                    }
+                }
+
+                if (showRecentHeader) {
+                    item(key = "recent_header", contentType = "header") {
+                        HomeRecentHeader(
+                            uiState = uiState,
+                            showFilter = periodSummary != null,
+                            onFilterSelected = viewModel::setFilter,
+                            onOpenCalendar = onOpenCalendar,
+                            onOpenMonthPicker = { showMonthPicker = true },
+                        )
+                    }
+                }
+
+                val visibleItemCount = paging?.itemCount ?: listItems.size
+                val pagingRefreshLoading = paging != null &&
+                    paging.loadState.refresh is LoadState.Loading
+                if (HomeRefreshPolicy.shouldShowEmptyJournal(visibleItemCount, pagingRefreshLoading)) {
+                    item(key = "empty_${uiState.filter}", contentType = "empty") {
+                        HomeEmptyJournal(
+                            title = when (uiState.filter) {
+                                LoadFilter.ALL -> stringResource(R.string.home_empty_all_title)
+                                LoadFilter.CALENDAR_WEEK -> stringResource(R.string.home_empty_calendar_week)
+                                LoadFilter.CALENDAR_DATE -> stringResource(R.string.home_empty_calendar_date)
+                                LoadFilter.YESTERDAY -> stringResource(R.string.home_empty_yesterday)
+                                LoadFilter.THIS_WEEK -> stringResource(R.string.home_empty_this_week)
+                                LoadFilter.LAST_WEEK -> stringResource(R.string.home_empty_last_week)
+                                LoadFilter.THIS_MONTH -> stringResource(R.string.home_empty_this_month)
+                                LoadFilter.DISPUTE -> stringResource(R.string.home_empty_dispute)
+                            },
+                            body = if (uiState.filter == LoadFilter.THIS_WEEK || uiState.filter == LoadFilter.ALL) {
+                                stringResource(R.string.ux_home_empty_reciprocity)
+                            } else {
+                                stringResource(R.string.home_empty_filtered_body)
+                            },
+                            ctaLabel = stringResource(
+                                if (uiState.filter == LoadFilter.ALL || uiState.filter == LoadFilter.THIS_WEEK) {
+                                    R.string.empty_add_first_load
+                                } else {
+                                    R.string.home_empty_cta
+                                },
+                            ),
+                            onCta = onAddLoad,
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                        )
+                    }
+                } else if (paging != null) {
+                    val rowCount = pagedLoadRowCount(paging.itemCount, loadColumns)
+                    items(
+                        count = rowCount,
+                        key = { rowIndex ->
+                            pagedLoadRowKey(
+                                rowIndex = rowIndex,
+                                columns = loadColumns,
+                                itemCount = paging.itemCount,
+                                peekId = { index -> paging.peek(index)?.id },
+                            )
+                        },
+                        contentType = { "load" },
+                    ) { rowIndex ->
+                        val start = rowIndex * loadColumns
+                        val rowLoads = (0 until loadColumns).mapNotNull { offset ->
+                            paging[start + offset]
+                        }
+                        if (rowLoads.isEmpty()) return@items
+                        HomeLoadCardRow(
+                            cards = rememberLoadCards(rowLoads, rpmThresholds),
                             columns = loadColumns,
                             settleKey = swipeSettleGeneration,
                             onLoadClick = onLoadClick,
@@ -408,14 +352,77 @@ internal fun HomeScreenContent(
                             modifier = if (reduceMotion) Modifier else Modifier.animateItem(),
                         )
                     }
+                } else {
+                    itemsIndexed(
+                        items = gridRows,
+                        key = { _, row ->
+                            when (row) {
+                                is HomeGridRow.FullWidth -> when (val item = row.item) {
+                                    is HomeListItem.YearHeader -> "year_${item.section.year}"
+
+                                    is HomeListItem.MonthHeader ->
+                                        "month_${item.section.year}_${item.section.month}"
+
+                                    is HomeListItem.FilteredSectionHeader -> "filtered_${item.label}"
+
+                                    is HomeListItem.LoadItem -> "load_${item.load.id}"
+                                }
+
+                                is HomeGridRow.Loads ->
+                                    "loads_${row.loads.joinToString("_") { it.id }}"
+                            }
+                        },
+                        contentType = { _, row ->
+                            when (row) {
+                                is HomeGridRow.Loads -> "load"
+
+                                is HomeGridRow.FullWidth -> when (row.item) {
+                                    is HomeListItem.LoadItem -> "load"
+                                    is HomeListItem.FilteredSectionHeader -> "summary"
+                                    else -> "header"
+                                }
+                            }
+                        },
+                    ) { _, row ->
+                        when (row) {
+                            is HomeGridRow.FullWidth -> when (val item = row.item) {
+                                is HomeListItem.YearHeader -> YearSectionHeader(section = item.section)
+
+                                is HomeListItem.MonthHeader -> MonthSectionHeader(section = item.section)
+
+                                is HomeListItem.FilteredSectionHeader -> Unit
+
+                                is HomeListItem.LoadItem -> HomeLoadCardRow(
+                                    cards = rememberLoadCards(listOf(item.load), rpmThresholds),
+                                    columns = 1,
+                                    settleKey = swipeSettleGeneration,
+                                    onLoadClick = onLoadClick,
+                                    onDelete = { id -> viewModel.requestDeleteLoad(id) },
+                                    onLoadCamera = onLoadCamera,
+                                    onLoadScan = onLoadScan,
+                                    modifier = if (reduceMotion) Modifier else Modifier.animateItem(),
+                                )
+                            }
+
+                            is HomeGridRow.Loads -> HomeLoadCardRow(
+                                cards = rememberLoadCards(row.loads, rpmThresholds),
+                                columns = loadColumns,
+                                settleKey = swipeSettleGeneration,
+                                onLoadClick = onLoadClick,
+                                onDelete = { id -> viewModel.requestDeleteLoad(id) },
+                                onLoadCamera = onLoadCamera,
+                                onLoadScan = onLoadScan,
+                                modifier = if (reduceMotion) Modifier else Modifier.animateItem(),
+                            )
+                        }
+                    }
                 }
             }
-        }
-        PullToRefreshDefaults.Indicator(
-            modifier = Modifier.align(Alignment.TopCenter),
-            isRefreshing = isRefreshing,
-            state = pullRefreshState,
-        )
+            PullToRefreshDefaults.Indicator(
+                modifier = Modifier.align(Alignment.TopCenter),
+                isRefreshing = isRefreshing,
+                state = pullRefreshState,
+            )
         }
     }
 }

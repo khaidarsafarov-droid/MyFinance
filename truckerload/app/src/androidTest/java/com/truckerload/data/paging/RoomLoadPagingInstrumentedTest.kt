@@ -48,7 +48,7 @@ class RoomLoadPagingInstrumentedTest {
                     id = "page-load-$i",
                     tripId = "TRIP-$i",
                     date = "2026-07-20",
-                    totalRate = 1000.0 + i,
+                    totalRate = (1_000L + i) * 100L, // dollars in cents
                     totalMiles = 100.0,
                     pointA = "A$i",
                     pointB = "B$i",

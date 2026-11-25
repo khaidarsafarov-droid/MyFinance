@@ -11,6 +11,9 @@ plugins {
     alias(libs.plugins.hilt)
     alias(libs.plugins.androidx.baselineprofile)
     alias(libs.plugins.secrets)
+    alias(libs.plugins.kover)
+    alias(libs.plugins.detekt)
+    alias(libs.plugins.ktlint)
 }
 
 // Secrets Gradle Plugin reads local.properties (gitignored) and fills ${MAPS_API_KEY}.
@@ -199,7 +202,7 @@ android {
     }
     lint {
         abortOnError = true
-        warningsAsErrors = false
+        warningsAsErrors = true
         baseline = file("lint-baseline.xml")
         checkDependencies = false
     }
@@ -286,7 +289,7 @@ dependencies {
     // Gson (backup codec)
     implementation(libs.gson)
 
-    // OkHttp (Telegram Bot API + Google Drive). Stay on 4.x; OkHttp 5 is a later pass.
+    // OkHttp (Telegram Bot API + Google Drive).
     implementation(libs.okhttp)
     implementation(libs.okhttp.logging)
 
@@ -314,7 +317,7 @@ dependencies {
     implementation(libs.play.services.base)
     implementation(libs.kotlinx.coroutines.play.services)
 
-    // CameraX (1.4.2+ required for 16 KB page-size aligned native libs)
+    // CameraX (1.4.2+ is the 16 KB alignment floor; catalog tracks the current stable).
     implementation(libs.androidx.camera.camera2)
     implementation(libs.androidx.camera.lifecycle)
     implementation(libs.androidx.camera.view)
@@ -605,4 +608,93 @@ tasks.named("check").configure {
 
 tasks.named("verifyReleaseSecretsEmpty").configure {
     dependsOn("checkNoTrackedApiKeys")
+}
+
+
+tasks.register("checkStringsParity") {
+    group = "verification"
+    description = "Fail if default, en, ru, es, or fr string keys drift apart."
+    val script = rootProject.file("scripts/check_strings_parity.py")
+    inputs.file(script)
+    inputs.dir(file("src/main/res"))
+    doLast {
+        val process = ProcessBuilder("python3", script.absolutePath)
+            .directory(rootProject.projectDir)
+            .inheritIO()
+            .start()
+        val code = process.waitFor()
+        check(code == 0) { "String resource keys differ across locales." }
+    }
+}
+
+tasks.named("check").configure {
+    dependsOn("checkStringsParity")
+}
+
+ktlint {
+    version.set(libs.versions.ktlint.get())
+    android.set(true)
+    ignoreFailures.set(false)
+    baseline.set(rootProject.file("config/ktlint/baseline.xml"))
+    filter {
+        exclude("**/generated/**")
+        exclude("**/build/**")
+    }
+}
+
+detekt {
+    buildUponDefaultConfig = true
+    allRules = false
+    parallel = true
+    config.setFrom(rootProject.file("config/detekt/detekt.yml"))
+    baseline = rootProject.file("config/detekt/detekt-baseline.xml")
+    source.setFrom("src/main/java")
+}
+
+tasks.withType<io.gitlab.arturbosch.detekt.Detekt>().configureEach {
+    jvmTarget = "17"
+    exclude("**/generated/**")
+    exclude("**/build/**")
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
+        txt.required.set(true)
+    }
+}
+
+kover {
+    reports {
+        filters {
+            excludes {
+                androidGeneratedClasses()
+                classes("*Test", "*Test\$*", "*Tests", "*Tests\$*")
+            }
+        }
+        variant("debug") {
+            xml {
+                onCheck.set(false)
+            }
+            html {
+                onCheck.set(false)
+            }
+        }
+    }
+}
+
+tasks.register("checkKoverFloors") {
+    group = "verification"
+    description = "Fail if coverage of parsers, reports, share import, or backup drops below floors."
+    val script = rootProject.file("scripts/check_kover_floors.py")
+    val report = layout.buildDirectory.file("reports/kover/reportDebug.xml")
+    inputs.file(script)
+    inputs.file(report)
+    dependsOn("koverXmlReportDebug")
+    doLast {
+        val process = ProcessBuilder("python3", script.absolutePath, report.get().asFile.absolutePath)
+            .directory(rootProject.projectDir)
+            .inheritIO()
+            .start()
+        val code = process.waitFor()
+        check(code == 0) { "Kover coverage floors were not met. See check_kover_floors.py output." }
+    }
 }

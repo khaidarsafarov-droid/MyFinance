@@ -132,3 +132,148 @@ jobs:
         run: bash "${GITHUB_WORKSPACE}/.github/scripts/install-android-sdk-37.sh"
       - name: Assemble debug APK
         run: sh ./gradlew -Dorg.gradle.java.home="$JAVA_HOME" :app:assembleDebug --no-daemon
+
+  strings-parity:
+    name: String resource parity
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Check string keys across locales
+        run: python3 scripts/check_strings_parity.py
+
+  static-analysis:
+    name: ktlint and detekt
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+      - name: Install Android SDK platform 37.0
+        run: bash "${GITHUB_WORKSPACE}/.github/scripts/install-android-sdk-37.sh"
+      - name: Run ktlint and detekt (type resolution)
+        run: sh ./gradlew -Dorg.gradle.java.home="$JAVA_HOME" :app:ktlintCheck :app:detekt --no-daemon
+      - name: Upload static analysis reports
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: app-static-analysis-reports
+          path: |
+            truckerload/app/build/reports/ktlint/
+            truckerload/app/build/reports/detekt/
+          if-no-files-found: ignore
+          retention-days: 7
+
+  coverage:
+    name: Coverage floors
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+      - name: Install Android SDK platform 37.0
+        run: bash "${GITHUB_WORKSPACE}/.github/scripts/install-android-sdk-37.sh"
+      - name: Verify coverage floors
+        run: sh ./gradlew -Dorg.gradle.java.home="$JAVA_HOME" :app:koverHtmlReportDebug :app:checkKoverFloors --no-daemon
+      - name: Upload Kover reports
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: app-kover-reports
+          path: |
+            truckerload/app/build/reports/kover/
+          if-no-files-found: ignore
+          retention-days: 7
+
+  assemble-release:
+    name: Bundle release and 16 KB alignment
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      # Owner: add a repository Actions secret named MAPS_API_KEY (Settings →
+      # Secrets and variables → Actions). A blank secret leaves the manifest
+      # value empty. bundleRelease reads the same variable.
+      MAPS_API_KEY: ${{ secrets.MAPS_API_KEY }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+      - name: Install Android SDK platform 37.0
+        run: bash "${GITHUB_WORKSPACE}/.github/scripts/install-android-sdk-37.sh"
+      - name: Assemble release APK and App Bundle
+        run: sh ./gradlew -Dorg.gradle.java.home="$JAVA_HOME" :app:assembleRelease :app:bundleRelease --no-daemon
+      - name: Check 16 KB ELF alignment
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          artifacts=(
+            app/build/outputs/apk/release/*.apk
+            app/build/outputs/bundle/release/*.aab
+          )
+          if [ ${#artifacts[@]} -eq 0 ]; then
+            echo "No release APK or AAB found." >&2
+            exit 1
+          fi
+          python3 scripts/check_elf_alignment.py "${artifacts[@]}"
+      - name: Upload unsigned release artifacts
+        if: success()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: truckerload-release-unsigned
+          path: |
+            truckerload/app/build/outputs/apk/release/*.apk
+            truckerload/app/build/outputs/bundle/release/*.aab
+          if-no-files-found: error
+          retention-days: 1
+
+  instrumented-tests:
+    name: Instrumented migrations
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+      - name: Install Android SDK platform 37.0
+        run: bash "${GITHUB_WORKSPACE}/.github/scripts/install-android-sdk-37.sh"
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+          ls -l /dev/kvm
+      - name: Run migration and isolation instrumented tests
+        uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
+        with:
+          api-level: 30
+          arch: x86_64
+          target: default
+          force-avd-creation: false
+          disable-animations: true
+          emulator-options: -no-window -no-audio -no-boot-anim -gpu swiftshader_indirect
+          working-directory: truckerload
+          script: sh ./gradlew -Dorg.gradle.java.home="$JAVA_HOME" :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.truckerload.data.local.RoomMigrationInstrumentedTest,com.truckerload.data.MultiUserIsolationInstrumentedTest --no-daemon
+      - name: Upload instrumented test reports
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: app-instrumented-test-reports
+          path: |
+            truckerload/app/build/reports/androidTests/
+            truckerload/app/build/outputs/androidTest-results/
+          if-no-files-found: ignore
+          retention-days: 7

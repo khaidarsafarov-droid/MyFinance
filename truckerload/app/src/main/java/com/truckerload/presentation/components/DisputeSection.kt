@@ -1,7 +1,5 @@
 package com.truckerload.presentation.components
 
-import com.truckerload.presentation.icons.AppIcons
-
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -22,7 +20,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import com.truckerload.presentation.components.TlTextButton as TextButton
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -40,21 +37,20 @@ import com.truckerload.R
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.money.Money
 import com.truckerload.domain.money.MoneyInput
+import com.truckerload.presentation.icons.AppIcons
 import com.truckerload.presentation.theme.AppTextFieldDefaults
-import com.truckerload.presentation.utils.MoneyFormat
 import com.truckerload.presentation.theme.LocalTruckColors
+import com.truckerload.presentation.utils.MoneyFormat
 import com.truckerload.utils.dateStringToUtcDatePickerMillis
 import com.truckerload.utils.utcDatePickerMillisToDateString
 import java.util.Calendar
 import java.util.Locale
+import com.truckerload.presentation.components.TlTextButton as TextButton
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DisputeSection(
-    load: Load,
-    onDisputeChanged: (Load) -> Unit,
-    modifier: Modifier = Modifier,
-) {
+@Suppress("LongMethod")
+fun DisputeSection(load: Load, onDisputeChanged: (Load) -> Unit, modifier: Modifier = Modifier) {
     val tc = LocalTruckColors.current
     var showDatePicker by remember { mutableStateOf(false) }
     var amountText by remember(load.id) {
@@ -275,10 +271,7 @@ fun DisputeSection(
 }
 
 @Composable
-private fun CompletedDisputeCheckbox(
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
-) {
+private fun CompletedDisputeCheckbox(checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
     val tc = LocalTruckColors.current
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -298,11 +291,7 @@ private fun CompletedDisputeCheckbox(
 }
 
 @Composable
-fun DisputeBadge(
-    label: String,
-    color: Color,
-    modifier: Modifier = Modifier,
-) {
+fun DisputeBadge(label: String, color: Color, modifier: Modifier = Modifier) {
     Row(
         modifier = modifier.padding(vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -322,8 +311,7 @@ fun DisputeBadge(
     }
 }
 
-internal fun parseDisputeMoney(raw: String): Money? =
-    MoneyInput.parse(raw)?.takeIf { it.cents >= 0L }
+internal fun parseDisputeMoney(raw: String): Money? = MoneyInput.parse(raw)?.takeIf { it.cents >= 0L }
 
 internal fun formatDisputeAmountInput(amount: Money?): String {
     if (amount == null) return ""
@@ -334,9 +322,8 @@ internal fun formatDisputeAmountInput(amount: Money?): String {
     }
 }
 
-internal fun formatDisputeUsd(amount: Money): String =
-    if (amount.cents % 100L == 0L) {
-        "$${amount.cents / 100L}"
-    } else {
-        "$${amount.formatPlain()}"
-    }
+internal fun formatDisputeUsd(amount: Money): String = if (amount.cents % 100L == 0L) {
+    "$${amount.cents / 100L}"
+} else {
+    "$${amount.formatPlain()}"
+}

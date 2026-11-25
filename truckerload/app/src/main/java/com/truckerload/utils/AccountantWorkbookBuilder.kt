@@ -281,8 +281,6 @@ object AccountantWorkbookBuilder {
 
     private fun optionalMoney(value: Money?): Cell = value?.let { moneyCell(it) } ?: blank()
 
-    private fun optionalPrice(value: UnitPrice?): Cell = value?.let { priceCell(it) } ?: blank()
-
     private fun optionalUnitPrice(value: UnitPrice?, metric: Boolean): Cell {
         if (value == null) return blank()
         if (!metric) return priceCell(value)

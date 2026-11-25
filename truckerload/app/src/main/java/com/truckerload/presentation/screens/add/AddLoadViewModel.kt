@@ -10,7 +10,6 @@ import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
-import com.truckerload.data.preferences.SettingsDataStore
 import com.truckerload.data.repository.AiRepository
 import com.truckerload.data.repository.LoadRepository
 import com.truckerload.domain.model.EquipmentType
@@ -93,7 +92,6 @@ class AddLoadViewModel @Inject constructor(
     application: Application,
     private val loadRepository: LoadRepository,
     private val aiRepository: AiRepository,
-    private val settingsDataStore: SettingsDataStore,
     private val savedStateHandle: SavedStateHandle,
 ) : AndroidViewModel(application) {
 
