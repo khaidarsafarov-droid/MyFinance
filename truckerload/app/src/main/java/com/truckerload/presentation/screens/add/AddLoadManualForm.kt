@@ -82,7 +82,7 @@ fun AddLoadManualForm(
     onPaste: () -> Unit = {},
     onOpenDocuments: (() -> Unit)? = null,
     rpmThresholds: RpmThresholds? = null,
-    rpmViewModel: RpmThresholdsViewModel = hiltViewModel(),
+    rpmViewModel: RpmThresholdsViewModel? = null,
 ) {
     val tc = LocalTruckColors.current
     val cs = MaterialTheme.colorScheme
@@ -91,8 +91,12 @@ fun AddLoadManualForm(
     val milesGate = rememberBlurGate()
     val rateFocus = remember { FocusRequester() }
     val milesFocus = remember { FocusRequester() }
-    val observedThresholds by rpmViewModel.thresholds.collectAsStateWithLifecycle()
-    val thresholds = rpmThresholds ?: observedThresholds
+    val thresholds = if (rpmThresholds != null) {
+        rpmThresholds
+    } else {
+        val vm = rpmViewModel ?: hiltViewModel()
+        vm.thresholds.collectAsStateWithLifecycle().value
+    }
     val rateError = FieldErrors.amountRes(fields.rate)
     val milesError = FieldErrors.milesRes(fields.miles)
     val showRate = rateGate.visibleRes(rateError, showFieldErrors)
