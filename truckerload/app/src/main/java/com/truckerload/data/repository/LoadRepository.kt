@@ -125,33 +125,36 @@ class LoadRepository(
         }
 
     /**
-     * Clears photo/scan rows whose loadId no longer exists (and deletes orphan files).
-     * Safe to call periodically after imports/restores.
+     * Photo/scan rows whose loadId no longer exists are **unlinked**, not deleted.
+     * The row (GPS, date and time) and the file stay, so restoring an older backup or
+     * a transient empty journal can never destroy evidence photos. The driver sees
+     * them under unlinked media and can delete them on purpose.
+     * Returns the number of rows that were unlinked.
      */
     suspend fun cleanupOrphanAttachments(): Int {
         val loadIds = loadDao.getAllLoadsOnce().map { it.id }.toSet()
-        var removed = 0
+        var unlinked = 0
         db.withTransaction {
-            val orphanPhotos = photoDao.getAllPhotosOnce().filter { photo ->
-                val id = photo.loadId
-                !id.isNullOrBlank() && id !in loadIds
-            }
-            orphanPhotos.forEach { photo ->
-                photoDao.deleteById(photo.id)
-                runCatching { File(photo.filePath).delete() }
-                removed++
-            }
-            val orphanScans = scanDao.getAllScansOnce().filter { scan ->
-                val id = scan.loadId
-                !id.isNullOrBlank() && id !in loadIds
-            }
-            orphanScans.forEach { scan ->
-                scanDao.deleteById(scan.id)
-                runCatching { File(scan.filePath).delete() }
-                removed++
-            }
+            photoDao.getAllPhotosOnce()
+                .filter { photo ->
+                    val id = photo.loadId
+                    !id.isNullOrBlank() && id !in loadIds
+                }
+                .forEach { photo ->
+                    photoDao.updateLoadId(photo.id, null)
+                    unlinked++
+                }
+            scanDao.getAllScansOnce()
+                .filter { scan ->
+                    val id = scan.loadId
+                    !id.isNullOrBlank() && id !in loadIds
+                }
+                .forEach { scan ->
+                    scanDao.updateLoadId(scan.id, null)
+                    unlinked++
+                }
         }
-        return removed
+        return unlinked
     }
 
     fun watchActualDailyYield(weekNumber: Int, year: Int): Flow<Double> =
@@ -436,7 +439,7 @@ class LoadRepository(
         AppDatabase.hostContext()?.let { ctx ->
             DeletedLoadLedger.markDeleted(ctx, loadId, existing?.tripId)
         }
-        db.withTransaction {
+        val (photos, scans) = db.withTransaction {
             val photos = photoDao.getPhotosByLoadIdOnce(loadId)
             val scans = scanDao.getScansByLoadIdOnce(loadId)
             photoDao.deleteByLoadId(loadId)
@@ -445,24 +448,28 @@ class LoadRepository(
             stopDao.deleteByLoadId(loadId)
             penaltyDao.deleteByLoadId(loadId)
             loadDao.deleteById(loadId)
-            photos.forEach { runCatching { File(it.filePath).delete() } }
-            scans.forEach { runCatching { File(it.filePath).delete() } }
+            photos to scans
         }
+        // Files go only after the rows are committed: a rolled-back delete must not
+        // leave rows that point at files already gone.
+        photos.forEach { runCatching { File(it.filePath).delete() } }
+        scans.forEach { runCatching { File(it.filePath).delete() } }
         notifyWidgetDataChanged()
         scheduleAutoBackup()
     }
 
     suspend fun deleteAllLoads() {
-        db.withTransaction {
+        val (photos, scans) = db.withTransaction {
             val photos = photoDao.getAllPhotosOnce()
             val scans = scanDao.getAllScansOnce()
             photoDao.deleteAll()
             scanDao.deleteAll()
             loadHistoryDao.deleteAll()
             loadDao.deleteAll()
-            photos.forEach { runCatching { File(it.filePath).delete() } }
-            scans.forEach { runCatching { File(it.filePath).delete() } }
+            photos to scans
         }
+        photos.forEach { runCatching { File(it.filePath).delete() } }
+        scans.forEach { runCatching { File(it.filePath).delete() } }
         notifyWidgetDataChanged()
     }
 

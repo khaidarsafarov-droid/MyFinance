@@ -7,6 +7,7 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.truckerload.data.preferences.replaceCorruptedPreferences
 import com.truckerload.domain.premium.Day7SurveyPolicy
 import java.time.ZoneId
 import kotlinx.coroutines.flow.first
@@ -18,6 +19,7 @@ import kotlinx.coroutines.flow.first
  */
 private val Context.day7SurveyDataStore: DataStore<Preferences> by preferencesDataStore(
     name = "truckorig_day7_survey",
+    corruptionHandler = replaceCorruptedPreferences,
 )
 
 class Day7SurveyStore(context: Context) {

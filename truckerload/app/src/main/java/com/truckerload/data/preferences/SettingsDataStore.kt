@@ -21,7 +21,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
 private val Context.settingsDataStore: DataStore<Preferences> by preferencesDataStore(
-    name = "truckerload_settings"
+    name = "truckerload_settings",
+    corruptionHandler = replaceCorruptedPreferences,
 )
 
 private val KEY_FIRST_RUN = booleanPreferencesKey("is_first_run")

@@ -83,7 +83,7 @@ object BackupService {
         val json = BackupDataCodec.toJson(backup)
         val dir = autoBackupDir(appContext, accountId).apply { mkdirs() }
         val fileName = "auto_backup_${formatAutoBackupTimestamp()}.tlb"
-        File(dir, fileName).writeText(json, Charsets.UTF_8)
+        File(dir, fileName).writeTextAtomically(json)
         pruneAutoBackups(appContext, DEFAULT_KEEP_COUNT)
         Log.d(TAG, "createAutoBackup saved $fileName (${backup.loads.size} loads)")
         runCatching {
@@ -107,12 +107,18 @@ object BackupService {
         getAutoBackups(context).firstOrNull()
 
     suspend fun restoreLatestAutoBackup(context: Context): Result<Int> = withContext(Dispatchers.IO) {
-        val latest = getLatestAutoBackup(context)
+        // Newest file that still decodes: a torn or damaged latest file must not hide
+        // the older good ones.
+        val latest = getAutoBackups(context).firstOrNull { isDecodableBackup(it) }
             ?: return@withContext Result.failure(
                 IllegalStateException(context.getString(R.string.auto_restore_no_file))
             )
         restoreFromFile(context, latest)
     }
+
+    /** True when [file] holds a backup the codec accepts (not empty, not truncated, not too new). */
+    internal fun isDecodableBackup(file: File): Boolean =
+        runCatching { BackupDataCodec.decode(file.readText(Charsets.UTF_8)) }.isSuccess
 
     fun getAutoBackups(context: Context): List<File> {
         val dir = autoBackupDir(context)
@@ -308,7 +314,8 @@ object BackupService {
 
         val latest = dir.listFiles()
             ?.filter { it.isFile && it.name.endsWith(".tlb", ignoreCase = true) }
-            ?.maxByOrNull { it.lastModified() }
+            ?.sortedByDescending { it.lastModified() }
+            ?.firstOrNull { isDecodableBackup(it) }
             ?: return@withContext null
 
         Log.i(TAG, "Auto-restore from companion ${latest.name}")
@@ -341,7 +348,7 @@ object BackupService {
         val userId = AuthStore(context).currentUserIdOrNull() ?: AccountIds.LOCAL_DEV
         val dir = companionBackupDir(context, userId).apply { mkdirs() }
         val companion = File(dir, BackupNoteFormatter.companionFileName(txtFileName))
-        companion.writeText(json, Charsets.UTF_8)
+        companion.writeTextAtomically(json)
         // FIX: companion map was global — account B could restore A's path by display name
         companionPrefs(context, userId).edit {
             putString(txtFileName, companion.absolutePath)

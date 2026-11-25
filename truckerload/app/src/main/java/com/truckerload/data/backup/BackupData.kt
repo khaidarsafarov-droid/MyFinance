@@ -29,4 +29,10 @@ data class BackupData(
     val maintenanceTasks: List<BackupMaintenanceTask> = emptyList(),
     val maintenanceArchive: List<BackupMaintenanceArchive> = emptyList(),
     val appSettings: BackupAppSettings? = null,
+    /** Null = this file predates the field; restore keeps the local rows. */
+    val miscExpenses: List<BackupMiscExpense>? = null,
+    val perDiemOverrides: List<BackupPerDiemOverride>? = null,
+    /** Photo and scan records (GPS, date and time). File bytes stay on the phone. */
+    val photos: List<BackupPhoto>? = null,
+    val scans: List<BackupScan>? = null,
 )

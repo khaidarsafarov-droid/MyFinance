@@ -8,6 +8,7 @@ import android.graphics.Paint
 import android.graphics.Typeface
 import java.io.File
 import java.io.FileOutputStream
+import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -44,13 +45,35 @@ class PhotoManager(private val context: Context) {
             title = watermarkTitle?.takeIf { it.isNotBlank() } ?: tripId,
         )
         if (scaled !== bitmap) scaled.recycle()
-        FileOutputStream(file).use { out ->
-            watermarked.compress(Bitmap.CompressFormat.JPEG, JPEG_QUALITY, out)
-        }
-        if (watermarked !== bitmap) {
-            watermarked.recycle()
+        try {
+            writeJpegAtomically(watermarked, file)
+        } finally {
+            if (watermarked !== bitmap) {
+                watermarked.recycle()
+            }
         }
         return file
+    }
+
+    /**
+     * Writes beside the target and renames, so a full disk or a killed process never leaves
+     * a truncated JPEG that a database row then points at. A failed encode is an error
+     * the caller shows, not a silent empty file.
+     */
+    private fun writeJpegAtomically(bitmap: Bitmap, target: File) {
+        val tmp = File(target.parentFile, target.name + ".tmp")
+        try {
+            val encoded = FileOutputStream(tmp).use { out ->
+                val ok = bitmap.compress(Bitmap.CompressFormat.JPEG, JPEG_QUALITY, out)
+                out.flush()
+                out.fd.sync()
+                ok
+            }
+            if (!encoded || tmp.length() <= 0L) throw IOException("JPEG encode failed")
+            if (!tmp.renameTo(target)) throw IOException("could not move the photo into place")
+        } finally {
+            if (tmp.exists()) tmp.delete()
+        }
     }
 
     fun addWatermark(

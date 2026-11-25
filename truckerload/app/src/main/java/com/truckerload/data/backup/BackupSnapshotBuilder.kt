@@ -36,6 +36,10 @@ object BackupSnapshotBuilder {
             maintenanceTasks = tasks.map { it.toBackup() },
             maintenanceArchive = archive.map { it.toBackup() },
             appSettings = settings,
+            miscExpenses = db.miscExpenseDao().getAll().map(BackupMiscExpense::from),
+            perDiemOverrides = db.perDiemDayOverrideDao().getAll().map(BackupPerDiemOverride::from),
+            photos = db.photoDao().getAllPhotosOnce().map(BackupPhoto::from),
+            scans = db.scanDao().getAllScansOnce().map(BackupScan::from),
         )
     }
 
@@ -45,7 +49,10 @@ object BackupSnapshotBuilder {
                 backup.paychecks.isNotEmpty() ||
                 backup.diesel.isNotEmpty() ||
                 backup.maintenanceTasks.isNotEmpty() ||
-                backup.maintenanceArchive.isNotEmpty()
+                backup.maintenanceArchive.isNotEmpty() ||
+                !backup.miscExpenses.isNullOrEmpty() ||
+                !backup.photos.isNullOrEmpty() ||
+                !backup.scans.isNullOrEmpty()
 
     private suspend fun exportSettings(context: Context, accountId: String?): BackupAppSettings {
         val settings = SettingsDataStore(context)
