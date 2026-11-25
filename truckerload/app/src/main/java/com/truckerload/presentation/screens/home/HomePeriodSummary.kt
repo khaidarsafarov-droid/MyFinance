@@ -4,7 +4,6 @@ import android.app.Application
 import com.truckerload.R
 import com.truckerload.domain.filter.LoadFilter
 import com.truckerload.domain.filter.LoadFilterUseCase
-import java.util.Calendar
 
 /** Builds the period totals header shown above the Home filter. */
 internal fun buildPeriodSummaryHeader(
@@ -36,7 +35,7 @@ internal fun buildPeriodSummaryHeader(
             LoadFilter.ALL -> if (state.selectedYear != null) {
                 app.getString(
                     R.string.home_year_selected_header,
-                    state.selectedYear ?: Calendar.getInstance().get(Calendar.YEAR),
+                    state.selectedYear,
                     totals.loadCount,
                     loadWord(app, totals.loadCount),
                 )

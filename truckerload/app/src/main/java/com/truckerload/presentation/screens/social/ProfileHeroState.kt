@@ -33,8 +33,8 @@ object ProfileHeroState {
         val family = firstLetter(familyName)
         return when {
             given != null && family != null -> "$given$family"
-            given != null -> given.toString()
-            family != null -> family.toString()
+            given != null -> given
+            family != null -> family
             else -> null
         }
     }
