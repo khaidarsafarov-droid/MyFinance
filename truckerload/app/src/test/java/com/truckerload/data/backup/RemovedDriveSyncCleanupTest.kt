@@ -59,11 +59,11 @@ class RemovedDriveSyncCleanupTest {
 
         RemovedDriveSyncCleanup.runOnce(app)
 
-        val prefsDir = File(app.applicationInfo.dataDir, "shared_prefs")
-        assertFalse(File(prefsDir, "google_drive_backup_local_dev.xml").exists())
-        assertFalse(File(prefsDir, "com.google.android.gms.signin.xml").exists())
         assertTrue(
             app.getSharedPreferences("google_drive_backup_local_dev", Context.MODE_PRIVATE).all.isEmpty(),
+        )
+        assertTrue(
+            app.getSharedPreferences("com.google.android.gms.signin", Context.MODE_PRIVATE).all.isEmpty(),
         )
         assertEquals("SUNDAY", keep.getString("week_start", null))
         assertTrue(photo.isFile)

@@ -2,6 +2,7 @@ package com.truckerload.data.backup
 
 import android.content.Context
 import androidx.core.content.edit
+import com.truckerload.data.preferences.AccountIds
 import com.truckerload.data.preferences.AuthStore
 import java.io.File
 
@@ -37,10 +38,16 @@ object RemovedDriveSyncCleanup {
         val meta = app.getSharedPreferences(META_PREFS, Context.MODE_PRIVATE)
         if (meta.getBoolean(KEY_DONE, false)) return
         val prefsDir = File(app.applicationInfo.dataDir, "shared_prefs")
-        prefsDir.listFiles()
+        val onDisk = prefsDir.listFiles()
             ?.map { it.name.removeSuffix(".xml") }
             ?.filter(::isRemovedSyncPrefs)
-            ?.forEach { name ->
+            .orEmpty()
+        val known = EXACT_NAMES + listOfNotNull(
+            AccountIds.LOCAL_DEV,
+            runCatching { AuthStore(app).currentUserIdOrNull() }.getOrNull(),
+        ).map { DRIVE_PREFIX + AccountIds.sanitizeFilePart(it) }
+        (onDisk + known).toSet()
+            .forEach { name ->
                 runCatching {
                     app.getSharedPreferences(name, Context.MODE_PRIVATE).edit(commit = true) { clear() }
                     app.deleteSharedPreferences(name)
