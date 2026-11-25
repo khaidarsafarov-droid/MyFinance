@@ -944,7 +944,6 @@
     <string name="settings_section_about">À propos</string>
     <string name="settings_row_share_subtitle">Lien du magasin</string>
     <string name="settings_row_version">Version</string>
-    <string name="settings_dynamic_subtitle">Android 12+</string>
     <string name="settings_oled_subtitle">Noir pur la nuit</string>
     <string name="settings_motion_subtitle">Transitions plus courtes</string>
     <string name="settings_sound_subtitle">À l\'ajout et à l\'objectif</string>

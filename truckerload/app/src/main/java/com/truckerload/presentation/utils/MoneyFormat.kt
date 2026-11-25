@@ -15,12 +15,11 @@ object MoneyFormat {
     val currencySymbol: String
         get() = NumberFormat.getCurrencyInstance(locale).currency?.symbol ?: "$"
 
-    fun formatCurrency(value: Double, decimals: Int = 0): String =
-        if (decimals == 0) {
-            String.format(locale, "$%,.0f", value)
-        } else {
-            String.format(locale, "$%,.${decimals}f", value)
-        }
+    fun formatCurrency(value: Double, decimals: Int = 0): String = if (decimals == 0) {
+        String.format(locale, "$%,.0f", value)
+    } else {
+        String.format(locale, "$%,.${decimals}f", value)
+    }
 
     /** Formats [Money] from integer cents. Default is two decimal places. */
     fun formatCurrency(value: Money, decimals: Int = 2): String {
@@ -43,12 +42,11 @@ object MoneyFormat {
         return sign + String.format(locale, "$%,d", dollars) + "." + centsPart + extra
     }
 
-    fun formatNumber(value: Double, decimals: Int = 0): String =
-        if (decimals == 0) {
-            String.format(locale, "%,.0f", value)
-        } else {
-            String.format(locale, "%,.${decimals}f", value)
-        }
+    fun formatNumber(value: Double, decimals: Int = 0): String = if (decimals == 0) {
+        String.format(locale, "%,.0f", value)
+    } else {
+        String.format(locale, "%,.${decimals}f", value)
+    }
 
     fun formatRpm(value: Double): String {
         val shown = MeasurementUnits.displayRatePerDistance(value)
@@ -56,8 +54,7 @@ object MoneyFormat {
         return String.format(locale, "$%.2f$suffix", shown)
     }
 
-    fun formatRpmShort(value: Double): String =
-        String.format(locale, "$%.2f", MeasurementUnits.displayRatePerDistance(value))
+    fun formatRpmShort(value: Double): String = String.format(locale, "$%.2f", MeasurementUnits.displayRatePerDistance(value))
 
     /** Distance number only. Miles mode matches [formatNumber] of the stored miles. */
     fun formatDistanceNumber(canonicalMiles: Double, decimals: Int = 0): String =

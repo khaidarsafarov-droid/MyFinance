@@ -33,6 +33,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
@@ -42,9 +43,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
-import com.truckerload.domain.units.DisplayUnits
 import com.truckerload.domain.filter.LoadFilter
 import com.truckerload.domain.money.Money
+import com.truckerload.domain.units.DisplayUnits
 import com.truckerload.presentation.theme.AppTypography
 import com.truckerload.presentation.theme.LocalBrandPalette
 import com.truckerload.presentation.theme.LocalReduceMotion
@@ -56,7 +57,6 @@ import com.truckerload.utils.GoalCelebrationStore
 import com.truckerload.utils.getCurrentWeekNumberAndYear
 import com.truckerload.utils.getDaysElapsedInCurrentWeek
 import com.truckerload.utils.getWeekRange
-import androidx.compose.ui.platform.LocalConfiguration
 import java.time.LocalDate
 import java.time.format.TextStyle
 
@@ -214,11 +214,7 @@ private fun GoalReachedHaptic(percent: Float, week: Int, year: Int, goal: Double
 }
 
 @Composable
-private fun HomeGoalRing(
-    percent: Float,
-    onHero: Color,
-    modifier: Modifier = Modifier,
-) {
+private fun HomeGoalRing(percent: Float, onHero: Color, modifier: Modifier = Modifier) {
     val reduceMotion = LocalReduceMotion.current
     val animated by animateFloatAsState(
         targetValue = percent.coerceIn(0f, 100f),

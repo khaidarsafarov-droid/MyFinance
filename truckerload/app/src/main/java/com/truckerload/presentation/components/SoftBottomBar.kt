@@ -63,12 +63,7 @@ import com.truckerload.presentation.theme.LocalReduceMotion
 import com.truckerload.utils.FeedbackManager
 import kotlinx.coroutines.flow.map
 
-private data class PhoneTab(
-    val route: String,
-    val icon: ImageVector,
-    val selectedIcon: ImageVector,
-    val labelRes: Int,
-)
+private data class PhoneTab(val route: String, val icon: ImageVector, val selectedIcon: ImageVector, val labelRes: Int)
 
 private val phoneTabs = listOf(
     PhoneTab(Routes.HOME, AppIcons.HomeOutlined, AppIcons.Home, R.string.nav_home),
@@ -134,12 +129,7 @@ internal fun SoftBottomBar(
 }
 
 @Composable
-private fun PhoneNavTab(
-    tab: PhoneTab,
-    selected: Boolean,
-    badgeCount: Int,
-    onClick: () -> Unit,
-) {
+private fun PhoneNavTab(tab: PhoneTab, selected: Boolean, badgeCount: Int, onClick: () -> Unit) {
     val brand = LocalBrandPalette.current
     val reduceMotion = LocalReduceMotion.current
     val label = stringResource(tab.labelRes)

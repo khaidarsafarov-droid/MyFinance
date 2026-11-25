@@ -24,15 +24,12 @@ import androidx.compose.ui.unit.dp
 import com.truckerload.domain.model.analytics.DailyData
 import com.truckerload.domain.model.analytics.RouteData
 import com.truckerload.presentation.theme.BentoGlassTheme
-import com.truckerload.presentation.theme.SoftUiColors
 import com.truckerload.presentation.theme.LocalTruckColors
+import com.truckerload.presentation.theme.SoftUiColors
 import com.truckerload.presentation.utils.MoneyFormat
 
 @Composable
-fun TopRoutesBarChart(
-    routes: List<RouteData>,
-    modifier: Modifier = Modifier,
-) {
+fun TopRoutesBarChart(routes: List<RouteData>, modifier: Modifier = Modifier) {
     val tc = LocalTruckColors.current
     if (routes.isEmpty()) {
         ChartEmptyState(modifier = modifier.height(160.dp))
@@ -74,10 +71,7 @@ private fun RouteRow(route: RouteData) {
 }
 
 @Composable
-fun DailyDistributionChart(
-    dailyData: List<DailyData>,
-    modifier: Modifier = Modifier,
-) {
+fun DailyDistributionChart(dailyData: List<DailyData>, modifier: Modifier = Modifier) {
     val tc = LocalTruckColors.current
     if (dailyData.isEmpty()) {
         ChartEmptyState(modifier = modifier.height(180.dp))
@@ -133,4 +127,3 @@ fun DailyDistributionChart(
         }
     }
 }
-

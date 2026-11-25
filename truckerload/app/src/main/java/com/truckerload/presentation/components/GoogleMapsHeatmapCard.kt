@@ -1,22 +1,15 @@
 package com.truckerload.presentation.components
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.withContext
-import kotlinx.coroutines.Dispatchers
-
-
-import com.truckerload.presentation.icons.AppIcons
-import com.truckerload.utils.logFailure
-
 import android.content.Context
+import android.util.Log
+import android.view.MotionEvent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.animation.core.tween
-import android.view.MotionEvent
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -35,37 +28,41 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.MapView
 import com.google.android.gms.maps.model.LatLng
-import java.util.concurrent.atomic.AtomicReference
-import java.util.concurrent.atomic.AtomicBoolean
 import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.maps.android.data.geojson.GeoJsonLayer
 import com.google.maps.android.data.geojson.GeoJsonPolygonStyle
 import com.truckerload.R
 import com.truckerload.presentation.components.StateRating
 import com.truckerload.presentation.components.getStateDisplayName
+import com.truckerload.presentation.icons.AppIcons
 import com.truckerload.presentation.theme.AppFilterChip
-import com.truckerload.presentation.theme.LocalSemantics
 import com.truckerload.presentation.theme.AppTypography
+import com.truckerload.presentation.theme.LocalSemantics
+import com.truckerload.utils.logFailure
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.util.Locale
-import android.util.Log
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicReference
 
 private val STATE_NAME_TO_ABBR = mapOf(
     "Alabama" to "AL", "Alaska" to "AK", "Arizona" to "AZ", "Arkansas" to "AR",
@@ -80,7 +77,7 @@ private val STATE_NAME_TO_ABBR = mapOf(
     "Oregon" to "OR", "Pennsylvania" to "PA", "Rhode Island" to "RI", "South Carolina" to "SC",
     "South Dakota" to "SD", "Tennessee" to "TN", "Texas" to "TX", "Utah" to "UT",
     "Vermont" to "VT", "Virginia" to "VA", "Washington" to "WA", "West Virginia" to "WV",
-    "Wisconsin" to "WI", "Wyoming" to "WY", "Puerto Rico" to "PR"
+    "Wisconsin" to "WI", "Wyoming" to "WY", "Puerto Rico" to "PR",
 )
 
 private val COLOR_GOOD = 0xFF4ADE80.toInt()
@@ -125,18 +122,18 @@ fun GoogleMapsHeatmapCard(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f, fill = true)
+                    .weight(1f, fill = true),
             ) {
                 var mapView by remember { mutableStateOf<MapView?>(null) }
                 var geoJsonLayer by remember { mutableStateOf<GeoJsonLayer?>(null) }
@@ -197,6 +194,7 @@ fun GoogleMapsHeatmapCard(
                                     MotionEvent.ACTION_DOWN,
                                     MotionEvent.ACTION_MOVE,
                                     -> v.parent?.requestDisallowInterceptTouchEvent(true)
+
                                     MotionEvent.ACTION_UP,
                                     MotionEvent.ACTION_CANCEL,
                                     -> v.parent?.requestDisallowInterceptTouchEvent(false)
@@ -235,7 +233,7 @@ fun GoogleMapsHeatmapCard(
                             }
                         }
                     },
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier.fillMaxSize(),
                 )
 
                 if (onExpandClick != null) {
@@ -261,17 +259,17 @@ fun GoogleMapsHeatmapCard(
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
                 ) {
                     Box(
                         modifier = Modifier
                             .padding(4.dp)
                             .background(LocalSemantics.current.successContainer, RoundedCornerShape(4.dp))
-                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                            .padding(horizontal = 8.dp, vertical = 4.dp),
                     ) {
                         Text(
                             stringResource(R.string.map_rating_good),
@@ -283,7 +281,7 @@ fun GoogleMapsHeatmapCard(
                         modifier = Modifier
                             .padding(4.dp)
                             .background(LocalSemantics.current.dangerContainer, RoundedCornerShape(4.dp))
-                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                            .padding(horizontal = 8.dp, vertical = 4.dp),
                     ) {
                         Text(
                             stringResource(R.string.map_rating_low),
@@ -295,31 +293,31 @@ fun GoogleMapsHeatmapCard(
                         modifier = Modifier
                             .padding(4.dp)
                             .background(LocalSemantics.current.warningContainer, RoundedCornerShape(4.dp))
-                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                            .padding(horizontal = 8.dp, vertical = 4.dp),
                     ) {
                         Text(
                             stringResource(R.string.map_rating_neutral),
                             style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurface
+                            color = MaterialTheme.colorScheme.onSurface,
                         )
                     }
                     Box(
                         modifier = Modifier
                             .padding(4.dp)
                             .background(Color(COLOR_NO_DATA), RoundedCornerShape(4.dp))
-                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                            .padding(horizontal = 8.dp, vertical = 4.dp),
                     ) {
                         Text(
                             stringResource(R.string.map_rating_no_data),
                             style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                 }
             }
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
             ) {
                 AppFilterChip(
                     selected = selectedCode.isBlank(),
@@ -337,7 +335,7 @@ fun GoogleMapsHeatmapCard(
             AnimatedVisibility(
                 visible = selected != null,
                 enter = fadeIn(tween(220)) + slideInVertically(tween(220)) { it / 4 },
-                exit = fadeOut(tween(180)) + slideOutVertically(tween(180)) { it / 4 }
+                exit = fadeOut(tween(180)) + slideOutVertically(tween(180)) { it / 4 },
             ) {
                 selected?.let { state ->
                     val rpmNumber = if (com.truckerload.domain.units.DisplayUnits.isMetric) {
@@ -361,7 +359,7 @@ fun GoogleMapsHeatmapCard(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+                        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             Text(
@@ -372,7 +370,7 @@ fun GoogleMapsHeatmapCard(
                                     state.trips,
                                 ),
                                 style = AppTypography.CardTitle,
-                                color = MaterialTheme.colorScheme.onSurface
+                                color = MaterialTheme.colorScheme.onSurface,
                             )
                             Text(
                                 text = stringResource(
@@ -385,19 +383,19 @@ fun GoogleMapsHeatmapCard(
                                 ),
                                 modifier = Modifier.padding(top = 4.dp),
                                 style = AppTypography.Body,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                             Text(
                                 text = stringResource(R.string.map_gross_label, grossStr),
                                 modifier = Modifier.padding(top = 2.dp),
                                 style = AppTypography.Body,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                             Text(
                                 text = stringResource(R.string.map_rating_format, ratingLabel),
                                 modifier = Modifier.padding(top = 6.dp),
                                 style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.outline
+                                color = MaterialTheme.colorScheme.outline,
                             )
                         }
                     }
@@ -410,26 +408,23 @@ fun GoogleMapsHeatmapCard(
 private val cachedGeoJson = AtomicReference<JSONObject?>()
 private val geoJsonCacheReady = AtomicBoolean(false)
 
-private fun peekCachedGeoJson(): JSONObject? =
-    if (geoJsonCacheReady.get()) cachedGeoJson.get() else null
+private fun peekCachedGeoJson(): JSONObject? = if (geoJsonCacheReady.get()) cachedGeoJson.get() else null
 
-private fun loadGeoJsonFromRaw(context: Context): JSONObject? {
-    return peekCachedGeoJson() ?: synchronized(cachedGeoJson) {
-        peekCachedGeoJson() ?: run {
-            val parsed = try {
-                val json = context.resources.openRawResource(R.raw.us_states).bufferedReader().readText()
-                JSONObject(json)
-            } catch (e: java.io.IOException) {
-                logFailure("GoogleMapsHeatmap", "state outlines failed", e)
-                null
-            } catch (e: org.json.JSONException) {
-                logFailure("GoogleMapsHeatmap", "state outlines failed", e)
-                null
-            }
-            cachedGeoJson.set(parsed)
-            geoJsonCacheReady.set(true)
-            parsed
+private fun loadGeoJsonFromRaw(context: Context): JSONObject? = peekCachedGeoJson() ?: synchronized(cachedGeoJson) {
+    peekCachedGeoJson() ?: run {
+        val parsed = try {
+            val json = context.resources.openRawResource(R.raw.us_states).bufferedReader().readText()
+            JSONObject(json)
+        } catch (e: java.io.IOException) {
+            logFailure("GoogleMapsHeatmap", "state outlines failed", e)
+            null
+        } catch (e: org.json.JSONException) {
+            logFailure("GoogleMapsHeatmap", "state outlines failed", e)
+            null
         }
+        cachedGeoJson.set(parsed)
+        geoJsonCacheReady.set(true)
+        parsed
     }
 }
 
@@ -459,11 +454,7 @@ private fun GoogleMap.attachGeoJsonLayer(
     }
 }
 
-private fun applyStateStyles(
-    layer: GeoJsonLayer,
-    byCode: Map<String, USStateMetric>,
-    selectedCode: String
-) {
+private fun applyStateStyles(layer: GeoJsonLayer, byCode: Map<String, USStateMetric>, selectedCode: String) {
     for (feature in layer.features) {
         val name = feature.getProperty("name") ?: continue
         val code = STATE_NAME_TO_ABBR[name] ?: name

@@ -946,7 +946,6 @@
     <string name="settings_section_about">Acerca de</string>
     <string name="settings_row_share_subtitle">Enlace de la tienda</string>
     <string name="settings_row_version">Versión</string>
-    <string name="settings_dynamic_subtitle">Android 12+</string>
     <string name="settings_oled_subtitle">Negro real de noche</string>
     <string name="settings_motion_subtitle">Transiciones más cortas</string>
     <string name="settings_sound_subtitle">Al añadir y al llegar a la meta</string>

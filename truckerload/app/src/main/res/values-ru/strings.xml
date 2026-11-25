@@ -950,7 +950,6 @@
     <string name="settings_section_about">О приложении</string>
     <string name="settings_row_share_subtitle">Ссылка на магазин</string>
     <string name="settings_row_version">Версия</string>
-    <string name="settings_dynamic_subtitle">Android 12+</string>
     <string name="settings_oled_subtitle">Чёрный фон ночью</string>
     <string name="settings_motion_subtitle">Короче переходы</string>
     <string name="settings_sound_subtitle">При добавлении и у цели</string>
