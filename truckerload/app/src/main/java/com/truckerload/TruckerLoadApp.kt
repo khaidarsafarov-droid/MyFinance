@@ -360,6 +360,10 @@ class TruckerLoadApp : Application(), Configuration.Provider {
                     }
                     WidgetUpdateWorker.refreshNow(this@TruckerLoadApp)
                 }
+                ?.onFailure { e ->
+                    Log.e(TAG, "Companion backup restore failed", e)
+                    CrashReporting.recordException(e)
+                }
             if (!repairStore.isBackfillDone(userId)) {
                 val puDel = runCatching { repo.backfillPuDelMillisFromStops() }
                     .onFailure { e ->
