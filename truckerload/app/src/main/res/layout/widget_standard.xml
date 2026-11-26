@@ -50,14 +50,16 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:background="@drawable/widget_split_rpm"
-                android:paddingLeft="8dp"
-                android:paddingTop="2dp"
-                android:paddingRight="8dp"
-                android:paddingBottom="2dp"
+                android:ellipsize="end"
+                android:fontFamily="sans-serif-medium"
+                android:maxLines="1"
+                android:paddingLeft="@dimen/widget_rpm_pill_pad_h"
+                android:paddingTop="@dimen/widget_rpm_pill_pad_v"
+                android:paddingRight="@dimen/widget_rpm_pill_pad_h"
+                android:paddingBottom="@dimen/widget_rpm_pill_pad_v"
                 android:text="RPM $2.40"
-                android:textColor="#FF0B7A3E"
-                android:textSize="11sp"
-                android:textStyle="bold" />
+                android:textColor="@color/widget_rpm_pill_text"
+                android:textSize="@dimen/widget_rpm_pill_text" />
         </LinearLayout>
 
         <TextView

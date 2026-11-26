@@ -2,6 +2,7 @@ package com.truckerload.widget.glance
 
 import android.content.Context
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -163,7 +164,7 @@ private fun SplitHeader(
                 modifier = GlanceModifier.defaultWeight(),
             )
             if (layout.showRpm) {
-                RpmPill(context, shown, colors)
+                RpmPill(context, shown, layout, amount)
             }
         }
         if (layout.bucket == CabinBucket.COMPACT) {
@@ -194,23 +195,65 @@ private fun SplitHeader(
 }
 
 @Composable
-private fun RpmPill(context: Context, shown: WidgetStats, colors: WidgetCabinColors) {
+private fun RpmPill(
+    context: Context,
+    shown: WidgetStats,
+    layout: CabinLayout,
+    amount: String,
+) {
+    val label = context.getString(
+        R.string.widget_rpm_pill,
+        WidgetStatsFormatter.formatUsdRpm(shown.currentWeeklyRpm),
+    )
+    val metrics = context.resources.displayMetrics
+    val scaled = metrics.density * context.resources.configuration.fontScale
+    val rowWidth = (LocalSize.current.width.value - layout.paddingH.value * 2f).coerceAtLeast(1f)
+    val spec = resolveRpmPill(
+        metricSp = layout.metricSp.value,
+        space = RpmPillSpace(
+            rowWidthDp = rowWidth,
+            amountWidthDp = rpmLabelWidthDp(amount, layout.amountSp.value, bold = true, metrics.density, scaled),
+            amountLineHeightDp = rpmLabelHeightDp(layout.amountSp.value, bold = true, metrics.density, scaled),
+            measureWidthDp = { textSp ->
+                rpmLabelWidthDp(label, textSp, bold = false, metrics.density, scaled)
+            },
+            measureHeightDp = { textSp ->
+                rpmLabelHeightDp(textSp, bold = false, metrics.density, scaled)
+            },
+        ),
+    )
+    RpmPillBox(context, label, spec)
+}
+
+@Composable
+private fun RpmPillBox(context: Context, label: String, spec: RpmPillLayout) {
+    val maxText = spec.textMaxWidthDp
+    var inner = GlanceModifier
+        .cornerRadius(spec.cornerDp.dp)
+        .background(ColorProvider(Color(RpmPillSpec.BG_ARGB)))
+        .padding(horizontal = spec.padHDp.dp, vertical = spec.padVDp.dp)
+    if (maxText != null) {
+        inner = inner.width((maxText + spec.padHDp * 2f).dp)
+    }
     Box(
         modifier = GlanceModifier
-            .cornerRadius(50.dp)
-            .background(ColorProvider(androidx.compose.ui.graphics.Color(colors.rpmBg)))
-            .padding(horizontal = 8.dp, vertical = 2.dp)
+            .cornerRadius(spec.cornerDp.dp)
+            .background(ColorProvider(Color(RpmPillSpec.STROKE_ARGB)))
+            .padding(spec.strokeDp.dp)
             .clickable(actionStartActivity(routeIntent(context, WidgetDeepLink.ROUTE_STATS))),
         contentAlignment = Alignment.Center,
     ) {
-        Text(
-            text = context.getString(
-                R.string.widget_rpm_pill,
-                WidgetStatsFormatter.formatUsdRpm(shown.currentWeeklyRpm),
-            ),
-            style = face(colors.rpmFg, 11f, FontWeight.Bold),
-            maxLines = 1,
-        )
+        Box(modifier = inner, contentAlignment = Alignment.Center) {
+            Text(
+                text = label,
+                maxLines = 1,
+                style = TextStyle(
+                    color = cabinColor(RpmPillSpec.TEXT_ARGB),
+                    fontSize = spec.textSp.sp,
+                    fontFamily = FontFamily(RpmPillSpec.FACE),
+                ),
+            )
+        }
     }
 }
 
