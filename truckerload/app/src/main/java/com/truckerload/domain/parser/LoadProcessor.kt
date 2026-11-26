@@ -1,6 +1,7 @@
 package com.truckerload.domain.parser
 
 import com.truckerload.domain.model.Load
+import com.truckerload.domain.model.LoadCancellation
 import com.truckerload.domain.model.withRouteMetrics
 import com.truckerload.domain.store.DeletedLoadLookup
 import com.truckerload.domain.store.LoadStore
@@ -99,7 +100,7 @@ class LoadProcessor(
         changes: List<String>,
         comparison: LoadComparison,
     ): ProcessingResult {
-        val merged = incoming.copy(
+        val merged = LoadCancellation.carryOver(existingLoad, incoming).copy(
             id = existingLoad.id,
             parsedAt = existingLoad.parsedAt,
             isDispute = existingLoad.isDispute,

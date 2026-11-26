@@ -169,6 +169,8 @@ data class PeriodReportLabels(
     val disputeClosed: String,
     val disputeAmount: String,
     val footer: String,
+    /** Status of a load the broker cancelled (TONU pay). */
+    val cancelledTonu: String = "Cancelled · TONU",
     val equipmentNames: Map<EquipmentType, String> = emptyMap(),
     val pdf: PeriodReportPdfLabels = englishPdfLabels(),
 )

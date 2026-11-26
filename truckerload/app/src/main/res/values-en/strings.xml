@@ -1540,4 +1540,24 @@
     <string name="db_startup_failed_body">TruckoRig couldn\'t unlock the journal on this phone. Your loads are still on this device. Try again, or recover the journal.</string>
     <string name="db_startup_retry">Try again</string>
     <string name="db_startup_recover">Recover journal</string>
+    <string name="load_cancel_action">Load cancelled</string>
+    <string name="load_cancel_badge_tonu">Cancelled · TONU %1$s</string>
+    <string name="load_cancel_badge">Cancelled</string>
+    <string name="load_cancel_title">Load cancelled?</string>
+    <string name="load_cancel_edit_title">TONU pay</string>
+    <string name="load_cancel_body">The load stays in your log. Its rate becomes the TONU pay, loaded miles become 0, deadhead stays. You can restore it later.</string>
+    <string name="load_cancel_tonu_hint">TONU (Truck Ordered Not Used) is paid when a booked load is cancelled. Amazon usually pays $175, many brokers $225. Enter what your broker pays.</string>
+    <string name="load_cancel_window_hint">Cancelled within 2 hours of pickup: TONU is usually owed.</string>
+    <string name="load_cancel_tonu_label">TONU amount, $</string>
+    <string name="load_cancel_no_pay">No pay ($0)</string>
+    <string name="load_cancel_confirm">Mark cancelled</string>
+    <string name="load_cancel_save">Save</string>
+    <string name="load_cancel_undo">Restore load</string>
+    <string name="load_cancel_undo_title">Restore load?</string>
+    <string name="load_cancel_undo_body">The rate goes back to %1$s and loaded miles to %2$s. The TONU is removed.</string>
+    <string name="load_cancel_original">Before cancel: %1$s · %2$s</string>
+    <string name="load_cancel_done">Load marked cancelled</string>
+    <string name="load_cancel_restored">Load restored</string>
+    <string name="load_cancel_edit_tonu">Edit TONU</string>
+    <string name="period_report_status_tonu">Cancelled · TONU</string>
 </resources>

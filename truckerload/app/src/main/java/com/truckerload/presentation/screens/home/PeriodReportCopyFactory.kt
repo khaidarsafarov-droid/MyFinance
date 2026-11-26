@@ -51,6 +51,7 @@ internal fun periodReportLabels(app: Application): PeriodReportLabels = PeriodRe
     disputeClosed = app.getString(R.string.period_report_status_closed),
     disputeAmount = app.getString(R.string.period_report_dispute_amount),
     footer = app.getString(R.string.period_report_footer),
+    cancelledTonu = app.getString(R.string.period_report_status_tonu),
     equipmentNames = EquipmentType.entries.associateWith { app.getString(it.labelRes()) },
     pdf = PeriodReportPdfLabels(
         title = app.getString(R.string.period_report_pdf_title),

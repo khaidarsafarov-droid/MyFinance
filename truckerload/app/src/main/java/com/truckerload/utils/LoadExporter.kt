@@ -133,7 +133,8 @@ object LoadExporter {
                     load.deadheadMiles.coerceAtLeast(0.0),
             )
             val income = formatMoney(load.totalRate)
-            appendLine("${index + 1}. $date | $route | $miles | $income")
+            val tonu = if (load.isCancelled) " | Cancelled (TONU)" else ""
+            appendLine("${index + 1}. $date | $route | $miles | $income$tonu")
         }
     }
 

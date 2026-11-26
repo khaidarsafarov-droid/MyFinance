@@ -63,7 +63,9 @@ object PeriodReportBuilder {
         val statementRows = ordered.map { load ->
             val driven = load.loadedMiles + load.emptyMiles
             PeriodReportStatementRow(
-                reference = load.reference.ifBlank { PERIOD_REPORT_EMPTY_VALUE },
+                // The PDF statement is English-only: a cancelled load is marked "TONU" there.
+                reference = load.reference.ifBlank { PERIOD_REPORT_EMPTY_VALUE }
+                    .let { if (load.cancelled) "$it (TONU)" else it },
                 origin = load.pickup.ifBlank { PERIOD_REPORT_EMPTY_VALUE },
                 destination = load.delivery.ifBlank { PERIOD_REPORT_EMPTY_VALUE },
                 shipDate = load.shipOn.toUs(usShortDate),

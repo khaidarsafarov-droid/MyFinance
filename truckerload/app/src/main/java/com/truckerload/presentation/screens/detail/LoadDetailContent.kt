@@ -32,6 +32,8 @@ internal fun LoadDetailLoadedContent(
     onScanner: () -> Unit,
     onScanClick: (ScanEntity) -> Unit,
     modifier: Modifier = Modifier,
+    onCancelLoad: () -> Unit = {},
+    onRestoreLoad: () -> Unit = {},
 ) {
     Column(
         modifier = modifier
@@ -40,12 +42,20 @@ internal fun LoadDetailLoadedContent(
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         LoadDetailSummary(load = load)
+        if (load.isCancelled) {
+            LoadCancelledPanel(
+                load = load,
+                onEdit = onCancelLoad,
+                onRestore = onRestoreLoad,
+            )
+        }
         LoadDetailActionChips(
             load = load,
             onEditMiles = onEditMiles,
             onEditFinish = onEditFinish,
             onSaveDeadhead = onSaveDeadhead,
             onDisputeChanged = onDisputeChanged,
+            onCancelLoad = onCancelLoad,
         )
         LoadDetailStopsSection(stops = load.stops)
         LoadDetailMediaSection(

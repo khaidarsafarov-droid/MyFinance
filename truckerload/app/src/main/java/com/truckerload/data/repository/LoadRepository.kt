@@ -421,6 +421,7 @@ class LoadRepository(
                 disputeAmountApplied = normalized.disputeAmountApplied,
                 actualFinishDate = normalized.actualFinishDate,
             )
+            writeCancellation(normalized)
             stopDao.deleteByLoadId(normalized.id)
             penaltyDao.deleteByLoadId(normalized.id)
             if (normalized.stops.isNotEmpty()) {
@@ -432,6 +433,10 @@ class LoadRepository(
         }
         notifyWidgetDataChanged()
         scheduleAutoBackup()
+    }
+
+    private suspend fun writeCancellation(load: Load) {
+        with(load) { loadDao.updateCancellation(id, isCancelled, cancelledAt, originalRate?.cents, originalMiles) }
     }
 
     suspend fun deleteLoad(loadId: String) {

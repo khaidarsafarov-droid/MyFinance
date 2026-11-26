@@ -121,6 +121,7 @@
     <ID>InstanceOfCheckForException:DatabaseStartup.kt$DatabaseStartup$error !is Error</ID>
     <ID>InvalidPackageDeclaration:Migration42To43.kt$package com.truckerload.data.local</ID>
     <ID>InvalidPackageDeclaration:Migration43To44.kt$package com.truckerload.data.local</ID>
+    <ID>InvalidPackageDeclaration:Migration44To45.kt$package com.truckerload.data.local</ID>
     <ID>InvalidPackageDeclaration:MigrationsEarly.kt$package com.truckerload.data.local</ID>
     <ID>InvalidPackageDeclaration:MigrationsLate.kt$package com.truckerload.data.local</ID>
     <ID>InvalidPackageDeclaration:MigrationsMid.kt$package com.truckerload.data.local</ID>
@@ -193,7 +194,6 @@
     <ID>LongMethod:LegacyAbsorbDialog.kt$@Composable fun LegacyAbsorbDialog(onSessionRebuilt: (UserComponent) -&gt; Unit)</ID>
     <ID>LongMethod:LoadCalendarWithDots.kt$@Composable fun LoadCalendarWithDots( year: Int, month: Int, datesWithLoads: Set&lt;String&gt;, selectedDate: String?, onDateSelect: (String) -&gt; Unit, onMonthChange: (year: Int, month: Int) -&gt; Unit, modifier: Modifier = Modifier )</ID>
     <ID>LongMethod:LoadCardOptionC.kt$@Composable internal fun LoadCardOptionC( card: LoadCardModel, onCameraClick: (() -&gt; Unit)?, onScanClick: (() -&gt; Unit)?, modifier: Modifier = Modifier, )</ID>
-    <ID>LongMethod:LoadDetailActionChips.kt$@OptIn(ExperimentalLayoutApi::class) @Composable internal fun LoadDetailActionChips( load: Load, onEditMiles: () -&gt; Unit, onEditFinish: () -&gt; Unit, onSaveDeadhead: (Double) -&gt; Unit, onDisputeChanged: (Load) -&gt; Unit, modifier: Modifier = Modifier, )</ID>
     <ID>LongMethod:LoadDetailMediaSection.kt$@Composable internal fun LoadDetailMediaSection( photos: List&lt;PhotoEntity&gt;, scans: List&lt;ScanEntity&gt;, onPhotoClick: (String) -&gt; Unit, onCamera: () -&gt; Unit, onScanner: () -&gt; Unit, onScanClick: (ScanEntity) -&gt; Unit, modifier: Modifier = Modifier, )</ID>
     <ID>LongMethod:LoadDetailScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun LoadDetailScreen( loadId: String, onBack: () -&gt; Unit, onEdit: () -&gt; Unit, onEditMiles: () -&gt; Unit = onEdit, onEditFinish: () -&gt; Unit, onDelete: () -&gt; Unit, onPhotoClick: (String) -&gt; Unit = {}, onScanClick: (String) -&gt; Unit = {}, onCamera: (loadId: String, tripId: String, loadDate: String) -&gt; Unit = { _, _, _ -&gt; }, onScanner: (loadId: String, tripId: String, loadDate: String) -&gt; Unit = { _, _, _ -&gt; }, onOpenPrivacy: () -&gt; Unit = {}, )</ID>
     <ID>LongMethod:LoadDetailSummary.kt$@Composable internal fun LoadDetailSummary( load: Load, modifier: Modifier = Modifier, )</ID>
@@ -773,6 +773,8 @@
     <ID>MagicNumber:Migration42To43.kt$&lt;no name provided&gt;$43</ID>
     <ID>MagicNumber:Migration43To44.kt$&lt;no name provided&gt;$43</ID>
     <ID>MagicNumber:Migration43To44.kt$&lt;no name provided&gt;$44</ID>
+    <ID>MagicNumber:Migration44To45.kt$&lt;no name provided&gt;$44</ID>
+    <ID>MagicNumber:Migration44To45.kt$&lt;no name provided&gt;$45</ID>
     <ID>MagicNumber:MigrationsEarly.kt$&lt;no name provided&gt;$10</ID>
     <ID>MagicNumber:MigrationsEarly.kt$&lt;no name provided&gt;$11</ID>
     <ID>MagicNumber:MigrationsEarly.kt$&lt;no name provided&gt;$12</ID>

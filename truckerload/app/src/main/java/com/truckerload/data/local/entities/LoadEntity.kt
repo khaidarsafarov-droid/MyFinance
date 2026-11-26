@@ -1,5 +1,6 @@
 package com.truckerload.data.local.entities
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
@@ -62,4 +63,13 @@ data class LoadEntity(
     val equipmentType: String? = null,
     /** Empty miles to the pickup. 0 for loads saved before this column existed. */
     val deadheadMiles: Double = 0.0,
+    /** Broker/shipper cancelled the load; [totalRate] then holds the TONU pay. */
+    @ColumnInfo(defaultValue = "0")
+    val isCancelled: Boolean = false,
+    /** When the load was marked cancelled (epoch ms). */
+    val cancelledAt: Long? = null,
+    /** Rate in cents before the cancellation, for undo. */
+    val originalRate: Long? = null,
+    /** Loaded miles before the cancellation, for undo. */
+    val originalMiles: Double? = null,
 )

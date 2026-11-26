@@ -67,7 +67,7 @@ import com.truckerload.data.local.entities.UserAccountEntity
         PerDiemDayOverrideEntity::class,
         MiscExpenseEntity::class,
     ],
-    version = 44,
+    version = 45,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {

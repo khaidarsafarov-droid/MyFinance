@@ -67,6 +67,10 @@ fun LoadDetailScreen(
     val deleteFailed = stringResource(R.string.load_delete_failed)
     val saveErrorEmpty = stringResource(R.string.common_save_error, "")
     var showDeleteConfirm by remember { mutableStateOf(false) }
+    var cancelDialogAt by remember { mutableStateOf<Long?>(null) }
+    var showRestoreConfirm by remember { mutableStateOf(false) }
+    val cancelDone = stringResource(R.string.load_cancel_done)
+    val restoreDone = stringResource(R.string.load_cancel_restored)
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner, loadId) {
         val observer = LifecycleEventObserver { _, event ->
@@ -162,6 +166,8 @@ fun LoadDetailScreen(
                     onCamera = { onCamera(l.id, l.tripId, l.date) },
                     onScanner = { onScanner(l.id, l.tripId, l.date) },
                     onScanClick = { scan -> onScanClick(scan.id) },
+                    onCancelLoad = { cancelDialogAt = System.currentTimeMillis() },
+                    onRestoreLoad = { showRestoreConfirm = true },
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(padding)
@@ -169,6 +175,29 @@ fun LoadDetailScreen(
                 )
             }
         }
+    }
+    val dialogLoad = uiState.load
+    val openedAt = cancelDialogAt
+    if (openedAt != null && dialogLoad != null) {
+        LoadCancelDialog(
+            load = dialogLoad,
+            nowMillis = openedAt,
+            onDismiss = { cancelDialogAt = null },
+            onConfirm = { tonu ->
+                cancelDialogAt = null
+                viewModel.cancelLoad(tonu, cancelDone, saveErrorEmpty)
+            },
+        )
+    }
+    if (showRestoreConfirm && dialogLoad != null) {
+        LoadRestoreDialog(
+            load = dialogLoad,
+            onDismiss = { showRestoreConfirm = false },
+            onConfirm = {
+                showRestoreConfirm = false
+                viewModel.undoCancel(restoreDone, saveErrorEmpty)
+            },
+        )
     }
     if (showDeleteConfirm) {
         AlertDialog(

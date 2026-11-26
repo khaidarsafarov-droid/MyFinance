@@ -116,6 +116,9 @@ internal fun LoadCardOptionC(
             modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
+            if (card.isCancelled) {
+                CancelledCardChip(tonu = card.totalRate)
+            }
             if (card.isDispute) {
                 DisputeCardChip(hadDispute = card.hadDispute)
             }
@@ -137,7 +140,7 @@ internal fun LoadCardOptionC(
                         softWrap = false,
                         overflow = TextOverflow.Ellipsis,
                     )
-                    if (card.pace.isPositive()) {
+                    if (card.pace.isPositive() && !card.isCancelled) {
                         Text(
                             text = stringResource(
                                 R.string.load_card_per_day,

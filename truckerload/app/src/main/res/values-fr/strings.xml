@@ -1538,4 +1538,24 @@
     <string name="db_startup_failed_body">TruckoRig n\'a pas pu déverrouiller le journal sur ce téléphone. Vos chargements sont toujours sur cet appareil. Réessayez, ou récupérez le journal.</string>
     <string name="db_startup_retry">Réessayer</string>
     <string name="db_startup_recover">Récupérer le journal</string>
+    <string name="load_cancel_action">Chargement annulé</string>
+    <string name="load_cancel_badge_tonu">Annulé · TONU %1$s</string>
+    <string name="load_cancel_badge">Annulé</string>
+    <string name="load_cancel_title">Chargement annulé ?</string>
+    <string name="load_cancel_edit_title">Paiement TONU</string>
+    <string name="load_cancel_body">Le chargement reste dans votre journal. Le tarif devient le paiement TONU, les miles chargés passent à 0, le deadhead reste. Vous pourrez le restaurer.</string>
+    <string name="load_cancel_tonu_hint">Le TONU (Truck Ordered Not Used) est payé quand un chargement réservé est annulé. Amazon paie souvent 175 $, beaucoup de courtiers 225 $. Saisissez ce que paie votre courtier.</string>
+    <string name="load_cancel_window_hint">Annulé moins de 2 heures avant le pickup : un TONU est généralement dû.</string>
+    <string name="load_cancel_tonu_label">Montant TONU, $</string>
+    <string name="load_cancel_no_pay">Sans paiement (0 $)</string>
+    <string name="load_cancel_confirm">Marquer annulé</string>
+    <string name="load_cancel_save">Enregistrer</string>
+    <string name="load_cancel_undo">Restaurer</string>
+    <string name="load_cancel_undo_title">Restaurer le chargement ?</string>
+    <string name="load_cancel_undo_body">Le tarif revient à %1$s et les miles chargés à %2$s. Le TONU est retiré.</string>
+    <string name="load_cancel_original">Avant annulation : %1$s · %2$s</string>
+    <string name="load_cancel_done">Chargement marqué annulé</string>
+    <string name="load_cancel_restored">Chargement restauré</string>
+    <string name="load_cancel_edit_tonu">Modifier le TONU</string>
+    <string name="period_report_status_tonu">Annulé · TONU</string>
 </resources>

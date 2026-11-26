@@ -300,6 +300,32 @@ class PeriodReportBuilderTest {
         assertEquals(currentYear, current.weekYear)
     }
 
+    @Test
+    fun cancelledLoad_countsTonuAsGross_keepsDeadhead_andIsMarkedTonuInTheStatement() {
+        val booked = load(
+            id = "tonu",
+            trip = "T-TONU",
+            date = "2026-11-16",
+            finish = "2026-11-16",
+            rate = 4_418.93,
+            miles = 900.0,
+            deadhead = 55.0,
+            pickup = "Garner, NC",
+            delivery = "Dallas, TX",
+            parsedAt = 5L,
+        )
+        val cancelled = com.truckerload.domain.model.LoadCancellation.cancel(booked, Money.fromCents(17_500L), 10L)
+        val report = reportFor(listOf(cancelled), fuel = 0.0, gallons = 0.0, expense = 0.0, goal = null)
+
+        assertEquals(17_500L, report.totals.gross.cents)
+        assertEquals(0.0, report.totals.loadedMiles, 0.001)
+        assertEquals(55.0, report.totals.emptyMiles, 0.001)
+        val row = report.statementRows.single()
+        assertEquals("T-TONU (TONU)", row.reference)
+        assertEquals(PERIOD_REPORT_EMPTY_VALUE, row.ratePerMile)
+        assertTrue(report.plainText.contains("Cancelled · TONU"))
+    }
+
     private fun reportFor(
         loads: List<Load>,
         fuel: Double,

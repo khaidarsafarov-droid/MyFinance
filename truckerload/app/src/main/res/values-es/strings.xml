@@ -1540,4 +1540,24 @@
     <string name="db_startup_failed_body">TruckoRig no pudo desbloquear el diario en este teléfono. Tus cargas siguen en el dispositivo. Inténtalo de nuevo o recupera el diario.</string>
     <string name="db_startup_retry">Intentar de nuevo</string>
     <string name="db_startup_recover">Recuperar diario</string>
+    <string name="load_cancel_action">Carga cancelada</string>
+    <string name="load_cancel_badge_tonu">Cancelada · TONU %1$s</string>
+    <string name="load_cancel_badge">Cancelada</string>
+    <string name="load_cancel_title">¿Carga cancelada?</string>
+    <string name="load_cancel_edit_title">Pago TONU</string>
+    <string name="load_cancel_body">La carga queda en tu registro. La tarifa pasa a ser el pago TONU, las millas cargadas quedan en 0 y el deadhead se mantiene. Puedes restaurarla después.</string>
+    <string name="load_cancel_tonu_hint">TONU (Truck Ordered Not Used) se paga cuando cancelan una carga reservada. Amazon suele pagar $175, muchos brokers $225. Escribe lo que paga tu broker.</string>
+    <string name="load_cancel_window_hint">Cancelada a menos de 2 horas del pickup: normalmente corresponde TONU.</string>
+    <string name="load_cancel_tonu_label">Monto TONU, $</string>
+    <string name="load_cancel_no_pay">Sin pago ($0)</string>
+    <string name="load_cancel_confirm">Marcar cancelada</string>
+    <string name="load_cancel_save">Guardar</string>
+    <string name="load_cancel_undo">Restaurar carga</string>
+    <string name="load_cancel_undo_title">¿Restaurar carga?</string>
+    <string name="load_cancel_undo_body">La tarifa vuelve a %1$s y las millas cargadas a %2$s. Se quita el TONU.</string>
+    <string name="load_cancel_original">Antes de cancelar: %1$s · %2$s</string>
+    <string name="load_cancel_done">Carga marcada como cancelada</string>
+    <string name="load_cancel_restored">Carga restaurada</string>
+    <string name="load_cancel_edit_tonu">Editar TONU</string>
+    <string name="period_report_status_tonu">Cancelada · TONU</string>
 </resources>

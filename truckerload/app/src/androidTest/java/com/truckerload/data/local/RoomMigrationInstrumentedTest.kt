@@ -16,7 +16,7 @@ import java.io.IOException
 
 /**
  * MigrationTestHelper coverage for Room forward path.
- * Exported schemas (28–44) are mounted as androidTest assets and used with
+ * Exported schemas (28–45) are mounted as androidTest assets and used with
  * [MigrationTestHelper.runMigrationsAndValidate].
  * Older start versions have no historical schema JSON, so those tests build a
  * fixture and apply migrations directly. The helper's boolean flag only
@@ -285,6 +285,40 @@ class RoomMigrationInstrumentedTest {
         }
     }
 
+    @Test
+    @Throws(IOException::class)
+    fun migrate44To45_keepsLoadsAndAddsCancellationColumns() {
+        val db = helper.createDatabase(testDb, 44)
+        db.execSQL(
+            """
+            INSERT INTO loads (
+              id, tripId, date, totalRate, totalMiles, pointA, pointB, puCount, delCount,
+              weekNumber, year, rawMessage, parsedAt, updatedAt, route, firstPuCityState,
+              lastDelCityState, durationDays, pace, stopCount, isDispute, disputeCompleted,
+              disputeApplyToLoad, disputeAmountApplied, deadheadMiles
+            ) VALUES (
+              'load-1', 'T-1', '2026-01-01', 441893, 900.0, 'A', 'B', 1, 1,
+              1, 2026, '', 1, 2, '', '', '', 1.0, 0, 2, 0, 0, 0, 0, 55.0
+            )
+            """.trimIndent(),
+        )
+        db.close()
+        val migrated = helper.runMigrationsAndValidate(testDb, 45, true, MIGRATION_44_45)
+        migrated.query(
+            "SELECT totalRate, totalMiles, deadheadMiles, isCancelled, cancelledAt, originalRate, originalMiles FROM loads",
+        ).use { c ->
+            assertTrue(c.moveToFirst())
+            assertEquals(441893L, c.getLong(0))
+            assertEquals(900.0, c.getDouble(1), 0.001)
+            assertEquals(55.0, c.getDouble(2), 0.001)
+            assertEquals(0, c.getInt(3))
+            assertTrue(c.isNull(4))
+            assertTrue(c.isNull(5))
+            assertTrue(c.isNull(6))
+            assertEquals(1, c.count)
+        }
+    }
+
     /** Every exported schema from 28 up to the current one is reached by the registered chain. */
     @Test
     @Throws(IOException::class)
@@ -292,7 +326,7 @@ class RoomMigrationInstrumentedTest {
         helper.createDatabase(testDb, 28).close()
         helper.runMigrationsAndValidate(
             testDb,
-            44,
+            45,
             true,
             *ALL_ROOM_MIGRATIONS.filter { it.startVersion >= 28 }.toTypedArray(),
         ).close()
