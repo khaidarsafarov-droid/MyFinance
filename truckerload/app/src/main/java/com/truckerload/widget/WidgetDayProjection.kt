@@ -125,8 +125,8 @@ object WidgetDayProjection {
 
     fun applyToStats(week: WidgetStats, projected: DayTotals): WidgetStats {
         val goal = week.weeklyProfitGoal
-        val percent = if (goal > 0) {
-            ((projected.gross / goal) * 100.0).toFloat().coerceIn(0f, 100f)
+        val percent = if (goal > 0.0) {
+            ((projected.gross / goal) * 100.0).toFloat().coerceAtLeast(0f)
         } else {
             0f
         }

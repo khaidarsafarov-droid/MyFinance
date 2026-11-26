@@ -1,28 +1,35 @@
 package com.truckerload.domain.goal
 
-import com.truckerload.domain.money.Money
-import com.truckerload.domain.model.Load
 import com.truckerload.domain.filter.LoadFilterUseCase
+import com.truckerload.domain.model.Load
+import com.truckerload.domain.money.Money
 import com.truckerload.utils.getCurrentWeekNumberAndYear
 import com.truckerload.utils.getDaysActiveForWeek
 import com.truckerload.utils.getDaysRemainingForWeek
 import com.truckerload.utils.getWeekRange
 import com.truckerload.utils.isLoadInWeek
 import java.time.LocalDate
-import kotlin.math.min
 
 object WeeklyGoalCalculator {
 
+    /**
+     * Display percent of the weekly goal. Not capped at 100.
+     * Zero when [goalCents] is not positive, so a missing goal never divides by zero.
+     */
+    fun displayPercent(currentCents: Long, goalCents: Long): Float {
+        if (goalCents <= 0L) return 0f
+        return (currentCents.toFloat() / goalCents.toFloat() * 100f).coerceAtLeast(0f)
+    }
+
     /** Gross per active day (PU → DEL durations, ceil, min 1 day per load). */
-    fun calculateDailyPace(weekLoads: List<Load>): Money =
-        LoadYieldCalculator.actualDailyYield(weekLoads)
+    fun calculateDailyPace(weekLoads: List<Load>): Money = LoadYieldCalculator.actualDailyYield(weekLoads)
 
     fun calculate(
         targetAmount: Money,
         weekLoads: List<Load>,
         weekNumber: Int,
         year: Int,
-        sqlYield: WeekYieldSnapshot? = null
+        sqlYield: WeekYieldSnapshot? = null,
     ): WeeklyGoalProgress {
         val totals = LoadFilterUseCase().calculateTotals(weekLoads)
         val loadGross = totals.totalRate
@@ -59,11 +66,7 @@ object WeeklyGoalCalculator {
         val expectedGrossByNow = GoalMoneyMath.expectedGrossByNow(targetAmount, daysActiveCalendar)
         val remaining = (targetAmount - currentGross).coerceAtLeast(Money.ZERO)
 
-        val progressPercent = if (targetAmount.cents > 0L) {
-            min(100f, (currentGross.cents.toFloat() / targetAmount.cents.toFloat() * 100f))
-        } else {
-            0f
-        }
+        val progressPercent = displayPercent(currentGross.cents, targetAmount.cents)
 
         val paceStatus = when {
             targetAmount.cents <= 0L -> PaceStatus.BEHIND
@@ -91,15 +94,12 @@ object WeeklyGoalCalculator {
             weekNumber = weekNumber,
             year = year,
             loadsCount = totals.loadCount,
-            totalMiles = totals.totalMiles
+            totalMiles = totals.totalMiles,
         )
     }
 
-    fun calculateCurrentWeek(
-        targetAmount: Money,
-        allLoads: List<Load>,
-        sqlYield: WeekYieldSnapshot? = null
-    ): WeeklyGoalProgress {
+    @Suppress("MaxLineLength")
+    fun calculateCurrentWeek(targetAmount: Money, allLoads: List<Load>, sqlYield: WeekYieldSnapshot? = null): WeeklyGoalProgress {
         val (weekNumber, year) = getCurrentWeekNumberAndYear()
         val weekLoads = allLoads.filter { isLoadInWeek(it, weekNumber, year) }
         return calculate(targetAmount, weekLoads, weekNumber, year, sqlYield)

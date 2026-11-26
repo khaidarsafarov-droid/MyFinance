@@ -25,10 +25,13 @@ class WidgetStatsFormatterTest {
     }
 
     @Test
-    fun formatProgressPercent_clampsTo0_100() {
+    fun formatProgressPercent_keepsValuesAbove100() {
         assertEquals("0.0%", WidgetStatsFormatter.formatProgressPercent(-5f))
-        assertEquals("100.0%", WidgetStatsFormatter.formatProgressPercent(150f))
+        assertEquals("0.0%", WidgetStatsFormatter.formatProgressPercent(0f))
         assertEquals("42.5%", WidgetStatsFormatter.formatProgressPercent(42.5f))
+        assertEquals("100.0%", WidgetStatsFormatter.formatProgressPercent(100f))
+        assertEquals("130.0%", WidgetStatsFormatter.formatProgressPercent(130f))
+        assertEquals("245.0%", WidgetStatsFormatter.formatProgressPercent(245f))
     }
 
     @Test
@@ -38,6 +41,10 @@ class WidgetStatsFormatterTest {
         assertEquals("72%", WidgetStatsFormatter.formatRingPercent(72f))
         assertEquals("72.4%", WidgetStatsFormatter.formatRingPercent(72.4f))
         assertEquals("100%", WidgetStatsFormatter.formatRingPercent(100f))
+        assertEquals("130%", WidgetStatsFormatter.formatRingPercent(130f))
+        assertEquals("130.4%", WidgetStatsFormatter.formatRingPercent(130.4f))
+        assertEquals("245%", WidgetStatsFormatter.formatRingPercent(245f))
+        assertEquals("245.4%", WidgetStatsFormatter.formatRingPercent(245.4f))
     }
 
     @Test

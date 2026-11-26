@@ -209,33 +209,11 @@ internal fun GoalHeroCard(
                 contentDescription = barDescription,
                 modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 14.dp),
             )
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 20.dp, end = 20.dp, top = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = stringResource(R.string.goal_percent_caption, percent),
-                    color = onHero,
-                    style = MaterialTheme.typography.bodyMedium.copy(fontFeatureSettings = "tnum"),
-                    fontWeight = FontWeight.Medium,
-                )
-                Spacer(Modifier.weight(1f))
-                Box(
-                    Modifier
-                        .width(1.dp)
-                        .height(14.dp)
-                        .background(onHero.copy(alpha = 0.7f)),
-                )
-                Text(
-                    text = stringResource(R.string.goal_expected_caption, expected),
-                    color = onHero,
-                    style = MaterialTheme.typography.bodyMedium.copy(fontFeatureSettings = "tnum"),
-                    modifier = Modifier.padding(start = 8.dp),
-                    maxLines = 1,
-                )
-            }
+            GoalCaptionRow(
+                percentText = stringResource(R.string.goal_percent_caption, percent),
+                expectedText = stringResource(R.string.goal_expected_caption, expected),
+                color = onHero,
+            )
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -317,11 +295,7 @@ private fun GoalHeroBar(
 }
 
 @Composable
-private fun HeroTile(
-    label: String,
-    value: String,
-    modifier: Modifier = Modifier,
-) {
+private fun HeroTile(label: String, value: String, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
             .heightIn(min = 72.dp)

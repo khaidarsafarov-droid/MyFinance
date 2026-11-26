@@ -27,11 +27,11 @@ object WidgetStatsFormatter {
         String.format(Locale.US, "%,.0f", MeasurementUnits.displayDistance(value))
 
     fun formatProgressPercent(progress: Float): String =
-        String.format(Locale.US, "%.1f%%", progress.coerceIn(0f, 100f))
+        String.format(Locale.US, "%.1f%%", progress.coerceAtLeast(0f))
 
-    /** Ring hole copy: `0%`, `72%`, or `72.4%` — no `0,0%` clutter. */
+    /** Ring hole copy: `0%`, `72%`, `130%`, or `72.4%` — no `0,0%` clutter. */
     fun formatRingPercent(progress: Float): String {
-        val p = progress.coerceIn(0f, 100f)
+        val p = progress.coerceAtLeast(0f)
         val nearest = kotlin.math.round(p)
         return if (kotlin.math.abs(p - nearest) < 0.05f) {
             String.format(Locale.US, "%.0f%%", nearest)

@@ -68,7 +68,7 @@ object WidgetTruckProgressBitmap {
         if (goalSet) {
             drawPercentLabel(
                 canvas = canvas,
-                label = WidgetStatsFormatter.formatRingPercent(progress),
+                label = WidgetStatsFormatter.formatRingPercent(progressPercent),
                 safeWidth = safeWidth,
                 headroom = headroom,
                 color = colors.text,

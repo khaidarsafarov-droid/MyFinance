@@ -3,11 +3,11 @@ package com.truckerload.widget
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.Stop
 import com.truckerload.domain.model.StopType
+import com.truckerload.domain.money.Money
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.LocalDate
-import com.truckerload.domain.money.Money
 
 class WidgetDayProjectionTest {
 
@@ -209,6 +209,31 @@ class WidgetDayProjectionTest {
     }
 
     @Test
+    fun project_percentKeepsGrossAboveTheGoal() {
+        val week = WidgetStats(
+            loadsCount = 2,
+            totalLoadRate = 3_000.0,
+            weeklyProfitGoal = 1_000.0,
+            goalProgressPercent = 300f,
+            dayLoads = listOf(1, 1, 0, 0, 0, 0, 0),
+            dayGross = listOf(1_300.0, 1_150.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+        )
+        val monday = WidgetDayProjection.project(week, selectedOffset = 0, todayOffset = 3)
+        assertEquals(130f, monday.goalProgressPercent, 0.05f)
+        assertEquals(0.0, monday.goalRemainingAmount, 0.0)
+
+        val both = WidgetDayProjection.project(week, selectedOffset = 1, todayOffset = 3)
+        assertEquals(245f, both.goalProgressPercent, 0.05f)
+
+        val noGoal = WidgetDayProjection.project(
+            week.copy(weeklyProfitGoal = 0.0),
+            selectedOffset = 0,
+            todayOffset = 3,
+        )
+        assertEquals(0f, noGoal.goalProgressPercent, 0.01f)
+    }
+
+    @Test
     fun packAndUnpack_roundTripSevenDays() {
         val loads = listOf(1, 0, 2, 3, 0, 0, 4)
         val gross = listOf(10.0, 0.0, 20.5, 30.0, 0.0, 0.0, 40.0)
@@ -218,12 +243,7 @@ class WidgetDayProjectionTest {
         assertTrue(WidgetDataStore.unpackDoubles("1,2").all { it == 0.0 })
     }
 
-    private fun load(
-        id: String,
-        date: String,
-        rate: Double,
-        miles: Double,
-    ) = Load(
+    private fun load(id: String, date: String, rate: Double, miles: Double) = Load(
         id = id,
         tripId = id,
         date = date,
@@ -240,14 +260,7 @@ class WidgetDayProjectionTest {
         updatedAt = 1L,
     )
 
-    private fun spanningLoad(
-        id: String,
-        puDate: String,
-        puTime: String,
-        delTime: String,
-        rate: Double,
-        miles: Double,
-    ) = Load(
+    private fun spanningLoad(id: String, puDate: String, puTime: String, delTime: String, rate: Double, miles: Double) = Load(
         id = id,
         tripId = id,
         date = puDate,

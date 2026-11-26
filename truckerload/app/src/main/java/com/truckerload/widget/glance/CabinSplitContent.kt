@@ -48,6 +48,8 @@ import java.util.Locale
 /** Glance has no res-font hook; DM Sans is the in-app face, widgets use the system sans. */
 private val WidgetFace = FontFamily("sans-serif")
 
+private const val PERCENT_REMAINING_GAP_DP = 8f
+
 @Composable
 internal fun SplitCabinBody(
     context: Context,
@@ -168,10 +170,12 @@ private fun SplitHeader(
             }
         }
         if (layout.bucket == CabinBucket.COMPACT) {
-            Text(
+            FittedGoalLine(
+                context = context,
                 text = context.getString(R.string.widget_goal_percent, percent),
-                style = face(colors.onHeader, layout.metricSp.value, FontWeight.Medium),
-                maxLines = 1,
+                argb = colors.onHeader,
+                defaultSp = layout.metricSp.value,
+                availableDp = percentLineWidthDp(layout, LocalSize.current.width.value),
             )
         } else if (layout.showRpm) {
             Text(
@@ -181,10 +185,12 @@ private fun SplitHeader(
             )
         }
         if (layout.headerMetric) {
-            Text(
+            FittedGoalLine(
+                context = context,
                 text = context.getString(R.string.widget_goal_micro, percent, goalMoneyRaw(context, shown)),
-                style = face(colors.onHeader, layout.metricSp.value, FontWeight.Medium),
-                maxLines = 1,
+                argb = colors.onHeader,
+                defaultSp = layout.metricSp.value,
+                availableDp = percentLineWidthDp(layout, LocalSize.current.width.value),
             )
         }
         if (layout.progressBlockDp == 0.dp && layout.progressBarDp > 0.dp) {
@@ -195,12 +201,7 @@ private fun SplitHeader(
 }
 
 @Composable
-private fun RpmPill(
-    context: Context,
-    shown: WidgetStats,
-    layout: CabinLayout,
-    amount: String,
-) {
+private fun RpmPill(context: Context, shown: WidgetStats, layout: CabinLayout, amount: String) {
     val label = context.getString(
         R.string.widget_rpm_pill,
         WidgetStatsFormatter.formatUsdRpm(shown.currentWeeklyRpm),
@@ -258,31 +259,47 @@ private fun RpmPillBox(context: Context, label: String, spec: RpmPillLayout) {
 }
 
 @Composable
-private fun ProgressDetail(
-    context: Context,
-    shown: WidgetStats,
-    layout: CabinLayout,
-    colors: WidgetCabinColors,
-) {
+private fun ProgressDetail(context: Context, shown: WidgetStats, layout: CabinLayout, colors: WidgetCabinColors) {
     val percent = WidgetStatsFormatter.formatRingPercent(shown.goalProgressPercent)
+    val percentPhrase = context.getString(R.string.widget_goal_percent, percent)
+    val metrics = context.resources.displayMetrics
+    val scaled = metrics.density * context.resources.configuration.fontScale
+    val rowDp = (LocalSize.current.width.value - layout.paddingH.value * 2f).coerceAtLeast(1f)
+    val remainingPhrase = if (layout.showRemaining) {
+        context.getString(
+            R.string.widget_goal_remaining,
+            WidgetStatsFormatter.formatGrossUsd(shown.goalRemainingAmount),
+        )
+    } else {
+        null
+    }
+    val remainingDp = if (remainingPhrase == null) {
+        0f
+    } else {
+        goalLineWidthDp(remainingPhrase, layout.metricSp.value, metrics.density, scaled)
+    }
+    val percentDp = if (remainingPhrase == null) {
+        rowDp
+    } else {
+        (rowDp - remainingDp - PERCENT_REMAINING_GAP_DP).coerceAtLeast(1f)
+    }
     Column(
         modifier = GlanceModifier
             .fillMaxWidth()
             .clickable(actionStartActivity(routeIntent(context, WidgetDeepLink.ROUTE_WEEKLY_GOAL))),
     ) {
         Row(modifier = GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                text = context.getString(R.string.widget_goal_percent, percent),
-                style = face(colors.text, layout.metricSp.value, FontWeight.Medium),
-                maxLines = 1,
+            FittedGoalLine(
+                context = context,
+                text = percentPhrase,
+                argb = colors.text,
+                defaultSp = layout.metricSp.value,
+                availableDp = percentDp,
                 modifier = GlanceModifier.defaultWeight(),
             )
-            if (layout.showRemaining) {
+            if (layout.showRemaining && remainingPhrase != null) {
                 Text(
-                    text = context.getString(
-                        R.string.widget_goal_remaining,
-                        WidgetStatsFormatter.formatGrossUsd(shown.goalRemainingAmount),
-                    ),
+                    text = remainingPhrase,
                     style = face(colors.muted, layout.metricSp.value, FontWeight.Medium),
                     maxLines = 1,
                 )
@@ -294,13 +311,7 @@ private fun ProgressDetail(
 }
 
 @Composable
-private fun GoalBar(
-    context: Context,
-    shown: WidgetStats,
-    barDp: Dp,
-    padH: Dp,
-    colors: WidgetCabinColors,
-) {
+private fun GoalBar(context: Context, shown: WidgetStats, barDp: Dp, padH: Dp, colors: WidgetCabinColors) {
     val density = context.resources.displayMetrics.density
     val contentWidth = (LocalSize.current.width.value - padH.value * 2).coerceAtLeast(40f)
     val widthPx = (contentWidth * density).toInt()
@@ -419,11 +430,7 @@ private fun DayBars(
 }
 
 @Composable
-internal fun SplitActionRow(
-    context: Context,
-    layout: CabinLayout,
-    colors: WidgetCabinColors,
-) {
+internal fun SplitActionRow(context: Context, layout: CabinLayout, colors: WidgetCabinColors) {
     val actions = CabinQuickAction.visible(layout.actionCount)
     Row(
         modifier = GlanceModifier.fillMaxWidth(),
@@ -486,12 +493,7 @@ private fun ActionButton(
 }
 
 @Composable
-private fun ActionIcon(
-    action: CabinQuickAction,
-    label: String,
-    iconDp: Dp,
-    colors: WidgetCabinColors,
-) {
+private fun ActionIcon(action: CabinQuickAction, label: String, iconDp: Dp, colors: WidgetCabinColors) {
     Image(
         provider = ImageProvider(action.iconRes),
         contentDescription = label,
@@ -500,12 +502,8 @@ private fun ActionIcon(
     )
 }
 
-private fun headerLine(
-    context: Context,
-    shown: WidgetStats,
-    today: LocalDate = LocalDate.now(),
-    weekRange: String? = null,
-): String {
+@Suppress("MaxLineLength")
+private fun headerLine(context: Context, shown: WidgetStats, today: LocalDate = LocalDate.now(), weekRange: String? = null): String {
     if (!weekRange.isNullOrBlank()) return weekRange
     val weekStart = WidgetWeekDayHelper.startOfWeek(today)
     val range = formatSplitWeekRange(
@@ -531,12 +529,11 @@ private fun headerBitmapHeight(layout: CabinLayout): Dp {
 private fun goalMoney(context: Context, shown: WidgetStats): String =
     context.getString(R.string.widget_metric_goal_value, goalMoneyRaw(context, shown))
 
-private fun goalMoneyRaw(context: Context, shown: WidgetStats): String =
-    if (shown.weeklyProfitGoal > 0) {
-        WidgetStatsFormatter.formatGrossUsd(shown.weeklyProfitGoal)
-    } else {
-        context.getString(R.string.widget_goal_not_set)
-    }
+private fun goalMoneyRaw(context: Context, shown: WidgetStats): String = if (shown.weeklyProfitGoal > 0) {
+    WidgetStatsFormatter.formatGrossUsd(shown.weeklyProfitGoal)
+} else {
+    context.getString(R.string.widget_goal_not_set)
+}
 
 @Composable
 private fun face(argb: Int, sp: Float, weight: FontWeight): TextStyle = TextStyle(
