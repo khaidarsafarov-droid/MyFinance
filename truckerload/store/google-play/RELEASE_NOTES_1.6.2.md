@@ -7,7 +7,7 @@
 
 ## Internal
 
-- `versionCode` 20, `versionName` 1.6.2 (1.6.1 was `versionCode` 19).
+- `versionCode` 21, `versionName` 1.6.2 (1.6.1 was `versionCode` 19).
 - Removed Google Sign-In (`play-services-auth`), the Drive REST client, the 12-hour Drive upload worker, the Settings → Google Drive screen, and the Profile "Google account" / "Google Drive" rows.
 - Removed the unused local email/password verifier store.
 - First start after the update: cancels the `drive_sync_periodic` job and wipes the Drive link, Play Services sign-in cache, old Google ID token, and email/password verifiers. The journal, photos, scans, profile, and local backups are not touched.
