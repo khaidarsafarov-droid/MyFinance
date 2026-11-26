@@ -27,8 +27,8 @@ object WeekCalendarMath {
         return Pair(cal.get(Calendar.WEEK_OF_YEAR), cal.getWeekYear())
     }
 
-    fun current(firstDay: WeekStartDay, nowMillis: Long = AppTime.now()): Pair<Int, Int> =
-        numberAndYearFromTimestamp(nowMillis, firstDay)
+    @Suppress("MaxLineLength")
+    fun current(firstDay: WeekStartDay, nowMillis: Long = AppTime.now()): Pair<Int, Int> = numberAndYearFromTimestamp(nowMillis, firstDay)
 
     fun previous(firstDay: WeekStartDay, nowMillis: Long = AppTime.now()): Pair<Int, Int> {
         val cal = weekCalendar(firstDay).apply { timeInMillis = nowMillis }
@@ -122,23 +122,13 @@ object WeekCalendarMath {
         return (firstDay.endCalendarDay - today + 7) % 7 + 1
     }
 
-    fun daysActiveForWeek(
-        weekNumber: Int,
-        year: Int,
-        firstDay: WeekStartDay,
-        nowMillis: Long = AppTime.now(),
-    ): Int {
+    fun daysActiveForWeek(weekNumber: Int, year: Int, firstDay: WeekStartDay, nowMillis: Long = AppTime.now()): Int {
         val (currentWeek, currentYear) = current(firstDay, nowMillis)
         if (weekNumber != currentWeek || year != currentYear) return 7
         return daysElapsed(firstDay, nowMillis).coerceAtLeast(1)
     }
 
-    fun daysRemainingForWeek(
-        weekNumber: Int,
-        year: Int,
-        firstDay: WeekStartDay,
-        nowMillis: Long = AppTime.now(),
-    ): Int {
+    fun daysRemainingForWeek(weekNumber: Int, year: Int, firstDay: WeekStartDay, nowMillis: Long = AppTime.now()): Int {
         val (currentWeek, currentYear) = current(firstDay, nowMillis)
         if (weekNumber != currentWeek || year != currentYear) return 1
         return daysRemaining(firstDay, nowMillis).coerceAtLeast(1)
