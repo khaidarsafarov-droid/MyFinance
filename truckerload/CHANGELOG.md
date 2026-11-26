@@ -8,7 +8,7 @@
 - Sign in with Apple is reserved (`AuthProvider.APPLE`) and not implemented.
 - Roadmap: `docs/KMP_IOS_ROADMAP.md`.
 
-## [1.6.2] — unreleased (`versionCode` 20)
+## [1.6.2] — unreleased (`versionCode` 21)
 
 - Remove Google Drive sync and Google Sign-In. The app has no accounts and sends the journal nowhere; backup is a file the user saves (Settings → Backup).
 - One-time cleanup on first start: cancel the Drive worker, wipe the Drive link, sign-in cache, old Google ID token, and unused email/password verifiers. The journal and media are not touched.
