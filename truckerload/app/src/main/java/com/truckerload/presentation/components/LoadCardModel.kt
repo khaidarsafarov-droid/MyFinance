@@ -30,6 +30,8 @@ data class LoadCardModel(
     val isDispute: Boolean,
     val hadDispute: Boolean,
     val isActiveDispute: Boolean,
+    /** Broker cancelled the load; [totalRate] is the TONU pay. */
+    val isCancelled: Boolean = false,
     val originCity: String,
     val destCity: String,
     val originStreet: String,
@@ -42,7 +44,8 @@ data class LoadCardModel(
 
 fun Load.toCardModel(minProfitRpm: Double, targetProfitRpm: Double): LoadCardModel {
     val miles = drivenMiles
-    val rpm = computeRpm(totalRate, miles)
+    // TONU over deadhead only is not a lane rate: no RPM badge on a cancelled load.
+    val rpm = if (isCancelled) null else computeRpm(totalRate, miles)
     val pu = stops.firstOrNull { it.type == StopType.PU }
     val del = stops.lastOrNull { it.type == StopType.DEL }
     val originCity = firstPuCityState.ifBlank { pointA }.ifBlank { "—" }
@@ -61,6 +64,7 @@ fun Load.toCardModel(minProfitRpm: Double, targetProfitRpm: Double): LoadCardMod
         isDispute = isDispute,
         hadDispute = hadDispute,
         isActiveDispute = isActiveDispute,
+        isCancelled = isCancelled,
         originCity = originCity,
         destCity = destCity,
         originStreet = routeStreet(pu, originCity),

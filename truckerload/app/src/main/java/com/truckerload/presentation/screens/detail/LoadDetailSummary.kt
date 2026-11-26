@@ -42,18 +42,23 @@ internal fun LoadDetailSummary(
         MoneyFormat.formatCurrency(load.totalRate, decimals = 2)
     }
     val miles = MoneyFormat.formatDistanceNumber(load.drivenMiles)
-    val rpm = formatRpm(
-        load.totalRate,
-        load.drivenMiles,
-        stringResource(R.string.rpm_per_mile_format),
-    )
+    // TONU over deadhead only is not a lane rate; a cancelled load shows no RPM.
+    val rpm = if (load.isCancelled) {
+        "—"
+    } else {
+        formatRpm(
+            load.totalRate,
+            load.drivenMiles,
+            stringResource(R.string.rpm_per_mile_format),
+        )
+    }
     val duration = if (load.durationDays > 0) {
         val days = ceil(load.durationDays).toInt().coerceAtLeast(1)
         pluralStringResource(R.plurals.load_card_duration_days, days, days)
     } else {
         "—"
     }
-    val pace = if (load.pace.isPositive()) {
+    val pace = if (load.pace.isPositive() && !load.isCancelled) {
         val decimals = if (load.pace.cents % 100L == 0L) 0 else 2
         stringResource(
             R.string.load_card_per_day,

@@ -12,6 +12,8 @@ import com.truckerload.data.repository.ScanRepository
 import com.truckerload.domain.model.ActualFinishDate
 import com.truckerload.domain.model.DisputePayout
 import com.truckerload.domain.model.Load
+import com.truckerload.domain.model.LoadCancellation
+import com.truckerload.domain.money.Money
 import com.truckerload.domain.model.withRouteMetrics
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
@@ -235,6 +237,47 @@ class LoadDetailViewModel @Inject constructor(
                     loadRepository.updateLoad(settled)
                     val reloaded = loadRepository.getLoadById(loadId)?.withRouteMetrics() ?: settled
                     _uiState.update { it.copy(load = reloaded) }
+                } catch (e: SQLiteException) {
+                    _events.emit(LoadDetailEvent.Message(e.message ?: saveErrorFallback))
+                } catch (e: IOException) {
+                    _events.emit(LoadDetailEvent.Message(e.message ?: saveErrorFallback))
+                } catch (e: IllegalArgumentException) {
+                    _events.emit(LoadDetailEvent.Message(e.message ?: saveErrorFallback))
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: IllegalStateException) {
+                    _events.emit(LoadDetailEvent.Message(e.message ?: saveErrorFallback))
+                }
+            }
+        }
+    }
+
+    /** Marks the load cancelled with [tonu] pay (0 = broker pays nothing), or changes the TONU. */
+    fun cancelLoad(tonu: Money, doneMessage: String, saveErrorFallback: String) {
+        persistTransform(doneMessage, saveErrorFallback) { current, now ->
+            LoadCancellation.cancel(current, tonu, now)
+        }
+    }
+
+    /** Restores the rate and loaded miles from before the cancellation. */
+    fun undoCancel(doneMessage: String, saveErrorFallback: String) {
+        persistTransform(doneMessage, saveErrorFallback) { current, now ->
+            LoadCancellation.undo(current, now)
+        }
+    }
+
+    private fun persistTransform(doneMessage: String, saveErrorFallback: String, transform: (Load, Long) -> Load) {
+        viewModelScope.launch {
+            persistMutex.withLock {
+                try {
+                    val current = loadRepository.getLoadById(loadId)
+                        ?: _uiState.value.load
+                        ?: return@withLock
+                    val next = transform(current, System.currentTimeMillis()).withRouteMetrics()
+                    loadRepository.updateLoad(next)
+                    val reloaded = loadRepository.getLoadById(loadId)?.withRouteMetrics() ?: next
+                    _uiState.update { it.copy(load = reloaded) }
+                    _events.emit(LoadDetailEvent.Message(doneMessage))
                 } catch (e: SQLiteException) {
                     _events.emit(LoadDetailEvent.Message(e.message ?: saveErrorFallback))
                 } catch (e: IOException) {

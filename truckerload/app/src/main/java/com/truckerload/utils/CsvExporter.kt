@@ -31,7 +31,8 @@ object CsvExporter {
         // FIX: sanitize typo miles so export RPM matches Room-mapped journal values
         val miles = ParseUtils.sanitizeLoadedMiles(metrics.totalMiles, income) +
             metrics.deadheadMiles.coerceAtLeast(0.0)
-        val rpm = if (miles > 0) income.cents / 100.0 / miles else 0.0
+        // A cancelled load's TONU over deadhead is not a lane rate.
+        val rpm = if (miles > 0 && !metrics.isCancelled) income.cents / 100.0 / miles else 0.0
         return listOf(
             metrics.date,
             "\"$route\"",

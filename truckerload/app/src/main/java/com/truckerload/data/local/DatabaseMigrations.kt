@@ -74,6 +74,7 @@ val ALL_ROOM_MIGRATIONS: Array<Migration> = arrayOf(
     MIGRATION_41_42,
     MIGRATION_42_43,
     MIGRATION_43_44,
+    MIGRATION_44_45,
 )
 
 /** Forward path from the first supported schema (v6) to current. */

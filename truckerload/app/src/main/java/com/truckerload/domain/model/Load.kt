@@ -42,9 +42,23 @@ data class Load(
     val equipmentType: EquipmentType? = null,
     /** Empty miles driven to pick up this load. Added to [drivenMiles]. */
     val deadheadMiles: Double = 0.0,
+    /**
+     * Broker or shipper cancelled the load after it was booked. While true, [totalRate]
+     * holds the TONU (truck ordered, not used) pay and [totalMiles] is 0. See [LoadCancellation].
+     */
+    val isCancelled: Boolean = false,
+    /** When the driver marked the load cancelled (epoch ms); null when not cancelled. */
+    val cancelledAt: Long? = null,
+    /** Rate before the cancellation, restored by undo. Null when not cancelled. */
+    val originalRate: Money? = null,
+    /** Loaded miles before the cancellation, restored by undo. Null when not cancelled. */
+    val originalMiles: Double? = null,
 ) {
     val isActiveDispute: Boolean get() = isDispute && !disputeCompleted
     val hadDispute: Boolean get() = isDispute && disputeCompleted
+
+    /** TONU pay for a cancelled load; null when the load is not cancelled. */
+    val tonuAmount: Money? get() = if (isCancelled) totalRate else null
 
     /** Loaded miles plus deadhead. This is the load's mileage in the journal. */
     val drivenMiles: Double

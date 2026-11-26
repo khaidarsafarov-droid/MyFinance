@@ -28,6 +28,8 @@ object LoadYieldCalculator {
      * Minimum 1 day.
      */
     fun computeActiveDurationDays(load: Load): Double {
+        // A cancelled load was never driven: it costs the driver one day, not PU→DEL.
+        if (load.isCancelled) return 1.0
         val startMs = getFirstPickUpMillis(load) ?: return 1.0
         val endMs = resolveFinishMillis(load) ?: return 1.0
         if (endMs <= startMs) return 1.0
@@ -41,6 +43,7 @@ object LoadYieldCalculator {
      * otherwise uses stored [Load.durationDays] (e.g. SQL / list without stops).
      */
     fun loadActiveDurationDays(load: Load): Double {
+        if (load.isCancelled) return 1.0
         if (load.stops.isNotEmpty() || !load.actualFinishDate.isNullOrBlank()) {
             return computeActiveDurationDays(load)
         }

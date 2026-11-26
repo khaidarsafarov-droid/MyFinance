@@ -27,6 +27,8 @@ data class PeriodReportLoadDraft(
     val status: String,
     val notes: String,
     val penalties: Money,
+    /** Broker cancelled the load; [rate] is the TONU pay and loaded miles are 0. */
+    val cancelled: Boolean = false,
 )
 
 data class PeriodReportDraft(
@@ -117,15 +119,17 @@ object PeriodReportAssembler {
             loadedMiles = loaded,
             emptyMiles = empty,
             rate = totalRate,
-            rpm = if (driven > 0.0) totalRate.cents / 100.0 / driven else null,
+            rpm = if (driven > 0.0 && !isCancelled) totalRate.cents / 100.0 / driven else null,
             equipment = equipmentType?.let { labels.equipmentNames[it] }.orEmpty(),
             status = when {
+                isCancelled -> labels.cancelledTonu
                 isActiveDispute -> labels.disputeOpen
                 hadDispute -> labels.disputeClosed
                 else -> ""
             },
             notes = notesOf(labels, numbers),
             penalties = penalties.map { it.amount }.sum(),
+            cancelled = isCancelled,
         )
     }
 

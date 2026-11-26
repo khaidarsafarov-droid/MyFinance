@@ -208,6 +208,22 @@ interface LoadDao {
         actualFinishDate: String?,
     )
 
+    /**
+     * Cancelled-load (TONU) state: [rate] and [miles] are the original rate (cents) and loaded
+     * miles kept for undo. [update] writes the TONU rate and 0 loaded miles.
+     */
+    @Query(
+        """
+        UPDATE loads SET
+            isCancelled = :cancelled,
+            cancelledAt = :at,
+            originalRate = :rate,
+            originalMiles = :miles
+        WHERE id = :id
+        """,
+    )
+    suspend fun updateCancellation(id: String, cancelled: Boolean, at: Long?, rate: Long?, miles: Double?)
+
     /** Date/week repair without rewriting stops or penalties. */
     @Query(
         """

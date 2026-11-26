@@ -246,3 +246,41 @@ internal fun DisputeCardChip(hadDispute: Boolean, modifier: Modifier = Modifier)
         )
     }
 }
+
+private const val CENTS_PER_DOLLAR = 100L
+
+/** TONU pay in whole dollars when there are no cents ("$175"), otherwise with cents. */
+internal fun formatTonu(amount: com.truckerload.domain.money.Money): String {
+    val decimals = if (amount.cents % CENTS_PER_DOLLAR == 0L) 0 else 2
+    return com.truckerload.presentation.utils.MoneyFormat.formatCurrency(amount, decimals = decimals)
+}
+
+/** "Cancelled · TONU $175" badge on a cancelled load's card. */
+@Composable
+internal fun CancelledCardChip(tonu: com.truckerload.domain.money.Money, modifier: Modifier = Modifier) {
+    val label = if (tonu.isPositive()) {
+        stringResource(R.string.load_cancel_badge_tonu, formatTonu(tonu))
+    } else {
+        stringResource(R.string.load_cancel_badge)
+    }
+    val color = LocalTruckColors.current.Warning
+    Row(
+        modifier = modifier
+            .clip(CircleShape)
+            .background(color.copy(alpha = 0.15f))
+            .padding(horizontal = 8.dp, vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        Box(
+            modifier = Modifier
+                .size(6.dp)
+                .clip(CircleShape)
+                .background(color),
+        )
+        Text(
+            text = label,
+            style = AppTypography.Caption.copy(color = color),
+        )
+    }
+}

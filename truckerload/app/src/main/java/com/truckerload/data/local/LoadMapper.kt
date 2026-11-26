@@ -47,6 +47,10 @@ fun LoadEntity.toDomain(stops: List<StopEntity> = emptyList(), penalties: List<P
         stops = stops.map { it.toDomain() },
         penalties = penalties.map { it.toDomain() },
         equipmentType = com.truckerload.domain.model.EquipmentType.fromStorage(equipmentType),
+        isCancelled = isCancelled,
+        cancelledAt = cancelledAt,
+        originalRate = originalRate?.let(Money::fromCents),
+        originalMiles = originalMiles,
     )
 
 fun Load.toEntity(): LoadEntity {
@@ -85,6 +89,10 @@ fun Load.toEntity(): LoadEntity {
         disputeAmountApplied = metrics.disputeAmountApplied,
         actualFinishDate = metrics.actualFinishDate,
         equipmentType = metrics.equipmentType?.name,
+        isCancelled = metrics.isCancelled,
+        cancelledAt = metrics.cancelledAt,
+        originalRate = metrics.originalRate?.cents,
+        originalMiles = metrics.originalMiles,
     )
 }
 

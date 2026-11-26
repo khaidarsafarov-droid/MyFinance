@@ -37,57 +37,30 @@ internal fun LoadDetailActionChips(
     onSaveDeadhead: (Double) -> Unit,
     onDisputeChanged: (Load) -> Unit,
     modifier: Modifier = Modifier,
+    onCancelLoad: () -> Unit = {},
 ) {
     var showDeadhead by rememberSaveable { mutableStateOf(false) }
     var showDispute by rememberSaveable { mutableStateOf(false) }
-    val milesSet = load.totalMiles > 0.0
-    val deadhead = load.deadheadMiles.coerceAtLeast(0.0)
-    val delivered = !load.actualFinishDate.isNullOrBlank()
-    val distanceUnit = if (DisplayUnits.isMetric) R.string.load_card_km else R.string.load_card_miles
     FlowRow(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        DetailInfoChip(
-            label = if (milesSet) {
-                stringResource(distanceUnit, MoneyFormat.formatDistanceNumber(load.totalMiles))
-            } else {
-                stringResource(R.string.load_detail_chip_add_miles)
-            },
-            filled = milesSet,
-            onClick = onEditMiles,
+        DistanceChips(
+            load = load,
+            onEditMiles = onEditMiles,
+            onEditDeadhead = { showDeadhead = true },
         )
-        DetailInfoChip(
-            label = if (deadhead > 0.0) {
-                stringResource(
-                    R.string.load_detail_chip_deadhead_value,
-                    stringResource(distanceUnit, MoneyFormat.formatDistanceNumber(deadhead)),
-                )
-            } else {
-                stringResource(R.string.load_detail_deadhead_add)
-            },
-            filled = deadhead > 0.0,
-            onClick = { showDeadhead = true },
-        )
-        DetailInfoChip(
-            label = stringResource(
-                if (delivered) R.string.load_detail_chip_delivered else R.string.load_detail_chip_complete,
-            ),
-            filled = delivered,
-            onClick = onEditFinish,
-        )
-        DetailInfoChip(
-            label = when {
-                load.isActiveDispute -> stringResource(R.string.load_detail_chip_dispute_open)
-                load.hadDispute -> stringResource(R.string.dispute_was_dispute)
-                else -> stringResource(R.string.load_detail_chip_add_dispute)
-            },
-            filled = load.isDispute,
-            onClick = { showDispute = !showDispute },
-        )
+        if (!load.isCancelled) {
+            ActiveLoadChips(
+                load = load,
+                onFinish = onEditFinish,
+                onDispute = { showDispute = !showDispute },
+                onCancel = onCancelLoad,
+            )
+        }
     }
-    if (showDispute) {
+    if (showDispute && !load.isCancelled) {
         BentoGlassCard(modifier = Modifier.fillMaxWidth()) {
             DisputeSection(
                 load = load,
@@ -98,7 +71,7 @@ internal fun LoadDetailActionChips(
     }
     if (showDeadhead) {
         DeadheadEditorDialog(
-            initialMiles = deadhead,
+            initialMiles = load.deadheadMiles.coerceAtLeast(0.0),
             onDismiss = { showDeadhead = false },
             onSave = { miles ->
                 showDeadhead = false
@@ -106,6 +79,64 @@ internal fun LoadDetailActionChips(
             },
         )
     }
+}
+
+/** Loaded miles (hidden on a cancelled load: it has none) and deadhead, which always counts. */
+@Composable
+private fun DistanceChips(load: Load, onEditMiles: () -> Unit, onEditDeadhead: () -> Unit) {
+    val milesSet = load.totalMiles > 0.0
+    val deadhead = load.deadheadMiles.coerceAtLeast(0.0)
+    val distanceUnit = if (DisplayUnits.isMetric) R.string.load_card_km else R.string.load_card_miles
+    if (!load.isCancelled) {
+        DetailInfoChip(
+            label = if (milesSet) {
+                stringResource(distanceUnit, MoneyFormat.formatDistanceNumber(load.totalMiles))
+            } else {
+                stringResource(R.string.load_detail_chip_add_miles)
+            },
+            filled = milesSet,
+            onClick = onEditMiles,
+        )
+    }
+    DetailInfoChip(
+        label = if (deadhead > 0.0) {
+            stringResource(
+                R.string.load_detail_chip_deadhead_value,
+                stringResource(distanceUnit, MoneyFormat.formatDistanceNumber(deadhead)),
+            )
+        } else {
+            stringResource(R.string.load_detail_deadhead_add)
+        },
+        filled = deadhead > 0.0,
+        onClick = onEditDeadhead,
+    )
+}
+
+/** Delivery, dispute, and "load cancelled" chips; hidden once the load is cancelled. */
+@Composable
+private fun ActiveLoadChips(load: Load, onFinish: () -> Unit, onDispute: () -> Unit, onCancel: () -> Unit) {
+    val delivered = !load.actualFinishDate.isNullOrBlank()
+    DetailInfoChip(
+        label = stringResource(
+            if (delivered) R.string.load_detail_chip_delivered else R.string.load_detail_chip_complete,
+        ),
+        filled = delivered,
+        onClick = onFinish,
+    )
+    DetailInfoChip(
+        label = when {
+            load.isActiveDispute -> stringResource(R.string.load_detail_chip_dispute_open)
+            load.hadDispute -> stringResource(R.string.dispute_was_dispute)
+            else -> stringResource(R.string.load_detail_chip_add_dispute)
+        },
+        filled = load.isDispute,
+        onClick = onDispute,
+    )
+    DetailInfoChip(
+        label = stringResource(R.string.load_cancel_action),
+        filled = false,
+        onClick = onCancel,
+    )
 }
 
 @Composable

@@ -1550,4 +1550,24 @@
     <string name="db_startup_failed_body">TruckoRig не смог открыть журнал на этом телефоне. Грузы остались на устройстве. Повторите попытку или запустите восстановление журнала.</string>
     <string name="db_startup_retry">Повторить</string>
     <string name="db_startup_recover">Восстановить журнал</string>
+    <string name="load_cancel_action">Груз отменён</string>
+    <string name="load_cancel_badge_tonu">Отменён · TONU %1$s</string>
+    <string name="load_cancel_badge">Отменён</string>
+    <string name="load_cancel_title">Груз отменён?</string>
+    <string name="load_cancel_edit_title">Оплата TONU</string>
+    <string name="load_cancel_body">Груз останется в журнале. Ставка станет суммой TONU, гружёные мили обнулятся, дэдхед останется. Потом можно вернуть.</string>
+    <string name="load_cancel_tonu_hint">TONU (Truck Ordered Not Used) — оплата за отменённый груз. Amazon обычно платит $175, многие брокеры $225. Впиши сумму, которую платит твой брокер.</string>
+    <string name="load_cancel_window_hint">Отмена меньше чем за 2 часа до пикапа: обычно положен TONU.</string>
+    <string name="load_cancel_tonu_label">Сумма TONU, $</string>
+    <string name="load_cancel_no_pay">Без оплаты ($0)</string>
+    <string name="load_cancel_confirm">Отменить груз</string>
+    <string name="load_cancel_save">Сохранить</string>
+    <string name="load_cancel_undo">Вернуть груз</string>
+    <string name="load_cancel_undo_title">Вернуть груз?</string>
+    <string name="load_cancel_undo_body">Ставка вернётся к %1$s, гружёные мили — к %2$s. TONU уберётся.</string>
+    <string name="load_cancel_original">До отмены: %1$s · %2$s</string>
+    <string name="load_cancel_done">Груз отмечен как отменённый</string>
+    <string name="load_cancel_restored">Груз возвращён</string>
+    <string name="load_cancel_edit_tonu">Изменить TONU</string>
+    <string name="period_report_status_tonu">Отменён · TONU</string>
 </resources>
