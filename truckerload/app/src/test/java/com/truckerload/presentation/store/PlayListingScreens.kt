@@ -562,7 +562,7 @@ internal fun PlayWidgetLauncher(widget: Bitmap) {
     val ratio = image.width.toFloat() / image.height.toFloat().coerceAtLeast(1f)
     val locale = LocalLocale.current.platformLocale
     val date = remember(locale) {
-        LocalDate.of(2026, 10, 19).format(
+        LocalDate.of(2026, 10, 20).format(
             DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).withLocale(locale),
         )
     }

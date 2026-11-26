@@ -36,16 +36,14 @@ import com.truckerload.domain.money.UnitPrice
 import com.truckerload.presentation.screens.add.AddDieselUiState
 import com.truckerload.presentation.screens.goal.WeeklyGoalContent
 import com.truckerload.presentation.theme.TruckerLoadTheme
+import com.truckerload.utils.AppTime
+import com.truckerload.utils.getCurrentWeekNumberAndYear
 import com.truckerload.widget.WidgetCabinColors
 import com.truckerload.widget.WidgetSizeMode
 import com.truckerload.widget.WidgetStats
 import com.truckerload.widget.glance.LocalCabinColors
 import com.truckerload.widget.glance.LocalWidgetSizeMode
 import com.truckerload.widget.glance.SplitCabinBody
-import java.io.File
-import java.io.FileOutputStream
-import java.time.LocalDate
-import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -59,6 +57,11 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
+import java.io.File
+import java.io.FileOutputStream
+import java.time.LocalDate
+import java.util.TimeZone
+import java.util.concurrent.TimeUnit
 
 /**
  * Renders the current Compose screens (and the live Glance split widget) into
@@ -96,145 +99,162 @@ class PlayListingCaptureTest {
     }
 
     private fun captureLocale(lang: String, tablet: Boolean) {
-        val loads = playLoads()
-        val photo = demoCaptured(demoPhotoFile())
-        val scan = demoPending(demoScanFile())
-        val finance = PeriodFinance(
-            paycheckTotal = 4_860.0,
-            dieselTotal = 612.40,
-            dieselGallons = 168.4,
-            dieselSavings = 41.20,
-        )
-        val routes = listOf(
-            RouteData("Garner, NC", "Dallas, TX", "Garner, NC → Dallas, TX", 2500.0, 850.0, 1, 2.94),
-            RouteData("Chicago, IL", "Atlanta, GA", "Chicago, IL → Atlanta, GA", 2400.0, 720.0, 1, 3.33),
-            RouteData("Kansas City, MO", "Phoenix, AZ", "Kansas City, MO → Phoenix, AZ", 2890.0, 1180.0, 1, 2.45),
-        )
-        val weeks = (36..43).map { week ->
-            WeekData(week, 2026, "W$week", 4200.0 + (week - 36) * 380.0, 1400.0, 3)
-        }
-        val days = listOf(
-            DailyData("Sun", 1, 0.0, 0),
-            DailyData("Mon", 2, 2500.0, 1),
-            DailyData("Tue", 3, 2400.0, 1),
-            DailyData("Wed", 4, 1940.0, 1),
-            DailyData("Thu", 5, 0.0, 0),
-            DailyData("Fri", 6, 0.0, 0),
-            DailyData("Sat", 7, 0.0, 0),
-        )
-        val diesel = demoDiesel()
-        val dieselState = AddDieselUiState(
-            gallonsText = "86.4",
-            pricePerGallonText = "3.899",
-            discountPriceText = "3.649",
-            locationText = "Amarillo, TX",
-            recordedAtMillis = 1_760_864_460_000L,
-            weekNumber = 43,
-            year = 2026,
-        )
-        if (tablet) {
-            val bitmap = render(lang, "tablet") { PlayTabletJournal(loads) }
-            assertListingBitmap(bitmap, minWidth = 1600)
-            return
-        }
-        val widget = renderGlanceWidget(DpSize(400.dp, 360.dp))
-        val shots = listOf(
-            "journal" to @Composable { PlayJournal(loads, dense = false) },
-            "widget" to @Composable { PlayWidgetLauncher(widget) },
-            "add_load" to @Composable { PlayAddLoad() },
-            "camera" to @Composable { PlayCamera(photo) },
-            "scanner" to @Composable { PlayScanner(scan) },
-            "diesel" to @Composable { PlayDiesel(dieselState, diesel) },
-            "weekly_goal" to @Composable { PlayWeeklyGoal(lang) },
-            "telegram" to @Composable { PlayTelegram() },
-            "analytics" to @Composable { PlayAnalytics(finance, routes, weeks, days) },
-            "weekly_chart" to @Composable { PlayWeeklyChart(weeks) },
-            "finance" to @Composable { PlayFinance(finance, diesel) },
-            "journal_list" to @Composable { PlayJournal(loads, dense = true) },
-            "profile" to @Composable { PlayProfile() },
-            "settings" to @Composable { PlaySettings() },
-        )
-        shots.forEach { (name, content) ->
-            val bitmap = render(lang, name) { content() }
-            assertListingBitmap(bitmap, minWidth = 1000)
+        freezePlayStoryClock()
+        try {
+            val loads = playLoads()
+            val photo = demoCaptured(demoPhotoFile())
+            val scan = demoPending(demoScanFile())
+            val finance = PeriodFinance(
+                paycheckTotal = 4_860.0,
+                dieselTotal = 612.40,
+                dieselGallons = 168.4,
+                dieselSavings = 41.20,
+            )
+            val routes = listOf(
+                RouteData("Garner, NC", "Dallas, TX", "Garner, NC → Dallas, TX", 2500.0, 850.0, 1, 2.94),
+                RouteData("Chicago, IL", "Atlanta, GA", "Chicago, IL → Atlanta, GA", 2400.0, 720.0, 1, 3.33),
+                RouteData("Kansas City, MO", "Phoenix, AZ", "Kansas City, MO → Phoenix, AZ", 2890.0, 1180.0, 1, 2.45),
+            )
+            val weeks = (36..43).map { week ->
+                WeekData(week, 2026, "W$week", 4200.0 + (week - 36) * 380.0, 1400.0, 3)
+            }
+            val days = listOf(
+                DailyData("Sun", 1, 0.0, 0),
+                DailyData("Mon", 2, 2500.0, 1),
+                DailyData("Tue", 3, 2400.0, 1),
+                DailyData("Wed", 4, 1940.0, 1),
+                DailyData("Thu", 5, 0.0, 0),
+                DailyData("Fri", 6, 0.0, 0),
+                DailyData("Sat", 7, 0.0, 0),
+            )
+            val diesel = demoDiesel()
+            val dieselState = AddDieselUiState(
+                gallonsText = "86.4",
+                pricePerGallonText = "3.899",
+                discountPriceText = "3.649",
+                locationText = "Amarillo, TX",
+                recordedAtMillis = 1_760_864_460_000L,
+                weekNumber = 43,
+                year = 2026,
+            )
+            if (tablet) {
+                val bitmap = render(lang, "tablet") { PlayTabletJournal(loads) }
+                assertListingBitmap(bitmap, minWidth = 1600)
+                return
+            }
+            val widget = renderGlanceWidget(
+                DpSize(400.dp, 360.dp),
+                today = LocalDate.of(2026, 10, 20),
+                weekRange = if (lang == "ru") "18 – 24 окт" else "Oct 18 – 24",
+            )
+            val shots = listOf(
+                "journal" to @Composable { PlayJournal(loads, dense = false) },
+                "widget" to @Composable { PlayWidgetLauncher(widget) },
+                "add_load" to @Composable { PlayAddLoad() },
+                "camera" to @Composable { PlayCamera(photo) },
+                "scanner" to @Composable { PlayScanner(scan) },
+                "diesel" to @Composable { PlayDiesel(dieselState, diesel) },
+                "weekly_goal" to @Composable { PlayWeeklyGoal(lang) },
+                "telegram" to @Composable { PlayTelegram() },
+                "analytics" to @Composable { PlayAnalytics(finance, routes, weeks, days) },
+                "weekly_chart" to @Composable { PlayWeeklyChart(weeks) },
+                "finance" to @Composable { PlayFinance(finance, diesel) },
+                "journal_list" to @Composable { PlayJournal(loads, dense = true) },
+                "profile" to @Composable { PlayProfile() },
+                "settings" to @Composable { PlaySettings() },
+            )
+            shots.forEach { (name, content) ->
+                val bitmap = render(lang, name) { content() }
+                assertListingBitmap(bitmap, minWidth = 1000)
+            }
+        } finally {
+            AppTime.reset()
         }
     }
 
     private fun captureEnglishFeatureSet() {
-        val loads = playLoads()
-        val context = org.robolectric.RuntimeEnvironment.getApplication()
-        val (db, maintenance) = playMaintenanceRepository(context)
-        val wallpaper = playAsset("demo-wallpaper.jpg")
-        val truck = playAsset("demo-truck-road.jpg")
-        val photo = demoCaptured(
-            stampLocationPhoto(context, truck),
-            locationData = com.truckerload.utils.LocationData(
-                latitude = 35.711,
-                longitude = -78.614,
-                city = "Garner",
-                state = "NC",
-                zipCode = "27529",
-            ),
-            timestamp = PLAY_STORY_AT,
-        )
-        val page = playAsset("demo-rate-confirmation.png")
-        val pageFile = File(
-            File(System.getProperty("java.io.tmpdir"), "play-scan").apply { mkdirs() },
-            "rate-confirmation.jpg",
-        )
-        pageFile.outputStream().use { page.compress(Bitmap.CompressFormat.JPEG, 92, it) }
-        val scan = playScanPending(pageFile)
-        val storyLocale = java.util.Locale.US
-        val previousLocale = java.util.Locale.getDefault()
-        java.util.Locale.setDefault(storyLocale)
-        val large = try {
-            croppedToWidgetContent(
-                renderGlanceWidget(
-                    DpSize(400.dp, 340.dp),
-                    selectedOffset = 2,
-                    today = LocalDate.of(2026, 10, 20),
-                    weekRange = "Oct 18 – 24",
-                ),
-            )
-        } finally {
-            java.util.Locale.setDefault(previousLocale)
-        }
-        val shots = listOf(
-            "dashboard" to @Composable { PlayDashboard(loads, maintenance) },
-            "widget" to @Composable { PlayWidgetHome(wallpaper, large) },
-            "photo" to @Composable { PlayCamera(photo, previewMaxEdgePx = 2048) },
-            "scanner" to @Composable { PlayScanFrame(scan, page) },
-            "maintenance" to @Composable { PlayMaintenance() },
-            "premium" to @Composable { PlayPaywall() },
-            "analytics" to @Composable {
-                PlayPremiumAnalytics(playPremiumFinance(), playPremiumRoutes(), playPremiumWeeks())
-            },
-        )
+        freezePlayStoryClock()
         try {
-            shots.forEach { (name, content) ->
-                val bitmap = render(lang = "en", name = name, afterLayout = { activity ->
-                    if (name == "scanner") {
-                        val opened = clickLabeled(activity, "recognized")
-                        assertTrue("scanner OCR toggle was not clicked", opened)
-                    }
-                    if (name == "premium") {
-                        val copy = waitForPaywall(activity)
-                        assertTrue("paywall stayed on a placeholder: $copy", paywallSettled(copy))
-                    }
-                }) { content() }
-                assertListingBitmap(bitmap, minWidth = 1000)
+            val loads = playLoads()
+            val context = org.robolectric.RuntimeEnvironment.getApplication()
+            val (db, maintenance) = playMaintenanceRepository(context)
+            val wallpaper = playAsset("demo-wallpaper.jpg")
+            val truck = playAsset("demo-truck-road.jpg")
+            val photo = demoCaptured(
+                stampLocationPhoto(context, truck),
+                locationData = com.truckerload.utils.LocationData(
+                    latitude = 35.711,
+                    longitude = -78.614,
+                    city = "Garner",
+                    state = "NC",
+                    zipCode = "27529",
+                ),
+                timestamp = PLAY_STORY_AT,
+            )
+            val page = playAsset("demo-rate-confirmation.png")
+            val pageFile = File(
+                File(System.getProperty("java.io.tmpdir"), "play-scan").apply { mkdirs() },
+                "rate-confirmation.jpg",
+            )
+            pageFile.outputStream().use { page.compress(Bitmap.CompressFormat.JPEG, 92, it) }
+            val scan = playScanPending(pageFile)
+            val storyLocale = java.util.Locale.US
+            val previousLocale = java.util.Locale.getDefault()
+            java.util.Locale.setDefault(storyLocale)
+            val large = try {
+                croppedToWidgetContent(
+                    renderGlanceWidget(
+                        DpSize(400.dp, 340.dp),
+                        selectedOffset = 2,
+                        today = LocalDate.of(2026, 10, 20),
+                        weekRange = "Oct 18 – 24",
+                    ),
+                )
+            } finally {
+                java.util.Locale.setDefault(previousLocale)
+            }
+            val shots = listOf(
+                "dashboard" to @Composable { PlayDashboard(loads, maintenance) },
+                "journal" to @Composable { PlayJournal(loads, dense = false) },
+                "widget" to @Composable { PlayWidgetHome(wallpaper, large) },
+                "photo" to @Composable { PlayCamera(photo, previewMaxEdgePx = 2048) },
+                "scanner" to @Composable { PlayScanFrame(scan, page) },
+                "maintenance" to @Composable { PlayMaintenance() },
+                "weekly_goal" to @Composable { PlayWeeklyGoal("en") },
+                "analytics" to @Composable {
+                    PlayPremiumAnalytics(playPremiumFinance(), playPremiumRoutes(), playPremiumWeeks())
+                },
+            )
+            try {
+                shots.forEach { (name, content) ->
+                    val bitmap = render(lang = "en", name = name, afterLayout = { activity ->
+                        if (name == "scanner") {
+                            val opened = clickLabeled(activity, "recognized")
+                            assertTrue("scanner OCR toggle was not clicked", opened)
+                        }
+                    }) { content() }
+                    assertListingBitmap(bitmap, minWidth = 1000)
+                }
+            } finally {
+                db.close()
             }
         } finally {
-            db.close()
+            AppTime.reset()
         }
     }
 
-    private fun render(
-        lang: String,
-        name: String,
-        afterLayout: (Activity) -> Unit = {},
-        content: @Composable () -> Unit,
-    ): Bitmap {
+    private fun freezePlayStoryClock() {
+        TimeZone.setDefault(TimeZone.getTimeZone("America/New_York"))
+        AppTime.millis = { PLAY_STORY_NOW }
+        val (week, year) = getCurrentWeekNumberAndYear()
+        val hour = AppTime.calendar().get(java.util.Calendar.HOUR_OF_DAY)
+        assertTrue(
+            "story clock should be Tue Oct 20, 2026 09:41 ET (week 43, morning), was week $week $year hour $hour now=${AppTime.now()}",
+            week == 43 && year == 2026 && hour == 9 && AppTime.now() == PLAY_STORY_NOW,
+        )
+    }
+
+    private fun render(lang: String, name: String, afterLayout: (Activity) -> Unit = {}, content: @Composable () -> Unit): Bitmap {
         val activity = Robolectric.buildActivity(ComponentActivity::class.java).setup().get()
         activity.setContent {
             TruckerLoadTheme(darkTheme = false, dynamicColor = false, reduceMotion = true) {
@@ -538,9 +558,9 @@ private fun PlayWeeklyGoal(lang: String) {
             currentGross = Money.fromDollars(6_840.0),
             progressPercent = 52.6f,
             remainingAmount = Money.fromDollars(6_160.0),
-            daysActiveCalendar = 2,
-            daysRemainingInWeek = 5,
-            totalActiveDays = 2.0,
+            daysActiveCalendar = 3,
+            daysRemainingInWeek = 4,
+            totalActiveDays = 3.0,
             actualDailyYield = Money.fromDollars(3_420.0),
             dailyTargetNeeded = Money.fromDollars(1_232.0),
             expectedGrossByNow = Money.fromDollars(3_714.0),
@@ -551,7 +571,7 @@ private fun PlayWeeklyGoal(lang: String) {
         ),
         dayPlan = WeeklyDayPlan.rows(
             weekStart = LocalDate.of(2026, 10, 18),
-            today = LocalDate.of(2026, 10, 19),
+            today = LocalDate.of(2026, 10, 20),
             grossCentsBySqliteDow = mapOf(0 to 250_000L, 1 to 434_000L),
             dailyNeeded = Money.fromDollars(1_232.0),
         ),

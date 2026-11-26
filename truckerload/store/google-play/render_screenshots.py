@@ -29,7 +29,7 @@ CHROME_CANDIDATES = [
 CHROME = next((p for p in CHROME_CANDIDATES if p and Path(p).exists()), None)
 
 PHONE_SLIDES = {
-    "en": ["dashboard", "widget", "photo", "scanner", "maintenance", "premium", "analytics"],
+    "en": ["dashboard", "widget", "photo", "scanner", "maintenance", "weekly_goal", "analytics"],
     "ru": [
         "journal",
         "widget",

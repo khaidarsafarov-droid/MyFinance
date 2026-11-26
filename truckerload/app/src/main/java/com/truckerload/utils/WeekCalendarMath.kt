@@ -27,10 +27,10 @@ object WeekCalendarMath {
         return Pair(cal.get(Calendar.WEEK_OF_YEAR), cal.getWeekYear())
     }
 
-    fun current(firstDay: WeekStartDay, nowMillis: Long = System.currentTimeMillis()): Pair<Int, Int> =
-        numberAndYearFromTimestamp(nowMillis, firstDay)
+    @Suppress("MaxLineLength")
+    fun current(firstDay: WeekStartDay, nowMillis: Long = AppTime.now()): Pair<Int, Int> = numberAndYearFromTimestamp(nowMillis, firstDay)
 
-    fun previous(firstDay: WeekStartDay, nowMillis: Long = System.currentTimeMillis()): Pair<Int, Int> {
+    fun previous(firstDay: WeekStartDay, nowMillis: Long = AppTime.now()): Pair<Int, Int> {
         val cal = weekCalendar(firstDay).apply { timeInMillis = nowMillis }
         cal.add(Calendar.WEEK_OF_YEAR, -1)
         return Pair(cal.get(Calendar.WEEK_OF_YEAR), cal.getWeekYear())
@@ -109,36 +109,26 @@ object WeekCalendarMath {
     }
 
     /** 1 = first day of the week … 7 = last day. */
-    fun daysElapsed(firstDay: WeekStartDay, nowMillis: Long = System.currentTimeMillis()): Int {
+    fun daysElapsed(firstDay: WeekStartDay, nowMillis: Long = AppTime.now()): Int {
         val cal = weekCalendar(firstDay).apply { timeInMillis = nowMillis }
         val today = cal.get(Calendar.DAY_OF_WEEK)
         return (today - firstDay.calendarDay + 7) % 7 + 1
     }
 
     /** Inclusive remaining days (today … week end). */
-    fun daysRemaining(firstDay: WeekStartDay, nowMillis: Long = System.currentTimeMillis()): Int {
+    fun daysRemaining(firstDay: WeekStartDay, nowMillis: Long = AppTime.now()): Int {
         val cal = weekCalendar(firstDay).apply { timeInMillis = nowMillis }
         val today = cal.get(Calendar.DAY_OF_WEEK)
         return (firstDay.endCalendarDay - today + 7) % 7 + 1
     }
 
-    fun daysActiveForWeek(
-        weekNumber: Int,
-        year: Int,
-        firstDay: WeekStartDay,
-        nowMillis: Long = System.currentTimeMillis(),
-    ): Int {
+    fun daysActiveForWeek(weekNumber: Int, year: Int, firstDay: WeekStartDay, nowMillis: Long = AppTime.now()): Int {
         val (currentWeek, currentYear) = current(firstDay, nowMillis)
         if (weekNumber != currentWeek || year != currentYear) return 7
         return daysElapsed(firstDay, nowMillis).coerceAtLeast(1)
     }
 
-    fun daysRemainingForWeek(
-        weekNumber: Int,
-        year: Int,
-        firstDay: WeekStartDay,
-        nowMillis: Long = System.currentTimeMillis(),
-    ): Int {
+    fun daysRemainingForWeek(weekNumber: Int, year: Int, firstDay: WeekStartDay, nowMillis: Long = AppTime.now()): Int {
         val (currentWeek, currentYear) = current(firstDay, nowMillis)
         if (weekNumber != currentWeek || year != currentYear) return 1
         return daysRemaining(firstDay, nowMillis).coerceAtLeast(1)

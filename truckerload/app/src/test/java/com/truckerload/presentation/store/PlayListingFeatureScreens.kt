@@ -71,8 +71,24 @@ import java.io.File
 import java.time.LocalDate
 import android.graphics.Canvas as AndroidCanvas
 
-/** 2026-10-20 09:41 UTC — the same instant on the photo stamp, the scan, and the home screen. */
+/** 2026-10-20 09:41 UTC — stamped on the demo photo and the document scan. */
 internal const val PLAY_STORY_AT = 1_792_489_260_000L
+
+/**
+ * Listing "now": Tuesday Oct 20, 2026, 09:41 in America/New_York.
+ * Matches the 9:41 status bar, a Good-morning greeting, and the Oct 18–20
+ * demo loads (week 43, Sunday start).
+ */
+internal val PLAY_STORY_NOW: Long = java.time.ZonedDateTime.of(
+    2026,
+    10,
+    20,
+    9,
+    41,
+    0,
+    0,
+    java.time.ZoneId.of("America/New_York"),
+).toInstant().toEpochMilli()
 
 /** In-memory Room so the real bottom bar can read maintenance state. */
 internal fun playMaintenanceRepository(context: Context): Pair<AppDatabase, MaintenanceRepository> {

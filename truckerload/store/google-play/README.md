@@ -33,7 +33,7 @@ Play Console → **Grow** → **Store presence** → **Main store listing**
 
 1. **App icon** — 512×512 32-bit PNG: `high-res-icon.png` (same plate as the adaptive launcher).
 2. **Feature graphic** — `feature-graphic-en.png`
-3. **Phone screenshots** (order matters; first is the store card) — `phone-en/01_dashboard.png` … `07_analytics.png`
+3. **Phone screenshots** (order matters; first is the store card) — `phone-en/01_dashboard.png` … `06_weekly_goal.png`, `07_analytics.png`
 4. **10" tablet screenshots** — `tablet-10-en/01_journal_landscape.png`
 5. **7" tablet screenshots** — `tablet-7-en/01_journal.png`
 
@@ -53,7 +53,7 @@ Same console page → language **Русский** (add a localized listing if it
 3. Location photo — trip photo with the app’s city, time, and GPS stamp
 4. Document scan — rate confirmation with the recognized text open
 5. Maintenance — mileage and date service reminders
-6. Premium — paywall, first month free, then $2.99/month
+6. Weekly goal — remaining gross and the daily pace for the week
 7. Analytics — paycheck, diesel, and routes, with the Premium badge
 
 ## Russian phone set
