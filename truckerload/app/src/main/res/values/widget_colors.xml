@@ -14,6 +14,10 @@
     <color name="widget_success">#FF3D6A55</color>
     <color name="widget_rpm_warn">#FF9A6400</color>
     <color name="widget_rpm_bad">#FFC4395A</color>
+    <!-- Split-header RPM pill. Same on the light and dark plates; the header is indigo in both. -->
+    <color name="widget_rpm_pill_text">#FF6EE7A0</color>
+    <color name="widget_rpm_pill_bg">#FF124030</color>
+    <color name="widget_rpm_pill_stroke">#FF46BE78</color>
     <color name="widget_day_past_empty">#FF585A6E</color>
     <color name="widget_day_future_stroke">#FFC9C6DC</color>
     <color name="widget_day_today_stroke">#FF3F3D9E</color>

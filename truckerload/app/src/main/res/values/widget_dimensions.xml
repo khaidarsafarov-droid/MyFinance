@@ -2,6 +2,13 @@
 <resources>
     <!-- Supported tiers: COMPACT 2×1, STANDARD 2×2, EXPANDED 4×2 -->
 
+    <!-- Split-header RPM pill. Text is a step above the 12sp goal line. -->
+    <dimen name="widget_rpm_pill_text">13sp</dimen>
+    <dimen name="widget_rpm_pill_pad_h">12dp</dimen>
+    <dimen name="widget_rpm_pill_pad_v">4.5dp</dimen>
+    <dimen name="widget_rpm_pill_stroke">1.25dp</dimen>
+    <dimen name="widget_rpm_pill_radius">50dp</dimen>
+
     <!-- Circular progress ring -->
     <dimen name="widget_circle_compact">64dp</dimen>
     <dimen name="widget_circle_standard_split">88dp</dimen>

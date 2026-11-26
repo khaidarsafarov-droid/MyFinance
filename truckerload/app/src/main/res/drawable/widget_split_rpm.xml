@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
-    <solid android:color="#FFE5EDE8" />
-    <corners android:radius="50dp" />
+    <solid android:color="@color/widget_rpm_pill_bg" />
+    <stroke
+        android:width="@dimen/widget_rpm_pill_stroke"
+        android:color="@color/widget_rpm_pill_stroke" />
+    <corners android:radius="@dimen/widget_rpm_pill_radius" />
 </shape>
