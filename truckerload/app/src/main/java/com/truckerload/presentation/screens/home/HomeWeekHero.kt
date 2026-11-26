@@ -42,10 +42,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.truckerload.R
 import com.truckerload.domain.filter.LoadFilter
+import com.truckerload.domain.goal.WeeklyGoalCalculator
 import com.truckerload.domain.money.Money
 import com.truckerload.domain.units.DisplayUnits
 import com.truckerload.presentation.theme.AppTypography
@@ -89,8 +91,8 @@ internal fun HomeWeekHero(
     val grossText = MoneyFormat.formatCurrency(gross, decimals = 0)
     val goalMoney = Money.fromDollars(weeklyGoal)
     val showGoal = isThisWeek && goalMoney.isPositive()
-    val percent = if (showGoal && goalMoney.cents > 0L) {
-        (gross.cents.toFloat() / goalMoney.cents.toFloat() * 100f).coerceIn(0f, 100f)
+    val percent = if (showGoal) {
+        WeeklyGoalCalculator.displayPercent(gross.cents, goalMoney.cents)
     } else {
         0f
     }
@@ -240,13 +242,19 @@ private fun GoalReachedHaptic(percent: Float, week: Int, year: Int, goal: Double
 @Composable
 private fun HomeGoalRing(percent: Float, onHero: Color, modifier: Modifier = Modifier) {
     val reduceMotion = LocalReduceMotion.current
+    val motion = tween<Float>(
+        durationMillis = motionDurationMs(reduceMotion, 900),
+        easing = EaseOutCubic,
+    )
     val animated by animateFloatAsState(
         targetValue = percent.coerceIn(0f, 100f),
-        animationSpec = tween(
-            durationMillis = motionDurationMs(reduceMotion, 900),
-            easing = EaseOutCubic,
-        ),
+        animationSpec = motion,
         label = "homeGoalRing",
+    )
+    val label by animateFloatAsState(
+        targetValue = percent.coerceAtLeast(0f),
+        animationSpec = motion,
+        label = "homeGoalPercent",
     )
     val caption = stringResource(R.string.home_goal_of_percent, 0)
         .replace("0%", "")
@@ -278,15 +286,36 @@ private fun HomeGoalRing(percent: Float, onHero: Color, modifier: Modifier = Mod
                 )
             }
         }
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
             Text(
-                text = "${animated.toInt()}%",
+                text = "${label.toInt()}%",
+                maxLines = 1,
+                softWrap = false,
+                textAlign = TextAlign.Center,
                 style = AppTypography.NumbersSmall.copy(color = onHero, fontWeight = FontWeight.Bold),
+                autoSize = TextAutoSize.StepBased(
+                    minFontSize = 10.sp,
+                    maxFontSize = 16.sp,
+                    stepSize = 1.sp,
+                ),
             )
             Text(
                 text = caption,
-                style = MaterialTheme.typography.labelSmall,
+                maxLines = 1,
+                softWrap = false,
+                textAlign = TextAlign.Center,
                 color = onHero.copy(alpha = 0.85f),
+                style = MaterialTheme.typography.labelSmall,
+                autoSize = TextAutoSize.StepBased(
+                    minFontSize = 8.sp,
+                    maxFontSize = 11.sp,
+                    stepSize = 1.sp,
+                ),
             )
         }
     }

@@ -8,6 +8,42 @@ import com.truckerload.domain.money.Money
 class WeeklyGoalCalculatorTest {
 
     @Test
+    fun `display percent is real above 100 and safe at goal zero`() {
+        assertEquals(0f, WeeklyGoalCalculator.displayPercent(0L, 100_000L), 0.01f)
+        assertEquals(50f, WeeklyGoalCalculator.displayPercent(50_000L, 100_000L), 0.01f)
+        assertEquals(100f, WeeklyGoalCalculator.displayPercent(100_000L, 100_000L), 0.01f)
+        assertEquals(130f, WeeklyGoalCalculator.displayPercent(130_000L, 100_000L), 0.01f)
+        assertEquals(245f, WeeklyGoalCalculator.displayPercent(245_000L, 100_000L), 0.01f)
+        assertEquals(0f, WeeklyGoalCalculator.displayPercent(130_000L, 0L), 0.01f)
+        assertEquals(0f, WeeklyGoalCalculator.displayPercent(130_000L, -5L), 0.01f)
+        assertEquals(0f, WeeklyGoalCalculator.displayPercent(-100L, 100_000L), 0.01f)
+    }
+
+    @Test
+    fun `calculate keeps the real percent when gross exceeds the goal`() {
+        val progress = WeeklyGoalCalculator.calculate(
+            targetAmount = Money.fromDollars(1_000.0),
+            weekLoads = emptyList(),
+            weekNumber = 1,
+            year = 2020,
+            sqlYield = WeekYieldSnapshot(totalGross = Money.fromDollars(1_300.0), totalActiveDays = 0.0),
+        )
+        assertEquals(130f, progress.progressPercent, 0.01f)
+        assertEquals(Money.fromDollars(1_300.0), progress.currentGross)
+        assertEquals(Money.ZERO, progress.remainingAmount)
+        assertEquals(PaceStatus.GOAL_MET, progress.paceStatus)
+
+        val emptyGoal = WeeklyGoalCalculator.calculate(
+            targetAmount = Money.ZERO,
+            weekLoads = emptyList(),
+            weekNumber = 1,
+            year = 2020,
+            sqlYield = WeekYieldSnapshot(totalGross = Money.fromDollars(1_300.0), totalActiveDays = 0.0),
+        )
+        assertEquals(0f, emptyGoal.progressPercent, 0.01f)
+    }
+
+    @Test
     fun `daily pace uses active days from loads`() {
         val loads = listOf(
             Load(

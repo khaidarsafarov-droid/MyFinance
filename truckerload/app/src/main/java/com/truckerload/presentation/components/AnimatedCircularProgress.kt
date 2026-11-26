@@ -49,13 +49,19 @@ fun AnimatedCircularProgress(
     val tc = LocalTruckColors.current
     val cs = MaterialTheme.colorScheme
     val reduceMotion = LocalReduceMotion.current
+    val ringMotion = tween<Float>(
+        motionDurationMs(reduceMotion, 450),
+        easing = EaseOutCubic,
+    )
     val animatedProgress by animateFloatAsState(
         targetValue = progressPercent.coerceIn(0f, 100f),
-        animationSpec = tween(
-            motionDurationMs(reduceMotion, 450),
-            easing = EaseOutCubic,
-        ),
+        animationSpec = ringMotion,
         label = "ringProgress",
+    )
+    val animatedLabel by animateFloatAsState(
+        targetValue = progressPercent.coerceAtLeast(0f),
+        animationSpec = ringMotion,
+        label = "ringPercent",
     )
     val animatedGross by animateFloatAsState(
         targetValue = gross.toFloat(),
@@ -121,7 +127,7 @@ fun AnimatedCircularProgress(
             }
             if (showPercent) {
                 Text(
-                    text = "${animatedProgress.toInt()}%",
+                    text = "${animatedLabel.toInt()}%",
                     style = if (onDarkBackground) {
                         AppTypography.CardTitle.copy(
                             fontWeight = FontWeight.Bold,

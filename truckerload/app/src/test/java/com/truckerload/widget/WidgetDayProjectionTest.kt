@@ -209,6 +209,31 @@ class WidgetDayProjectionTest {
     }
 
     @Test
+    fun project_percentKeepsGrossAboveTheGoal() {
+        val week = WidgetStats(
+            loadsCount = 2,
+            totalLoadRate = 3_000.0,
+            weeklyProfitGoal = 1_000.0,
+            goalProgressPercent = 300f,
+            dayLoads = listOf(1, 1, 0, 0, 0, 0, 0),
+            dayGross = listOf(1_300.0, 1_150.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+        )
+        val monday = WidgetDayProjection.project(week, selectedOffset = 0, todayOffset = 3)
+        assertEquals(130f, monday.goalProgressPercent, 0.05f)
+        assertEquals(0.0, monday.goalRemainingAmount, 0.0)
+
+        val both = WidgetDayProjection.project(week, selectedOffset = 1, todayOffset = 3)
+        assertEquals(245f, both.goalProgressPercent, 0.05f)
+
+        val noGoal = WidgetDayProjection.project(
+            week.copy(weeklyProfitGoal = 0.0),
+            selectedOffset = 0,
+            todayOffset = 3,
+        )
+        assertEquals(0f, noGoal.goalProgressPercent, 0.01f)
+    }
+
+    @Test
     fun packAndUnpack_roundTripSevenDays() {
         val loads = listOf(1, 0, 2, 3, 0, 0, 4)
         val gross = listOf(10.0, 0.0, 20.5, 30.0, 0.0, 0.0, 40.0)

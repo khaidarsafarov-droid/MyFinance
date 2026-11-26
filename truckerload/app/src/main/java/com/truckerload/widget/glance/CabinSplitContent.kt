@@ -168,10 +168,12 @@ private fun SplitHeader(
             }
         }
         if (layout.bucket == CabinBucket.COMPACT) {
-            Text(
+            FittedGoalLine(
+                context = context,
                 text = context.getString(R.string.widget_goal_percent, percent),
-                style = face(colors.onHeader, layout.metricSp.value, FontWeight.Medium),
-                maxLines = 1,
+                argb = colors.onHeader,
+                defaultSp = layout.metricSp.value,
+                availableDp = percentLineWidthDp(layout, LocalSize.current.width.value),
             )
         } else if (layout.showRpm) {
             Text(
@@ -181,10 +183,12 @@ private fun SplitHeader(
             )
         }
         if (layout.headerMetric) {
-            Text(
+            FittedGoalLine(
+                context = context,
                 text = context.getString(R.string.widget_goal_micro, percent, goalMoneyRaw(context, shown)),
-                style = face(colors.onHeader, layout.metricSp.value, FontWeight.Medium),
-                maxLines = 1,
+                argb = colors.onHeader,
+                defaultSp = layout.metricSp.value,
+                availableDp = percentLineWidthDp(layout, LocalSize.current.width.value),
             )
         }
         if (layout.progressBlockDp == 0.dp && layout.progressBarDp > 0.dp) {
@@ -265,24 +269,45 @@ private fun ProgressDetail(
     colors: WidgetCabinColors,
 ) {
     val percent = WidgetStatsFormatter.formatRingPercent(shown.goalProgressPercent)
+    val percentPhrase = context.getString(R.string.widget_goal_percent, percent)
+    val metrics = context.resources.displayMetrics
+    val scaled = metrics.density * context.resources.configuration.fontScale
+    val rowDp = (LocalSize.current.width.value - layout.paddingH.value * 2f).coerceAtLeast(1f)
+    val remainingPhrase = if (layout.showRemaining) {
+        context.getString(
+            R.string.widget_goal_remaining,
+            WidgetStatsFormatter.formatGrossUsd(shown.goalRemainingAmount),
+        )
+    } else {
+        null
+    }
+    val remainingDp = if (remainingPhrase == null) {
+        0f
+    } else {
+        goalLineWidthDp(remainingPhrase, layout.metricSp.value, metrics.density, scaled)
+    }
+    val percentDp = if (remainingPhrase == null) {
+        rowDp
+    } else {
+        (rowDp - remainingDp - 8f).coerceAtLeast(1f)
+    }
     Column(
         modifier = GlanceModifier
             .fillMaxWidth()
             .clickable(actionStartActivity(routeIntent(context, WidgetDeepLink.ROUTE_WEEKLY_GOAL))),
     ) {
         Row(modifier = GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                text = context.getString(R.string.widget_goal_percent, percent),
-                style = face(colors.text, layout.metricSp.value, FontWeight.Medium),
-                maxLines = 1,
+            FittedGoalLine(
+                context = context,
+                text = percentPhrase,
+                argb = colors.text,
+                defaultSp = layout.metricSp.value,
+                availableDp = percentDp,
                 modifier = GlanceModifier.defaultWeight(),
             )
-            if (layout.showRemaining) {
+            if (layout.showRemaining && remainingPhrase != null) {
                 Text(
-                    text = context.getString(
-                        R.string.widget_goal_remaining,
-                        WidgetStatsFormatter.formatGrossUsd(shown.goalRemainingAmount),
-                    ),
+                    text = remainingPhrase,
                     style = face(colors.muted, layout.metricSp.value, FontWeight.Medium),
                     maxLines = 1,
                 )
