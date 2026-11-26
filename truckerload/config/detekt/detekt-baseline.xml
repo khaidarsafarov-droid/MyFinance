@@ -114,14 +114,11 @@
     <ID>CyclomaticComplexMethod:XlsxWorkbookReader.kt$XlsxWorkbookReader$internal fun parseSheet(xml: String, sharedStrings: List&lt;String&gt;): List&lt;List&lt;String&gt;&gt;</ID>
     <ID>DestructuringDeclarationWithTooManyEntries:MapStateMetrics.kt$MapStateMetrics$val (revenue, trips, avgMiles, rpm) = q</ID>
     <ID>ForEachOnRange:WeekCalendarPicker.kt$1..12</ID>
-    <ID>FunctionOnlyReturningConstant:AuthCredentialsStore.kt$AuthCredentialsStore$fun getPassword(): String</ID>
     <ID>FunctionOnlyReturningConstant:CrowdRpmShareGate.kt$CrowdRpmShareGate$@Suppress("UNUSED_PARAMETER") fun payloadOrNull( optIn: Boolean, samples: List&lt;AnonymizedRpmSample&gt;, ): List&lt;AnonymizedRpmSample&gt;?</ID>
     <ID>FunctionOnlyReturningConstant:LocalDevSessionPolicy.kt$LocalDevSessionPolicy$@Suppress("UNUSED_PARAMETER") fun shouldRejectLocalDevSession(userId: String?, localOnlyMode: Boolean): Boolean</ID>
     <ID>FunctionOnlyReturningConstant:TelegramSyncScheduler.kt$TelegramSyncScheduler.Companion$fun delayAfterPoll( @Suppress("UNUSED_PARAMETER") processed: Int, @Suppress("UNUSED_PARAMETER") updatesNonEmpty: Boolean, ): Long</ID>
     <ID>FunctionOnlyReturningConstant:WeekUtils.kt$fun getDaysInTruckingWeek(): Int</ID>
     <ID>InstanceOfCheckForException:DatabaseStartup.kt$DatabaseStartup$error !is Error</ID>
-    <ID>InstanceOfCheckForException:GoogleDriveApiClient.kt$GoogleDriveApiClient$e is DriveError.NeedsUserConsent</ID>
-    <ID>InstanceOfCheckForException:GoogleDriveApiClient.kt$GoogleDriveApiClient$e is DriveError.NotSignedIn</ID>
     <ID>InvalidPackageDeclaration:Migration42To43.kt$package com.truckerload.data.local</ID>
     <ID>InvalidPackageDeclaration:Migration43To44.kt$package com.truckerload.data.local</ID>
     <ID>InvalidPackageDeclaration:MigrationsEarly.kt$package com.truckerload.data.local</ID>
@@ -180,7 +177,6 @@
     <ID>LongMethod:GalleryViewerScreen.kt$@Composable fun GalleryViewerScreen( onBack: () -&gt; Unit, viewModel: GalleryMediaViewModel = hiltViewModel(), )</ID>
     <ID>LongMethod:GalleryViewerScreen.kt$@Composable internal fun GalleryViewerContent( title: String, items: List&lt;GalleryMediaRef&gt;, focusId: String?, onBack: () -&gt; Unit, onShare: (GalleryMediaRef) -&gt; Unit, onDelete: (GalleryMediaRef) -&gt; Unit, )</ID>
     <ID>LongMethod:GoalProgressRing.kt$@Composable fun GoalProgressRing( progressPercent: Float, paceStatus: PaceStatus, expectedProgressPercent: Float, centerLabel: String, centerSubLabel: String, modifier: Modifier = Modifier, size: Dp = UiDimens.GoalProgressRingSize, strokeWidth: Dp = 12.dp, animate: Boolean = true, onDarkBackground: Boolean = false, )</ID>
-    <ID>LongMethod:GoogleDriveSyncSection.kt$@Composable internal fun GoogleDriveSyncSection(tc: TruckColorPalette)</ID>
     <ID>LongMethod:GoogleMapsHeatmapCard.kt$@Composable fun GoogleMapsHeatmapCard( metrics: List&lt;USStateMetric&gt;, selectedCode: String, refreshing: Boolean, onStateSelected: (String) -&gt; Unit, modifier: Modifier = Modifier, /** Wider continental framing for fullscreen; default keeps the compact card view. */ initialZoom: Float = 4f, onExpandClick: (() -&gt; Unit)? = null, )</ID>
     <ID>LongMethod:HeroPeriodFigures.kt$@Composable internal fun HeroPeriodFigures( gross: String, miles: String, rpmValue: String, rpmLabel: String, onPrimary: Color, onPrimaryMuted: Color, modifier: Modifier = Modifier, )</ID>
     <ID>LongMethod:HomeCalendarDialog.kt$@Composable internal fun HomeCalendarDialog( viewModel: HomeViewModel, calendarYear: Int, calendarMonth: Int, selectedDate: String?, onYearMonthChange: (Int, Int) -&gt; Unit, onDateSelect: (String) -&gt; Unit, onWeekSelect: (start: String, end: String, label: String) -&gt; Unit, onDismiss: () -&gt; Unit, )</ID>
@@ -249,7 +245,7 @@
     <ID>LongMethod:ScanResultScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun ScanResultScreen( pending: PendingScan, sessionCount: Int = 1, isAttachedToLoad: Boolean = false, onSaveToApp: () -&gt; Unit, onSaveToPhone: () -&gt; Unit, onShare: () -&gt; Unit, onAddAnother: () -&gt; Unit, onOpenGallery: () -&gt; Unit, onCategoryChange: (ScanDocumentCategory) -&gt; Unit = {}, onClose: () -&gt; Unit, )</ID>
     <ID>LongMethod:ScannerScreen.kt$@Composable fun ScannerFlowScreen( onFinished: () -&gt; Unit, onOpenGallery: () -&gt; Unit, onCameraFallback: () -&gt; Unit = onFinished, attachLoadId: String? = null, attachTripId: String? = null, attachLoadDate: String? = null, viewModel: ScannerViewModel = hiltViewModel(), )</ID>
     <ID>LongMethod:ScannerViewModel.kt$ScannerViewModel$fun onScanResult(intent: Intent?)</ID>
-    <ID>LongMethod:SettingsBody.kt$@Composable internal fun SettingsBody( driveSubtitle: String, driveMark: SettingsPremiumMark, csvMark: SettingsPremiumMark, telegramMark: SettingsPremiumMark, languageValue: String, unitsValue: String, weekValue: String, rpmSubtitle: String, quietValue: String, themeMode: AppThemeMode, oledDark: Boolean, dynamicColor: Boolean, reduceMotion: Boolean, notifyMissingWeek: Boolean, notifyMaintenance: Boolean, settingsViewModel: SettingsViewModel, onDrive: () -&gt; Unit, onBackup: () -&gt; Unit, onCsv: () -&gt; Unit, onLanguage: () -&gt; Unit, onUnits: () -&gt; Unit, onWeek: () -&gt; Unit, onRpm: () -&gt; Unit, onTelegram: () -&gt; Unit, onQuiet: () -&gt; Unit, onPrivacy: () -&gt; Unit, modifier: Modifier = Modifier, )</ID>
+    <ID>LongMethod:SettingsBody.kt$@Composable internal fun SettingsBody( csvMark: SettingsPremiumMark, telegramMark: SettingsPremiumMark, languageValue: String, unitsValue: String, weekValue: String, rpmSubtitle: String, quietValue: String, themeMode: AppThemeMode, oledDark: Boolean, dynamicColor: Boolean, reduceMotion: Boolean, notifyMissingWeek: Boolean, notifyMaintenance: Boolean, settingsViewModel: SettingsViewModel, onBackup: () -&gt; Unit, onCsv: () -&gt; Unit, onLanguage: () -&gt; Unit, onUnits: () -&gt; Unit, onWeek: () -&gt; Unit, onRpm: () -&gt; Unit, onTelegram: () -&gt; Unit, onQuiet: () -&gt; Unit, onPrivacy: () -&gt; Unit, modifier: Modifier = Modifier, )</ID>
     <ID>LongMethod:SettingsDataSection.kt$@Composable fun SettingsDataSection( settingsViewModel: SettingsViewModel, )</ID>
     <ID>LongMethod:SettingsPremiumHero.kt$@Composable internal fun SettingsPremiumHero( model: SettingsPremiumHeroModel, showBack: Boolean, onBack: () -&gt; Unit, purchasing: Boolean, onManage: () -&gt; Unit, onPurchase: () -&gt; Unit, onRestore: () -&gt; Unit, modifier: Modifier = Modifier, footer: @Composable () -&gt; Unit = {}, )</ID>
     <ID>LongMethod:SettingsPreview.kt$@Composable internal fun SettingsStylePreview( model: SettingsPremiumHeroModel, dark: Boolean, modifier: Modifier = Modifier, )</ID>
@@ -295,7 +291,7 @@
     <ID>LongMethod:WidgetConfigurePreview.kt$@Composable internal fun WidgetLivePreview( sizeMode: WidgetSizeMode, showGross: Boolean, showPace: Boolean, showGoal: Boolean, @Suppress("UNUSED_PARAMETER") themeMode: WidgetThemeMode, )</ID>
     <ID>LongMethod:WidgetConfigureScreen.kt$@Composable fun WidgetConfigureScreen( sizeMode: WidgetSizeMode, showGross: Boolean, showPace: Boolean, showGoal: Boolean, themeMode: WidgetThemeMode, onSizeModeChange: (WidgetSizeMode) -&gt; Unit, onShowGrossChange: (Boolean) -&gt; Unit, onShowPaceChange: (Boolean) -&gt; Unit, onShowGoalChange: (Boolean) -&gt; Unit, onThemeModeChange: (WidgetThemeMode) -&gt; Unit, onSave: () -&gt; Unit, )</ID>
     <ID>LongMethod:WidgetStatsLoader.kt$WidgetStatsLoader$suspend fun refresh(context: Context): WidgetStats</ID>
-    <ID>LongParameterList:AccountDeletionService.kt$AccountDeletionService$( private val context: Context, private val userId: String, private val database: AppDatabase, private val identity: AccountIdentityRepository, private val professional: DriverProfessionalRepository, private val cipher: SensitiveFieldCipher, private val consentStore: ConsentStore, private val progressStore: RegistrationProgressStore, private val userProfileStore: UserProfileStore, private val authStore: AuthStore, private val credentialsStore: AuthCredentialsStore, )</ID>
+    <ID>LongParameterList:AccountDeletionService.kt$AccountDeletionService$( private val context: Context, private val userId: String, private val database: AppDatabase, private val identity: AccountIdentityRepository, private val professional: DriverProfessionalRepository, private val cipher: SensitiveFieldCipher, private val consentStore: ConsentStore, private val progressStore: RegistrationProgressStore, private val userProfileStore: UserProfileStore, private val authStore: AuthStore, )</ID>
     <ID>LongParameterList:AuthLogin.kt$AuthLogin$( authStore: AuthStore, userProfileStore: UserProfileStore, userId: String, profile: UserProfile, rememberMe: Boolean = true, accessToken: String? = null, refreshToken: String? = null, googleIdToken: String? = null, provider: AuthProvider = when { !profile.googleId.isNullOrBlank() -&gt; AuthProvider.GOOGLE else -&gt; AuthProvider.EMAIL }, )</ID>
     <ID>LongParameterList:AuthStore.kt$AuthStore$( userId: String, email: String, rememberMe: Boolean = true, accessToken: String? = null, refreshToken: String? = null, googleSub: String? = null, provider: AuthProvider = AuthProvider.LOCAL, googleIdToken: String? = null, )</ID>
     <ID>LongParameterList:CabinLayout.kt$( width: Dp, bucket: CabinBucket, paddingH: Dp, paddingV: Dp, sectionGap: Dp, cornerDp: Dp, headerSp: TextUnit, amountSp: TextUnit, metricSp: TextUnit, headerPadDp: Dp, progressBarDp: Dp, progressBlockDp: Dp, dayBarDp: Dp, showWeekRow: Boolean, showDayAmounts: Boolean, showDayLabels: Boolean, showRpm: Boolean, showRemaining: Boolean, headerMetric: Boolean, showActionLabels: Boolean, )</ID>
@@ -544,8 +540,6 @@
     <ID>MagicNumber:DocumentBytesDecoder.kt$DocumentBytesDecoder$5</ID>
     <ID>MagicNumber:DocumentBytesDecoder.kt$DocumentBytesDecoder$9</ID>
     <ID>MagicNumber:DocumentScannerService.kt$DocumentScannerService$20</ID>
-    <ID>MagicNumber:DriveConnectInterpreter.kt$DriveConnectInterpreter$12501</ID>
-    <ID>MagicNumber:DriveSyncWorker.kt$DriveSyncWorker.Companion$12</ID>
     <ID>MagicNumber:DuplicateAuditRunner.kt$DuplicateAuditRunner$10</ID>
     <ID>MagicNumber:EditLoadFinishFields.kt$4</ID>
     <ID>MagicNumber:EditLoadForm.kt$EditLoadForm$10</ID>
@@ -601,9 +595,6 @@
     <ID>MagicNumber:GoalProgressRing.kt$900</ID>
     <ID>MagicNumber:GoalViewModel.kt$GoalViewModel$100.0</ID>
     <ID>MagicNumber:GoalViewModel.kt$GoalViewModel$5_000</ID>
-    <ID>MagicNumber:GoogleDriveApiClient.kt$GoogleDriveApiClient$20</ID>
-    <ID>MagicNumber:GoogleDriveApiClient.kt$GoogleDriveApiClient$60</ID>
-    <ID>MagicNumber:GoogleDriveBackupPrefs.kt$GoogleDriveBackupPrefs$240</ID>
     <ID>MagicNumber:GoogleMapsHeatmapCard.kt$10f</ID>
     <ID>MagicNumber:GoogleMapsHeatmapCard.kt$180</ID>
     <ID>MagicNumber:GoogleMapsHeatmapCard.kt$220</ID>
@@ -612,10 +603,6 @@
     <ID>MagicNumber:GoogleMapsHeatmapCard.kt$5f</ID>
     <ID>MagicNumber:GoogleMapsHeatmapCard.kt$6</ID>
     <ID>MagicNumber:GoogleMapsHeatmapCard.kt$98.35</ID>
-    <ID>MagicNumber:GoogleSignInSupport.kt$GoogleSignInSupport$10</ID>
-    <ID>MagicNumber:GoogleSignInSupport.kt$GoogleSignInSupport$12500</ID>
-    <ID>MagicNumber:GoogleSignInSupport.kt$GoogleSignInSupport$12501</ID>
-    <ID>MagicNumber:GoogleSignInSupport.kt$GoogleSignInSupport$16</ID>
     <ID>MagicNumber:HeroPeriodFigures.kt$0.05f</ID>
     <ID>MagicNumber:HeroPeriodFigures.kt$24</ID>
     <ID>MagicNumber:HomeCalendarDateSpans.kt$HomeCalendarDateSpans$10</ID>
@@ -667,7 +654,6 @@
     <ID>MagicNumber:InboundDocumentResolver.kt$InboundDocumentResolver$6</ID>
     <ID>MagicNumber:IncompleteLoadFill.kt$IncompleteLoadFill$3</ID>
     <ID>MagicNumber:InstalledJournalRecovery.kt$InstalledJournalRecovery$100L</ID>
-    <ID>MagicNumber:InstalledSigningSha1.kt$InstalledSigningSha1$28</ID>
     <ID>MagicNumber:LanguageDetector.kt$LanguageDetector$0.3</ID>
     <ID>MagicNumber:LanguageDetector.kt$LanguageDetector$0.5</ID>
     <ID>MagicNumber:LoadAlarmReceiver.kt$LoadAlarmReceiver$0x0FFF</ID>
@@ -1431,7 +1417,6 @@
     <ID>MaxLineLength:DieselTextParser.kt$DieselTextParser$"""(?:Fuel\s*Total|Diesel\s*Total|Pump\s*Total|Fuel\s*(?:Sale|Amount)|Sale\s*(?:Amount|Total))\s*[:\s]*\$?\s*([\d,]+\.?\d*)"""</ID>
     <ID>MaxLineLength:DieselTextParser.kt$DieselTextParser$private val datePattern = Regex("""(?:Date|Дата|Trans(?:action)?\s*Date)\s*[:\s]*([^\n]+)""", RegexOption.IGNORE_CASE)</ID>
     <ID>MaxLineLength:DieselTextParser.kt$DieselTextParser$private val locationPattern = Regex("""(?:Location|Store|Station|City|АЗС)\s*[:\s]*([^\n]+)""", RegexOption.IGNORE_CASE)</ID>
-    <ID>MaxLineLength:DriveBackupFlow.kt$DriveBackupFlow$val json = jsonResult.getOrElse { return@withContext Result.failure(GoogleDriveBackupService.mapError(app, it)) }</ID>
     <ID>MaxLineLength:EnhancedSocialModels.kt$TruckType.Companion$else</ID>
     <ID>MaxLineLength:FlexibleLoadParser.kt$FlexibleLoadParser$"""(?:Del[\s\-]*address|Delivery(?:\s*(?:Location|City))?|\bTo\b|Destination|Consignee|Разгрузка)\s*[:]\s*(.+)"""</ID>
     <ID>MaxLineLength:FlexibleLoadParser.kt$FlexibleLoadParser$"""^(?:Trip\s*ID|Load\s*(?:ID|#|Number)|Confirmation(?:\s*(?:#|No\.?|Number))?|Total\s*Rate|Line\s*-?\s*Haul(?:\s*Rate)?|All[\s-]?in(?:\s*rate)?|Rate|Pay|Оплата|Ставка|Total\s*Loaded\s*Miles|Loaded\s*Miles|Miles|Мил[иь]|Distance|Pu[\s\-]*address|Pickup(?:\s*(?:Location|City))?|Origin|Shipper|Погрузка|Del[\s\-]*address|Delivery(?:\s*(?:Location|City))?|Destination|Consignee|Разгрузка|Date|Load\s*Date)\s*:?\s*$"""</ID>
@@ -1561,9 +1546,6 @@
     <ID>ReturnCount:AnalyticsOwnerName.kt$AnalyticsOwnerName$fun fromProfile( givenName: String?, familyName: String?, email: String?, socialDisplayName: String?, ): Pair&lt;String, String&gt;</ID>
     <ID>ReturnCount:AppDatabase.kt$AppDatabase.Companion$fun getInstance(context: Context, userId: String): AppDatabase</ID>
     <ID>ReturnCount:AppDatabase.kt$AppDatabase.Companion$private fun reusable(existing: AppDatabase, userId: String): Boolean</ID>
-    <ID>ReturnCount:AuthCredentialsStore.kt$AuthCredentialsStore$fun boundUserIdFor(email: String): String?</ID>
-    <ID>ReturnCount:AuthCredentialsStore.kt$AuthCredentialsStore$fun passwordFor(email: String): String?</ID>
-    <ID>ReturnCount:AuthCredentialsStore.kt$AuthCredentialsStore$fun validateCredentials(email: String, password: String): Boolean</ID>
     <ID>ReturnCount:AuthKeystoreOpen.kt$AuthKeystoreOpen$fun openOnce(context: Context): SharedPreferences</ID>
     <ID>ReturnCount:AuthStore.kt$internal fun isStaleRobolectricApplication(context: Context): Boolean</ID>
     <ID>ReturnCount:BackupNoteFormatter.kt$BackupNoteFormatter$fun extractBackupJson(content: String): String?</ID>
@@ -1620,11 +1602,6 @@
     <ID>ReturnCount:DocumentBytesDecoder.kt$DocumentBytesDecoder$fun isImage(bytes: ByteArray, fileName: String, mimeType: String): Boolean</ID>
     <ID>ReturnCount:DocumentBytesDecoder.kt$DocumentBytesDecoder$internal fun decodeText(bytes: ByteArray): String</ID>
     <ID>ReturnCount:DocumentBytesDecoder.kt$DocumentBytesDecoder$private fun extractZipXml(bytes: ByteArray, path: String, docx: Boolean): String?</ID>
-    <ID>ReturnCount:DriveBackupFlow.kt$DriveBackupFlow$suspend fun pushAutoBackupIfEnabled(context: Context): Boolean</ID>
-    <ID>ReturnCount:DriveConnectInterpreter.kt$DriveConnectInterpreter$fun next( resultCode: Int, accountEmail: String?, grantedDriveScope: Boolean, error: Throwable?, pending: DriveConnectPending, ): DriveConnectOutcome</ID>
-    <ID>ReturnCount:DriveSyncPolicy.kt$DriveSyncPolicy$fun shouldSkipAutoPush( remoteModifiedAt: Long, lastSyncAt: Long, skewMs: Long = DEFAULT_SKEW_MS, ): Boolean</ID>
-    <ID>ReturnCount:DriveSyncPolicy.kt$DriveSyncPolicy$fun shouldWarnBeforeRestore( localChangedAfterLastSync: Boolean, remoteModifiedAt: Long, lastSyncAt: Long, skewMs: Long = DEFAULT_SKEW_MS, ): Boolean</ID>
-    <ID>ReturnCount:DriveSyncWorker.kt$DriveSyncWorker$override suspend fun doWork(): Result</ID>
     <ID>ReturnCount:DriverProfessionalRepository.kt$DriverProfessionalRepository$private fun settle(stored: String?, rewritten: String?): String?</ID>
     <ID>ReturnCount:DuplicateAuditUseCase.kt$DuplicateAuditUseCase$private fun areDuplicateLoads(keeper: Load, candidate: Load): Boolean</ID>
     <ID>ReturnCount:DuplicateChecker.kt$DuplicateChecker$internal fun isLikelySameLoad(existing: Load, incoming: Load): Boolean</ID>
@@ -1646,10 +1623,6 @@
     <ID>ReturnCount:GalleryCatalog.kt$GalleryCatalog$private fun cardMatches( card: GalleryLoadCard, items: List&lt;GalleryMediaRef&gt;, needle: String, unlinkedLabel: String, locale: Locale, ): Boolean</ID>
     <ID>ReturnCount:GalleryMediaViewModel.kt$GalleryMediaViewModel$private fun arg(handle: SavedStateHandle, key: String): String?</ID>
     <ID>ReturnCount:GalleryThumbnail.kt$internal fun decodeGalleryThumbnail(path: String, maxEdgePx: Int): Bitmap?</ID>
-    <ID>ReturnCount:GoogleDriveApiClient.kt$GoogleDriveApiClient$private fun findBackupFileMeta(token: String): RemoteFileMeta?</ID>
-    <ID>ReturnCount:GoogleDriveApiClient.kt$GoogleDriveApiClient$private suspend fun &lt;T&gt; withRetry(block: suspend () -&gt; T): Result&lt;T&gt;</ID>
-    <ID>ReturnCount:GoogleDriveApiClient.kt$GoogleDriveApiClient.Companion$fun parseRfc3339Millis(value: String?): Long</ID>
-    <ID>ReturnCount:GoogleDriveBackupPrefs.kt$GoogleDriveBackupPrefs.Companion$private fun migrateFromLegacyIfEmpty(context: Context, scoped: android.content.SharedPreferences)</ID>
     <ID>ReturnCount:HeroPeriodFigures.kt$internal fun fitSingleLineFontSize( preferred: TextUnit, minFontSize: TextUnit, maxWidthPx: Int, widthAt: (Float) -&gt; Int, ): TextUnit</ID>
     <ID>ReturnCount:HeroPeriodFigures.kt$internal fun largestFittingSize( min: Float, max: Float, fits: (Float) -&gt; Boolean, ): Float</ID>
     <ID>ReturnCount:HomeListBuilder.kt$fun flattenedListItems( filter: LoadFilter, selectedYear: Int?, filteredLoads: List&lt;Load&gt;, ): List&lt;HomeListItem&gt;</ID>
@@ -1891,7 +1864,6 @@
     <ID>SwallowedException:ShareImportPipeline.kt$ShareImportPipeline$error: IOException</ID>
     <ID>ThrowsCount:BackupDataCodec.kt$BackupDataCodec$fun decode(json: String): BackupData</ID>
     <ID>ThrowsCount:BackupService.kt$BackupService$internal suspend fun restoreDecoded( context: Context, backup: BackupData, allowUnboundAccount: Boolean, ): Result&lt;BackupData&gt;</ID>
-    <ID>ThrowsCount:GoogleDriveApiClient.kt$GoogleDriveApiClient$private fun accessToken(): String</ID>
     <ID>TooGenericExceptionCaught:AuthKeystoreOpen.kt$AuthKeystoreOpen$error: Throwable</ID>
     <ID>TooGenericExceptionCaught:DatabaseStartup.kt$DatabaseStartup$error: Throwable</ID>
     <ID>TooGenericExceptionCaught:InstalledJournalRecovery.kt$InstalledJournalRecovery$error: Throwable</ID>

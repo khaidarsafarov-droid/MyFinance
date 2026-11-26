@@ -2,9 +2,9 @@
 
 Fill **Play Console → Policy → App content → Data safety** for `com.truckorig` from this sheet. Do not submit from this file.
 
-Definitions used here are Google’s, from [Provide information for Google Play’s Data safety section](https://support.google.com/googleplay/android-developer/answer/10787469) (collected = sent off the device by the app **or by an SDK**, to the developer **or** a third party). On-device processing is not collection. End-to-end encryption (only sender and recipient can read it) is not collection. A user-initiated transfer the user reasonably expects is not **sharing**; Google’s Drive/Dropbox FAQ also says a backup the user sends to their own cloud account is not **collection** when the developer does not take a copy. Ephemeral processing (memory only, only long enough to answer that request, not used to build a profile) is still answered on the form, and Play hides it on the store listing.
+Definitions used here are Google’s, from [Provide information for Google Play’s Data safety section](https://support.google.com/googleplay/android-developer/answer/10787469) (collected = sent off the device by the app **or by an SDK**, to the developer **or** a third party). On-device processing is not collection. End-to-end encryption (only sender and recipient can read it) is not collection. A user-initiated transfer the user reasonably expects is not **sharing**. Ephemeral processing (memory only, only long enough to answer that request, not used to build a profile) is still answered on the form, and Play hides it on the store listing.
 
-Audit date: 2026-11-23, re-checked the same day against main `7f98db9a`. Package `com.truckorig`, versionName 1.6.1, versionCode 19, targetSdk 36, compileSdk 37. The merged app manifest still has no `FOREGROUND_SERVICE`, no `FOREGROUND_SERVICE_DATA_SYNC`, and no `AD_ID`. Firebase Crashlytics is not a dependency; see Crash logs below.
+Audit date: 2026-11-25, after Google Drive sync and Google Sign-In were removed (branch `feat/remove-drive-sync`). Package `com.truckorig`, versionName 1.6.2, versionCode 20, targetSdk 36, compileSdk 37. The release runtime classpath no longer contains `play-services-auth`; the Google libraries left are Maps (`play-services-maps`), fused location (`play-services-location`), ML Kit text recognition and document scanner, Play Billing, and their `play-services-base`/`basement`/`tasks` and `datatransport` dependencies. The merged app manifest still has no `FOREGROUND_SERVICE`, no `FOREGROUND_SERVICE_DATA_SYNC`, and no `AD_ID`. Firebase Crashlytics is not a dependency; see Crash logs below.
 
 ## 1. Overview
 
@@ -15,17 +15,28 @@ Audit date: 2026-11-23, re-checked the same day against main `7f98db9a`. Package
 | Do you provide a way for users to request that their data is deleted? | **Yes** |
 | Independent security review (MASA) | **No** |
 | Committed to the Families policy | **No** — not a children’s app |
-| Privacy policy URL | https://rentry.co/truckorig-privacy-policy — paste the current `PRIVACY_POLICY.md` there before you submit the form. The repo cannot update rentry. |
+| Privacy policy URL | https://khaidarsafarov-droid.github.io/MyFinance/privacy/ (GitHub Pages, `docs/privacy/index.html`). Replace the old rentry link in the form with this one. |
+| Delete data URL | https://khaidarsafarov-droid.github.io/MyFinance/delete-data/ (`docs/delete-data/index.html`) |
 
-**Why the overview is Yes, not No.** The previous draft answered No while also describing Drive, Telegram, and Maps. Those three are not the same kind of transfer:
+**Why the overview is Yes, not No.** The developer has no server and no accounts, and the journal never goes to the developer. The overview is still Yes because of Google libraries built into the app:
 
-- Maps SDK and ML Kit send diagnostics off the device to Google by themselves. That is collection (and, for Maps, sharing). It does not meet the on-device, end-to-end, or “user’s own Drive” exemptions.
-- Drive backup and Telegram are optional and user-configured. They are explained in section 4 and are **not** ticked as collected types, for the reasons in that section.
-- The developer still has no server that receives the journal.
+- Maps SDK and ML Kit send diagnostics off the device to Google by themselves. That is collection (and, for Maps, sharing). It does not meet the on-device or end-to-end exemptions.
+- The address lookup for the photo stamp and the diesel place goes through Google's geocoder (location rows).
+- Telegram is optional and user-configured. It is explained in section 4 and is **not** ticked, for the reasons in that section.
+- Google Drive sync was removed in 1.6.2, so there is no cloud backup to explain any more.
+
+### Account questions
+
+| Form question | Answer |
+| --- | --- |
+| Account creation methods | **My app does not allow users to create an account** |
+| Can users log in to your app with accounts created outside the app? | **No.** Google Sign-In was removed in 1.6.2. The app has no login of any kind (an optional fingerprint/face unlock on the phone is not an account). |
+| Delete account URL | Not needed without accounts. If the form still asks, use the delete-data URL above. |
+| Can users request that some or all of their data is deleted without deleting their account? | If asked: **Yes** — "Delete all data" in the app, or deleting single loads/photos. The delete-data page explains both. |
 
 ## 2. Data types to tick
 
-> Update 2026-11-25 (main `c5dd13dc`): **Email address is not ticked.** Google Sign-In stores the email only on the phone for the user's own Drive backup; it never leaves the device to the developer, and signing in to one's own Google account is user-initiated. The app has no developer accounts.
+> **Email address is not ticked.** Since 1.6.2 the app does not sign in to Google and never reads the user's email address.
 
 Tick only the rows in this section. For each, Play asks collected vs shared, ephemeral, optional vs required, and purposes.
 
@@ -61,15 +72,9 @@ The map does not send the driver’s GPS. `GoogleMapsHeatmapCard` does not turn 
 
 Collected and shared, ephemeral, optional, purpose App functionality.
 
-The same two fused-location plus geocoder lookups, and only those. The manifest also requests `ACCESS_COARSE_LOCATION`. `LocationHelper.hasLocationPermission` accepts a coarse-only grant, and the fused fix uses `PRIORITY_BALANCED_POWER_ACCURACY`. A coarse fix is approximate location under Play’s “3 square kilometers or coarser” definition. Same optional, ephemeral, not-background answers. The on-device stamp is still not this row. A diesel station/address string stored in the journal is on-device (and may later sit in the user’s own Drive file; see section 4).
+The same two fused-location plus geocoder lookups, and only those. The manifest also requests `ACCESS_COARSE_LOCATION`. `LocationHelper.hasLocationPermission` accepts a coarse-only grant, and the fused fix uses `PRIORITY_BALANCED_POWER_ACCURACY`. A coarse fix is approximate location under Play’s “3 square kilometers or coarser” definition. Same optional, ephemeral, not-background answers. The on-device stamp is still not this row. A diesel station/address string stored in the journal stays on the device.
 
 Do **not** also tick approximate location because the Maps SDK collects an IP address. Google’s Maps disclosure says the IP is used to understand SDK usage, not that the SDK infers a place from it. IP-related SDK data is covered by Diagnostics and Device or other IDs. `geocodeAddress` is not called from production code.
-
-### Email address
-
-Collected, not shared, not ephemeral, optional, purposes App functionality and Account management.
-
-`GoogleSignInClients` uses `DEFAULT_SIGN_IN` and `requestEmail()` only to connect Drive (`GoogleSignInClients.kt`). The email is stored in Drive prefs on the device (`GoogleDriveBackupService.linkAccountEmail`). It is not sent to a developer server and it is not the journal login. Sign-in is a specific action the user takes, and they expect Google to handle that Google account, so it is not declared as sharing. The app keeps the address until disconnect, so it is not ephemeral. The journal works without Drive, so it is optional.
 
 ### Crash logs
 
@@ -110,8 +115,9 @@ No advertising ID. The merged manifest does not request `com.google.android.gms.
 | Play data type | Answer | Why |
 | --- | --- | --- |
 | Personal info → Name | No | Optional first-run name stays on the device. |
-| Personal info → User IDs, Address, Phone, Race, Political, Sexual, Other | No | Not sent off the device as those types. The local account id is inside the user’s own Drive file (section 4). |
-| Financial info → all four types, including Purchase history and User payment info | No | See billing and the Drive exemption below. Card numbers never reach the app (`BillingManager.kt` talks to Play Billing only). |
+| Personal info → Email address | No | Google Sign-In was removed. The app never reads an email address. |
+| Personal info → User IDs, Address, Phone, Race, Political, Sexual, Other | No | Not sent off the device as those types. There are no accounts. |
+| Financial info → all four types, including Purchase history and User payment info | No | Rates, paychecks, and diesel stay in the journal on the phone. See billing below. Card numbers never reach the app (`BillingManager.kt` talks to Play Billing only). |
 | Health, Contacts, Calendar, SMS, Photos, Videos, Audio, Voice, Files, Web browsing, Search history, Installed apps | No | Not collected as those types. Photos are section 5. |
 | App activity → In-app search history, Installed apps, Other user-generated content, Other actions | No | Map gestures are already under App interactions. |
 | Crash logs from Firebase | No | SDK removed. Do not add a Firebase row. |
@@ -120,20 +126,6 @@ No advertising ID. The merged manifest does not request `com.google.android.gms.
 ## 4. Transfers that are real, and are not ticked
 
 These leave the device. They are not ticked because a Play exemption applies. The privacy policy describes each one. If a review rejects an exemption, tick the types in the “If the exemption is rejected” column instead of arguing the overview back to No.
-
-### Google Drive backup — user’s own account
-
-Not ticked. Not end-to-end encrypted.
-
-`GoogleDriveBackupService` uploads the JSON from `BackupSnapshotBuilder` to `https://www.googleapis.com/drive/v3/files` and `https://www.googleapis.com/upload/drive/v3/files`, space `appDataFolder`, scope `https://www.googleapis.com/auth/drive.appdata` (`GoogleDriveApiClient.kt`, `GoogleDriveBackupPrefs.kt`). The JSON contains loads (including rates, miles, stop text, and `rawMessage`), paychecks, diesel, maintenance, and settings (`BackupData.kt`). It does **not** contain photo files.
-
-Play’s FAQ: if the user chooses to upload to their own Drive or similar account, the upload is governed by that service’s terms, and the developer does not take a copy, it is not declared as collection. This upload matches that FAQ on the destination and on “no developer copy.” It does **not** match “the app never accesses the data”: the app builds the JSON. It is also a hidden app-data folder, not a file the user sees in My Drive, and `disconnect()` signs out and clears local prefs without deleting the remote file (`GoogleDriveBackupService.kt`). The policy tells the user how to delete the hidden file.
-
-End-to-end encryption does **not** apply. Google can read the JSON. HTTPS only means encrypted in transit.
-
-After the user connects Drive and turns auto backup on, a later local edit (`BackupService.createAutoBackup` → `pushAutoBackupIfEnabled`) and a periodic WorkManager job (`DriveSyncWorker`, about every 12 hours when the phone has network) can upload again. The periodic job is enqueued for a signed-in session, but the upload itself runs only when auto-sync is enabled and Drive is linked. That is still the backup they turned on, not a new silent destination. There is no Android foreground service for this. If the user allowed location when adding diesel, the station or address text can be inside that JSON; photo files and photo GPS records are not.
-
-If the exemption is rejected, tick: Financial info → Other financial info (rates, paychecks, diesel), App activity → Other user-generated content (load text), Location → Approximate location (city/state text in stops, and diesel station/address text), Personal info → User IDs (account id). Collected Yes, Shared No (user’s own Google account), Ephemeral No, Optional Yes, Purpose App functionality, Encrypted in transit Yes.
 
 ### Telegram — user’s own bot
 
@@ -165,7 +157,7 @@ GPS, date, and time on a photo are the product. The driver takes the photo when 
 
 `CameraViewModel` reads EXIF only to fix rotation, then `PhotoManager.savePhoto` draws the capture time and, when location was allowed, the city, state, ZIP, and coordinates onto a new JPEG. `PhotoRepository.savePhoto` stores latitude, longitude, city, state, ZIP, and timestamp on `PhotoEntity`. The file stays in app storage. On-device processing is not collection under Play’s definition.
 
-`BackupSnapshotBuilder` does not put photo bytes in the Drive JSON. `MediaSyncQueueDao` has no production caller.
+Local backup files are written only where the user saves them (Android file picker) or shares them. `MediaSyncQueueDao` has no production caller.
 
 The stamped photo leaves the phone only when the driver shares or exports it (section 4). That is user-initiated sharing: the user expects the photo, stamp included, to go to the destination they pick. It is not ticked as collection or sharing.
 
@@ -176,6 +168,7 @@ The stamped photo leaves the phone only when the driver shares or exports it (se
 | Journal | Room + SQLCipher | Only via section 4 |
 | Photo stamp (GPS, date, time) | On the JPEG and in `PhotoEntity` | Only when the user shares or exports that photo |
 | First-run name | Device prefs | No |
+| Backup file (zip/JSON with media) | Saved by the user through the Android file picker, or shared | Only where the user saves or shares it (user-initiated) |
 | Telegram token | Encrypted prefs | Only to `api.telegram.org` when the user configured the bot |
 | Crowd RPM | `CrowdRpmShareGate.payloadOrNull` always returns null | No network publish |
 | In-app “Analytics” charts | Computed from Room | No telemetry SDK |
@@ -209,19 +202,21 @@ Ads: **No**. Monetization is the optional subscription only. Financial-features 
 | Question | Before | After |
 | --- | --- | --- |
 | Collect or share any required user data types? | No | **Yes** |
-| Data shared with third parties? | No | **Yes** for Maps SDK identifiers, crash metrics, diagnostics, and map interactions, and for the geocoder lookup. Email is collected and not shared. Drive, Telegram, share sheet, and Play card data stay off the ticked list under the exemptions in section 4. |
+| Data shared with third parties? | No | **Yes** for Maps SDK identifiers, crash metrics, diagnostics, and map interactions, and for the geocoder lookup. Email is not collected (Google Sign-In removed in 1.6.2). Telegram, share sheet, backup files, and Play card data stay off the ticked list under the exemptions in section 4. |
 | Crash logs | Only if `google-services.json` was present | **Yes**, Maps SDK only. Firebase crash reporting is **No** and cannot be turned on by that file. |
 | Location | “On device, not sold” | **Precise and approximate: Yes, shared, ephemeral, optional — fused location plus geocoder, for the photo stamp and for prefilling a diesel place.** The photo stamp itself is on-device and is not this row. The map does not use the driver’s GPS. |
 | Photos | “Leave only if the user exports” | **Not ticked.** The stamp (GPS, date, time) is the feature. It is written on the phone when the user takes the photo, and it leaves only when the user shares or exports that photo. |
 | Encryption in transit | Yes | **Yes** |
-| Users can request deletion | Yes, uninstall and “delete the Drive file” | **Yes**. In-app account delete, uninstall, or `truckorig@gmail.com`. The Drive copy is a hidden app-data file; disconnect does not delete it. |
+| Users can request deletion | Yes, uninstall and “delete the Drive file” | **Yes**. In-app “Delete all data”, uninstall, or `truckorig@gmail.com` for support mail. Delete-data URL: https://khaidarsafarov-droid.github.io/MyFinance/delete-data/ |
+| Account creation / outside-account login | OAuth (Google) for Drive / Yes | **No accounts / No.** Google Sign-In and Drive sync were removed in 1.6.2. |
 | Foreground service | Declared | **Do not declare.** The permission is removed. |
-| Privacy policy | Said the developer does not share with third parties, and listed a foreground service | Must match `PRIVACY_POLICY.md` dated 2026-11-23 before you submit. |
+| Privacy policy | Said the developer does not share with third parties, and listed a foreground service | https://khaidarsafarov-droid.github.io/MyFinance/privacy/ (updated 2026-11-25, no Drive or Google Sign-In). |
 
 ## 9. Manual steps before you submit
 
-1. Paste `PRIVACY_POLICY.md` over https://rentry.co/truckorig-privacy-policy (or replace that URL with the hosted `docs/release/privacy/index.html`). The form’s URL and the in-app story have to match the page users open.
-2. Enter this sheet in the Data safety form. Save as draft. Do not send the app for review from this change.
-3. In the photo and location declaration forms, say camera and foreground location are optional and user-initiated. The stamp (GPS, date, and time) is the feature drivers install the app for. It is not background collection.
-4. Do not upload an AAB that was built from an older commit that still depended on Crashlytics. Confirm the merged release manifest has no `FirebaseInitProvider` and no `FirebaseCrashlytics` registrar.
-5. There is no postal address in the repo. If the Console account form requires one, use your real address. Do not invent one.
+1. In the form and in Store settings, use https://khaidarsafarov-droid.github.io/MyFinance/privacy/ as the privacy policy URL (the old rentry page still describes Drive). The form’s URL and the in-app story have to match the page users open.
+2. Enter this sheet in the Data safety form, including the account questions in section 1 (no accounts; outside-account login **No**). Save as draft. Do not send the app for review from this change.
+3. Upload the 1.6.2 AAB (`versionCode` 20) together with the new answers: the old answers about Google login only fit builds that still had Drive sync.
+4. In the photo and location declaration forms, say camera and foreground location are optional and user-initiated. The stamp (GPS, date, and time) is the feature drivers install the app for. It is not background collection.
+5. Do not upload an AAB that was built from an older commit that still depended on Crashlytics. Confirm the merged release manifest has no `FirebaseInitProvider` and no `FirebaseCrashlytics` registrar.
+6. There is no postal address in the repo. If the Console account form requires one, use your real address. Do not invent one.

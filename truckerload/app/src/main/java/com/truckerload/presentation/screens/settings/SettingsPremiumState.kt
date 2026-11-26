@@ -3,9 +3,6 @@ package com.truckerload.presentation.screens.settings
 import com.truckerload.R
 import com.truckerload.domain.premium.PremiumFeature
 import com.truckerload.domain.premium.PremiumOfferQuote
-import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 import java.util.Locale
 import kotlin.math.roundToLong
 
@@ -42,16 +39,8 @@ enum class SettingsPremiumGroup {
     GOAL,
     MAP_AND_TAX,
     SCANNER_AND_CAMERA,
-    EXPORT_AND_DRIVE,
+    EXPORT,
 }
-
-data class SettingsSyncMoment(
-    val isToday: Boolean,
-    /** HH:mm */
-    val clock: String,
-    /** dd.MM.yyyy HH:mm */
-    val dateTime: String,
-)
 
 object SettingsPremiumState {
     fun hero(subscribed: Boolean, offerLoaded: Boolean, quote: PremiumOfferQuote?): SettingsPremiumHeroModel {
@@ -79,7 +68,7 @@ object SettingsPremiumState {
         PremiumFeature.WEEKLY_GOAL -> SettingsPremiumGroup.GOAL
         PremiumFeature.MAP, PremiumFeature.TAX -> SettingsPremiumGroup.MAP_AND_TAX
         PremiumFeature.SCANNER, PremiumFeature.CAMERA -> SettingsPremiumGroup.SCANNER_AND_CAMERA
-        PremiumFeature.EXPORT, PremiumFeature.DRIVE -> SettingsPremiumGroup.EXPORT_AND_DRIVE
+        PremiumFeature.EXPORT -> SettingsPremiumGroup.EXPORT
     }
 
     /** String resource for one hero line. Declaration order of [SettingsPremiumGroup] is the grid order. */
@@ -89,20 +78,7 @@ object SettingsPremiumState {
         SettingsPremiumGroup.GOAL -> R.string.settings_premium_feature_goal
         SettingsPremiumGroup.MAP_AND_TAX -> R.string.settings_premium_feature_map_tax
         SettingsPremiumGroup.SCANNER_AND_CAMERA -> R.string.settings_premium_feature_scan
-        SettingsPremiumGroup.EXPORT_AND_DRIVE -> R.string.settings_premium_feature_export
-    }
-
-    fun syncMoment(lastSyncAtMillis: Long, nowMillis: Long, zone: ZoneId): SettingsSyncMoment? {
-        if (lastSyncAtMillis <= 0L) return null
-        val sync = Instant.ofEpochMilli(lastSyncAtMillis).atZone(zone)
-        val now = Instant.ofEpochMilli(nowMillis).atZone(zone)
-        val clock = sync.format(CLOCK)
-        val dateTime = sync.format(DATE_TIME)
-        return SettingsSyncMoment(
-            isToday = sync.toLocalDate() == now.toLocalDate(),
-            clock = clock,
-            dateTime = dateTime,
-        )
+        SettingsPremiumGroup.EXPORT -> R.string.settings_premium_feature_export
     }
 
     fun hourLabel(hour: Int): String = String.format(Locale.US, "%02d:00", hour.coerceIn(0, 23))
@@ -115,7 +91,4 @@ object SettingsPremiumState {
             String.format(Locale.US, "%.2f", cents / 100.0)
         }
     }
-
-    private val CLOCK: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm", Locale.US)
-    private val DATE_TIME: DateTimeFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm", Locale.US)
 }

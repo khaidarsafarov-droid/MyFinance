@@ -21,7 +21,7 @@ import java.util.zip.ZipOutputStream
  * Bytes are copied unchanged, so a JPEG keeps its EXIF (GPS, date, time).
  *
  * Writing and reading stream one entry at a time; memory use does not grow with the library.
- * A plain JSON backup (older builds, auto and companion copies, Drive) still restores as before.
+ * A plain JSON backup (older builds, auto and companion copies, old Drive copies) still restores as before.
  */
 object BackupArchive {
     const val MIME = "application/zip"

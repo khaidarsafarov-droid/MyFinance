@@ -12,8 +12,8 @@ Source of truth in code (Android `main` at `7f98db9a`): `versionCode` **18**, `v
 
 | Field | Value |
 | --- | --- |
-| Privacy policy URL | **TODO for K S:** public HTTPS URL of `docs/release/privacy/index.html` (GitHub Pages or another host). Until then, do not submit the policy form. The live rentry page (3 Sep 2026) is outdated — it is missing payments, iOS, and iCloud. |
-| Terms of use URL (if asked) | **TODO for K S:** public HTTPS URL of `docs/release/terms/index.html`. Governing law is the Commonwealth of Pennsylvania, USA. |
+| Privacy policy URL | https://khaidarsafarov-droid.github.io/MyFinance/privacy/ (GitHub Pages, `docs/privacy/index.html`). The old rentry page is outdated (it still describes Google Drive). |
+| Terms of use URL (if asked) | https://khaidarsafarov-droid.github.io/MyFinance/release/terms/ (`docs/release/terms/index.html`). Governing law is the Commonwealth of Pennsylvania, USA. |
 
 Support email on the policy and this worksheet: `truckorig@gmail.com`.
 
@@ -28,20 +28,23 @@ The field-by-field sheet is `truckerload/store/google-play/DATA_SAFETY.md`. The 
 | Question | Answer |
 | --- | --- |
 | Does your app collect or share any of the required user data types? | **Yes** |
-| Privacy policy URL | **TODO for K S:** paste the hosted URL after it matches `PRIVACY_POLICY.md` dated 23 November 2026. The live rentry page is stale until you paste it. |
+| Privacy policy URL | https://khaidarsafarov-droid.github.io/MyFinance/privacy/ (GitHub Pages). Do not use the old rentry page. |
+| Delete data URL | https://khaidarsafarov-droid.github.io/MyFinance/delete-data/ |
+| Account creation methods | **My app does not allow users to create an account** |
+| Can users log in with accounts created outside the app? | **No** (Google Sign-In removed in 1.6.2) |
 
 Why Yes:
 
 - The journal stays on the device (SQLCipher / Room). Android auto-backup is off. There is no TruckoRig backend.
 - Google Maps SDK and ML Kit send diagnostics, identifiers, and (for Maps) SDK crash metrics to Google. That is collection under Play’s SDK rule. Directions API is not called.
-- Precise and approximate location are collected as ephemeral fused-location plus geocoder lookups when the user allows location: for the photo stamp, and to prefill the diesel station or address. Photo GPS, date, and time stay on the device on purpose. The map does not use the driver’s GPS. Photo files and photo GPS records are not in the Drive JSON.
-- Drive backup, Telegram, the share sheet, and Play card data are not ticked. The exemptions and the “if a review rejects this” fallback are in `DATA_SAFETY.md`.
+- Precise and approximate location are collected as ephemeral fused-location plus geocoder lookups when the user allows location: for the photo stamp, and to prefill the diesel station or address. Photo GPS, date, and time stay on the device on purpose. The map does not use the driver’s GPS. 
+- Telegram, the share sheet, backup files, and Play card data are not ticked. Google Drive sync and Google Sign-In were removed in 1.6.2, so Email address is not ticked. The exemptions and the “if a review rejects this” fallback are in `DATA_SAFETY.md`.
 - Firebase Crashlytics is not in debug or release, even if `google-services.json` is present. The Crash logs row is still Yes because of the Maps SDK, not because of Firebase.
 
 ### Other declarations
 
 - Is all collected user data encrypted in transit? **Yes** (HTTPS). Cleartext is blocked.
-- Users can request that data be deleted? **Yes** — in-app account delete, clear storage, uninstall, or `truckorig@gmail.com`. The Drive copy is a hidden app-data file; disconnect does not delete it.
+- Users can request that data be deleted? **Yes** — in-app “Delete all data”, clear storage, uninstall, or `truckorig@gmail.com`. Steps: https://khaidarsafarov-droid.github.io/MyFinance/delete-data/
 - Independent security review? **No**.
 - Play Families / designed for children? **No**.
 
@@ -52,11 +55,11 @@ Declare as required by the current Play forms, purpose **App functionality**:
 | Permission / form | Answer |
 | --- | --- |
 | Camera | Yes, used to capture load photos and document scans, only when the user takes or picks a picture. Not required for the core journal. |
-| Photos / videos | On-device. GPS, date, and time are kept on purpose (watermark and photo record). The Drive JSON does not include the image files. They leave the device only if the user shares or exports that file. |
+| Photos / videos | On-device. GPS, date, and time are kept on purpose (watermark and photo record). Backup files include them only when the user saves a backup. They leave the device only if the user shares or exports that file. |
 | Location | **Foreground only.** Photo geotag and prefilling the diesel station or address. The map does **not** use the driver’s GPS. The manifest does **not** request `ACCESS_BACKGROUND_LOCATION`. Approximate and precise location may both be requested. Optional; denying it does not block the journal. |
 | Notifications | Reminders (loads, maintenance, trial) and optional Telegram status. |
 | Foreground service | **Do not declare a data-sync FGS.** The current manifest removes `FOREGROUND_SERVICE` and `FOREGROUND_SERVICE_DATA_SYNC`. Telegram import no longer uses a persistent notification (see 1.5.11 notes). |
-| Internet / Billing | Used for optional Drive, Telegram, maps, and Play subscription checks. |
+| Internet / Billing | Used for optional Telegram, maps, ML Kit, and Play subscription checks. |
 
 ---
 
@@ -102,7 +105,7 @@ Answer about what users can see or do **in the app**, including optional feature
 | Horror / fear themes | **No** | |
 | Can users interact or exchange messages **with other TruckoRig users** inside the app? | **No** | There is no in-app chat, comments, friends list, or live map of other drivers. `SocialNavGraph` is the local Profile tab only. Crowd RPM publish is hard-denied. |
 | Can users share their location with other users? | **No** | Location is for the photo stamp and for prefilling the diesel place field, not for sharing with other users. The map does not use the driver’s GPS. |
-| Unrestricted internet / open web browser? | **No** | No in-app open web browser. Maps, Drive, Telegram, and Play billing are specific features. |
+| Unrestricted internet / open web browser? | **No** | No in-app open web browser. Maps, Telegram, and Play billing are specific features. |
 | Digital goods or in-app purchases? | **Yes** | Auto-renewing subscription `premium_monthly_subscription`. First month free, then the store price ($2.99/month in the US). |
 | Users can purchase physical goods? | **No** | |
 | Age-restricted products (alcohol, tobacco, etc.)? | **No** | |
@@ -129,7 +132,7 @@ First launch can take an optional name or skip it; the journal then opens a loca
 | News app? | **No** |
 | COVID-19? | **No** |
 | Financial features | This is a **personal work journal**, not banking, money transfer, lending, credit, crypto, or a brokerage. Declare the subscription under **Monetize → Subscriptions**, not as a financial product. If Console asks about “personal loan / banking / crypto,” answer **No**. If it asks whether users can record income and expenses, describe it as an on-device logbook only. |
-| Data safety / account deletion | No developer-held account. Deletion is uninstall / clear storage, plus the user’s own Drive file if they made one. |
+| Data safety / account deletion | No developer-held account. Deletion is “Delete all data”, uninstall, or clear storage, plus any backup files the user saved. |
 | Trader status (EU/UK) | **TODO for K S.** Complete this in Console before 1 February 2027. You are publishing as an individual (Khaidar Safarov), not an organization, unless you later enroll as an LLC. |
 | Closed testing | Internal testing does **not** satisfy the 14-day / 12-tester rule for new personal accounts. Start **Closed testing** when you are ready; this worksheet does not start it for you. |
 
@@ -143,7 +146,7 @@ Play Console → Monetize → Products → Subscriptions. The app cannot set the
 | --- | --- |
 | Product ID | `premium_monthly_subscription` (cannot be changed later) |
 | Name | TruckoRig Premium |
-| Description | First month free, then monthly Premium: Telegram, analytics, weekly goal, map, taxes, scanner, camera, export, Drive backup. Loads, diesel, paychecks, and deadhead stay free. |
+| Description | First month free, then monthly Premium: Telegram, analytics, weekly goal, map, taxes, scanner, camera, export. Loads, diesel, paychecks, and deadhead stay free. |
 | Base plan ID | `monthly` |
 | Type | Auto-renewing, billing period 1 month |
 | Price | **USD 2.99**; let Play convert other countries, or set them yourself |
@@ -158,15 +161,15 @@ Activate the offer, the base plan, and the subscription. License testers: add yo
 
 Repo files live in `truckerload/store/google-play/listing/`. Fix these when you paste into Console:
 
-1. **Title length.** Play’s limit is **30**. The en-US title is **decided:** `TruckoRig: Driver Logbook` (25 characters). The current repo EN title is 40 characters and the current RU title is 31; the suggested RU title is in the table.
-2. **Getting started** in the full description still says “Sign in with Google or continue with email.” That is outdated. Journal login is a local first-run name; Google is only for optional Drive backup.
+1. **Title length.** Play’s limit is **30**. The en-US title is **decided:** `TruckoRig: Driver Logbook` (25 characters). The RU title is `TruckoRig: журнал водителя` (26 characters).
+2. **Getting started** is fixed in the repo listing files: no sign-in, local first-run name, backup to a file. Google Drive sync was removed in 1.6.2.
 
 ### Title (max 30)
 
 | Locale | Paste this | Length | Status |
 | --- | --- | --- | --- |
 | en-US | `TruckoRig: Driver Logbook` | 25 | Decided |
-| ru-RU | `TruckoRig — журнал водителя` | 27 | Suggested |
+| ru-RU | `TruckoRig: журнал водителя` | 26 | Decided |
 
 ### Short description (max 80) — existing text is within the limit
 
@@ -177,71 +180,63 @@ Repo files live in `truckerload/store/google-play/listing/`. Fix these when you 
 ### Full description — EN (corrected)
 
 ```
-TruckoRig is a local-first logbook for truck drivers. Keep loads, paychecks, diesel, and weekly goals on your phone — with optional Telegram import and Google Drive backup.
+TruckoRig is a local logbook for truck drivers. Loads, paychecks, diesel, and weekly goals are stored only on your phone. No account, no sign-in.
 
 WHAT YOU CAN DO
-• Paste or forward Amazon Relay / broker load messages and save them to your journal
+• Paste or forward Amazon Relay / broker load messages into your journal
 • Track paychecks and diesel receipts in one place
-• Set a weekly profit goal and see pace at a glance
-• Scan documents and attach photos to loads
-• Home-screen widgets for quick diesel / camera / scan actions
-• Optional Telegram bot on the device to import chat history
-• Optional Google Drive backup (you stay in control)
+• Set a weekly profit goal and see your pace at a glance
+• Scan documents and attach photos to loads, stamped with place, date, and time
+• Home-screen widgets: quick diesel / camera / scan
+• Optional Telegram bot on the device (import chat history)
+• Backup to a file that you keep yourself
 
 SUBSCRIPTION
 The app is free to install. Loads, diesel, and paychecks stay free.
-TruckoRig Premium is optional: the first month is free, then Google Play charges $2.99 per month in the United States (the price can differ by country). Premium includes Telegram import, analytics, the weekly goal, the map, taxes, scanner, camera, export, and Drive backup. Loads, diesel, paychecks, and deadhead miles stay free. It renews every month until you cancel in Google Play → Payments and subscriptions.
+TruckoRig Premium is optional: the first month is free, then Google Play charges $2.99 per month in the United States (the price can differ by country). Premium includes Telegram import, analytics, the weekly goal, the map, taxes, scanner, camera, and export. It renews every month until you cancel in Google Play → Payments and subscriptions.
 
-PRIVACY BY DESIGN
-• Journal data lives in an on-device database
-• Drive backup and Telegram are optional — turn them on only if you need them
-• Camera and location are used when you take geotagged photos or add a diesel fill (to prefill the place). The map does not use your GPS
-• No ads. No selling of load data
-• Google or email sign-in is not required to use the journal
+PRIVACY
+• Your data is only yours: the journal stays on your phone, we never see it and never share it
+• No developer cloud: you keep the backup file yourself
+• Camera and location are used only for the photo stamp (place, date, time) and to prefill the place of a diesel fill. The map does not use your GPS
+• No ads. We don't sell data
 
 GETTING STARTED
-1. Enter a name on first launch, or skip
-2. Add your first load (paste a Relay message or enter it manually)
-3. Optionally link Telegram or Google Drive in Settings
+1. Add your first load (paste a Relay message or enter it manually)
+2. Optionally connect Telegram in Settings
 
-Support: in-app Settings feedback, or truckorig@gmail.com
-
-Package: com.truckorig
+Support and suggestions: truckorig@gmail.com
 ```
 
 ### Full description — RU (corrected)
 
 ```
-TruckoRig — локальный журнал для водителей. Лоуды, зарплаты, дизель и недельные цели на телефоне; по желанию — импорт из Telegram и бэкап в Google Drive.
+TruckoRig — локальный журнал для водителей. Лоуды, зарплаты, дизель и недельные цели хранятся только на вашем телефоне.
 
 ЧТО УМЕЕТ
 • Вставка или пересылка сообщений Amazon Relay / брокера в журнал
 • Учёт зарплат и чеков на дизель в одном месте
 • Недельная цель по прибыли и наглядный темп
-• Сканер документов и фото к лоудам
+• Сканер документов и фото к лоудам со штампом места, даты и времени
 • Виджеты: быстрый дизель / камера / скан
 • Опциональный Telegram-бот на устройстве (импорт истории чата)
-• Опциональный бэкап в Google Drive
+• Резервная копия в файл, которую вы храните сами
 
 ПОДПИСКА
 Приложение бесплатно в установке. Грузы, дизель и зарплаты остаются бесплатными.
-TruckoRig Premium — по желанию: первый месяц бесплатно, затем Google Play списывает 2,99 $ в месяц в США (в других странах цена может отличаться). В Premium входят импорт из Telegram, аналитика, недельная цель, карта, налоги, сканер, камера, экспорт и копия в Drive. Грузы, дизель, зарплаты и deadhead остаются бесплатными. Подписка продлевается каждый месяц, пока вы не отмените её в Google Play → Платежи и подписки.
+TruckoRig Premium — по желанию: первый месяц бесплатно, затем Google Play списывает 2,99 $ в месяц в США (в других странах цена может отличаться). В Premium входят импорт из Telegram, аналитика, недельная цель, карта, налоги, сканер, камера и экспорт. Подписка продлевается каждый месяц, пока вы не отмените её в Google Play → Платежи и подписки.
 
 ПРИВАТНОСТЬ
-• Данные журнала хранятся локально
-• Drive и Telegram включаются только по вашему желанию
-• Камера и геолокация — только для геотега фото и карты
-• Без рекламы. Данные лоудов не продаём
-• Вход через Google или email для журнала не требуется
+• Ваши данные — только ваши: журнал хранится на телефоне, мы его не видим и никому не передаём
+• Без облака разработчика: копию в файл вы храните сами
+• Камера и геолокация — только для штампа на фото и карты
+• Без рекламы. Данные не продаём
 
 СТАРТ
-1. Укажите имя при первом запуске или пропустите шаг
-2. Добавьте первый лоуд (вставьте сообщение Relay или введите вручную)
-3. При необходимости подключите Telegram или Drive в Настройках
+1. Добавьте первый лоуд (вставьте сообщение Relay или введите вручную)
+2. При желании подключите Telegram в Настройках
 
-Поддержка: обратная связь в Настройках или truckorig@gmail.com
-
-Пакет: com.truckorig
+Поддержка и предложения: truckorig@gmail.com.
 ```
 
 Graphics: `play-store-assets/` and `truckerload/store/google-play/` (icon 512, feature graphic 1024×500, phone and tablet screenshots). Upload map is in `truckerload/store/google-play/README.md`.

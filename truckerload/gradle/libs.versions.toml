@@ -32,7 +32,6 @@ googleServices = "4.5.0"
 firebaseCrashlyticsGradle = "3.0.7"
 securityCrypto = "1.1.0"
 biometric = "1.1.0"
-playServicesAuth = "21.2.0"
 playServicesMaps = "20.1.0"
 playServicesLocation = "21.3.0"
 playServicesBase = "18.5.0"
@@ -118,7 +117,6 @@ firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.r
 firebase-crashlytics = { group = "com.google.firebase", name = "firebase-crashlytics" }
 androidx-security-crypto = { group = "androidx.security", name = "security-crypto", version.ref = "securityCrypto" }
 androidx-biometric = { group = "androidx.biometric", name = "biometric", version.ref = "biometric" }
-play-services-auth = { group = "com.google.android.gms", name = "play-services-auth", version.ref = "playServicesAuth" }
 play-services-maps = { group = "com.google.android.gms", name = "play-services-maps", version.ref = "playServicesMaps" }
 play-services-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "playServicesLocation" }
 play-services-base = { group = "com.google.android.gms", name = "play-services-base", version.ref = "playServicesBase" }

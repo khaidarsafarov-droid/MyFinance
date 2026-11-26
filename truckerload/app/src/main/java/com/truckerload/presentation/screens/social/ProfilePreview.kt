@@ -62,10 +62,9 @@ internal fun ProfileStylePreview(
                     onClick = {},
                 )
                 ProfileNavRow(
-                    icon = AppIcons.CloudStorage,
-                    title = stringResource(R.string.drive_sync_title),
-                    subtitle = stringResource(R.string.profile_drive_never),
-                    premiumLocked = !subscribed,
+                    icon = AppIcons.Backup,
+                    title = stringResource(R.string.settings_row_backup),
+                    subtitle = stringResource(R.string.settings_row_backup_subtitle),
                     onClick = {},
                 )
             }

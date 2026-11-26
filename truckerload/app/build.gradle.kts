@@ -62,8 +62,8 @@ android {
         applicationId = "com.truckorig"
         minSdk = 24
         targetSdk = 36
-        versionCode = 19
-        versionName = "1.6.1"
+        versionCode = 20
+        versionName = "1.6.2"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         val localProps = Properties()
         rootProject.file("local.properties").takeIf { it.exists() }?.inputStream()?.use { stream ->
@@ -85,14 +85,6 @@ android {
         // Also set on each variant below. defaultConfig covers AGP 9 unit-test manifest merge,
         // which does not inherit placeholders the Secrets plugin adds only on the main variant.
         manifestPlaceholders["MAPS_API_KEY"] = resolveMapsApiKey()
-        val googleDriveApiKey = (
-            System.getenv("GOOGLE_DRIVE_API_KEY")
-                ?: localProps.getProperty("GOOGLE_DRIVE_API_KEY", "")
-            )
-            .trim()
-            .replace("\\", "\\\\")
-            .replace("\"", "\\\"")
-        buildConfigField("String", "GOOGLE_DRIVE_API_KEY", "\"$googleDriveApiKey\"")
         // Optional separate key for Directions REST. The map screen does not call Directions.
         val googleDirectionsApiKey = localProps.getProperty("GOOGLE_DIRECTIONS_API_KEY", "")
             .replace("\\", "\\\\")
@@ -289,7 +281,7 @@ dependencies {
     // Gson (backup codec)
     implementation(libs.gson)
 
-    // OkHttp (Telegram Bot API + Google Drive).
+    // OkHttp (Telegram Bot API).
     implementation(libs.okhttp)
     implementation(libs.okhttp.logging)
 
@@ -305,8 +297,6 @@ dependencies {
     // Biometric unlock (email accounts)
     implementation(libs.androidx.biometric)
 
-    // Google Sign-In (Drive app-data backup only; app identity is local)
-    implementation(libs.play.services.auth)
     implementation(libs.billing.ktx)
 
     // Google Maps (free-tier Maps SDK; friends map routes use OSRM, not Directions API)
@@ -398,7 +388,7 @@ tasks.named("check").configure {
  */
 tasks.register("verifyReleaseSecretsEmpty") {
     group = "verification"
-    description = "Ensures release BuildConfig has no Telegram token or hardcoded Drive API key"
+    description = "Ensures release BuildConfig has no Telegram token or hardcoded Google API key"
     dependsOn("generateReleaseBuildConfig")
     doLast {
         val buildConfig = layout.buildDirectory.file(
@@ -459,22 +449,10 @@ tasks.register("verifyReleaseSecretsEmpty") {
         }
         check(!Regex("""AIza[0-9A-Za-z_\-]{10,}""").containsMatchIn(gradleSource)) {
             "build.gradle.kts must not hardcode a Google API key. " +
-                "Set GOOGLE_DRIVE_API_KEY in local.properties or the environment."
+                "Set MAPS_API_KEY in local.properties or the environment."
         }
-        val suppliedDriveKey = (
-            System.getenv("GOOGLE_DRIVE_API_KEY")
-                ?: rootProject.file("local.properties").takeIf { it.exists() }?.let { propsFile ->
-                    val props = Properties()
-                    propsFile.inputStream().use { props.load(it) }
-                    props.getProperty("GOOGLE_DRIVE_API_KEY")
-                }
-            ).orEmpty().trim()
-        val driveKey = fieldValue("GOOGLE_DRIVE_API_KEY")
-        check(driveKey == suppliedDriveKey.replace("\\", "\\\\").replace("\"", "\\\"")) {
-            "Release GOOGLE_DRIVE_API_KEY does not match local.properties or GOOGLE_DRIVE_API_KEY env"
-        }
-        check(suppliedDriveKey.isNotBlank() || driveKey.isEmpty()) {
-            "Release BuildConfig contains a Drive API key that is not supplied outside the repo"
+        check(!gradleSource.contains("libs.play.services." + "auth")) {
+            "Google Sign-In was removed (no account sync); do not add play-services-auth back"
         }
         check(manifest.contains("android:value=\"\${MAPS_API_KEY}\"")) {
             "AndroidManifest must expose the Maps SDK key as \${MAPS_API_KEY}"
@@ -501,7 +479,7 @@ tasks.register("verifyReleaseSecretsEmpty") {
         }
         logger.lifecycle(
             "verifyReleaseSecretsEmpty: OK (telegram empty; LOCAL_ONLY_MODE false; " +
-                "Drive key not hardcoded; Maps key only from env or local.properties; " +
+                "no Google Sign-In; Maps key only from env or local.properties; " +
                 "minify, backup, cleartext, and schema export unchanged)",
         )
     }

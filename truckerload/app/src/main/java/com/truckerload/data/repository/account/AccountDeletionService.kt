@@ -3,7 +3,6 @@ package com.truckerload.data.repository.account
 import android.app.ActivityManager
 import android.content.Context
 import com.truckerload.data.local.AppDatabase
-import com.truckerload.data.preferences.AuthCredentialsStore
 import com.truckerload.data.preferences.AuthStore
 import com.truckerload.data.preferences.ConsentStore
 import com.truckerload.data.preferences.RegistrationProgressStore
@@ -29,7 +28,6 @@ class AccountDeletionService(
     private val progressStore: RegistrationProgressStore,
     private val userProfileStore: UserProfileStore,
     private val authStore: AuthStore,
-    private val credentialsStore: AuthCredentialsStore,
 ) {
     /**
      * In-memory / testable wipe of identity + journal tables without closing the process session.
@@ -46,17 +44,13 @@ class AccountDeletionService(
 
     /**
      * Erases everything the app stores on this device. The system wipe also covers the
-     * Telegram token, Drive link, photos/scans, alarms and WorkManager jobs, and kills the
+     * Telegram token, photos/scans, alarms and WorkManager jobs, and kills the
      * process. The manual path below only runs when the system refuses the wipe.
      */
     suspend fun deleteAccountAndSignOut() {
-        val email = authStore.email.value
         cascadeDeleteLocalTables()
         val activityManager = context.getSystemService(ActivityManager::class.java)
         if (activityManager?.clearApplicationUserData() == true) return
-        if (email.isNotBlank()) {
-            runCatching { credentialsStore.clearCredentials(email) }
-        }
         TelegramTokenStore(context, userId).clearToken()
         deleteMediaFiles()
         AppDatabase.closeCurrent()

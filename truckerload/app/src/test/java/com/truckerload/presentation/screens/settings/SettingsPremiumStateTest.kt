@@ -3,12 +3,8 @@ package com.truckerload.presentation.screens.settings
 import com.truckerload.R
 import com.truckerload.domain.premium.PremiumFeature
 import com.truckerload.domain.premium.PremiumOfferQuote
-import java.time.ZoneId
-import java.time.ZonedDateTime
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
-import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class SettingsPremiumStateTest {
@@ -71,24 +67,6 @@ class SettingsPremiumStateTest {
         assertEquals(labels.size, labels.toSet().size)
         assertEquals(R.string.settings_premium_feature_telegram, labels.first())
         assertEquals(R.string.settings_premium_feature_export, labels.last())
-    }
-
-    @Test
-    fun syncMoment_todayVersusAnotherDay() {
-        val zone = ZoneId.of("America/New_York")
-        val now = ZonedDateTime.of(2026, 10, 18, 15, 4, 0, 0, zone).toInstant().toEpochMilli()
-        val today = ZonedDateTime.of(2026, 10, 18, 9, 41, 0, 0, zone).toInstant().toEpochMilli()
-        val moment = SettingsPremiumState.syncMoment(today, now, zone)
-        assertTrue(moment!!.isToday)
-        assertEquals("09:41", moment.clock)
-        assertEquals("18.10.2026 09:41", moment.dateTime)
-
-        val earlier = ZonedDateTime.of(2026, 10, 17, 9, 41, 0, 0, zone).toInstant().toEpochMilli()
-        val other = SettingsPremiumState.syncMoment(earlier, now, zone)
-        assertFalse(other!!.isToday)
-        assertEquals("17.10.2026 09:41", other.dateTime)
-        assertNull(SettingsPremiumState.syncMoment(0L, now, zone))
-        assertNull(SettingsPremiumState.syncMoment(-1L, now, zone))
     }
 
     @Test

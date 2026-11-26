@@ -200,7 +200,7 @@ GETTING STARTED
 Support: truckorig@gmail.com
 ```
 
-A Russian (and Spanish / French) localization can use the same structure; RU Play copy is in `PLAY_CONSOLE_ANSWERS.md` and can be adapted (replace Drive with iCloud, Google Play with App Store). **TODO for K S:** decide whether to upload RU / ES / FR store localizations in the first submission (the app already localizes UI to EN, ES, FR, and RU).
+A Russian (and Spanish / French) localization can use the same structure; RU Play copy is in `PLAY_CONSOLE_ANSWERS.md` and can be adapted (replace the backup-file lines with iCloud, Google Play with App Store). **TODO for K S:** decide whether to upload RU / ES / FR store localizations in the first submission (the app already localizes UI to EN, ES, FR, and RU).
 
 ### Keywords (100, no trailing comma)
 

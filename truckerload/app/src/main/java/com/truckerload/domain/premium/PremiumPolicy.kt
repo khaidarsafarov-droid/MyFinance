@@ -12,7 +12,6 @@ enum class PremiumFeature {
     SCANNER,
     CAMERA,
     EXPORT,
-    DRIVE,
 }
 
 data class PremiumStatus(

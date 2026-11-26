@@ -4,7 +4,6 @@ import android.content.Context
 import com.truckerload.data.local.AppDatabase
 import com.truckerload.data.local.entities.DriverProfessionalEntity
 import com.truckerload.data.local.entities.LoadEntity
-import com.truckerload.data.preferences.AuthCredentialsStore
 import com.truckerload.data.preferences.AuthStore
 import com.truckerload.data.preferences.ConsentStore
 import com.truckerload.data.preferences.RegistrationProgressStore
@@ -83,7 +82,6 @@ class AccountRegistrationPrivacyTest {
             progressStore = progressStore,
             userProfileStore = userProfileStore,
             authStore = AuthStore(context),
-            credentialsStore = AuthCredentialsStore(context),
         )
     }
 

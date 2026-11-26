@@ -5,7 +5,6 @@ import android.database.sqlite.SQLiteException
 import android.util.Log
 import com.google.gson.JsonIOException
 import com.google.gson.JsonSyntaxException
-import com.truckerload.data.backup.GoogleDriveApiClient.DriveError
 import com.truckerload.domain.import.model.ImportException
 import kotlinx.coroutines.CancellationException
 import org.json.JSONException
@@ -25,8 +24,6 @@ inline fun <T> runReported(
     } catch (e: CancellationException) {
         throw e
     } catch (e: ImportException) {
-        return onFailure(e)
-    } catch (e: DriveError) {
         return onFailure(e)
     } catch (e: SQLiteException) {
         return onFailure(e)
@@ -60,8 +57,6 @@ suspend inline fun <T> runReportedSuspending(
     } catch (e: CancellationException) {
         throw e
     } catch (e: ImportException) {
-        return onFailure(e)
-    } catch (e: DriveError) {
         return onFailure(e)
     } catch (e: SQLiteException) {
         return onFailure(e)

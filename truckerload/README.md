@@ -1,8 +1,9 @@
 # TruckoRig
 
 TruckoRig is a native Android trucking journal built with Kotlin, Jetpack Compose,
-Room, and WorkManager. The journal, Telegram bot, and Google Drive backup all run
-on the device. There is no product backend or Supabase service.
+Room, and WorkManager. The journal, Telegram bot, and backup to a file all run
+on the device. There are no accounts, no sign-in, and no cloud sync (Google
+Drive sync and Google Sign-In were removed in 1.6.2). There is no product backend or Supabase service.
 
 The repository contains:
 
@@ -60,35 +61,34 @@ passphrase is stored on disk. The first open of an older plaintext database
 copies it with `sqlcipher_export`. If that copy fails, the original file is
 left in place.
 
-Google Drive backup does not upload the database file. It exports decrypted
-rows as JSON and restores them through Room into the encrypted database.
+A backup file does not contain the database file. It exports decrypted rows
+as JSON (zipped with photos and scans) and restores them through Room into the
+encrypted database.
 
-## Google Drive API key
+## Google Drive (removed)
 
-Drive backup reads `GOOGLE_DRIVE_API_KEY` from the environment or from gitignored
-`local.properties`. The fallback in the build is empty. When the key is empty,
-Settings shows that backup is unavailable and the app does not call Drive.
-
-The key that used to be committed must be rotated by hand in
-[Google Cloud Console](https://console.cloud.google.com/apis/credentials).
-Restrict the new key to Android package `com.truckorig` plus the app signing
-SHA-1, and to the Drive API only. Do not commit the new key.
+1.6.2 removed Google Drive sync, Google Sign-In (`play-services-auth`), and the
+`GOOGLE_DRIVE_API_KEY` build field. On first start after the update the app
+cancels the old Drive worker and wipes the Drive link and sign-in prefs
+(`RemovedDriveSyncCleanup`). The old Drive API key and the Android OAuth client
+in Google Cloud project 253720408597 are no longer used; delete or disable them
+in [Google Cloud Console](https://console.cloud.google.com/apis/credentials).
 
 ## Configuration and operations
 
 - [Target architecture](docs/TARGET_ARCHITECTURE.md)
 - [KMP / iOS client](docs/KMP_IOS_ROADMAP.md)
 - [Crash reporting is off](docs/ANDROID_FIREBASE_SETUP.md)
-- [Local auth / Drive backup](docs/AUTH_GOOGLE.md)
+- [Local identity (no accounts)](docs/AUTH_GOOGLE.md)
 
 ## Android capabilities
 
 - Local journal, diesel, paychecks, goals, and analytics
 - ML Kit document scanner and Latin OCR, with Tesseract `rus+eng`
 - Geotagged camera, gallery, PDFs, and load attachments
-- Local first-run name screen (`local_dev` journal); optional Google Drive backup
+- Local first-run name screen (`local_dev` journal); no accounts or sign-in
 - On-device Telegram bot (not a foreground service)
-- Optional Google Drive backup of the local journal
+- Backup to a file (zip with journal and media) through the Android file picker
 - No Firebase Crashlytics, even if `app/google-services.json` is present
 
 ML Kit document scanning requires Google Play Services on a physical device. The

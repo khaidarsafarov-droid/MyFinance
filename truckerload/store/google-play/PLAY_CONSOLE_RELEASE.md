@@ -84,7 +84,7 @@ Play Console → **Monetize** → **Products** → **Subscriptions** → **Creat
 | --- | --- |
 | Product ID | `premium_monthly_subscription` (cannot be changed later) |
 | Name | TruckoRig Premium |
-| Description | First month free, then monthly Premium: Telegram, analytics, weekly goal, map, taxes, scanner, camera, export, Drive backup. Deadhead stays free. |
+| Description | First month free, then monthly Premium: Telegram, analytics, weekly goal, map, taxes, scanner, camera, export. Deadhead stays free. |
 
 **Base plan** (Add base plan):
 

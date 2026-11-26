@@ -3,9 +3,6 @@ package com.truckerload.presentation.screens.social
 import com.truckerload.domain.premium.PremiumOfferQuote
 import com.truckerload.presentation.components.RpmTier
 import com.truckerload.presentation.components.rpmTier
-import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 enum class ProfileRpmChip {
@@ -62,16 +59,8 @@ object ProfileHeroState {
         return ProfilePremiumModel(phase, price)
     }
 
-    /** dd.MM.yyyy HH:mm, or null when Drive has never synced. */
-    fun driveSyncStamp(lastSyncAtMillis: Long, zone: ZoneId): String? {
-        if (lastSyncAtMillis <= 0L) return null
-        return Instant.ofEpochMilli(lastSyncAtMillis).atZone(zone).format(STAMP)
-    }
-
     private fun firstLetter(value: String): String? {
         val letter = value.trim().firstOrNull { it.isLetter() } ?: return null
         return letter.uppercase(Locale.ROOT)
     }
-
-    private val STAMP: DateTimeFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm", Locale.US)
 }

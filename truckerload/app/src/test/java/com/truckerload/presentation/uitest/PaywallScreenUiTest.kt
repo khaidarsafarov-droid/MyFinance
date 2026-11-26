@@ -134,7 +134,6 @@ class PaywallScreenUiTest {
         R.string.premium_feature_scanner_title to R.string.premium_feature_scanner_benefit,
         R.string.premium_feature_camera_title to R.string.premium_feature_camera_benefit,
         R.string.premium_feature_export_title to R.string.premium_feature_export_benefit,
-        R.string.premium_feature_drive_title to R.string.premium_feature_drive_benefit,
     )
 
     private fun scrollIntoView(text: String) {

@@ -170,6 +170,17 @@ class AuthStore internal constructor(
         }
     }
 
+    /**
+     * Drops the Google ID token kept from the old Google login. Nothing reads it since
+     * Google Sign-In was removed. The account id and journal are not affected.
+     */
+    fun clearGoogleIdToken() {
+        synchronized(lock) {
+            liveGoogleIdToken = null
+            openPrefsOnce(appContext).edit(commit = true) { remove(KEY_GOOGLE_ID_TOKEN) }
+        }
+    }
+
     fun updateTokens(accessToken: String?, refreshToken: String?) {
         val writeSecrets = (!accessToken.isNullOrBlank() || !refreshToken.isNullOrBlank()) &&
             !SecurePreferences.plaintextFallbackUsed

@@ -281,5 +281,4 @@ private fun PremiumFeature.lockedMessage(): Int = when (this) {
     PremiumFeature.SCANNER -> R.string.premium_locked_scanner
     PremiumFeature.CAMERA -> R.string.premium_locked_camera
     PremiumFeature.EXPORT -> R.string.premium_locked_export
-    PremiumFeature.DRIVE -> R.string.premium_locked_drive
 }
