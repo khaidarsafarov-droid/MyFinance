@@ -17,34 +17,37 @@ import androidx.glance.text.TextStyle
  * when the string already fits; only a long value such as "245% de l'objectif"
  * steps down. Glance multiplies sp by fontScale, so measurement uses scaled density.
  */
-internal fun goalLineSp(
-    text: String,
-    availableDp: Float,
-    defaultSp: Float,
-    density: Float,
-    scaledDensity: Float,
-): Float {
-    if (text.isEmpty() || availableDp <= 1f || defaultSp <= 0f || density <= 0f) return defaultSp
-    val budget = (availableDp - SAFETY_DP).coerceAtLeast(1f)
-    val atDefault = goalLineWidthDp(text, defaultSp, density, scaledDensity)
-    if (atDefault <= budget) return defaultSp
-    var sp = defaultSp * budget / atDefault
-    repeat(4) {
+internal fun goalLineSp(text: String, widthDp: Float, defaultSp: Float, density: Float, scaled: Float): Float {
+    if (!canMeasure(text, widthDp, defaultSp, density)) return defaultSp
+    val budget = (widthDp - SAFETY_DP).coerceAtLeast(MIN_TEXT_SP)
+    val atDefault = goalLineWidthDp(text, defaultSp, density, scaled)
+    return if (atDefault <= budget) {
+        defaultSp
+    } else {
+        shrinkSp(text, defaultSp * budget / atDefault, budget, density, scaled)
+    }
+}
+
+private fun canMeasure(text: String, widthDp: Float, defaultSp: Float, density: Float): Boolean =
+    text.isNotEmpty() && widthDp > MIN_TEXT_SP && defaultSp > 0f && density > 0f
+
+private fun shrinkSp(text: String, startSp: Float, budget: Float, density: Float, scaledDensity: Float): Float {
+    var sp = startSp
+    repeat(FIT_PASSES) {
         val width = goalLineWidthDp(text, sp, density, scaledDensity)
         if (width <= budget) return sp
         sp *= budget / width
     }
-    val width = goalLineWidthDp(text, sp, density, scaledDensity)
-    if (width > budget && width > 0f) sp *= budget / width
-    return sp.coerceAtLeast(1f)
+    return finishShrink(text, sp, budget, density, scaledDensity)
 }
 
-internal fun goalLineWidthDp(
-    text: String,
-    textSp: Float,
-    density: Float,
-    scaledDensity: Float,
-): Float {
+private fun finishShrink(text: String, sp: Float, budget: Float, density: Float, scaledDensity: Float): Float {
+    val width = goalLineWidthDp(text, sp, density, scaledDensity)
+    val fitted = if (width > budget && width > 0f) sp * budget / width else sp
+    return fitted.coerceAtLeast(MIN_TEXT_SP)
+}
+
+internal fun goalLineWidthDp(text: String, textSp: Float, density: Float, scaledDensity: Float): Float {
     if (textSp <= 0f || density <= 0f) return 0f
     val paint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
         typeface = Typeface.create("sans-serif", Typeface.BOLD)
@@ -59,10 +62,10 @@ internal fun percentLineWidthDp(layout: CabinLayout, widgetWidthDp: Float): Floa
     if (layout.bucket != CabinBucket.MICRO) {
         return (widgetWidthDp - inner).coerceAtLeast(1f)
     }
-    val gaps = (layout.actionCount - 1).coerceAtLeast(0) * 8f
+    val gaps = (layout.actionCount - 1).coerceAtLeast(0) * ACTION_GAP_DP
     val actions = layout.actionCount * layout.actionBtnDp.value + gaps
     val outer = layout.paddingH.value * 2f
-    return (widgetWidthDp - outer - 8f - actions - inner).coerceAtLeast(1f)
+    return (widgetWidthDp - outer - MICRO_SPACER_DP - actions - inner).coerceAtLeast(MIN_TEXT_SP)
 }
 
 @Composable
@@ -91,3 +94,7 @@ internal fun FittedGoalLine(
 }
 
 private const val SAFETY_DP = 4f
+private const val MIN_TEXT_SP = 1f
+private const val FIT_PASSES = 4
+private const val ACTION_GAP_DP = 8f
+private const val MICRO_SPACER_DP = 8f

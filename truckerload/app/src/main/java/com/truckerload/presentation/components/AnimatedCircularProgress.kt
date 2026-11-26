@@ -143,4 +143,3 @@ fun AnimatedCircularProgress(
         }
     }
 }
-

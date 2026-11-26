@@ -1,8 +1,8 @@
 package com.truckerload.domain.goal
 
-import com.truckerload.domain.money.Money
-import com.truckerload.domain.model.Load
 import com.truckerload.domain.filter.LoadFilterUseCase
+import com.truckerload.domain.model.Load
+import com.truckerload.domain.money.Money
 import com.truckerload.utils.getCurrentWeekNumberAndYear
 import com.truckerload.utils.getDaysActiveForWeek
 import com.truckerload.utils.getDaysRemainingForWeek
@@ -22,15 +22,14 @@ object WeeklyGoalCalculator {
     }
 
     /** Gross per active day (PU → DEL durations, ceil, min 1 day per load). */
-    fun calculateDailyPace(weekLoads: List<Load>): Money =
-        LoadYieldCalculator.actualDailyYield(weekLoads)
+    fun calculateDailyPace(weekLoads: List<Load>): Money = LoadYieldCalculator.actualDailyYield(weekLoads)
 
     fun calculate(
         targetAmount: Money,
         weekLoads: List<Load>,
         weekNumber: Int,
         year: Int,
-        sqlYield: WeekYieldSnapshot? = null
+        sqlYield: WeekYieldSnapshot? = null,
     ): WeeklyGoalProgress {
         val totals = LoadFilterUseCase().calculateTotals(weekLoads)
         val loadGross = totals.totalRate
@@ -95,15 +94,12 @@ object WeeklyGoalCalculator {
             weekNumber = weekNumber,
             year = year,
             loadsCount = totals.loadCount,
-            totalMiles = totals.totalMiles
+            totalMiles = totals.totalMiles,
         )
     }
 
-    fun calculateCurrentWeek(
-        targetAmount: Money,
-        allLoads: List<Load>,
-        sqlYield: WeekYieldSnapshot? = null
-    ): WeeklyGoalProgress {
+    @Suppress("MaxLineLength")
+    fun calculateCurrentWeek(targetAmount: Money, allLoads: List<Load>, sqlYield: WeekYieldSnapshot? = null): WeeklyGoalProgress {
         val (weekNumber, year) = getCurrentWeekNumberAndYear()
         val weekLoads = allLoads.filter { isLoadInWeek(it, weekNumber, year) }
         return calculate(targetAmount, weekLoads, weekNumber, year, sqlYield)

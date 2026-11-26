@@ -26,12 +26,7 @@ import androidx.compose.ui.unit.sp
  * a long value such as "245% de l'objectif" would meet the pace caption.
  */
 @Composable
-internal fun GoalCaptionRow(
-    percentText: String,
-    expectedText: String,
-    color: Color,
-    modifier: Modifier = Modifier,
-) {
+internal fun GoalCaptionRow(percentText: String, expectedText: String, color: Color, modifier: Modifier = Modifier) {
     val base = MaterialTheme.typography.bodyMedium
     BoxWithConstraints(
         modifier
@@ -54,7 +49,7 @@ internal fun GoalCaptionRow(
             sizeSp > MIN_SP &&
             width(percentText, sizeSp, true) + width(expectedText, sizeSp, false) + gapPx > maxPx
         ) {
-            sizeSp -= 0.5f
+            sizeSp -= SIZE_STEP_SP
         }
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -94,3 +89,4 @@ internal fun GoalCaptionRow(
 }
 
 private const val MIN_SP = 9f
+private const val SIZE_STEP_SP = 0.5f

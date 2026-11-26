@@ -295,11 +295,7 @@ private fun GoalHeroBar(
 }
 
 @Composable
-private fun HeroTile(
-    label: String,
-    value: String,
-    modifier: Modifier = Modifier,
-) {
+private fun HeroTile(label: String, value: String, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
             .heightIn(min = 72.dp)

@@ -34,16 +34,12 @@ import com.truckerload.widget.glance.LocalCabinColors
 import com.truckerload.widget.glance.LocalWidgetSizeMode
 import com.truckerload.widget.glance.SplitCabinBody
 import com.truckerload.widget.glance.cabinLayoutFor
-import java.io.File
-import java.io.FileOutputStream
-import java.time.LocalDate
-import java.util.Locale
 import kotlinx.coroutines.CompletableDeferred
-import org.junit.Assert.assertEquals
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
+import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.Robolectric
@@ -51,6 +47,10 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
+import java.io.File
+import java.io.FileOutputStream
+import java.time.LocalDate
+import java.util.Locale
 
 /**
  * Renders the weekly-goal percent at 130% and 245% so the text can be compared
@@ -117,7 +117,9 @@ class GoalPercentScreenshotTest {
             "widget-130-$label.png",
         )
         println(
-            "GOAL130 percent=${progress.progressPercent} ring=${WidgetStatsFormatter.formatRingPercent(progress.progressPercent)} label=$label",
+            "GOAL130 percent=${progress.progressPercent} ring=${WidgetStatsFormatter.formatRingPercent(
+                progress.progressPercent,
+            )} label=$label",
         )
     }
 
@@ -229,11 +231,7 @@ class GoalPercentScreenshotTest {
         return base.createConfigurationContext(config)
     }
 
-    private fun captureCompose(
-        widthDp: Int,
-        heightDp: Int,
-        screen: @androidx.compose.runtime.Composable () -> Unit,
-    ): Bitmap {
+    private fun captureCompose(widthDp: Int, heightDp: Int, screen: @androidx.compose.runtime.Composable () -> Unit): Bitmap {
         val activity = Robolectric.buildActivity(ComponentActivity::class.java).setup().get()
         activity.setContent(content = screen)
         val decor = activity.window.decorView

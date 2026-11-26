@@ -3,11 +3,11 @@ package com.truckerload.widget
 import com.truckerload.domain.model.Load
 import com.truckerload.domain.model.Stop
 import com.truckerload.domain.model.StopType
+import com.truckerload.domain.money.Money
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.LocalDate
-import com.truckerload.domain.money.Money
 
 class WidgetDayProjectionTest {
 
@@ -243,12 +243,7 @@ class WidgetDayProjectionTest {
         assertTrue(WidgetDataStore.unpackDoubles("1,2").all { it == 0.0 })
     }
 
-    private fun load(
-        id: String,
-        date: String,
-        rate: Double,
-        miles: Double,
-    ) = Load(
+    private fun load(id: String, date: String, rate: Double, miles: Double) = Load(
         id = id,
         tripId = id,
         date = date,
@@ -265,14 +260,7 @@ class WidgetDayProjectionTest {
         updatedAt = 1L,
     )
 
-    private fun spanningLoad(
-        id: String,
-        puDate: String,
-        puTime: String,
-        delTime: String,
-        rate: Double,
-        miles: Double,
-    ) = Load(
+    private fun spanningLoad(id: String, puDate: String, puTime: String, delTime: String, rate: Double, miles: Double) = Load(
         id = id,
         tripId = id,
         date = puDate,

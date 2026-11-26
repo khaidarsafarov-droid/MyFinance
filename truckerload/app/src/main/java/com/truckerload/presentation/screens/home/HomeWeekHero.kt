@@ -6,7 +6,6 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -19,6 +18,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -260,64 +260,74 @@ private fun HomeGoalRing(percent: Float, onHero: Color, modifier: Modifier = Mod
         .replace("0%", "")
         .trim()
     Box(modifier = modifier.size(92.dp), contentAlignment = Alignment.Center) {
-        Canvas(modifier = Modifier.size(92.dp)) {
-            val stroke = 8.dp.toPx()
-            val diameter = size.minDimension - stroke
-            val topLeft = Offset(stroke / 2f, stroke / 2f)
-            val arc = Size(diameter, diameter)
+        HomeGoalRingArc(animated = animated, onHero = onHero)
+        HomeGoalRingLabels(percent = label, caption = caption, onHero = onHero)
+    }
+}
+
+@Composable
+private fun HomeGoalRingArc(animated: Float, onHero: Color) {
+    Canvas(modifier = Modifier.size(92.dp)) {
+        val stroke = 8.dp.toPx()
+        val diameter = size.minDimension - stroke
+        val topLeft = Offset(stroke / 2f, stroke / 2f)
+        val arc = Size(diameter, diameter)
+        drawArc(
+            color = onHero.copy(alpha = 0.28f),
+            startAngle = -90f,
+            sweepAngle = 360f,
+            useCenter = false,
+            topLeft = topLeft,
+            size = arc,
+            style = Stroke(width = stroke, cap = StrokeCap.Round),
+        )
+        if (animated > 0f) {
             drawArc(
-                color = onHero.copy(alpha = 0.28f),
+                color = onHero,
                 startAngle = -90f,
-                sweepAngle = 360f,
+                sweepAngle = 360f * (animated / 100f),
                 useCenter = false,
                 topLeft = topLeft,
                 size = arc,
                 style = Stroke(width = stroke, cap = StrokeCap.Round),
             )
-            if (animated > 0f) {
-                drawArc(
-                    color = onHero,
-                    startAngle = -90f,
-                    sweepAngle = 360f * (animated / 100f),
-                    useCenter = false,
-                    topLeft = topLeft,
-                    size = arc,
-                    style = Stroke(width = stroke, cap = StrokeCap.Round),
-                )
-            }
         }
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 8.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Text(
-                text = "${label.toInt()}%",
-                maxLines = 1,
-                softWrap = false,
-                textAlign = TextAlign.Center,
-                style = AppTypography.NumbersSmall.copy(color = onHero, fontWeight = FontWeight.Bold),
-                autoSize = TextAutoSize.StepBased(
-                    minFontSize = 10.sp,
-                    maxFontSize = 16.sp,
-                    stepSize = 1.sp,
-                ),
-            )
-            Text(
-                text = caption,
-                maxLines = 1,
-                softWrap = false,
-                textAlign = TextAlign.Center,
-                color = onHero.copy(alpha = 0.85f),
-                style = MaterialTheme.typography.labelSmall,
-                autoSize = TextAutoSize.StepBased(
-                    minFontSize = 8.sp,
-                    maxFontSize = 11.sp,
-                    stepSize = 1.sp,
-                ),
-            )
-        }
+    }
+}
+
+@Composable
+private fun HomeGoalRingLabels(percent: Float, caption: String, onHero: Color) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(
+            text = "${percent.toInt()}%",
+            maxLines = 1,
+            softWrap = false,
+            textAlign = TextAlign.Center,
+            style = AppTypography.NumbersSmall.copy(color = onHero, fontWeight = FontWeight.Bold),
+            autoSize = TextAutoSize.StepBased(
+                minFontSize = 10.sp,
+                maxFontSize = 16.sp,
+                stepSize = 1.sp,
+            ),
+        )
+        Text(
+            text = caption,
+            maxLines = 1,
+            softWrap = false,
+            textAlign = TextAlign.Center,
+            color = onHero.copy(alpha = 0.85f),
+            style = MaterialTheme.typography.labelSmall,
+            autoSize = TextAutoSize.StepBased(
+                minFontSize = 8.sp,
+                maxFontSize = 11.sp,
+                stepSize = 1.sp,
+            ),
+        )
     }
 }
 

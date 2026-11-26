@@ -1,9 +1,9 @@
 package com.truckerload.domain.goal
 
 import com.truckerload.domain.model.Load
+import com.truckerload.domain.money.Money
 import org.junit.Assert.assertEquals
 import org.junit.Test
-import com.truckerload.domain.money.Money
 
 class WeeklyGoalCalculatorTest {
 

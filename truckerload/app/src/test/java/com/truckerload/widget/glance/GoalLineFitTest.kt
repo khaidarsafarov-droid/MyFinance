@@ -5,7 +5,6 @@ import android.content.res.Configuration
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import com.truckerload.R
-import java.util.Locale
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -13,6 +12,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
+import java.util.Locale
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [33], qualifiers = "w110dp-h110dp-xhdpi", fontScale = 1.3f)
