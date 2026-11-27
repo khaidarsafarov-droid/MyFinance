@@ -8,6 +8,11 @@
 - Sign in with Apple is reserved (`AuthProvider.APPLE`) and not implemented.
 - Roadmap: `docs/KMP_IOS_ROADMAP.md`.
 
+## [1.6.4] — unreleased (`versionCode` 24)
+
+- Tablet: Add/Edit load, paycheck, diesel and Load detail keep a centered phone-width column; Settings and Profile cards are narrowed with the background still full-bleed.
+- Tablet (wide screens): the Diesel journal shows fill-ups and the add/edit form side by side.
+
 ## [1.6.3] — unreleased (`versionCode` 23)
 
 - Fix: the Maintenance (ТО) and Scanner screens crashed on open in the 1.6.2 release build. R8 had removed the ML Kit component registrar constructors; they are kept now, and OCR falls back to Tesseract if ML Kit is unavailable.
