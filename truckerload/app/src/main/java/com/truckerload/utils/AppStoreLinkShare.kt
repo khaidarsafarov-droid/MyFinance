@@ -15,7 +15,7 @@ object AppStoreLinkShare {
             intro = app.getString(R.string.settings_share_app_message_intro),
             androidLabel = app.getString(R.string.settings_share_app_android_label),
             iosLabel = app.getString(R.string.settings_share_app_ios_label),
-            playUrl = StoreListings.playStoreHttpsUrl(app.packageName),
+            playUrl = StoreListings.playStoreHttpsUrl(),
             appStoreUrl = StoreListings.appStoreHttpsUrl(),
         )
         return try {

@@ -145,6 +145,10 @@ android {
     }
     buildTypes {
         debug {
+            // Side-by-side with the Play install (com.truckorig). A Studio
+            // debug run must not uninstall the production app and wipe its data.
+            applicationIdSuffix = ".debug"
+            versionNameSuffix = "-debug"
             // Dev-only secrets may come from local.properties via defaultConfig.
             // Signing stays on the default debug keystore unless
             // debug-keystore.properties is present.
