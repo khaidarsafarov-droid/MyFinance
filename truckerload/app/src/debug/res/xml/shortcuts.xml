@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <shortcut
+        tools:targetApi="25"
         android:shortcutId="add_load"
         android:shortcutShortLabel="@string/add_load_title"
         android:shortcutLongLabel="@string/add_load_title">
@@ -13,6 +15,7 @@
     </shortcut>
 
     <shortcut
+        tools:targetApi="25"
         android:shortcutId="add_diesel"
         android:shortcutShortLabel="@string/add_diesel_title"
         android:shortcutLongLabel="@string/add_diesel_title">
@@ -24,6 +27,7 @@
     </shortcut>
 
     <shortcut
+        tools:targetApi="25"
         android:shortcutId="add_paycheck"
         android:shortcutShortLabel="@string/add_paycheck_title"
         android:shortcutLongLabel="@string/add_paycheck_title">
@@ -35,6 +39,7 @@
     </shortcut>
 
     <shortcut
+        tools:targetApi="25"
         android:shortcutId="weekly_goal"
         android:shortcutShortLabel="@string/nav_weekly_goal"
         android:shortcutLongLabel="@string/nav_weekly_goal">
