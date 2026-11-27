@@ -8,6 +8,11 @@
 - Sign in with Apple is reserved (`AuthProvider.APPLE`) and not implemented.
 - Roadmap: `docs/KMP_IOS_ROADMAP.md`.
 
+## [1.6.3] — unreleased (`versionCode` 23)
+
+- Fix: the Maintenance (ТО) and Scanner screens crashed on open in the 1.6.2 release build. R8 had removed the ML Kit component registrar constructors; they are kept now, and OCR falls back to Tesseract if ML Kit is unavailable.
+- Debug builds install as `com.truckorig.debug` ("TruckoRig Debug"), so an Android Studio run no longer replaces the Play app and its data.
+
 ## [1.6.2] — unreleased (`versionCode` 22)
 
 - Home-screen widget: larger semibold RPM pill (mint on dark green, thin green outline) on every split-header size that shows it.
