@@ -1,0 +1,76 @@
+name: Android signed bundle
+
+# Manual only. Builds a signed release AAB for Play upload; it never uploads to Play.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: truckerload
+    shell: bash
+
+jobs:
+  signed-bundle:
+    name: Signed release bundle
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      MAPS_API_KEY: ${{ secrets.MAPS_API_KEY }}
+      EXPECTED_SHA1: "A1:78:D5:83:E3:64:2B:74:F0:D4:49:5D:D8:98:E0:BC:1C:D7:5B:86"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+      - name: Install Android SDK platform 37.0
+        run: bash "${GITHUB_WORKSPACE}/.github/scripts/install-android-sdk-37.sh"
+      - name: Restore signing keystore
+        env:
+          KS_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KS_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASS: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          umask 077
+          mkdir -p signing
+          printf '%s' "$KS_B64" | base64 -d > signing/truckerload-friends.keystore
+          {
+            printf 'storeFile=%s\n' 'signing/truckerload-friends.keystore'
+            printf 'storePassword=%s\n' "$KS_PASS"
+            printf 'keyAlias=%s\n' "$KEY_ALIAS"
+            printf 'keyPassword=%s\n' "$KEY_PASS"
+          } > keystore.properties
+      - name: Build signed release bundle
+        run: sh ./gradlew -Dorg.gradle.java.home="$JAVA_HOME" :app:bundleRelease --no-daemon
+      - name: Verify signature
+        env:
+          KS_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: |
+          set -euo pipefail
+          aab=$(ls app/build/outputs/bundle/release/*.aab | head -n 1)
+          echo "AAB: $aab"
+          jarsigner -verify "$aab" | head -n 3
+          sha1=$(keytool -printcert -jarfile "$aab" | awk '/SHA1:/ {print $2; exit}')
+          echo "Certificate SHA-1: $sha1"
+          if [ "$sha1" != "$EXPECTED_SHA1" ]; then
+            echo "Unexpected signing certificate SHA-1" >&2
+            exit 1
+          fi
+      - name: Upload bundle and mapping
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: signed-release-bundle
+          path: |
+            truckerload/app/build/outputs/bundle/release/*.aab
+            truckerload/app/build/outputs/mapping/release/mapping.txt
+          if-no-files-found: error
+          retention-days: 7
+      - name: Delete keystore files
+        if: always()
+        run: rm -f signing/*.keystore keystore.properties
