@@ -28,6 +28,8 @@ import com.truckerload.presentation.theme.navPopEnter
 import com.truckerload.presentation.theme.navPopExit
 import com.truckerload.presentation.theme.navSharedElementEnter
 import com.truckerload.presentation.theme.navSharedElementExit
+import com.truckerload.presentation.utils.TabletDetailMaxWidth
+import com.truckerload.presentation.utils.TabletReadableWidth
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 fun NavGraphBuilder.loadsNavGraph(
@@ -48,23 +50,25 @@ fun NavGraphBuilder.loadsNavGraph(
             sharedTransitionScope = sharedTransitionScope,
             animatedVisibilityScope = this,
         ) {
-            LoadDetailScreen(
-                loadId = loadId,
-                onBack = { navController.popBackStack() },
-                onEdit = { navController.navigate(Routes.editLoad(loadId)) },
-                onEditMiles = { navController.navigate(Routes.editLoad(loadId, focusMiles = true)) },
-                onEditFinish = { navController.navigate(Routes.editLoad(loadId, focusFinish = true)) },
-                onDelete = { navController.popBackStack() },
-                onPhotoClick = { navController.navigate(Routes.photoDetail(it)) },
-                onScanClick = { navController.navigate(Routes.scanDetail(it)) },
-                onCamera = { id, tripId, loadDate ->
-                    navController.navigate(Routes.cameraForLoad(id, tripId, loadDate))
-                },
-                onScanner = { id, tripId, loadDate ->
-                    navController.navigate(Routes.scannerForLoad(id, tripId, loadDate))
-                },
-                onOpenPrivacy = { navController.navigate(Routes.PRIVACY_SETTINGS) },
-            )
+            TabletReadableWidth(maxWidth = TabletDetailMaxWidth) {
+                LoadDetailScreen(
+                    loadId = loadId,
+                    onBack = { navController.popBackStack() },
+                    onEdit = { navController.navigate(Routes.editLoad(loadId)) },
+                    onEditMiles = { navController.navigate(Routes.editLoad(loadId, focusMiles = true)) },
+                    onEditFinish = { navController.navigate(Routes.editLoad(loadId, focusFinish = true)) },
+                    onDelete = { navController.popBackStack() },
+                    onPhotoClick = { navController.navigate(Routes.photoDetail(it)) },
+                    onScanClick = { navController.navigate(Routes.scanDetail(it)) },
+                    onCamera = { id, tripId, loadDate ->
+                        navController.navigate(Routes.cameraForLoad(id, tripId, loadDate))
+                    },
+                    onScanner = { id, tripId, loadDate ->
+                        navController.navigate(Routes.scannerForLoad(id, tripId, loadDate))
+                    },
+                    onOpenPrivacy = { navController.navigate(Routes.PRIVACY_SETTINGS) },
+                )
+            }
         }
     }
     composable(
@@ -84,12 +88,14 @@ fun NavGraphBuilder.loadsNavGraph(
             sharedTransitionScope = sharedTransitionScope,
             animatedVisibilityScope = this,
         ) {
-            AddLoadScreen(
-                onSaved = { navController.popBackStack() },
-                onBack = { navController.popBackStack() },
-                onOptimisticInsert = homeViewModel?.let { { load -> it.applyOptimisticUpdate(load) } },
-                onRevertOptimistic = homeViewModel?.let { { id -> it.revertOptimisticUpdate(id) } },
-            )
+            TabletReadableWidth {
+                AddLoadScreen(
+                    onSaved = { navController.popBackStack() },
+                    onBack = { navController.popBackStack() },
+                    onOptimisticInsert = homeViewModel?.let { { load -> it.applyOptimisticUpdate(load) } },
+                    onRevertOptimistic = homeViewModel?.let { { id -> it.revertOptimisticUpdate(id) } },
+                )
+            }
         }
     }
     composable(
@@ -119,15 +125,17 @@ fun NavGraphBuilder.loadsNavGraph(
         val homeViewModel: HomeViewModel? = homeEntry?.let {
             hiltViewModel(it)
         }
-        EditLoadScreen(
-            loadId = loadId,
-            focusFinish = focusFinish,
-            focusMiles = focusMiles,
-            onSaved = { navController.popBackStack() },
-            onBack = { navController.popBackStack() },
-            onOptimisticUpdate = homeViewModel?.let { { load -> it.applyOptimisticUpdate(load) } },
-            onRevertOptimistic = homeViewModel?.let { { id -> it.revertOptimisticUpdate(id) } }
-        )
+        TabletReadableWidth {
+            EditLoadScreen(
+                loadId = loadId,
+                focusFinish = focusFinish,
+                focusMiles = focusMiles,
+                onSaved = { navController.popBackStack() },
+                onBack = { navController.popBackStack() },
+                onOptimisticUpdate = homeViewModel?.let { { load -> it.applyOptimisticUpdate(load) } },
+                onRevertOptimistic = homeViewModel?.let { { id -> it.revertOptimisticUpdate(id) } }
+            )
+        }
     }
     composable(
         route = Routes.PAYCHECK,
@@ -148,7 +156,9 @@ fun NavGraphBuilder.loadsNavGraph(
         popEnterTransition = { navPopEnter(reduceMotion) },
         popExitTransition = { navPopExit(reduceMotion) },
     ) {
-        AddPaycheckScreen(onSaved = { navController.popBackStack() }, onBack = { navController.popBackStack() })
+        TabletReadableWidth {
+            AddPaycheckScreen(onSaved = { navController.popBackStack() }, onBack = { navController.popBackStack() })
+        }
     }
     composable(
         route = Routes.DIESEL,
@@ -179,7 +189,9 @@ fun NavGraphBuilder.loadsNavGraph(
         popEnterTransition = { navPopEnter(reduceMotion) },
         popExitTransition = { navPopExit(reduceMotion) },
     ) {
-        AddDieselScreen(onSaved = { navController.popBackStack() }, onBack = { navController.popBackStack() })
+        TabletReadableWidth {
+            AddDieselScreen(onSaved = { navController.popBackStack() }, onBack = { navController.popBackStack() })
+        }
     }
     composable(
         route = Routes.MISC_EXPENSES,

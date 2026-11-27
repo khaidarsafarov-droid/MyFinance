@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
@@ -247,4 +248,35 @@ fun adaptiveContentPadding(base: PaddingValues): PaddingValues {
         end = base.calculateRightPadding(androidx.compose.ui.unit.LayoutDirection.Ltr) + horizontal,
         bottom = base.calculateBottomPadding(),
     )
+}
+
+/** Max width for single-column forms (add/edit) on tablets; keeps fields readable. */
+val TabletFormMaxWidth: Dp = 720.dp
+
+/** Max width for single-column detail pages on tablets. */
+val TabletDetailMaxWidth: Dp = 960.dp
+
+/**
+ * Centers a phone-style single-column screen on tablets so forms and detail pages
+ * keep the phone layout instead of stretching edge to edge. Phones are unchanged.
+ */
+@Composable
+fun TabletReadableWidth(
+    maxWidth: Dp = TabletFormMaxWidth,
+    content: @Composable () -> Unit,
+) {
+    if (!isTablet()) {
+        content()
+        return
+    }
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
+        Box(
+            modifier = Modifier
+                .fillMaxHeight()
+                .widthIn(max = maxWidth)
+                .fillMaxWidth(),
+        ) {
+            content()
+        }
+    }
 }
