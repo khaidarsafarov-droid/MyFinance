@@ -5,9 +5,9 @@
         <error line="165" column="37" source="standard:trailing-comma-on-call-site" />
         <error line="361" column="1" source="standard:kdoc" />
         <error line="384" column="1" source="standard:kdoc" />
-        <error line="492" column="1" source="standard:kdoc" />
-        <error line="541" column="1" source="standard:kdoc" />
-        <error line="591" column="1" source="standard:no-consecutive-blank-lines" />
+        <error line="495" column="1" source="standard:kdoc" />
+        <error line="544" column="1" source="standard:kdoc" />
+        <error line="594" column="1" source="standard:no-consecutive-blank-lines" />
     </file>
     <file name="src/androidTest/java/com/truckerload/data/MultiUserIsolationInstrumentedTest.kt">
         <error line="88" column="22" source="standard:wrapping" />
@@ -5936,12 +5936,11 @@
         <error line="28" column="38" source="standard:function-signature" />
     </file>
     <file name="src/main/java/com/truckerload/utils/OCRService.kt">
-        <error line="16" column="5" source="standard:class-signature" />
         <error line="17" column="5" source="standard:class-signature" />
         <error line="18" column="5" source="standard:class-signature" />
-        <error line="18" column="66" source="standard:class-signature" />
-        <error line="52" column="65" source="standard:function-expression-body" />
-        <error line="98" column="54" source="standard:function-signature" />
+        <error line="19" column="5" source="standard:class-signature" />
+        <error line="19" column="66" source="standard:class-signature" />
+        <error line="114" column="54" source="standard:function-signature" />
     </file>
     <file name="src/main/java/com/truckerload/utils/PDFGenerator.kt">
         <error line="3" column="1" source="standard:import-ordering" />

@@ -447,6 +447,9 @@ tasks.register("verifyReleaseSecretsEmpty") {
         check(proguard.contains("com.google.crypto.tink")) {
             "Release keep rules must include Tink"
         }
+        check(proguard.contains("implements com.google.firebase.components.ComponentRegistrar")) {
+            "Release keep rules must keep Firebase/ML Kit ComponentRegistrar constructors"
+        }
         check(!Regex("""AIza[0-9A-Za-z_\-]{10,}""").containsMatchIn(gradleSource)) {
             "build.gradle.kts must not hardcode a Google API key. " +
                 "Set MAPS_API_KEY in local.properties or the environment."
