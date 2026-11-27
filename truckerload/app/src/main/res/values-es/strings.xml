@@ -79,6 +79,8 @@
     <string name="home_brand_title">TruckoRig</string>
     <string name="tablet_detail_empty_title">Elige una carga</string>
     <string name="tablet_detail_empty_body">Toca una carga de la lista para ver los detalles</string>
+    <string name="tablet_diesel_empty_title">Selecciona una recarga</string>
+    <string name="tablet_diesel_empty_body">Toca una recarga en la lista para editarla o añade una nueva</string>
     <string name="home_recent_loads">Cargas recientes</string>
     <string name="period_report_share">Compartir</string>
     <string name="period_report_as_pdf">PDF</string>

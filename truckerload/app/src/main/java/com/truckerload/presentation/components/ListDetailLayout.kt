@@ -1,5 +1,6 @@
 package com.truckerload.presentation.components
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -60,6 +61,8 @@ fun ListDetailLayout(
 @Composable
 fun ListDetailEmptyPane(
     modifier: Modifier = Modifier,
+    @StringRes titleRes: Int = R.string.tablet_detail_empty_title,
+    @StringRes bodyRes: Int = R.string.tablet_detail_empty_body,
 ) {
     val tc = LocalTruckColors.current
     Box(
@@ -70,13 +73,13 @@ fun ListDetailEmptyPane(
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
-                text = stringResource(R.string.tablet_detail_empty_title),
+                text = stringResource(titleRes),
                 style = MaterialTheme.typography.titleMedium,
                 color = tc.TextPrimary,
                 textAlign = TextAlign.Center,
             )
             Text(
-                text = stringResource(R.string.tablet_detail_empty_body),
+                text = stringResource(bodyRes),
                 style = MaterialTheme.typography.bodyMedium,
                 color = tc.TextSecondary,
                 textAlign = TextAlign.Center,

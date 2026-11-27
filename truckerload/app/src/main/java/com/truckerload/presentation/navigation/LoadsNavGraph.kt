@@ -30,6 +30,7 @@ import com.truckerload.presentation.theme.navSharedElementEnter
 import com.truckerload.presentation.theme.navSharedElementExit
 import com.truckerload.presentation.utils.TabletDetailMaxWidth
 import com.truckerload.presentation.utils.TabletReadableWidth
+import com.truckerload.presentation.utils.useTwoPaneLayout
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 fun NavGraphBuilder.loadsNavGraph(
@@ -167,14 +168,18 @@ fun NavGraphBuilder.loadsNavGraph(
         popEnterTransition = { navPopEnter(reduceMotion) },
         popExitTransition = { navPopExit(reduceMotion) },
     ) {
-        DieselJournalScreen(
-            onBack = { navController.popBackStack() },
-            onAdd = { navController.navigate(Routes.ADD_DIESEL) { launchSingleTop = true } },
-            onScan = { navController.navigate(Routes.SCANNER) },
-            onEditDiesel = { id ->
-                navController.navigate(Routes.editDiesel(id)) { launchSingleTop = true }
-            },
-        )
+        if (useTwoPaneLayout()) {
+            DieselListDetailHost(navController = navController)
+        } else {
+            DieselJournalScreen(
+                onBack = { navController.popBackStack() },
+                onAdd = { navController.navigate(Routes.ADD_DIESEL) { launchSingleTop = true } },
+                onScan = { navController.navigate(Routes.SCANNER) },
+                onEditDiesel = { id ->
+                    navController.navigate(Routes.editDiesel(id)) { launchSingleTop = true }
+                },
+            )
+        }
     }
     composable(
         route = Routes.ADD_DIESEL_WITH_ID,

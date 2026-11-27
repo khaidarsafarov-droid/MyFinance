@@ -36,6 +36,7 @@ import com.truckerload.presentation.theme.LocalOledDarkEnabled
 import com.truckerload.presentation.theme.LocalReduceMotion
 import com.truckerload.presentation.theme.SoftUiColors
 import com.truckerload.presentation.theme.screenEnterAnimation
+import com.truckerload.presentation.utils.TabletCenteredContent
 import com.truckerload.presentation.utils.useNavigationRail
 import com.truckerload.utils.findActivity
 
@@ -120,47 +121,55 @@ fun ProfileScreen(
                     visible = cardsShown,
                     enter = screenEnterAnimation(reduceMotion),
                 ) {
-                    Column {
-                        ProfileTotals(loads = profile.totalLoads, miles = profile.totalMiles)
-                        ProfileSectionHeader(stringResource(com.truckerload.R.string.profile_account_title))
-                        ProfileAccountCard(
-                            givenName = uiState.givenName,
-                            familyName = uiState.familyName,
-                            premiumPhase = uiState.premiumPhase,
-                            premiumPrice = uiState.premiumPrice,
-                            onEditName = {
-                                nameOpen = true
-                                nameScroll += 1
-                            },
-                            onOpenSettings = onOpenSettings,
-                            onPremium = {
-                                if (uiState.subscribed) {
-                                    val activity = context.findActivity() ?: return@ProfileAccountCard
-                                    access.openSubscriptionManagement(activity)
-                                } else {
-                                    paywallOpen = true
-                                }
-                            },
-                        )
+                    TabletCenteredContent {
+                        Column {
+                            ProfileTotals(loads = profile.totalLoads, miles = profile.totalMiles)
+                            ProfileSectionHeader(stringResource(com.truckerload.R.string.profile_account_title))
+                            ProfileAccountCard(
+                                givenName = uiState.givenName,
+                                familyName = uiState.familyName,
+                                premiumPhase = uiState.premiumPhase,
+                                premiumPrice = uiState.premiumPrice,
+                                onEditName = {
+                                    nameOpen = true
+                                    nameScroll += 1
+                                },
+                                onOpenSettings = onOpenSettings,
+                                onPremium = {
+                                    if (uiState.subscribed) {
+                                        val activity = context.findActivity() ?: return@ProfileAccountCard
+                                        access.openSubscriptionManagement(activity)
+                                    } else {
+                                        paywallOpen = true
+                                    }
+                                },
+                            )
+                        }
                     }
                 }
             }
             if (nameOpen) {
                 item(key = "name", contentType = "form") {
-                    ProfileSectionHeader(stringResource(R.string.profile_editing))
-                    ProfileCard {
-                        ProfileNameSection(
-                            givenName = uiState.givenName,
-                            familyName = uiState.familyName,
-                            message = uiState.nameMessage,
-                            messageIsError = uiState.nameMessageIsError,
-                            onSave = viewModel::saveName,
-                        )
+                    TabletCenteredContent {
+                        Column {
+                            ProfileSectionHeader(stringResource(R.string.profile_editing))
+                            ProfileCard {
+                                ProfileNameSection(
+                                    givenName = uiState.givenName,
+                                    familyName = uiState.familyName,
+                                    message = uiState.nameMessage,
+                                    messageIsError = uiState.nameMessageIsError,
+                                    onSave = viewModel::saveName,
+                                )
+                            }
+                        }
                     }
                 }
             }
             item(key = "details", contentType = "summary") {
-                ProfileFilledDetails(profile)
+                TabletCenteredContent {
+                    ProfileFilledDetails(profile)
+                }
                 Spacer(Modifier.height(if (tablet) 24.dp else 16.dp))
             }
         }

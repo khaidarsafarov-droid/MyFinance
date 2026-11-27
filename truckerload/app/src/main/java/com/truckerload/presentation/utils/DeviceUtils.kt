@@ -280,3 +280,26 @@ fun TabletReadableWidth(
         }
     }
 }
+
+/** Max width for settings-style card lists on tablets. */
+val TabletListMaxWidth: Dp = 840.dp
+
+/**
+ * Width-only variant of [TabletReadableWidth] for content inside scrolling columns
+ * (no height fill). The screen background stays full-bleed; only the cards narrow.
+ */
+@Composable
+fun TabletCenteredContent(
+    maxWidth: Dp = TabletListMaxWidth,
+    content: @Composable () -> Unit,
+) {
+    if (!isTablet()) {
+        content()
+        return
+    }
+    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.TopCenter) {
+        Box(modifier = Modifier.widthIn(max = maxWidth).fillMaxWidth()) {
+            content()
+        }
+    }
+}
