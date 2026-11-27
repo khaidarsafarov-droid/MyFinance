@@ -145,6 +145,10 @@ android {
     }
     buildTypes {
         debug {
+            // Side-by-side with the Play install (com.truckorig). A Studio
+            // debug run must not uninstall the production app and wipe its data.
+            applicationIdSuffix = ".debug"
+            versionNameSuffix = "-debug"
             // Dev-only secrets may come from local.properties via defaultConfig.
             // Signing stays on the default debug keystore unless
             // debug-keystore.properties is present.
@@ -162,7 +166,7 @@ android {
             buildConfigField("boolean", "LOCAL_ONLY_MODE", "false")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                "proguard-rules.pro",
             )
             if (keystorePropertiesFile.exists()) {
                 signingConfig = signingConfigs.getByName("release")
@@ -358,7 +362,7 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 }
 
-/**
+/*
  * Phase 3: fail when Kotlin production sources exceed the 600-line soft limit
  * (or grow past a frozen baseline cap). Ideal target is 350 (warnings only).
  * Run: ./gradlew :app:checkKotlinFileSize
@@ -381,7 +385,7 @@ tasks.named("check").configure {
     dependsOn("checkKotlinFileSize")
 }
 
-/**
+/*
  * Phase 0: fail the build if release BuildConfig still embeds bot/API secrets,
  * or if the release safety switches (minify, cleartext, backup, schema export) flip.
  * Run: ./gradlew :app:verifyReleaseSecretsEmpty
@@ -489,7 +493,7 @@ tasks.matching { it.name == "assembleRelease" || it.name == "bundleRelease" }.co
     dependsOn("verifyReleaseSecretsEmpty")
 }
 
-/**
+/*
  * Fails if a build can ship crash reporting.
  * The check reads Gradle files only, so a local google-services.json cannot satisfy it.
  */
@@ -538,7 +542,7 @@ tasks.matching {
     dependsOn("verifyNoFirebaseCrashReporting")
 }
 
-/**
+/*
  * Fails if a Google API key (AIza...) is committed in Gradle or example files.
  * Real keys belong in gitignored local.properties or a CI secret.
  */
@@ -587,7 +591,6 @@ tasks.named("check").configure {
 tasks.named("verifyReleaseSecretsEmpty").configure {
     dependsOn("checkNoTrackedApiKeys")
 }
-
 
 tasks.register("checkStringsParity") {
     group = "verification"
