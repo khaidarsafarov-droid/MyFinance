@@ -6,6 +6,7 @@ import com.google.mlkit.common.MlKitException
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.documentscanner.GmsDocumentScanningResult
 import com.google.mlkit.vision.text.TextRecognition
+import com.google.mlkit.vision.text.TextRecognizer
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import com.truckerload.utils.ocr.LanguageDetector
 import com.truckerload.utils.ocr.OcrLine
@@ -21,7 +22,12 @@ data class OcrResult(
 class OCRService(context: Context) {
 
     private val appContext = context.applicationContext
-    private val latinRecognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
+
+    // Created on first use, not in the constructor. ViewModels build OCRService
+    // eagerly, so an ML Kit init failure here must not take the whole screen down.
+    // If ML Kit is unavailable, OCR falls back to Tesseract.
+    private val latinRecognizerDelegate = lazy { createLatinRecognizer() }
+    private val latinRecognizer: TextRecognizer? by latinRecognizerDelegate
     private val tesseract = TesseractOCRService(appContext)
 
     suspend fun recognizeFromUri(context: Context, uri: Uri): OcrResult {
@@ -51,8 +57,9 @@ class OCRService(context: Context) {
 
     private suspend fun recognizeLatinFromUri(uri: Uri): String {
         return try {
+            val recognizer = latinRecognizer ?: return ""
             val image = InputImage.fromFilePath(appContext, uri)
-            val recognized = latinRecognizer.process(image).await()
+            val recognized = recognizer.process(image).await()
             val ordered = OcrReadingOrder.join(
                 recognized.textBlocks.flatMap { block ->
                     block.lines.map { line ->
@@ -90,11 +97,20 @@ class OCRService(context: Context) {
     }
 
     fun close() {
-        latinRecognizer.close()
+        if (latinRecognizerDelegate.isInitialized()) latinRecognizer?.close()
         tesseract.close()
     }
 
     companion object {
+        @Suppress("TooGenericExceptionCaught")
+        internal fun createLatinRecognizer(): TextRecognizer? = try {
+            TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
+        } catch (e: RuntimeException) {
+            // ML Kit not registered (e.g. stripped registrar) or Play services missing.
+            logFailure("OCRService", "ML Kit text recognizer unavailable", e)
+            null
+        }
+
         fun containsCyrillic(text: String): Boolean =
             text.any { it in '\u0400'..'\u04FF' }
     }

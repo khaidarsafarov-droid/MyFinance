@@ -39,6 +39,15 @@
 # Google Sign-In / Play services
 -dontwarn com.google.android.gms.**
 
+# Firebase components / ML Kit. ComponentDiscovery reads registrar class names
+# from manifest metadata and calls the no-arg constructor by reflection.
+# firebase-components 16.x only keeps the class name, so R8 full mode drops
+# <init>() and ML Kit never registers. TextRecognition.getClient() then NPEs,
+# which crashed the Maintenance (ТО) and Scanner screens in 1.6.2 release.
+-keep class * implements com.google.firebase.components.ComponentRegistrar {
+    public <init>();
+}
+
 # SLF4J binder (not shipped on Android)
 -dontwarn org.slf4j.impl.StaticLoggerBinder
 
