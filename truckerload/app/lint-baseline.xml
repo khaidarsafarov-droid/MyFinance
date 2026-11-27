@@ -872,12 +872,12 @@
 
     <issue
         id="NewerVersionAvailable"
-        message="A newer version of org.mockito:mockito-core than 5.14.2 is available: 5.24.0"
+        message="A newer version of org.mockito:mockito-core than 5.14.2 is available: 5.25.0"
         errorLine1="mockito = &quot;5.14.2&quot;"
         errorLine2="          ~~~~~~~~">
         <location
             file="../gradle/libs.versions.toml"
-            line="53"
+            line="52"
             column="11"/>
     </issue>
 
