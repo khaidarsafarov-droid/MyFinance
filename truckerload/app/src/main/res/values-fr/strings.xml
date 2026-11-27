@@ -80,6 +80,8 @@
     <string name="home_brand_title">TruckoRig</string>
     <string name="tablet_detail_empty_title">Sélectionnez un chargement</string>
     <string name="tablet_detail_empty_body">Appuyez sur un chargement dans la liste pour voir le détail</string>
+    <string name="tablet_diesel_empty_title">Sélectionnez un plein</string>
+    <string name="tablet_diesel_empty_body">Touchez un plein dans la liste pour le modifier, ou ajoutez-en un</string>
     <string name="home_recent_loads">Chargements récents</string>
     <string name="period_report_share">Partager</string>
     <string name="period_report_as_pdf">PDF</string>

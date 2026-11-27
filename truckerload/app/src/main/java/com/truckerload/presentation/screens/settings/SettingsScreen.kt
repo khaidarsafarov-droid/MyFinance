@@ -32,6 +32,7 @@ import com.truckerload.presentation.theme.LocalOledDarkEnabled
 import com.truckerload.presentation.theme.LocalReduceMotion
 import com.truckerload.presentation.theme.SoftUiColors
 import com.truckerload.presentation.theme.screenEnterAnimation
+import com.truckerload.presentation.utils.TabletCenteredContent
 import com.truckerload.presentation.utils.useNavigationRail
 import com.truckerload.utils.AppLanguageManager
 import java.text.DateFormatSymbols
@@ -143,31 +144,33 @@ fun SettingsScreen(
                 visible = cardsShown,
                 enter = screenEnterAnimation(motionReduced),
             ) {
-                SettingsBody(
-                    csvMark = SettingsPremiumState.mark(true, premium.allows(PremiumFeature.EXPORT)),
-                    telegramMark = SettingsPremiumState.mark(true, premium.allows(PremiumFeature.TELEGRAM)),
-                    languageValue = languageValue,
-                    unitsValue = unitsValue,
-                    weekValue = weekValue,
-                    rpmSubtitle = rpmSubtitle,
-                    quietValue = quietValue,
-                    themeMode = themeMode,
-                    oledDark = oledDark,
-                    dynamicColor = dynamicColor,
-                    reduceMotion = reduceMotion,
-                    notifyMissingWeek = notifyMissingWeek,
-                    notifyMaintenance = notifyMaintenance,
-                    settingsViewModel = settingsViewModel,
-                    onBackup = { detail = SettingsDetail.DATA },
-                    onCsv = { openPremium(PremiumFeature.EXPORT, SettingsDetail.DATA) },
-                    onLanguage = onOpenLanguage,
-                    onUnits = onOpenUnits,
-                    onWeek = { detail = SettingsDetail.WEEK },
-                    onRpm = { detail = SettingsDetail.RPM },
-                    onTelegram = { openPremium(PremiumFeature.TELEGRAM, SettingsDetail.TELEGRAM) },
-                    onQuiet = { detail = SettingsDetail.QUIET },
-                    onPrivacy = { detail = SettingsDetail.PRIVACY },
-                )
+                TabletCenteredContent {
+                    SettingsBody(
+                        csvMark = SettingsPremiumState.mark(true, premium.allows(PremiumFeature.EXPORT)),
+                        telegramMark = SettingsPremiumState.mark(true, premium.allows(PremiumFeature.TELEGRAM)),
+                        languageValue = languageValue,
+                        unitsValue = unitsValue,
+                        weekValue = weekValue,
+                        rpmSubtitle = rpmSubtitle,
+                        quietValue = quietValue,
+                        themeMode = themeMode,
+                        oledDark = oledDark,
+                        dynamicColor = dynamicColor,
+                        reduceMotion = reduceMotion,
+                        notifyMissingWeek = notifyMissingWeek,
+                        notifyMaintenance = notifyMaintenance,
+                        settingsViewModel = settingsViewModel,
+                        onBackup = { detail = SettingsDetail.DATA },
+                        onCsv = { openPremium(PremiumFeature.EXPORT, SettingsDetail.DATA) },
+                        onLanguage = onOpenLanguage,
+                        onUnits = onOpenUnits,
+                        onWeek = { detail = SettingsDetail.WEEK },
+                        onRpm = { detail = SettingsDetail.RPM },
+                        onTelegram = { openPremium(PremiumFeature.TELEGRAM, SettingsDetail.TELEGRAM) },
+                        onQuiet = { detail = SettingsDetail.QUIET },
+                        onPrivacy = { detail = SettingsDetail.PRIVACY },
+                    )
+                }
             }
             Spacer(Modifier.height(if (tablet) 24.dp else 16.dp))
         }

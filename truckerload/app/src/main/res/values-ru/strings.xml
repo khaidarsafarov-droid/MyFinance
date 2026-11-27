@@ -79,6 +79,8 @@
     <string name="home_brand_title">TruckoRig</string>
     <string name="tablet_detail_empty_title">Выберите груз</string>
     <string name="tablet_detail_empty_body">Нажмите на груз в списке слева, чтобы увидеть детали</string>
+    <string name="tablet_diesel_empty_title">Выберите заправку</string>
+    <string name="tablet_diesel_empty_body">Нажмите на заправку в списке слева, чтобы изменить её, или добавьте новую</string>
     <string name="home_recent_loads">Недавние грузы</string>
     <string name="period_report_share">Поделиться</string>
     <string name="period_report_as_pdf">PDF</string>

@@ -79,6 +79,8 @@
     <string name="home_brand_title">TruckoRig</string>
     <string name="tablet_detail_empty_title">Select a load</string>
     <string name="tablet_detail_empty_body">Tap a load in the list to see its details</string>
+    <string name="tablet_diesel_empty_title">Select a fill-up</string>
+    <string name="tablet_diesel_empty_body">Tap a fill-up in the list to edit it, or add a new one</string>
     <string name="home_recent_loads">Recent loads</string>
     <string name="period_report_share">Share</string>
     <string name="period_report_as_pdf">PDF</string>
