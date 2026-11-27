@@ -2609,11 +2609,10 @@
     </file>
     <file name="src/main/java/com/truckerload/presentation/navigation/LoadsNavGraph.kt">
         <error line="3" column="1" source="standard:import-ordering" />
-        <error line="34" column="5" source="standard:function-signature" />
-        <error line="35" column="5" source="standard:function-signature" />
-        <error line="36" column="5" source="standard:function-signature" />
-        <error line="36" column="50" source="standard:function-signature" />
-        <error line="129" column="96" source="standard:trailing-comma-on-call-site" />
+        <error line="37" column="5" source="standard:function-signature" />
+        <error line="38" column="5" source="standard:function-signature" />
+        <error line="39" column="5" source="standard:function-signature" />
+        <error line="39" column="50" source="standard:function-signature" />
     </file>
     <file name="src/main/java/com/truckerload/presentation/navigation/NavGraph.kt">
         <error line="3" column="1" source="standard:import-ordering" />

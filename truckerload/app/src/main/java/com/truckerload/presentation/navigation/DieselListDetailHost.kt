@@ -27,11 +27,10 @@ private const val DIESEL_PANE_EMPTY = "diesel_pane_empty"
  * like [JournalListDetailHost] for loads. Scan still uses the parent [navController].
  */
 @Composable
-fun DieselListDetailHost(
-    navController: NavHostController,
-) {
+fun DieselListDetailHost(navController: NavHostController) {
     val detailNavController = rememberNavController()
     val reduceMotion = rememberReduceMotion()
+
     // No launchSingleTop: a new dieselId must get a fresh entry (and ViewModel).
     fun openEditor(route: String) {
         detailNavController.navigate(route) {

@@ -134,7 +134,7 @@ fun NavGraphBuilder.loadsNavGraph(
                 onSaved = { navController.popBackStack() },
                 onBack = { navController.popBackStack() },
                 onOptimisticUpdate = homeViewModel?.let { { load -> it.applyOptimisticUpdate(load) } },
-                onRevertOptimistic = homeViewModel?.let { { id -> it.revertOptimisticUpdate(id) } }
+                onRevertOptimistic = homeViewModel?.let { { id -> it.revertOptimisticUpdate(id) } },
             )
         }
     }

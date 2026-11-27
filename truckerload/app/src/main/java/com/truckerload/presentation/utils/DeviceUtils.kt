@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
@@ -261,21 +260,13 @@ val TabletDetailMaxWidth: Dp = 960.dp
  * keep the phone layout instead of stretching edge to edge. Phones are unchanged.
  */
 @Composable
-fun TabletReadableWidth(
-    maxWidth: Dp = TabletFormMaxWidth,
-    content: @Composable () -> Unit,
-) {
+fun TabletReadableWidth(maxWidth: Dp = TabletFormMaxWidth, content: @Composable () -> Unit) {
     if (!isTablet()) {
         content()
         return
     }
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
-        Box(
-            modifier = Modifier
-                .fillMaxHeight()
-                .widthIn(max = maxWidth)
-                .fillMaxWidth(),
-        ) {
+        Box(modifier = Modifier.widthIn(max = maxWidth).fillMaxSize()) {
             content()
         }
     }
@@ -289,10 +280,7 @@ val TabletListMaxWidth: Dp = 840.dp
  * (no height fill). The screen background stays full-bleed; only the cards narrow.
  */
 @Composable
-fun TabletCenteredContent(
-    maxWidth: Dp = TabletListMaxWidth,
-    content: @Composable () -> Unit,
-) {
+fun TabletCenteredContent(maxWidth: Dp = TabletListMaxWidth, content: @Composable () -> Unit) {
     if (!isTablet()) {
         content()
         return
