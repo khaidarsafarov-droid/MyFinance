@@ -25,7 +25,7 @@ internal object ChatLoadParser {
 
     private val pickupKey = "(?:${words(LoadSynonyms.pickup)}|de(?=\\s*:))"
     private val deliveryKey = "(?:${words(LoadSynonyms.delivery)}|para(?=\\s*:))"
-    private val anyKey = Regex("(?<![\\p{L}\\p{N}])(?:(?<p>$pickupKey)|(?<d>$deliveryKey))(?![\\p{L}])", RegexOption.IGNORE_CASE)
+    private val anyKey = Regex("(?<![\\p{L}\\p{N}])(?:($pickupKey)|($deliveryKey))(?![\\p{L}])", RegexOption.IGNORE_CASE)
     private val penaltyWords = words(LoadSynonyms.penalty)
     private const val MONEY = "(?:\\$\\s*)?\\d[\\d,]*(?:\\.\\d{1,2})?(?:\\s*\\$)?"
     private val penaltyClause = Regex(
@@ -106,7 +106,7 @@ internal object ChatLoadParser {
     /** Texts right after each pickup label, up to the next label or line end: where the pickup date sits. */
     private fun pickupSegments(text: String): List<String> {
         val keys = anyKey.findAll(text).toList()
-        return keys.indices.filter { keys[it].groups["p"] != null }.map { index ->
+        return keys.indices.filter { keys[it].groups[1] != null }.map { index ->
             val lineEnd = text.indexOf('\n', keys[index].range.last).let { if (it < 0) text.length else it }
             val end = minOf(lineEnd, keys.getOrNull(index + 1)?.range?.first ?: lineEnd)
             text.substring(keys[index].range.first, maxOf(keys[index].range.first, end))
@@ -135,7 +135,7 @@ internal object ChatLoadParser {
             val lineEnd = text.indexOf('\n', key.range.last).let { if (it < 0) text.length else it }
             val end = minOf(lineEnd, keys.getOrNull(index + 1)?.range?.first ?: lineEnd)
             val found = placesIn(text.substring(key.range.last + 1, maxOf(key.range.last + 1, end)))
-            if (key.groups["p"] != null) pickups += found else deliveries += found
+            if (key.groups[1] != null) pickups += found else deliveries += found
         }
         var pickup = pickups.firstOrNull()
         var delivery = deliveries.lastOrNull()
