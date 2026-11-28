@@ -72,6 +72,8 @@ class MessageParseService {
             ParseInput.ExtractedDocument(rawMessage, fileName, referenceMillis)
         }
         LoadParsingEngine.rankedLoad(input)?.let { return LoadDraftFields.fromLoad(it) }
+        // Partial Relay text (e.g. no rate yet): keep every field that was found, never reject.
+        LoadMessageParser.parseDraft(rawMessage, referenceMillis)?.let { return LoadDraftFields.fromLoad(it) }
         val direct = FlexibleLoadParser.extractFields(rawMessage)
         if (!direct.isEmpty()) return direct
         val flattened = JsonLoadParser.flattenToText(rawMessage)

@@ -143,7 +143,8 @@ internal object FlexibleLoadParser {
     }
 
     private val notRateLine = Regex(
-        """mile|gallon|gal\b|deduct|fee|tax|surcharge|percent|%|per\s*mile|\brpm\b|ppg|#\s*\d""",
+        """mile|gallon|gal\b|deduct|fee|tax|surcharge|percent|%|per\s*mile|\brpm\b|ppg|#\s*\d|""" +
+            """\blate\b|penalt|no\s+update|photos?\b|\bfine\b|\bfined\b|chargeback""",
         RegexOption.IGNORE_CASE,
     )
 
