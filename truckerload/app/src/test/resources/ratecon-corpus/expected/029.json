@@ -1,0 +1,104 @@
+{
+ "id": "029",
+ "broker": "Amazon Relay (variant)",
+ "loadId": null,
+ "tripId": "T-75857443",
+ "reference_numbers": {},
+ "pickup": {
+  "type": "pickup",
+  "seq": 1,
+  "facility": null,
+  "address": "19 Loom St",
+  "city": "Paterson",
+  "state": "NJ",
+  "zip": "07501-7501",
+  "date": "2026-12-14",
+  "time_start": "20:00",
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "stops": [
+  {
+   "type": "pickup",
+   "seq": 1,
+   "facility": null,
+   "address": "19 Loom St",
+   "city": "Paterson",
+   "state": "NJ",
+   "zip": "07501-7501",
+   "date": "2026-12-14",
+   "time_start": "20:00",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  },
+  {
+   "type": "stop",
+   "seq": 2,
+   "facility": null,
+   "address": "15 Wharf St",
+   "city": "Gloucester",
+   "state": "MA",
+   "zip": "01930-1930",
+   "date": "2026-12-16",
+   "time_start": "07:00",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  },
+  {
+   "type": "delivery",
+   "seq": 3,
+   "facility": null,
+   "address": "60 Levee Rd",
+   "city": "Lake Charles",
+   "state": "LA",
+   "zip": "70601-0601",
+   "date": "2026-12-16",
+   "time_start": "20:00",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  }
+ ],
+ "delivery": {
+  "type": "delivery",
+  "seq": 3,
+  "facility": null,
+  "address": "60 Levee Rd",
+  "city": "Lake Charles",
+  "state": "LA",
+  "zip": "70601-0601",
+  "date": "2026-12-16",
+  "time_start": "20:00",
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "rate": {
+  "total": 1800,
+  "linehaul": null,
+  "fuel": null,
+  "accessorials_included": [],
+  "currency": "USD"
+ },
+ "not_rate": {
+  "penalties": [
+   {
+    "text": "Broker Order Not Used (BONU): $150",
+    "amount": 150.0
+   }
+  ],
+  "detention": "Detention: $40/hr after 2 hrs free, max $240",
+  "tonu": "TONU: $150",
+  "lumper_reimbursement": null,
+  "layover": null
+ },
+ "miles": 320,
+ "rate_per_mile": 5.62,
+ "equipment": null,
+ "weight_lbs": null,
+ "commodity": null,
+ "pieces": null
+}

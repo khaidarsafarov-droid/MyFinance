@@ -1,0 +1,60 @@
+XPOLogistics CARRIER RATE CONFIRMATION PAGE 1 of 2
+CREATED 09/21/18 05:12
+6790347
+LZ6790347 AT550.00
+CARRIER INFORMATION CONTACT INFORMATION
+Carrier Contact XPO After Hours
+EXAMPLE CARRIER LLC TEST CONTACT Jane Rep
+Austin, TX 78754 (555) 010-0001 (555) 010-0002 x100315
+(555) 010-0003 fax user@example.com
+carrier@example.com
+PAYMENT
+Carrier Pay Breakdown
+LNH | Line Haul | Flat $550.00
+Total Carrier Pay $550.00
+AGREEMENT
+Please sign and complete this form to submit as your invoice.
+Driver Name Driver Phone # Tractor # Trailer # Carrier Invoice #
+Driver (555) 010-0004 705 P02
+——————
+Signature
+Carrier will perform the transportation described in this load confirmation subject to and in accordance with the Motor Carrier
+Transportation Agreement between Carrier and XPO (the “Agreement”), which is incorporated herein by reference. Carrier
+acknowledges that XPO’s customers or shippers may have special requirements for this shipment. By accepting the shipment
+described in this load confirmation, Carrier agrees to the rates and charges stated in this load confirmation and to special requirements
+communicated to Carrier by XPO, its customer or the shipper.
+ORDER INFORMATION
+Order # Total Weight (Ibs.) Equipment Temp Reference #
+6790347 41688.00 Van - 53 Feet N/A- N/A
+APPA
+L oper
+Ce >
+ee ae ee : © yl Deiye ie C.F
+TH ueT RAN IM 2: toot see Git laps - ie oh ee a Be
+Aa lie sd See ats Sia
+Fa: es sth eon ; a ah Ec erniee ane
+7 ee te ee ee oe i *l ie Re - EL rt i iy aS
+s Sopa ae = Ks cae 6 ye aes - 3 Finns eh ee
+: Dh eae) te ee ee ee le nae epee
+y = 7 i =" at LA
+oa "rl
+Se
+eC ee ge aint a cae a > bee sgh SSP ie ere |
+Pane aS
+Fase, i ay ia
+create on 7 mre: fe Hees h ane ES oe by. ee pe RE .
+See SS ee ee ee
+7 a) i es = pas Py
+Ron ries s+ 2 ster 7 tu OF a ere
+= oe = eee ee = . -. ny srteneet
+ann iu ares » * « - a a ae] er a
+Bw fay ey _ . “", * ke tan: aA ee ee
+‘nam Y ork wii": : - t %; nyt ogee F Ear emery ayes toe
+SMPQUE SEE Rp GPF Ts - .« a € : - - : Ne St
+. Be ‘ k ese 2" tae 3
+ar el ee eee ee eee ae eet ferent aaa
+Pee Oe ses ee oe es “ies ee ee ae
+,
+‘
+XPOLogistics CARRIER RATE CONFIRMATION PAGE 2 of 2
+CREATED 09/21/18 05:12

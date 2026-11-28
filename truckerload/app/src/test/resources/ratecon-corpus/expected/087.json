@@ -1,0 +1,86 @@
+{
+ "id": "087",
+ "broker": "synthetic (fullwidth digits)",
+ "loadId": "56144138",
+ "tripId": null,
+ "reference_numbers": {},
+ "pickup": {
+  "type": "pickup",
+  "seq": 1,
+  "facility": "Bluegrass Beverage Co",
+  "address": "300 Distillery Ln",
+  "city": "Louisville",
+  "state": "KY",
+  "zip": "40214",
+  "date": "2026-12-18",
+  "time_start": "14:30",
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "stops": [
+  {
+   "type": "pickup",
+   "seq": 1,
+   "facility": "Bluegrass Beverage Co",
+   "address": "300 Distillery Ln",
+   "city": "Louisville",
+   "state": "KY",
+   "zip": "40214",
+   "date": "2026-12-18",
+   "time_start": "14:30",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  },
+  {
+   "type": "delivery",
+   "seq": 2,
+   "facility": "Northstar Electronics",
+   "address": "5000 Tech Pkwy",
+   "city": "Minneapolis",
+   "state": "MN",
+   "zip": "55413",
+   "date": "2026-12-19",
+   "time_start": "14:30",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  }
+ ],
+ "delivery": {
+  "type": "delivery",
+  "seq": 2,
+  "facility": "Northstar Electronics",
+  "address": "5000 Tech Pkwy",
+  "city": "Minneapolis",
+  "state": "MN",
+  "zip": "55413",
+  "date": "2026-12-19",
+  "time_start": "14:30",
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "rate": {
+  "total": 3285,
+  "linehaul": null,
+  "fuel": null,
+  "accessorials_included": [],
+  "currency": "USD"
+ },
+ "not_rate": {
+  "penalties": [],
+  "detention": null,
+  "tonu": null,
+  "lumper_reimbursement": null,
+  "layover": null
+ },
+ "miles": 350,
+ "rate_per_mile": 9.39,
+ "equipment": null,
+ "weight_lbs": 12000,
+ "commodity": null,
+ "pieces": null,
+ "stops_note": "only first and last stop appear in text"
+}

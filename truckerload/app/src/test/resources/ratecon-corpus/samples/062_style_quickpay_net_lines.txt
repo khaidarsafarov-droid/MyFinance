@@ -1,0 +1,10 @@
+RATE CONFIRMATION FOR PO# 22209405
+Pick-up Location   Date   Time
+Kingsport, TN   12/5/2026   Appt 07:00 to 09:00
+Delivery Location   Date   Time
+Omaha, NE   12/7/2026   Appt 08:00
+Rate  Type  Unit  Quantity  Total
+$2,835.00  Line Haul  Flat  1  $2,835.00
+Total: $2,835.00 USD
+1 Day Quick Pay 5%: fee $141.75, you receive $2,693.25
+7 Day Quick Pay 3%: fee $85.05, you receive $2,749.95

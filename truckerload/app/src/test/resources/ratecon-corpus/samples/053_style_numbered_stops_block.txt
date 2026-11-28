@@ -1,0 +1,38 @@
+Rate Confirmation
+Load 26509623
+
+Equipment  Flatbed 48'
+
+Stop 1: Pick Up
+  Pick Up Numbers  8503250
+  Appointment Scheduled For  Thu 12/17/2026  at 08:30
+  Facility Pinecrest Furniture
+  Address 640 Timber Trl
+          High Point, NC 27260
+  Commodity Retail merchandise   Exp Wt 12,000 lbs   Pieces 24
+
+Stop 2: Delivery
+  Stop Numbers  4607650
+  Appointment Scheduled For  Fri 12/18/2026  at 14:00
+  Facility Peach State Packers
+  Address 880 Orchard Rd
+          Macon, GA 31201
+  Commodity Retail merchandise   Exp Wt 12,000 lbs   Pieces 24
+
+Stop 3: Delivery
+  Delivery Numbers  5452476
+  Appointment Scheduled For  Sat 12/19/2026  at 14:00
+  Facility Sierra Wine Warehouse
+  Address 210 Vintner Way
+          Stockton, CA 95206
+  Commodity Retail merchandise   Exp Wt 12,000 lbs   Pieces 24
+
+Charges
+Description   Units   Per   Amount
+Flat Rate   1.00   $900.000   $900.00
+Fuel Surcharge   1468.00   $0.211   $310.00
+Total   USD $1,210.00
+
+Notes: Late delivery: rate reduced $100
+Notes: Layover: $250/day
+Notes: Lumper must be approved; reimbursed with receipt up to $300

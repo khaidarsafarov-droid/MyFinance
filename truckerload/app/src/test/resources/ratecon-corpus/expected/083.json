@@ -1,0 +1,86 @@
+{
+ "id": "083",
+ "broker": "Email forward w/ quoted lines (synthetic)",
+ "loadId": "42721031",
+ "tripId": null,
+ "reference_numbers": {},
+ "pickup": {
+  "type": "pickup",
+  "seq": 1,
+  "facility": "Redwood Packaging",
+  "address": "9100 Harbor Blvd",
+  "city": "Savannah",
+  "state": "GA",
+  "zip": "31408",
+  "date": "2026-12-04",
+  "time_start": "09:00",
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "stops": [
+  {
+   "type": "pickup",
+   "seq": 1,
+   "facility": "Redwood Packaging",
+   "address": "9100 Harbor Blvd",
+   "city": "Savannah",
+   "state": "GA",
+   "zip": "31408",
+   "date": "2026-12-04",
+   "time_start": "09:00",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  },
+  {
+   "type": "delivery",
+   "seq": 2,
+   "facility": "Sierra Wine Warehouse",
+   "address": "210 Vintner Way",
+   "city": "Stockton",
+   "state": "CA",
+   "zip": "95206",
+   "date": "2026-12-04",
+   "time_start": "06:00",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  }
+ ],
+ "delivery": {
+  "type": "delivery",
+  "seq": 2,
+  "facility": "Sierra Wine Warehouse",
+  "address": "210 Vintner Way",
+  "city": "Stockton",
+  "state": "CA",
+  "zip": "95206",
+  "date": "2026-12-04",
+  "time_start": "06:00",
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "rate": {
+  "total": 2060,
+  "linehaul": null,
+  "fuel": null,
+  "accessorials_included": [],
+  "currency": "USD"
+ },
+ "not_rate": {
+  "penalties": [],
+  "detention": null,
+  "tonu": null,
+  "lumper_reimbursement": null,
+  "layover": null
+ },
+ "miles": 740,
+ "rate_per_mile": 2.78,
+ "equipment": null,
+ "weight_lbs": null,
+ "commodity": null,
+ "pieces": null,
+ "stops_note": "only first and last stop appear in text"
+}

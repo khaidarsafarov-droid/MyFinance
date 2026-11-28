@@ -1,0 +1,98 @@
+{
+ "id": "072",
+ "broker": "RXO (vocabulary only)",
+ "loadId": "11824293",
+ "tripId": null,
+ "reference_numbers": {},
+ "pickup": {
+  "type": "pickup",
+  "seq": 1,
+  "facility": "Heartland Grain Terminal",
+  "address": "12 Elevator Rd",
+  "city": "Omaha",
+  "state": "NE",
+  "zip": "68107",
+  "date": "2026-12-07",
+  "time_start": "06:00",
+  "time_end": null,
+  "appt_type": null,
+  "ref": "3317999"
+ },
+ "stops": [
+  {
+   "type": "pickup",
+   "seq": 1,
+   "facility": "Heartland Grain Terminal",
+   "address": "12 Elevator Rd",
+   "city": "Omaha",
+   "state": "NE",
+   "zip": "68107",
+   "date": "2026-12-07",
+   "time_start": "06:00",
+   "time_end": null,
+   "appt_type": null,
+   "ref": "3317999"
+  },
+  {
+   "type": "delivery",
+   "seq": 2,
+   "facility": "Ironbridge Steel",
+   "address": "5 Foundry St",
+   "city": "Gary",
+   "state": "IN",
+   "zip": "46402",
+   "date": "2026-12-07",
+   "time_start": "15:00",
+   "time_end": null,
+   "appt_type": null,
+   "ref": "1581268"
+  }
+ ],
+ "delivery": {
+  "type": "delivery",
+  "seq": 2,
+  "facility": "Ironbridge Steel",
+  "address": "5 Foundry St",
+  "city": "Gary",
+  "state": "IN",
+  "zip": "46402",
+  "date": "2026-12-07",
+  "time_start": "15:00",
+  "time_end": null,
+  "appt_type": null,
+  "ref": "1581268"
+ },
+ "rate": {
+  "total": 3100,
+  "linehaul": 3100,
+  "fuel": null,
+  "accessorials_included": [],
+  "currency": "USD"
+ },
+ "not_rate": {
+  "penalties": [
+   {
+    "text": "Missed check call: $50 fine each",
+    "amount": 50.0
+   },
+   {
+    "text": "Late PU: $1000",
+    "amount": 1000.0
+   },
+   {
+    "text": "Late delivery: rate reduced $100",
+    "amount": 100.0
+   }
+  ],
+  "detention": null,
+  "tonu": null,
+  "lumper_reimbursement": null,
+  "layover": null
+ },
+ "miles": null,
+ "rate_per_mile": null,
+ "equipment": "Reefer 53'",
+ "weight_lbs": 41000,
+ "commodity": null,
+ "pieces": null
+}

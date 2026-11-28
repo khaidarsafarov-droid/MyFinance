@@ -1,0 +1,2 @@
+Load #	Broker	PU City	PU St	PU Date	DEL City	DEL St	DEL Date	Miles	Rate	RPM	Weight
+72062276	Example Broker	Gary	IN	12/12/2026	Paterson	NJ	12/12/2026	1198	$1,160	0.97	12000

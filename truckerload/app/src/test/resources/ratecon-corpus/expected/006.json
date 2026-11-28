@@ -1,0 +1,88 @@
+{
+ "id": "006",
+ "broker": "J.B. Hunt",
+ "loadId": "7C54089",
+ "tripId": null,
+ "reference_numbers": {
+  "PO": "2898152O (letter O at end - OCR-like typo in source)"
+ },
+ "pickup": {
+  "type": "pickup",
+  "seq": 1,
+  "facility": "SABERT RDC",
+  "address": "2288 MAIN ST",
+  "city": "SAYREVILLE",
+  "state": "NJ",
+  "zip": "08872",
+  "date": "2022-06-10",
+  "time_start": "13:30",
+  "time_end": "13:30",
+  "appt_type": "window",
+  "ref": "20187711"
+ },
+ "stops": [
+  {
+   "type": "pickup",
+   "seq": 1,
+   "facility": "SABERT RDC",
+   "address": "2288 MAIN ST",
+   "city": "SAYREVILLE",
+   "state": "NJ",
+   "zip": "08872",
+   "date": "2022-06-10",
+   "time_start": "13:30",
+   "time_end": "13:30",
+   "appt_type": "window",
+   "ref": "20187711"
+  },
+  {
+   "type": "delivery",
+   "seq": 2,
+   "facility": "US FOODS SEABROOK",
+   "address": "100 LEDGE ROAD",
+   "city": "SEABROOK",
+   "state": "NH",
+   "zip": "03874",
+   "date": "2022-06-13",
+   "time_start": "12:00",
+   "time_end": "12:00",
+   "appt_type": "window",
+   "ref": "13939863"
+  }
+ ],
+ "delivery": {
+  "type": "delivery",
+  "seq": 2,
+  "facility": "US FOODS SEABROOK",
+  "address": "100 LEDGE ROAD",
+  "city": "SEABROOK",
+  "state": "NH",
+  "zip": "03874",
+  "date": "2022-06-13",
+  "time_start": "12:00",
+  "time_end": "12:00",
+  "appt_type": "window",
+  "ref": "13939863"
+ },
+ "rate": {
+  "total": 1100.0,
+  "linehaul": null,
+  "fuel": null,
+  "accessorials_included": [],
+  "currency": "USD"
+ },
+ "not_rate": {
+  "penalties": [],
+  "detention": null,
+  "tonu": null,
+  "lumper_reimbursement": null,
+  "layover": null
+ },
+ "miles": 284,
+ "rate_per_mile": 3.87,
+ "equipment": "53 DRY VAN",
+ "weight_lbs": 4507,
+ "commodity": "PLASTICS",
+ "pieces": 9,
+ "note": "State written as full name; ZIP after state name"
+}

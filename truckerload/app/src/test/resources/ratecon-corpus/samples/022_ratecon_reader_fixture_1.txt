@@ -1,0 +1,15 @@
+RATE CONFIRMATION
+Load #: RC-88412
+Broker: Lone Star Freight LLC
+MC #: 1234567
+Origin: Dallas, TX
+Destination: Atlanta, GA
+Pick Up Date: 10/28/2026
+Delivery Date: 10/30/2026
+Total Rate: $1,850.00
+Linehaul: $1,650.00
+Fuel Surcharge: $200.00
+Miles: 820
+Weight: 42000 lbs
+Commodity: Paper rolls
+Detention: $75 per hour after 2 hours free time.

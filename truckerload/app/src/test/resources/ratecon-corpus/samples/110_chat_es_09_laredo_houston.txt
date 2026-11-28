@@ -1,0 +1,4 @@
+Compa tengo carga lista para hoy
+Carga (PU): Laredo TX 78045 de 9am a 4pm FCFS
+Descarga (DEL): Houston TX mañana 08:00 cita fija
+Pago $950 flat, 350 millas, 40k lbs dry van. Ref PU# 610942

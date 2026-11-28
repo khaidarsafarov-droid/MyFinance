@@ -1,0 +1,99 @@
+{
+ "id": "085",
+ "broker": "TMS API JSON (synthetic)",
+ "loadId": "69875652",
+ "tripId": null,
+ "reference_numbers": {},
+ "pickup": {
+  "type": "pickup",
+  "seq": 1,
+  "facility": "Atlas Chemical Plant",
+  "address": null,
+  "city": "Baton Rouge",
+  "state": "LA",
+  "zip": "70805",
+  "date": "2026-12-12",
+  "time_start": "18:00",
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "stops": [
+  {
+   "type": "pickup",
+   "seq": 1,
+   "facility": "Atlas Chemical Plant",
+   "address": null,
+   "city": "Baton Rouge",
+   "state": "LA",
+   "zip": "70805",
+   "date": "2026-12-12",
+   "time_start": "18:00",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  },
+  {
+   "type": "stop",
+   "seq": 2,
+   "facility": "Bluegrass Beverage Co",
+   "address": null,
+   "city": "Louisville",
+   "state": "KY",
+   "zip": "40214",
+   "date": "2026-12-13",
+   "time_start": "13:00",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  },
+  {
+   "type": "delivery",
+   "seq": 3,
+   "facility": "Coastal Seafood Cold Storage",
+   "address": null,
+   "city": "Gloucester",
+   "state": "MA",
+   "zip": "01930",
+   "date": "2026-12-14",
+   "time_start": "15:00",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  }
+ ],
+ "delivery": {
+  "type": "delivery",
+  "seq": 3,
+  "facility": "Coastal Seafood Cold Storage",
+  "address": null,
+  "city": "Gloucester",
+  "state": "MA",
+  "zip": "01930",
+  "date": "2026-12-14",
+  "time_start": "15:00",
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "rate": {
+  "total": 2100,
+  "linehaul": null,
+  "fuel": null,
+  "accessorials_included": [],
+  "currency": "USD"
+ },
+ "not_rate": {
+  "penalties": [],
+  "detention": null,
+  "tonu": null,
+  "lumper_reimbursement": null,
+  "layover": null
+ },
+ "miles": 1146,
+ "rate_per_mile": 1.83,
+ "equipment": null,
+ "weight_lbs": null,
+ "commodity": null,
+ "pieces": null
+}

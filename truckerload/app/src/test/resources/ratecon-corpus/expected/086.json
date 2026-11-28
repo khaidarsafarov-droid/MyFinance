@@ -1,0 +1,86 @@
+{
+ "id": "086",
+ "broker": "pdftotext raw order (synthetic)",
+ "loadId": "78031338",
+ "tripId": null,
+ "reference_numbers": {},
+ "pickup": {
+  "type": "pickup",
+  "seq": 1,
+  "facility": "Cascade Appliances DC",
+  "address": null,
+  "city": "Tacoma",
+  "state": "WA",
+  "zip": null,
+  "date": "2026-12-17",
+  "time_start": "07:30",
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "stops": [
+  {
+   "type": "pickup",
+   "seq": 1,
+   "facility": "Cascade Appliances DC",
+   "address": null,
+   "city": "Tacoma",
+   "state": "WA",
+   "zip": null,
+   "date": "2026-12-17",
+   "time_start": "07:30",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  },
+  {
+   "type": "delivery",
+   "seq": 2,
+   "facility": "Midway Retail DC",
+   "address": null,
+   "city": "Memphis",
+   "state": "TN",
+   "zip": null,
+   "date": "2026-12-17",
+   "time_start": "18:00",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  }
+ ],
+ "delivery": {
+  "type": "delivery",
+  "seq": 2,
+  "facility": "Midway Retail DC",
+  "address": null,
+  "city": "Memphis",
+  "state": "TN",
+  "zip": null,
+  "date": "2026-12-17",
+  "time_start": "18:00",
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "rate": {
+  "total": 1960,
+  "linehaul": null,
+  "fuel": null,
+  "accessorials_included": [],
+  "currency": "USD"
+ },
+ "not_rate": {
+  "penalties": [],
+  "detention": null,
+  "tonu": null,
+  "lumper_reimbursement": null,
+  "layover": null
+ },
+ "miles": null,
+ "rate_per_mile": null,
+ "equipment": null,
+ "weight_lbs": null,
+ "commodity": null,
+ "pieces": null,
+ "stops_note": "only first and last stop appear in text"
+}

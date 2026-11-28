@@ -1,0 +1,7 @@
+RATE CONFIRMATION
+Load #: 15624717
+Pick Up: Keystone Plastics, 915 Polymer Ct, Allentown, PA 18106  Date: 12/19/2026 14:30 - 22:00
+Delivery: Desert Sun Solar, 2200 Solar Blvd, Phoenix, AZ 85043  Date: 12/21/2026 08:30
+Totai Rate: $3,1O0.00  (OCR)
+Miles: 715
+Weight: 12000 lbs

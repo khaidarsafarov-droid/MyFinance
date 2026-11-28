@@ -1,0 +1,9 @@
+Trip T-23890462
+Base rate: $1,150.00
+Fuel surcharge: $0.00
+Tolls: $0.00
+Total payout: $1,150.00
+3 stops | 1633.0 mi
+1) Phoenix, AZ Dec 23 07:30
+2) Baton Rouge, LA Dec 24 06:00
+3) Kingsport, TN Dec 26 08:00

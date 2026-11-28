@@ -1,0 +1,86 @@
+{
+ "id": "081",
+ "broker": "TMS CSV export (synthetic)",
+ "loadId": "44494128",
+ "tripId": null,
+ "reference_numbers": {},
+ "pickup": {
+  "type": "pickup",
+  "seq": 1,
+  "facility": null,
+  "address": null,
+  "city": "Lake Charles",
+  "state": "LA",
+  "zip": null,
+  "date": "2026-12-12",
+  "time_start": "09:30",
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "stops": [
+  {
+   "type": "pickup",
+   "seq": 1,
+   "facility": null,
+   "address": null,
+   "city": "Lake Charles",
+   "state": "LA",
+   "zip": null,
+   "date": "2026-12-12",
+   "time_start": "09:30",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  },
+  {
+   "type": "delivery",
+   "seq": 2,
+   "facility": null,
+   "address": null,
+   "city": "Dearborn",
+   "state": "MI",
+   "zip": null,
+   "date": "2026-12-13",
+   "time_start": "06:00",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  }
+ ],
+ "delivery": {
+  "type": "delivery",
+  "seq": 2,
+  "facility": null,
+  "address": null,
+  "city": "Dearborn",
+  "state": "MI",
+  "zip": null,
+  "date": "2026-12-13",
+  "time_start": "06:00",
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "rate": {
+  "total": 3325,
+  "linehaul": 3100,
+  "fuel": null,
+  "accessorials_included": [],
+  "currency": "USD"
+ },
+ "not_rate": {
+  "penalties": [],
+  "detention": null,
+  "tonu": null,
+  "lumper_reimbursement": null,
+  "layover": null
+ },
+ "miles": 1585,
+ "rate_per_mile": 2.1,
+ "equipment": null,
+ "weight_lbs": null,
+ "commodity": null,
+ "pieces": null,
+ "stops_note": "only first and last stop appear in text"
+}

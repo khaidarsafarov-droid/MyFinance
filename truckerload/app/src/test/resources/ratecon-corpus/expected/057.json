@@ -1,0 +1,86 @@
+{
+ "id": "057",
+ "broker": "synthetic (Total Rate + Linehaul + FSC)",
+ "loadId": "RC-46465",
+ "tripId": null,
+ "reference_numbers": {},
+ "pickup": {
+  "type": "pickup",
+  "seq": 1,
+  "facility": null,
+  "address": null,
+  "city": "Laredo",
+  "state": "TX",
+  "zip": null,
+  "date": "2026-12-03",
+  "time_start": null,
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "stops": [
+  {
+   "type": "pickup",
+   "seq": 1,
+   "facility": null,
+   "address": null,
+   "city": "Laredo",
+   "state": "TX",
+   "zip": null,
+   "date": "2026-12-03",
+   "time_start": null,
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  },
+  {
+   "type": "delivery",
+   "seq": 2,
+   "facility": null,
+   "address": null,
+   "city": "Phoenix",
+   "state": "AZ",
+   "zip": null,
+   "date": "2026-12-05",
+   "time_start": null,
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  }
+ ],
+ "delivery": {
+  "type": "delivery",
+  "seq": 2,
+  "facility": null,
+  "address": null,
+  "city": "Phoenix",
+  "state": "AZ",
+  "zip": null,
+  "date": "2026-12-05",
+  "time_start": null,
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "rate": {
+  "total": 900,
+  "linehaul": 900,
+  "fuel": null,
+  "accessorials_included": [],
+  "currency": "USD"
+ },
+ "not_rate": {
+  "penalties": [],
+  "detention": "Detention: $75 per hour after 2 hours free time.",
+  "tonu": null,
+  "lumper_reimbursement": null,
+  "layover": null
+ },
+ "miles": 991,
+ "rate_per_mile": 0.91,
+ "equipment": null,
+ "weight_lbs": 44000,
+ "commodity": "Furniture",
+ "pieces": null,
+ "stops_note": "only first and last stop appear in text"
+}

@@ -1,0 +1,32 @@
+𝗧𝗿𝗶𝗽 𝗜𝗗 : T-96364691
+
+1#: 117783889C
+Loaded - Preloaded
+Thu, Dec 24, 3:30 PM EST
+ATL7
+60 Levee Rd
+Lake Charles, LA 70601-0601
+—————————————
+2#: 118166866D
+Loaded - Live
+Thu, Dec 24, 1:00 PM EST
+ORD5
+7000 Distribution Pkwy
+Memphis, TN 38118-8118
+—————————————
+3#: 118620388D
+Empty - Drop
+Thu, Dec 24, 10:30 AM EST
+LAX3
+1800 Warehouse Ave
+Tacoma, WA 98421-8421
+—————————————
+𝗥𝗮𝘁𝗲: $1,610.00
+ Per mile: $3.12/mi
+
+𝗧𝗿𝗶𝗽: 516.00mi
+Duration: 1d 0h
+
+Broker Order Not Used (BONU): $150
+Late PU: $1000
+Missed check call: $50 fine each

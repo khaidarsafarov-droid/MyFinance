@@ -1,0 +1,20 @@
+{
+ "id": "112",
+ "broker": "synthetic dispatcher chat (es)",
+ "loadId": "119P4L8X2",
+ "tripId": null,
+ "pickup": {
+  "type": "pickup",
+  "city": "Fort Worth"
+ },
+ "delivery": {
+  "type": "delivery",
+  "city": "San Marcos"
+ },
+ "rate": {
+  "total": 680,
+  "currency": "USD"
+ },
+ "miles": 240,
+ "note": "hand-checked; penalties/fines and deadhead miles are not rate/miles; PO#/BOL are not load ids"
+}

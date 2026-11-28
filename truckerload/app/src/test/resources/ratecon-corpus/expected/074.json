@@ -1,0 +1,91 @@
+{
+ "id": "074",
+ "broker": "Sunteck (vocabulary only)",
+ "loadId": "20529827",
+ "tripId": null,
+ "reference_numbers": {},
+ "pickup": {
+  "type": "pickup",
+  "seq": 1,
+  "facility": "Sierra Wine Warehouse",
+  "address": "210 Vintner Way",
+  "city": "Stockton",
+  "state": "CA",
+  "zip": "95206",
+  "date": "2026-12-15",
+  "time_start": null,
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "stops": [
+  {
+   "type": "pickup",
+   "seq": 1,
+   "facility": "Sierra Wine Warehouse",
+   "address": "210 Vintner Way",
+   "city": "Stockton",
+   "state": "CA",
+   "zip": "95206",
+   "date": "2026-12-15",
+   "time_start": null,
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  },
+  {
+   "type": "delivery",
+   "seq": 2,
+   "facility": "Delta Auto Parts",
+   "address": "4100 Assembly Dr",
+   "city": "Dearborn",
+   "state": "MI",
+   "zip": "48120",
+   "date": "2026-12-15",
+   "time_start": null,
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  }
+ ],
+ "delivery": {
+  "type": "delivery",
+  "seq": 2,
+  "facility": "Delta Auto Parts",
+  "address": "4100 Assembly Dr",
+  "city": "Dearborn",
+  "state": "MI",
+  "zip": "48120",
+  "date": "2026-12-15",
+  "time_start": null,
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "rate": {
+  "total": 1770,
+  "linehaul": null,
+  "fuel": null,
+  "accessorials_included": [],
+  "currency": "USD"
+ },
+ "not_rate": {
+  "penalties": [],
+  "detention": null,
+  "tonu": null,
+  "lumper_reimbursement": null,
+  "layover": null
+ },
+ "miles": null,
+ "rate_per_mile": null,
+ "equipment": null,
+ "weight_lbs": null,
+ "commodity": null,
+ "pieces": null,
+ "stops_note": "only first and last stop appear in text",
+ "pitfall": "Incentives are conditional bonuses; Flat Rate is the rate",
+ "incentives": [
+  50.0,
+  25.0
+ ]
+}

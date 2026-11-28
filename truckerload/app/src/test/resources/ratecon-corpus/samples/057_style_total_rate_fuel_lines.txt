@@ -1,0 +1,15 @@
+RATE CONFIRMATION
+Load #: RC-46465
+Broker: Example Freight LLC
+MC #: 1234567
+Origin: Laredo, TX
+Destination: Phoenix, AZ
+Pick Up Date: 12/03/2026
+Delivery Date: 12/05/2026
+Total Rate: $900.00
+Linehaul: $900.00
+Fuel Surcharge: $0.00
+Miles: 991
+Weight: 44000 lbs
+Commodity: Furniture
+Detention: $75 per hour after 2 hours free time.

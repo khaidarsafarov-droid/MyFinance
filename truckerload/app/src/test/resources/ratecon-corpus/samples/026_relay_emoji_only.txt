@@ -1,0 +1,32 @@
+🗺Trip ID : T-51861957
+
+📍1#: 117992795B
+Loaded - Preloaded
+Sat, Dec 5, 8:00 AM EST
+DFW2
+210 Vintner Way
+Stockton, CA 95206-5206
+—————————————
+📍2#: 119837639J
+Loaded - Live
+Mon, Dec 7, 6:00 PM EST
+ORD1
+4100 Assembly Dr
+Dearborn, MI 48120-8120
+—————————————
+📍3#: 112609471B
+Empty - Drop
+Wed, Dec 9, 6:30 AM EST
+DFW2
+1800 Warehouse Ave
+Tacoma, WA 98421-8421
+—————————————
+💰 Rate: $3,035.00
+ 💰 Per mile: $3.51/mi
+
+🚛 Trip: 865.00mi
+ 🕒 Duration: 1d 8h
+
+❌Broker Order Not Used (BONU): $150
+❌Late delivery: rate reduced $100
+❌No Update: $200

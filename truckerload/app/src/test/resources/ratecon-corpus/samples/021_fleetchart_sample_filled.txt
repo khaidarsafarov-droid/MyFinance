@@ -1,0 +1,25 @@
+Rate confirmation (sample)
+Every name and number on this page is made up.
+ Broker and MC                             Meridian Freight Systems · MC 000000
+ Broker contact                            Dana Lee · (000) 000-0000
+ Carrier and MC                            Ortega Trucking LLC · MC 000000
+ Load number                               MFS-448120
+ Equipment                                 53′ dry van
+ Commodity and weight                      Paper goods · 38,000 lb
+ Stop                      Address                                            Appointment                Reference /
+                                                                                                              appt #
+ 1 · Pickup                Chicago, IL · 2200 W Lake St                       Nov 3, 08:00                     55120
+ 2 · Delivery              Dallas, TX · 900 Commerce St                       Nov 4, 14:00                      9981
+ Charge                          Terms                                                                       Amount
+ Line haul                       967 loaded miles                                                          $2,880.00
+ Fuel surcharge                  Flat                                                                        $240.00
+ Detention                       $50/hr after 2 free hours, with in and out times                               If due
+ Lumper                          Reimbursed with receipt                                                        If due
+ TONU                            If cancelled after dispatch                                                 $150.00
+ Total agreed                                                                                              $3,120.00
+ Fines and terms                           Check calls every 4 hours. POD within 24 hours of delivery. Late delivery
+                                           without notice: $100.
+ Billing instructions                      Email invoice, rate con and signed POD to billing@example.com
+ Carrier signature and date
+ Broker signature and date
+Free template from Fleetchart · fleetchart.ai/templates

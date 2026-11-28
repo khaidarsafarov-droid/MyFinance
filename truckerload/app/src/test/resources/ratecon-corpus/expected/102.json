@@ -1,0 +1,20 @@
+{
+ "id": "102",
+ "broker": "synthetic dispatcher chat (en)",
+ "loadId": "884120",
+ "tripId": null,
+ "pickup": {
+  "type": "pickup",
+  "city": "Laredo"
+ },
+ "delivery": {
+  "type": "delivery",
+  "city": "Memphis"
+ },
+ "rate": {
+  "total": 2400,
+  "currency": "USD"
+ },
+ "miles": 990,
+ "note": "hand-checked; penalties/fines and deadhead miles are not rate/miles; PO#/BOL are not load ids"
+}

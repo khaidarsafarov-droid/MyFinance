@@ -1,0 +1,12 @@
+SAMPLE FORMAT ONLY — fields are blank. Each actual Rate Confirmation is issued per load.
+Broker | AMB Logistics Inc DBA AMB Loads | MC-72341 | USDOT 3091153 | Broker contact | AMB load # | Carrier name | Dispatcher / phone | Truck # | Equipment type
+Stop | Facility / address | Date & window | Appt / ref # | Contact
+Pickup 1
+Delivery 1
+Stop __
+FREIGHT Commodity Pieces / pallets Hazmat (Y/N) Weight (lbs) Declared value ($) Securement / tarps
+RATE Charge | Amount ($)
+Line haul
+Fuel surcharge (if separate)
+Accessorial: ____________
+TOTAL CARRIER PAY

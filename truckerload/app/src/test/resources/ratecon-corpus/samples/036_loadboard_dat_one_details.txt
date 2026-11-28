@@ -1,0 +1,12 @@
+Origin: Gary, IN
+Destination: Louisville, KY
+Trip: 190 mi
+Pick-up Date: 12/13/2026
+Pick-up Time: 09:00
+Delivery Date: 12/15/2026
+Equipment: 53 ft Van
+Load Size: Full
+Weight: 12000 lbs
+Commodity: Frozen poultry
+Rate: $1,410.00
+Posted by: Sam Broker (555) 012-7893

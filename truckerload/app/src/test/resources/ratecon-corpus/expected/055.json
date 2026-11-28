@@ -1,0 +1,122 @@
+{
+ "id": "055",
+ "broker": "synthetic (Shipper/Consignee header)",
+ "loadId": "32236793",
+ "tripId": null,
+ "reference_numbers": {},
+ "pickup": {
+  "type": "pickup",
+  "seq": 1,
+  "facility": "Rocky Mtn Distribution",
+  "address": "3300 Front Range Rd",
+  "city": "Denver",
+  "state": "CO",
+  "zip": "80216",
+  "date": "2026-12-11",
+  "time_start": "06:30",
+  "time_end": "08:00",
+  "appt_type": "Appt",
+  "ref": "4642153"
+ },
+ "stops": [
+  {
+   "type": "pickup",
+   "seq": 1,
+   "facility": "Rocky Mtn Distribution",
+   "address": "3300 Front Range Rd",
+   "city": "Denver",
+   "state": "CO",
+   "zip": "80216",
+   "date": "2026-12-11",
+   "time_start": "06:30",
+   "time_end": "08:00",
+   "appt_type": "Appt",
+   "ref": "4642153"
+  },
+  {
+   "type": "stop",
+   "seq": 2,
+   "facility": "Bayou Rice Mill",
+   "address": "60 Levee Rd",
+   "city": "Lake Charles",
+   "state": "LA",
+   "zip": "70601",
+   "date": "2026-12-13",
+   "time_start": "15:00",
+   "time_end": "17:00",
+   "appt_type": "FCFS",
+   "ref": "8118323"
+  },
+  {
+   "type": "stop",
+   "seq": 3,
+   "facility": "Lakeview Distribution",
+   "address": "450 Commerce Dr",
+   "city": "Joliet",
+   "state": "IL",
+   "zip": "60436",
+   "date": "2026-12-13",
+   "time_start": "08:30",
+   "time_end": null,
+   "appt_type": "Appt",
+   "ref": "9746389"
+  },
+  {
+   "type": "delivery",
+   "seq": 4,
+   "facility": "Atlas Chemical Plant",
+   "address": "88 Refinery Rd",
+   "city": "Baton Rouge",
+   "state": "LA",
+   "zip": "70805",
+   "date": "2026-12-14",
+   "time_start": "06:00",
+   "time_end": "14:00",
+   "appt_type": "Appt",
+   "ref": "566052"
+  }
+ ],
+ "delivery": {
+  "type": "delivery",
+  "seq": 4,
+  "facility": "Atlas Chemical Plant",
+  "address": "88 Refinery Rd",
+  "city": "Baton Rouge",
+  "state": "LA",
+  "zip": "70805",
+  "date": "2026-12-14",
+  "time_start": "06:00",
+  "time_end": "14:00",
+  "appt_type": "Appt",
+  "ref": "566052"
+ },
+ "rate": {
+  "total": 1495,
+  "linehaul": null,
+  "fuel": null,
+  "accessorials_included": [],
+  "currency": "USD"
+ },
+ "not_rate": {
+  "penalties": [
+   {
+    "text": "Late DEL: $700",
+    "amount": 700.0
+   },
+   {
+    "text": "No PU, DEL trailer photos: $200",
+    "amount": 200.0
+   }
+  ],
+  "detention": "Detention: $40/hr after 2 hrs free, max $240",
+  "tonu": null,
+  "lumper_reimbursement": null,
+  "layover": null
+ },
+ "miles": 959,
+ "rate_per_mile": 1.56,
+ "equipment": "53 ft Van",
+ "weight_lbs": 44000,
+ "commodity": "Lumber",
+ "pieces": 26
+}

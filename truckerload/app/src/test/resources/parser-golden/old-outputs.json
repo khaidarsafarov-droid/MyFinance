@@ -1,0 +1,930 @@
+{
+ "070": {
+  "date": "2026-12-03",
+  "rate": "900",
+  "tripId": "M-20261118-7A4398",
+  "pointA": "2026   Delivery: Granite State Lumber Concord, NH 12, 05, 2026",
+  "pointB": "2026",
+  "miles": ""
+ },
+ "071": {
+  "date": "2026-11-18",
+  "rate": "1485",
+  "tripId": "M-20261118-8A46A8",
+  "pointA": "Windsor, ON",
+  "pointB": "",
+  "miles": ""
+ },
+ "072": {
+  "date": "2026-11-18",
+  "rate": "3100",
+  "tripId": "PO-11824293",
+  "pointA": "Omaha, NE",
+  "pointB": "",
+  "miles": ""
+ },
+ "073": {
+  "date": "2026-11-18",
+  "rate": "3060",
+  "tripId": "M-20261118-16EF56",
+  "pointA": "Green Bay, WI",
+  "pointB": "Paterson, NJ",
+  "miles": ""
+ },
+ "074": {
+  "date": "2026-11-18",
+  "rate": "1770",
+  "tripId": "M-20261118-46FA1F",
+  "pointA": "Stockton, CA",
+  "pointB": "",
+  "miles": ""
+ },
+ "075": {
+  "date": "2026-11-18",
+  "rate": "3360",
+  "tripId": "M-20261118-86C8E0",
+  "pointA": "Green Bay, WI",
+  "pointB": "Savannah, GA",
+  "miles": ""
+ },
+ "076": {
+  "date": "2026-12-04",
+  "rate": "1450",
+  "tripId": "92534875",
+  "pointA": "Houston, TX",
+  "pointB": "Paterson, NJ",
+  "miles": ""
+ },
+ "077": {
+  "date": "2026-12-22",
+  "rate": "3435",
+  "tripId": "M-20261118-2A97B5",
+  "pointA": "Memphis, TN",
+  "pointB": "Green Bay, WI",
+  "miles": "320"
+ },
+ "110": {
+  "date": "",
+  "rate": "",
+  "tripId": "",
+  "pointA": "",
+  "pointB": "",
+  "miles": ""
+ },
+ "078": {
+  "date": "2026-11-18",
+  "rate": "1770",
+  "tripId": "M-20261118-54B87D",
+  "pointA": "Allentown, PA",
+  "pointB": "",
+  "miles": ""
+ },
+ "111": {
+  "date": "2025-11-30",
+  "rate": "",
+  "tripId": "",
+  "pointA": "",
+  "pointB": "",
+  "miles": "485"
+ },
+ "079": {
+  "date": "2026-11-18",
+  "rate": "3295",
+  "tripId": "M-20261118-B76979",
+  "pointA": "Savannah, GA",
+  "pointB": "Memphis, TN",
+  "miles": ""
+ },
+ "112": {
+  "date": "",
+  "rate": "680",
+  "tripId": "",
+  "pointA": "",
+  "pointB": "",
+  "miles": ""
+ },
+ "113": {
+  "date": "",
+  "rate": "",
+  "tripId": "",
+  "pointA": "",
+  "pointB": "",
+  "miles": "265"
+ },
+ "114": {
+  "date": "2026-30-11",
+  "rate": "",
+  "tripId": "",
+  "pointA": "",
+  "pointB": "",
+  "miles": ""
+ },
+ "115": {
+  "date": "",
+  "rate": "150",
+  "tripId": "",
+  "pointA": "",
+  "pointB": "",
+  "miles": ""
+ },
+ "116": {
+  "date": "",
+  "rate": "",
+  "tripId": "",
+  "pointA": "",
+  "pointB": "",
+  "miles": "310"
+ },
+ "080": {
+  "date": "2026-12-12",
+  "rate": "1160",
+  "tripId": "72062276",
+  "pointA": "Gary",
+  "pointB": "Paterson",
+  "miles": "1198"
+ },
+ "081": {
+  "date": "2026-12-12",
+  "rate": "3100",
+  "tripId": "M-20261118-906659",
+  "pointA": "Lake Charles, LA",
+  "pointB": "Dearborn, MI",
+  "miles": "1585"
+ },
+ "082": {
+  "date": "",
+  "rate": "",
+  "tripId": "",
+  "pointA": "",
+  "pointB": "",
+  "miles": ""
+ },
+ "083": {
+  "date": "2026-12-04",
+  "rate": "2060",
+  "tripId": "M-20261118-27BB7D",
+  "pointA": "Savannah, GA",
+  "pointB": "Stockton, CA",
+  "miles": "740"
+ },
+ "084": {
+  "date": "2026-11-18",
+  "rate": "95.25",
+  "tripId": "DEBTOR",
+  "pointA": "Example Broker Laredo, TX",
+  "pointB": "Columbus, OH",
+  "miles": ""
+ },
+ "085": {
+  "date": "2026-12-12",
+  "rate": "",
+  "tripId": "",
+  "pointA": "",
+  "pointB": "",
+  "miles": ""
+ },
+ "086": {
+  "date": "2026-11-18",
+  "rate": "1960",
+  "tripId": "PO-78031338",
+  "pointA": "Tacoma, WA",
+  "pointB": "",
+  "miles": ""
+ },
+ "087": {
+  "date": "",
+  "rate": "",
+  "tripId": "LOAD",
+  "pointA": "",
+  "pointB": "",
+  "miles": ""
+ },
+ "088": {
+  "date": "2026-12-12",
+  "rate": "",
+  "tripId": "LOAD",
+  "pointA": "",
+  "pointB": "Lakeview Distribution, 450 Commerce Dr, Joliet, IL 60436  Date:\u200912/13/2026 07:00 - 09:00",
+  "miles": ""
+ },
+ "001": {
+  "date": "2010-11-27",
+  "rate": "1771.47",
+  "tripId": "T-114R1S5MH",
+  "pointA": "West Jefferson, OH",
+  "pointB": "Frailey Township, PA",
+  "miles": "487.37"
+ },
+ "089": {
+  "date": "2026-11-18",
+  "rate": "2100",
+  "tripId": "M-20261118-59FA92",
+  "pointA": "Savannah, GA",
+  "pointB": "Stockton, CA",
+  "miles": ""
+ },
+ "002": {
+  "date": "2026-11-18",
+  "rate": "325",
+  "tripId": "M-20261118-69DEB1",
+  "pointA": "Mc Queeney, TX",
+  "pointB": "",
+  "miles": ""
+ },
+ "003": {
+  "date": "2026-11-18",
+  "rate": "1150",
+  "tripId": "34405981",
+  "pointA": "LAREDO, TX",
+  "pointB": "FORT WORTH, TX",
+  "miles": ""
+ },
+ "004": {
+  "date": "2021-07-12",
+  "rate": "",
+  "tripId": "123456789",
+  "pointA": "Houston, TX 78705",
+  "pointB": "Denver, CO 80014",
+  "miles": ""
+ },
+ "005": {
+  "date": "2026-11-18",
+  "rate": "2481",
+  "tripId": "405515639",
+  "pointA": "3685 Alum Creek Dr                                     *Open Pick Up*",
+  "pointB": "60 Distribution Blvd                               *Scheduled Delivery*",
+  "miles": ""
+ },
+ "006": {
+  "date": "2022-06-10",
+  "rate": "1100",
+  "tripId": "7C54089",
+  "pointA": "1                                     Pickup",
+  "pointB": "",
+  "miles": ""
+ },
+ "007": {
+  "date": "2018-12-11",
+  "rate": "100000",
+  "tripId": "521488",
+  "pointA": "JANE REP | P: (555) 010-0001",
+  "pointB": "Logistic Dynamics, Inc. Remit POD, BOL and Invoice To:",
+  "miles": ""
+ },
+ "008": {
+  "date": "2026-11-18",
+  "rate": "2",
+  "tripId": "PO-6790347",
+  "pointA": "Austin, TX",
+  "pointB": "",
+  "miles": ""
+ },
+ "009": {
+  "date": "2018-08-14",
+  "rate": "950",
+  "tripId": "534377",
+  "pointA": "8700 OLD HIGHWAY 48 BROWNSVILLE, TX",
+  "pointB": "8700 OLD HIGHWAY 48 BROWNSVILLE, TX",
+  "miles": ""
+ },
+ "090": {
+  "date": "2026-12-19",
+  "rate": "3.10",
+  "tripId": "LOAD",
+  "pointA": "2026 08:30",
+  "pointB": "",
+  "miles": "715"
+ },
+ "091": {
+  "date": "2026-11-18",
+  "rate": "2875",
+  "tripId": "M-20261118-A0AD7B",
+  "pointA": "High Point, NC",
+  "pointB": "Gloucester, MA",
+  "miles": ""
+ },
+ "092": {
+  "date": "2026-12-17",
+  "rate": "",
+  "tripId": "LOAD",
+  "pointA": "",
+  "pointB": "",
+  "miles": ""
+ },
+ "093": {
+  "date": "2026-11-18",
+  "rate": "2",
+  "tripId": "PO-17341032",
+  "pointA": "Northstar Electronics Minneapolis, MN",
+  "pointB": "",
+  "miles": ""
+ },
+ "094": {
+  "date": "2026-12-16",
+  "rate": "1",
+  "tripId": "29186174",
+  "pointA": "Pickup Minneapolis, MN",
+  "pointB": "Drop Kingsport, TN",
+  "miles": ""
+ },
+ "095": {
+  "date": "2025-12-15",
+  "rate": "2250",
+  "tripId": "M-20261118-31FFC9",
+  "pointA": "Concord, NH",
+  "pointB": "Paterson, NJ",
+  "miles": ""
+ },
+ "096": {
+  "date": "2026-11-18",
+  "rate": "2650",
+  "tripId": "M-20261118-55D1EC",
+  "pointA": "Gloucester, MA",
+  "pointB": "Stockton, CA",
+  "miles": ""
+ },
+ "097": {
+  "date": "2026-12-12",
+  "rate": "",
+  "tripId": "",
+  "pointA": "Macon, GA",
+  "pointB": "Columbus, OH",
+  "miles": "287"
+ },
+ "010": {
+  "date": "2026-11-18",
+  "rate": "745",
+  "tripId": "PO-1273916",
+  "pointA": "2018 1400",
+  "pointB": "2018 1900",
+  "miles": "277"
+ },
+ "098": {
+  "date": "2026-12-24",
+  "rate": "",
+  "tripId": "",
+  "pointA": "Gloucester, MA",
+  "pointB": "Joliet, IL",
+  "miles": ""
+ },
+ "011": {
+  "date": "2022-07-27",
+  "rate": "",
+  "tripId": "",
+  "pointA": "Omaha, NE 68102",
+  "pointB": "Walmart DC - Shelby, NC",
+  "miles": "648"
+ },
+ "099": {
+  "date": "2026-12-17",
+  "rate": "1485",
+  "tripId": "M-20261118-7C4910",
+  "pointA": "ORIGIN Joliet, IL",
+  "pointB": "DEST Springdale, AR",
+  "miles": "723"
+ },
+ "012": {
+  "date": "2018-04-24",
+  "rate": "775",
+  "tripId": "117042",
+  "pointA": "Cabot, AR",
+  "pointB": "DALLAS, TX",
+  "miles": ""
+ },
+ "013": {
+  "date": "2026-11-18",
+  "rate": "650",
+  "tripId": "CARRIER",
+  "pointA": "La Porte, TX",
+  "pointB": "Carrollton, TX",
+  "miles": ""
+ },
+ "014": {
+  "date": "2026-11-18",
+  "rate": "2000",
+  "tripId": "21593266",
+  "pointA": "Dallas, TX",
+  "pointB": "",
+  "miles": ""
+ },
+ "015": {
+  "date": "2026-11-18",
+  "rate": "1300",
+  "tripId": "21157848",
+  "pointA": "Brewster, NY",
+  "pointB": "",
+  "miles": ""
+ },
+ "016": {
+  "date": "2021-10-12",
+  "rate": "25",
+  "tripId": "M-20261118-90EB9D",
+  "pointA": "DALLAS, TX",
+  "pointB": "Houston, TX",
+  "miles": ""
+ },
+ "017": {
+  "date": "2026-11-18",
+  "rate": "3",
+  "tripId": "DATE",
+  "pointA": "Fort Myers, FL",
+  "pointB": "",
+  "miles": ""
+ },
+ "018": {
+  "date": "",
+  "rate": "",
+  "tripId": "CARRIER",
+  "pointA": "",
+  "pointB": "",
+  "miles": ""
+ },
+ "019": {
+  "date": "",
+  "rate": "",
+  "tripId": "LOAD",
+  "pointA": "Facility: ____________________",
+  "pointB": "Facility: ____________________",
+  "miles": ""
+ },
+ "020": {
+  "date": "2026-11-27",
+  "rate": "50",
+  "tripId": "LD-2026-58214",
+  "pointA": "Nashville, TN",
+  "pointB": "Columbus, OH",
+  "miles": "612"
+ },
+ "021": {
+  "date": "2026-11-18",
+  "rate": "3120",
+  "tripId": "MFS-448120",
+  "pointA": "Pickup                Chicago, IL",
+  "pointB": "Delivery              Dallas, TX",
+  "miles": ""
+ },
+ "022": {
+  "date": "2026-11-18",
+  "rate": "1850",
+  "tripId": "RC-88412",
+  "pointA": "Dallas, TX",
+  "pointB": "Atlanta, GA",
+  "miles": "820"
+ },
+ "023": {
+  "date": "2026-11-02",
+  "rate": "1450",
+  "tripId": "LOAD",
+  "pointA": "Houston TX 77001",
+  "pointB": "Memphis, TN",
+  "miles": "640"
+ },
+ "024": {
+  "date": "2026-11-18",
+  "rate": "3435",
+  "tripId": "T-29157152",
+  "pointA": "rate reduced $100",
+  "pointB": "",
+  "miles": "859"
+ },
+ "025": {
+  "date": "2026-11-18",
+  "rate": "1300",
+  "tripId": "T-76183315",
+  "pointA": "Springdale, AR",
+  "pointB": "Laredo, TX",
+  "miles": "1231"
+ },
+ "026": {
+  "date": "2026-11-18",
+  "rate": "3035",
+  "tripId": "T-51861957",
+  "pointA": "rate reduced $100",
+  "pointB": "",
+  "miles": "865"
+ },
+ "027": {
+  "date": "2010-12-24",
+  "rate": "1610",
+  "tripId": "T-96364691",
+  "pointA": "Lake Charles, LA",
+  "pointB": "Tacoma, WA",
+  "miles": "516"
+ },
+ "028": {
+  "date": "2026-11-18",
+  "rate": "1310",
+  "tripId": "T-78815882",
+  "pointA": "Savannah, GA",
+  "pointB": "Stockton, CA",
+  "miles": "657"
+ },
+ "029": {
+  "date": "2026-11-18",
+  "rate": "1800",
+  "tripId": "T-75857443",
+  "pointA": "Paterson, NJ",
+  "pointB": "Lake Charles, LA",
+  "miles": "320"
+ },
+ "030": {
+  "date": "2026-11-27",
+  "rate": "1985",
+  "tripId": "T-64471322",
+  "pointA": "Joliet, IL",
+  "pointB": "Tacoma, WA",
+  "miles": "1463"
+ },
+ "031": {
+  "date": "2026-12-06",
+  "rate": "",
+  "tripId": "T-93467815",
+  "pointA": "Paterson, NJ 07501",
+  "pointB": "Stockton, CA 95206",
+  "miles": "228"
+ },
+ "032": {
+  "date": "2007-12-23",
+  "rate": "1150",
+  "tripId": "T-23890462",
+  "pointA": "Phoenix, AZ",
+  "pointB": "Kingsport, TN",
+  "miles": "1633"
+ },
+ "033": {
+  "date": "",
+  "rate": "",
+  "tripId": "T-88347732",
+  "pointA": "",
+  "pointB": "",
+  "miles": ""
+ },
+ "034": {
+  "date": "2026-12-14",
+  "rate": "",
+  "tripId": "LOAD",
+  "pointA": "",
+  "pointB": "",
+  "miles": ""
+ },
+ "035": {
+  "date": "2025-12-14",
+  "rate": "3360",
+  "tripId": "M-20261118-E13BBC",
+  "pointA": "14 08:00",
+  "pointB": "15 07:30",
+  "miles": "1645"
+ },
+ "036": {
+  "date": "2026-12-13",
+  "rate": "1410",
+  "tripId": "M-20261118-31E31B",
+  "pointA": "Gary, IN",
+  "pointB": "Louisville, KY",
+  "miles": "190"
+ },
+ "037": {
+  "date": "2026-12-24",
+  "rate": "",
+  "tripId": "",
+  "pointA": "Springdale, AR 72764",
+  "pointB": "Macon, GA 31201",
+  "miles": "552"
+ },
+ "038": {
+  "date": "2026-12-02",
+  "rate": "3360",
+  "tripId": "M-20261118-17642B",
+  "pointA": "Columbus, OH",
+  "pointB": "Omaha, NE",
+  "miles": "1483"
+ },
+ "039": {
+  "date": "2026-11-18",
+  "rate": "2650",
+  "tripId": "M-20261118-38CF95",
+  "pointA": "High Point, NC",
+  "pointB": "",
+  "miles": ""
+ },
+ "040": {
+  "date": "",
+  "rate": "",
+  "tripId": "",
+  "pointA": "From Minneapolis, MN",
+  "pointB": "To Gloucester, MA",
+  "miles": "432"
+ },
+ "041": {
+  "date": "2026-12-26",
+  "rate": "1800",
+  "tripId": "19997885",
+  "pointA": "PU Houston, TX",
+  "pointB": "DEL Laredo, TX",
+  "miles": "897"
+ },
+ "042": {
+  "date": "2026-12-23",
+  "rate": "1170",
+  "tripId": "30843996",
+  "pointA": "Houston, TX",
+  "pointB": "Gloucester, MA",
+  "miles": ""
+ },
+ "043": {
+  "date": "2025-12-04",
+  "rate": "",
+  "tripId": "45035571",
+  "pointA": "Baton Rouge, LA",
+  "pointB": "Laredo, TX",
+  "miles": ""
+ },
+ "044": {
+  "date": "2025-12-25",
+  "rate": "",
+  "tripId": "51208723",
+  "pointA": "Columbus, OH",
+  "pointB": "Phoenix, AZ",
+  "miles": ""
+ },
+ "045": {
+  "date": "2010-12-08",
+  "rate": "",
+  "tripId": "",
+  "pointA": "Dec 8 10:00 AM",
+  "pointB": "Dec 11 8:00 PM",
+  "miles": ""
+ },
+ "046": {
+  "date": "2025-12-12",
+  "rate": "1050",
+  "tripId": "M-20261118-90AAED",
+  "pointA": "Assembly Dr Dearborn, MI",
+  "pointB": "Vintner Way Stockton, CA",
+  "miles": ""
+ },
+ "047": {
+  "date": "2026-12-05",
+  "rate": "1710",
+  "tripId": "M-20261118-911CCB",
+  "pointA": "Macon, GA",
+  "pointB": "Concord, NH",
+  "miles": "915"
+ },
+ "048": {
+  "date": "",
+  "rate": "",
+  "tripId": "",
+  "pointA": "Concord, NH",
+  "pointB": "Gloucester, MA",
+  "miles": ""
+ },
+ "049": {
+  "date": "2026-12-12",
+  "rate": "",
+  "tripId": "",
+  "pointA": "Joliet, IL",
+  "pointB": "Laredo, TX",
+  "miles": ""
+ },
+ "050": {
+  "date": "2026-12-13",
+  "rate": "",
+  "tripId": "",
+  "pointA": "Concord, NH",
+  "pointB": "Omaha, NE",
+  "miles": ""
+ },
+ "051": {
+  "date": "2025-12-18",
+  "rate": "",
+  "tripId": "",
+  "pointA": "",
+  "pointB": "",
+  "miles": "1506"
+ },
+ "052": {
+  "date": "2026-12-09",
+  "rate": "",
+  "tripId": "",
+  "pointA": "",
+  "pointB": "",
+  "miles": ""
+ },
+ "053": {
+  "date": "2026-11-18",
+  "rate": "900",
+  "tripId": "M-20261118-BDE605",
+  "pointA": "High Point, NC",
+  "pointB": "Macon, GA",
+  "miles": ""
+ },
+ "054": {
+  "date": "2026-11-18",
+  "rate": "2845",
+  "tripId": "M-20261118-9ECE29",
+  "pointA": "Dearborn, MI",
+  "pointB": "Springdale, AR",
+  "miles": ""
+ },
+ "055": {
+  "date": "2026-11-18",
+  "rate": "1495",
+  "tripId": "PO-32236793",
+  "pointA": "Lake Charles, LA",
+  "pointB": "",
+  "miles": "959"
+ },
+ "056": {
+  "date": "2026-12-26",
+  "rate": "1760",
+  "tripId": "LOAD",
+  "pointA": "Houston TX 77029",
+  "pointB": "Dearborn, MI",
+  "miles": "218"
+ },
+ "057": {
+  "date": "2026-11-18",
+  "rate": "900",
+  "tripId": "RC-46465",
+  "pointA": "Laredo, TX",
+  "pointB": "Phoenix, AZ",
+  "miles": "991"
+ },
+ "058": {
+  "date": "2026-11-18",
+  "rate": "2",
+  "tripId": "M-20261118-51258C",
+  "pointA": "RUBBER RD Houston, TX",
+  "pointB": "MILL RD Kingsport, TN",
+  "miles": ""
+ },
+ "059": {
+  "date": "2026-12-06",
+  "rate": "1800",
+  "tripId": "M-20261118-F74412",
+  "pointA": "Empire Textiles - Paterson, NJ",
+  "pointB": "Heartland Grain Terminal - Omaha, NE",
+  "miles": "186"
+ },
+ "060": {
+  "date": "2026-12-03",
+  "rate": "",
+  "tripId": "LD-13013079",
+  "pointA": "Macon, GA 31201",
+  "pointB": "Green Bay, WI 54303",
+  "miles": ""
+ },
+ "061": {
+  "date": "2026-11-18",
+  "rate": "2650",
+  "tripId": "M-20261118-5CF56F",
+  "pointA": "Phoenix, AZ",
+  "pointB": "Green Bay, WI",
+  "miles": ""
+ },
+ "062": {
+  "date": "2026-11-18",
+  "rate": "2835",
+  "tripId": "PO-22209405",
+  "pointA": "Omaha, NE",
+  "pointB": "",
+  "miles": ""
+ },
+ "063": {
+  "date": "2026-12-02",
+  "rate": "1395",
+  "tripId": "50030740",
+  "pointA": "Great Lakes Cheese Green Bay, WI",
+  "pointB": "Redwood Packaging Savannah, GA",
+  "miles": "1259"
+ },
+ "064": {
+  "date": "2026-11-18",
+  "rate": "150",
+  "tripId": "42487456",
+  "pointA": "Gary, IN",
+  "pointB": "Denver, CO",
+  "miles": ""
+ },
+ "065": {
+  "date": "2026-11-18",
+  "rate": "2835",
+  "tripId": "PO-95423208",
+  "pointA": "Gary, IN",
+  "pointB": "Gloucester, MA",
+  "miles": ""
+ },
+ "066": {
+  "date": "2026-11-18",
+  "rate": "8",
+  "tripId": "PO-77949128",
+  "pointA": "Louisville, KY",
+  "pointB": "Memphis, TN",
+  "miles": ""
+ },
+ "067": {
+  "date": "2026-12-08",
+  "rate": "500",
+  "tripId": "93724500",
+  "pointA": "Memphis, TN",
+  "pointB": "Concord, NH",
+  "miles": ""
+ },
+ "100": {
+  "date": "2026-11-18",
+  "rate": "1760",
+  "tripId": "M-20261118-440761",
+  "pointA": "Louisville, KY",
+  "pointB": "Joliet, IL",
+  "miles": ""
+ },
+ "068": {
+  "date": "2026-11-18",
+  "rate": "1345",
+  "tripId": "M-20261118-7624FA",
+  "pointA": "Memphis, TN",
+  "pointB": "Phoenix, AZ",
+  "miles": "1492"
+ },
+ "101": {
+  "date": "2009-12-15",
+  "rate": "3135",
+  "tripId": "M-20261118-603FE3",
+  "pointA": "Pickup  Joliet, IL",
+  "pointB": "Delivery  Memphis, TN",
+  "miles": ""
+ },
+ "069": {
+  "date": "2026-12-15",
+  "rate": "45",
+  "tripId": "M-20261118-383FD1",
+  "pointA": "2026 09:00",
+  "pointB": "",
+  "miles": ""
+ },
+ "102": {
+  "date": "2025-11-30",
+  "rate": "",
+  "tripId": "",
+  "pointA": "",
+  "pointB": "",
+  "miles": "990"
+ },
+ "103": {
+  "date": "2026-11-18",
+  "rate": "1950",
+  "tripId": "4491820",
+  "pointA": "Atlanta, GA",
+  "pointB": "Columbus, OH",
+  "miles": ""
+ },
+ "104": {
+  "date": "2025-11-29",
+  "rate": "",
+  "tripId": "",
+  "pointA": "",
+  "pointB": "",
+  "miles": "492"
+ },
+ "105": {
+  "date": "2025-12-01",
+  "rate": "1150",
+  "tripId": "",
+  "pointA": "",
+  "pointB": "",
+  "miles": ""
+ },
+ "106": {
+  "date": "",
+  "rate": "",
+  "tripId": "",
+  "pointA": "",
+  "pointB": "",
+  "miles": ""
+ },
+ "107": {
+  "date": "",
+  "rate": "1450",
+  "tripId": "",
+  "pointA": "",
+  "pointB": "",
+  "miles": ""
+ },
+ "108": {
+  "date": "2026-29-11",
+  "rate": "",
+  "tripId": "",
+  "pointA": "",
+  "pointB": "",
+  "miles": ""
+ },
+ "109": {
+  "date": "",
+  "rate": "",
+  "tripId": "",
+  "pointA": "",
+  "pointB": "",
+  "miles": "480"
+ }
+}

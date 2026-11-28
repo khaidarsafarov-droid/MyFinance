@@ -1,0 +1,86 @@
+{
+ "id": "098",
+ "broker": "Dispatcher (Uzbek Latin, synthetic)",
+ "loadId": "72273303",
+ "tripId": null,
+ "reference_numbers": {},
+ "pickup": {
+  "type": "pickup",
+  "seq": 1,
+  "facility": "Coastal Seafood Cold Storage",
+  "address": "15 Wharf St",
+  "city": "Gloucester",
+  "state": "MA",
+  "zip": null,
+  "date": "2026-12-24",
+  "time_start": "08:00",
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "stops": [
+  {
+   "type": "pickup",
+   "seq": 1,
+   "facility": "Coastal Seafood Cold Storage",
+   "address": "15 Wharf St",
+   "city": "Gloucester",
+   "state": "MA",
+   "zip": null,
+   "date": "2026-12-24",
+   "time_start": "08:00",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  },
+  {
+   "type": "delivery",
+   "seq": 2,
+   "facility": "Lakeview Distribution",
+   "address": "450 Commerce Dr",
+   "city": "Joliet",
+   "state": "IL",
+   "zip": null,
+   "date": "2026-12-30",
+   "time_start": "20:00",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  }
+ ],
+ "delivery": {
+  "type": "delivery",
+  "seq": 2,
+  "facility": "Lakeview Distribution",
+  "address": "450 Commerce Dr",
+  "city": "Joliet",
+  "state": "IL",
+  "zip": null,
+  "date": "2026-12-30",
+  "time_start": "20:00",
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "rate": {
+  "total": 2435,
+  "linehaul": null,
+  "fuel": null,
+  "accessorials_included": [],
+  "currency": "USD"
+ },
+ "not_rate": {
+  "penalties": [],
+  "detention": null,
+  "tonu": null,
+  "lumper_reimbursement": null,
+  "layover": null
+ },
+ "miles": 1405,
+ "rate_per_mile": 1.73,
+ "equipment": null,
+ "weight_lbs": null,
+ "commodity": null,
+ "pieces": null,
+ "stops_note": "only first and last stop appear in text"
+}

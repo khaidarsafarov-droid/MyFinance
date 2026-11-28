@@ -1,0 +1,88 @@
+{
+ "id": "090",
+ "broker": "synthetic (OCR noise)",
+ "loadId": "15624717",
+ "tripId": null,
+ "reference_numbers": {},
+ "pickup": {
+  "type": "pickup",
+  "seq": 1,
+  "facility": "Keystone Plastics",
+  "address": "915 Polymer Ct",
+  "city": "Allentown",
+  "state": "PA",
+  "zip": "18106",
+  "date": "2026-12-19",
+  "time_start": "14:30",
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "stops": [
+  {
+   "type": "pickup",
+   "seq": 1,
+   "facility": "Keystone Plastics",
+   "address": "915 Polymer Ct",
+   "city": "Allentown",
+   "state": "PA",
+   "zip": "18106",
+   "date": "2026-12-19",
+   "time_start": "14:30",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  },
+  {
+   "type": "delivery",
+   "seq": 2,
+   "facility": "Desert Sun Solar",
+   "address": "2200 Solar Blvd",
+   "city": "Phoenix",
+   "state": "AZ",
+   "zip": "85043",
+   "date": "2026-12-21",
+   "time_start": "08:30",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  }
+ ],
+ "delivery": {
+  "type": "delivery",
+  "seq": 2,
+  "facility": "Desert Sun Solar",
+  "address": "2200 Solar Blvd",
+  "city": "Phoenix",
+  "state": "AZ",
+  "zip": "85043",
+  "date": "2026-12-21",
+  "time_start": "08:30",
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "rate": {
+  "total": 3100,
+  "linehaul": null,
+  "fuel": null,
+  "accessorials_included": [],
+  "currency": "USD"
+ },
+ "not_rate": {
+  "penalties": [],
+  "detention": null,
+  "tonu": null,
+  "lumper_reimbursement": null,
+  "layover": null
+ },
+ "miles": 715,
+ "rate_per_mile": 4.34,
+ "equipment": null,
+ "weight_lbs": 12000,
+ "commodity": null,
+ "pieces": null,
+ "stops_note": "only first and last stop appear in text",
+ "pitfall": "amount OCR'd with letter O / S; need character repair in numeric context",
+ "noisy_amount": "$3,1O0.00"
+}

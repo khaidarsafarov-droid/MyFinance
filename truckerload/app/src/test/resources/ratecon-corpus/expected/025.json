@@ -1,0 +1,90 @@
+{
+ "id": "025",
+ "broker": "Amazon Relay (variant)",
+ "loadId": null,
+ "tripId": "T-76183315",
+ "reference_numbers": {},
+ "pickup": {
+  "type": "pickup",
+  "seq": 1,
+  "facility": null,
+  "address": "420 Hatchery Rd",
+  "city": "Springdale",
+  "state": "AR",
+  "zip": "72764",
+  "date": "2026-12-03",
+  "time_start": "18:00",
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "stops": [
+  {
+   "type": "pickup",
+   "seq": 1,
+   "facility": null,
+   "address": "420 Hatchery Rd",
+   "city": "Springdale",
+   "state": "AR",
+   "zip": "72764",
+   "date": "2026-12-03",
+   "time_start": "18:00",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  },
+  {
+   "type": "delivery",
+   "seq": 2,
+   "facility": null,
+   "address": "2500 Market Way",
+   "city": "Laredo",
+   "state": "TX",
+   "zip": "78045",
+   "date": "2026-12-05",
+   "time_start": "20:30",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  }
+ ],
+ "delivery": {
+  "type": "delivery",
+  "seq": 2,
+  "facility": null,
+  "address": "2500 Market Way",
+  "city": "Laredo",
+  "state": "TX",
+  "zip": "78045",
+  "date": "2026-12-05",
+  "time_start": "20:30",
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "rate": {
+  "total": 1300,
+  "linehaul": null,
+  "fuel": null,
+  "accessorials_included": [],
+  "currency": "USD"
+ },
+ "not_rate": {
+  "penalties": [
+   {
+    "text": "Late DEL: $700",
+    "amount": 700.0
+   }
+  ],
+  "detention": null,
+  "tonu": "TONU: $150",
+  "lumper_reimbursement": null,
+  "layover": "Layover: $250/day"
+ },
+ "miles": 1231,
+ "rate_per_mile": 1.06,
+ "equipment": null,
+ "weight_lbs": null,
+ "commodity": null,
+ "pieces": null
+}

@@ -1,0 +1,99 @@
+{
+ "id": "060",
+ "broker": "synthetic (per-mile rate x miles)",
+ "loadId": "LD-13013079",
+ "tripId": null,
+ "reference_numbers": {},
+ "pickup": {
+  "type": "pickup",
+  "seq": 1,
+  "facility": "Peach State Packers",
+  "address": "880 Orchard Rd",
+  "city": "Macon",
+  "state": "GA",
+  "zip": "31201",
+  "date": "2026-12-03",
+  "time_start": "07:00",
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "stops": [
+  {
+   "type": "pickup",
+   "seq": 1,
+   "facility": "Peach State Packers",
+   "address": "880 Orchard Rd",
+   "city": "Macon",
+   "state": "GA",
+   "zip": "31201",
+   "date": "2026-12-03",
+   "time_start": "07:00",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  },
+  {
+   "type": "stop",
+   "seq": 2,
+   "facility": "Northstar Electronics",
+   "address": "5000 Tech Pkwy",
+   "city": "Minneapolis",
+   "state": "MN",
+   "zip": "55413",
+   "date": "2026-12-04",
+   "time_start": "06:00",
+   "time_end": "08:00",
+   "appt_type": null,
+   "ref": null
+  },
+  {
+   "type": "delivery",
+   "seq": 3,
+   "facility": "Great Lakes Cheese",
+   "address": "101 Dairy Ln",
+   "city": "Green Bay",
+   "state": "WI",
+   "zip": "54303",
+   "date": "2026-12-06",
+   "time_start": "10:30",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  }
+ ],
+ "delivery": {
+  "type": "delivery",
+  "seq": 3,
+  "facility": "Great Lakes Cheese",
+  "address": "101 Dairy Ln",
+  "city": "Green Bay",
+  "state": "WI",
+  "zip": "54303",
+  "date": "2026-12-06",
+  "time_start": "10:30",
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "rate": {
+  "total": 3219.68,
+  "linehaul": 3100,
+  "fuel": 119.68,
+  "accessorials_included": [],
+  "currency": "USD"
+ },
+ "not_rate": {
+  "penalties": [],
+  "detention": null,
+  "tonu": null,
+  "lumper_reimbursement": null,
+  "layover": null
+ },
+ "miles": 272,
+ "rate_per_mile": 11.84,
+ "equipment": null,
+ "weight_lbs": null,
+ "commodity": null,
+ "pieces": null
+}

@@ -71,14 +71,40 @@ class MessageParseService {
         } else {
             ParseInput.ExtractedDocument(rawMessage, fileName, referenceMillis)
         }
-        LoadParsingEngine.rankedLoad(input)?.let { return LoadDraftFields.fromLoad(it) }
-        // Partial Relay text (e.g. no rate yet): keep every field that was found, never reject.
-        LoadMessageParser.parseDraft(rawMessage, referenceMillis)?.let { return LoadDraftFields.fromLoad(it) }
+        val ranked = LoadParsingEngine.rankedLoad(input)?.let { LoadDraftFields.fromLoad(it) }
         val direct = FlexibleLoadParser.extractFields(rawMessage)
-        if (!direct.isEmpty()) return direct
+        val existing = (ranked ?: direct).dropImplausible()
+        // Partial Relay text (e.g. no rate yet): keep every field that was found, never reject.
+        val relay = LoadMessageParser.parseDraft(rawMessage, referenceMillis)?.let { LoadDraftFields.fromLoad(it) }
+        val chat = if (relay == null) chatDraft(rawMessage, referenceMillis) else null
+        val generic = LoadDraftFields.fromExtracted(RateConTextExtractor.extract(rawMessage))
+        val others = listOfNotNull(relay, chat, ranked, direct, generic).map { it.dropImplausible() }
+        val merged = if (existing.isComplete() && existing.hasValidPlaces()) {
+            // A complete, valid answer from the existing parsers is kept as is; the other schemes only fill blanks.
+            val filled = others.fold(existing) { best, next -> best.fillBlanksFrom(next) }
+            // A ranked draft without a date in the text carries "today"; a date the text really has is better.
+            val defaulted = existing.date.isBlank() || existing.date == todayIso(referenceMillis)
+            val date = chat?.date.orEmpty().ifBlank { if (defaulted) direct.date else "" }.ifBlank { filled.date }
+            filled.copy(date = date)
+        } else {
+            // Otherwise the most complete valid value per field wins, specialised schemes first. A date found in
+            // the text wins; the parsers that default to "today" only fill what is left.
+            val best = others.reduceOrNull { first, next -> first.fillBlanksFrom(next) }
+            val date = chat?.date.orEmpty().ifBlank { direct.date }.ifBlank { relay?.date.orEmpty() }
+            best?.copy(date = date.ifBlank { best.date })
+        }
+        if (merged != null && !merged.isEmpty()) return merged
         val flattened = JsonLoadParser.flattenToText(rawMessage)
         return if (flattened.isBlank()) direct else FlexibleLoadParser.extractFields(flattened)
     }
+
+    private fun todayOf(referenceMillis: Long): java.time.LocalDate =
+        java.time.Instant.ofEpochMilli(referenceMillis).atZone(java.time.ZoneId.systemDefault()).toLocalDate()
+
+    private fun todayIso(referenceMillis: Long): String = todayOf(referenceMillis).toString()
+
+    private fun chatDraft(rawMessage: String, referenceMillis: Long): LoadDraftFields? =
+        ChatLoadParser.extract(rawMessage, todayOf(referenceMillis))?.let { LoadDraftFields.fromExtracted(it) }
 
     /** Missing pieces of the best draft this text yields, for confirm-before-save flows. */
     fun completenessOf(

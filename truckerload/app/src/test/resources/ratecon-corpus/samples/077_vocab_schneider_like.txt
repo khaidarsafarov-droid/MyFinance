@@ -1,0 +1,6 @@
+Schneider-style load assignment (synthetic)
+Order # 36018771
+Carrier pay: $3,435.00
+Loaded miles: 320
+Pick  Arrive by 12/22/26 13:00  Midway Retail DC - 7000 Distribution Pkwy, Memphis, TN 38118
+Drop  Arrive by 12/22/26 18:00  Great Lakes Cheese - 101 Dairy Ln, Green Bay, WI 54303

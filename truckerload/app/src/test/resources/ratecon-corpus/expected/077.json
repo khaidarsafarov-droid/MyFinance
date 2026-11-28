@@ -1,0 +1,85 @@
+{
+ "id": "077",
+ "broker": "Schneider FreightPower (vocabulary only)",
+ "loadId": "36018771",
+ "tripId": null,
+ "reference_numbers": {},
+ "pickup": {
+  "type": "pickup",
+  "seq": 1,
+  "facility": "Midway Retail DC",
+  "address": "7000 Distribution Pkwy",
+  "city": "Memphis",
+  "state": "TN",
+  "zip": "38118",
+  "date": "2026-12-22",
+  "time_start": "13:00",
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "stops": [
+  {
+   "type": "pickup",
+   "seq": 1,
+   "facility": "Midway Retail DC",
+   "address": "7000 Distribution Pkwy",
+   "city": "Memphis",
+   "state": "TN",
+   "zip": "38118",
+   "date": "2026-12-22",
+   "time_start": "13:00",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  },
+  {
+   "type": "delivery",
+   "seq": 2,
+   "facility": "Great Lakes Cheese",
+   "address": "101 Dairy Ln",
+   "city": "Green Bay",
+   "state": "WI",
+   "zip": "54303",
+   "date": "2026-12-22",
+   "time_start": "18:00",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  }
+ ],
+ "delivery": {
+  "type": "delivery",
+  "seq": 2,
+  "facility": "Great Lakes Cheese",
+  "address": "101 Dairy Ln",
+  "city": "Green Bay",
+  "state": "WI",
+  "zip": "54303",
+  "date": "2026-12-22",
+  "time_start": "18:00",
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "rate": {
+  "total": 3435,
+  "linehaul": null,
+  "fuel": null,
+  "accessorials_included": [],
+  "currency": "USD"
+ },
+ "not_rate": {
+  "penalties": [],
+  "detention": null,
+  "tonu": null,
+  "lumper_reimbursement": null,
+  "layover": null
+ },
+ "miles": 320,
+ "rate_per_mile": 10.73,
+ "equipment": null,
+ "weight_lbs": null,
+ "commodity": null,
+ "pieces": null
+}

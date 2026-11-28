@@ -1,0 +1,90 @@
+{
+ "id": "058",
+ "broker": "synthetic (coded pay breakdown)",
+ "loadId": "17944390",
+ "tripId": null,
+ "reference_numbers": {},
+ "pickup": {
+  "type": "pickup",
+  "seq": 1,
+  "facility": "Gulf Coast Tire",
+  "address": "1750 Rubber Rd",
+  "city": "Houston",
+  "state": "TX",
+  "zip": "77029",
+  "date": "2026-12-03",
+  "time_start": "07:00",
+  "time_end": "11:00",
+  "appt_type": "Appt",
+  "ref": "3923192"
+ },
+ "stops": [
+  {
+   "type": "pickup",
+   "seq": 1,
+   "facility": "Gulf Coast Tire",
+   "address": "1750 Rubber Rd",
+   "city": "Houston",
+   "state": "TX",
+   "zip": "77029",
+   "date": "2026-12-03",
+   "time_start": "07:00",
+   "time_end": "11:00",
+   "appt_type": "Appt",
+   "ref": "3923192"
+  },
+  {
+   "type": "delivery",
+   "seq": 2,
+   "facility": "Summit Paper Mill",
+   "address": "77 Mill Rd",
+   "city": "Kingsport",
+   "state": "TN",
+   "zip": "37660",
+   "date": "2026-12-04",
+   "time_start": "08:00",
+   "time_end": "10:00",
+   "appt_type": "FCFS",
+   "ref": "298938"
+  }
+ ],
+ "delivery": {
+  "type": "delivery",
+  "seq": 2,
+  "facility": "Summit Paper Mill",
+  "address": "77 Mill Rd",
+  "city": "Kingsport",
+  "state": "TN",
+  "zip": "37660",
+  "date": "2026-12-04",
+  "time_start": "08:00",
+  "time_end": "10:00",
+  "appt_type": "FCFS",
+  "ref": "298938"
+ },
+ "rate": {
+  "total": 1875,
+  "linehaul": 1650,
+  "fuel": null,
+  "accessorials_included": [
+   {
+    "name": "Lumper",
+    "amount": 225
+   }
+  ],
+  "currency": "USD"
+ },
+ "not_rate": {
+  "penalties": [],
+  "detention": null,
+  "tonu": null,
+  "lumper_reimbursement": null,
+  "layover": null
+ },
+ "miles": null,
+ "rate_per_mile": null,
+ "equipment": "53 ft Van",
+ "weight_lbs": 44000,
+ "commodity": "Auto parts",
+ "pieces": 26
+}

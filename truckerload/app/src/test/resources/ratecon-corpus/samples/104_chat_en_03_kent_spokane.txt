@@ -1,0 +1,5 @@
+Relay trip VRID 114H9K2M8
+PU: BFI4 Kent WA 11/29 22:15 (drop & hook empty 53)
+Stop 2: PDX9 Troutdale OR 11/30 03:30
+Stop 3: GEG1 Spokane WA 11/30 11:00
+Est payout $1,385.40 | 492 mi | Power Only

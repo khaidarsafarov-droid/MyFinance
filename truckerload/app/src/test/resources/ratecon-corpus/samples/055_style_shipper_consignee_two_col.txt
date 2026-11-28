@@ -1,0 +1,26 @@
+LOAD CONFIRMATION  #32236793
+Equipment: 53 ft Van     Commodity: Lumber     Weight: 44000 lbs
+
+SHIPPER: Rocky Mtn Distribution
+3300 Front Range Rd
+Denver CO 80216
+Ship Date: 12/11/2026  Time: 6:30 AM
+PU#: 4642153
+
+STOP-OFF: Bayou Rice Mill, 60 Levee Rd, Lake Charles, LA 70601
+Date: 12/13/2026 3:00 PM
+
+STOP-OFF: Lakeview Distribution, 450 Commerce Dr, Joliet, IL 60436
+Date: 12/13/2026 8:30 AM
+
+CONSIGNEE: Atlas Chemical Plant
+88 Refinery Rd
+Baton Rouge LA 70805
+Delivery Date: 12/14/2026  Time: 6:00 AM
+Delivery#: 566052
+
+Agreed Amount: $1,495.00 (all inclusive)
+Miles: 959
+Detention: $40/hr after 2 hrs free, max $240
+Late DEL: $700
+No PU, DEL trailer photos: $200

@@ -1,0 +1,86 @@
+{
+ "id": "071",
+ "broker": "synthetic (Canada)",
+ "loadId": "91979459",
+ "tripId": null,
+ "reference_numbers": {},
+ "pickup": {
+  "type": "pickup",
+  "seq": 1,
+  "facility": "Magna Parts",
+  "address": "25 Industrial Rd",
+  "city": "Windsor",
+  "state": "ON",
+  "zip": "N8W 1A1",
+  "date": "2026-12-09",
+  "time_start": "08:00",
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "stops": [
+  {
+   "type": "pickup",
+   "seq": 1,
+   "facility": "Magna Parts",
+   "address": "25 Industrial Rd",
+   "city": "Windsor",
+   "state": "ON",
+   "zip": "N8W 1A1",
+   "date": "2026-12-09",
+   "time_start": "08:00",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  },
+  {
+   "type": "delivery",
+   "seq": 2,
+   "facility": "Midway Retail DC",
+   "address": "7000 Distribution Pkwy",
+   "city": "Memphis",
+   "state": "TN",
+   "zip": "38118",
+   "date": "2026-12-10",
+   "time_start": "10:00",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  }
+ ],
+ "delivery": {
+  "type": "delivery",
+  "seq": 2,
+  "facility": "Midway Retail DC",
+  "address": "7000 Distribution Pkwy",
+  "city": "Memphis",
+  "state": "TN",
+  "zip": "38118",
+  "date": "2026-12-10",
+  "time_start": "10:00",
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "rate": {
+  "total": 1485,
+  "linehaul": null,
+  "fuel": null,
+  "accessorials_included": [],
+  "currency": "CAD"
+ },
+ "not_rate": {
+  "penalties": [],
+  "detention": null,
+  "tonu": null,
+  "lumper_reimbursement": null,
+  "layover": null
+ },
+ "miles": 721,
+ "rate_per_mile": 2.06,
+ "equipment": null,
+ "weight_lbs": null,
+ "commodity": null,
+ "pieces": null,
+ "stops_note": "only first and last stop appear in text"
+}

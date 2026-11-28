@@ -1,0 +1,91 @@
+{
+ "id": "009",
+ "broker": "Integrity Express Logistics",
+ "loadId": "534377",
+ "tripId": null,
+ "reference_numbers": {},
+ "pickup": {
+  "type": "pickup",
+  "seq": 1,
+  "facility": "CSC SUGAR",
+  "address": "8700 OLD HIGHWAY 48",
+  "city": "BROWNSVILLE",
+  "state": "TX",
+  "zip": "78521",
+  "date": "2018-08-14",
+  "time_start": "08:00",
+  "time_end": "15:00",
+  "appt_type": "window",
+  "ref": "BRV-DFW-181564"
+ },
+ "stops": [
+  {
+   "type": "pickup",
+   "seq": 1,
+   "facility": "CSC SUGAR",
+   "address": "8700 OLD HIGHWAY 48",
+   "city": "BROWNSVILLE",
+   "state": "TX",
+   "zip": "78521",
+   "date": "2018-08-14",
+   "time_start": "08:00",
+   "time_end": "15:00",
+   "appt_type": "window",
+   "ref": "BRV-DFW-181564"
+  },
+  {
+   "type": "delivery",
+   "seq": 2,
+   "facility": "WINDSOR PLACE",
+   "address": "1901 WINDSOR PLACE",
+   "city": "FORT WORTH",
+   "state": "TX",
+   "zip": "76110",
+   "date": "2018-08-15",
+   "time_start": "08:00",
+   "time_end": "12:00",
+   "appt_type": "window",
+   "ref": "BRV-DFW-181564"
+  }
+ ],
+ "delivery": {
+  "type": "delivery",
+  "seq": 2,
+  "facility": "WINDSOR PLACE",
+  "address": "1901 WINDSOR PLACE",
+  "city": "FORT WORTH",
+  "state": "TX",
+  "zip": "76110",
+  "date": "2018-08-15",
+  "time_start": "08:00",
+  "time_end": "12:00",
+  "appt_type": "window",
+  "ref": "BRV-DFW-181564"
+ },
+ "rate": {
+  "total": 950.0,
+  "linehaul": 950.0,
+  "fuel": null,
+  "accessorials_included": [],
+  "currency": "USD"
+ },
+ "not_rate": {
+  "penalties": [
+   {
+    "text": "failure to report overage/shortage/damage within 2 hours $125",
+    "amount": 125
+   }
+  ],
+  "detention": null,
+  "tonu": null,
+  "lumper_reimbursement": null,
+  "layover": null
+ },
+ "miles": null,
+ "rate_per_mile": null,
+ "equipment": "Van 53 ft",
+ "weight_lbs": 44900,
+ "commodity": "DRY Goods",
+ "pieces": null,
+ "note": "Times '8-3' are AM-PM ambiguous (8:00-15:00)"
+}

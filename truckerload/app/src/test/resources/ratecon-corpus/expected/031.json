@@ -1,0 +1,85 @@
+{
+ "id": "031",
+ "broker": "Amazon Relay (variant)",
+ "loadId": null,
+ "tripId": "T-93467815",
+ "reference_numbers": {},
+ "pickup": {
+  "type": "pickup",
+  "seq": 1,
+  "facility": "Empire Textiles",
+  "address": "19 Loom St",
+  "city": "Paterson",
+  "state": "NJ",
+  "zip": "07501-7501",
+  "date": "2026-12-06",
+  "time_start": "10:00",
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "stops": [
+  {
+   "type": "pickup",
+   "seq": 1,
+   "facility": "Empire Textiles",
+   "address": "19 Loom St",
+   "city": "Paterson",
+   "state": "NJ",
+   "zip": "07501-7501",
+   "date": "2026-12-06",
+   "time_start": "10:00",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  },
+  {
+   "type": "delivery",
+   "seq": 2,
+   "facility": "Sierra Wine Warehouse",
+   "address": "210 Vintner Way",
+   "city": "Stockton",
+   "state": "CA",
+   "zip": "95206-5206",
+   "date": "2026-12-07",
+   "time_start": "18:00",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  }
+ ],
+ "delivery": {
+  "type": "delivery",
+  "seq": 2,
+  "facility": "Sierra Wine Warehouse",
+  "address": "210 Vintner Way",
+  "city": "Stockton",
+  "state": "CA",
+  "zip": "95206-5206",
+  "date": "2026-12-07",
+  "time_start": "18:00",
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "rate": {
+  "total": 2650,
+  "linehaul": null,
+  "fuel": null,
+  "accessorials_included": [],
+  "currency": "USD"
+ },
+ "not_rate": {
+  "penalties": [],
+  "detention": null,
+  "tonu": null,
+  "lumper_reimbursement": null,
+  "layover": null
+ },
+ "miles": 228,
+ "rate_per_mile": 11.62,
+ "equipment": null,
+ "weight_lbs": null,
+ "commodity": null,
+ "pieces": null
+}

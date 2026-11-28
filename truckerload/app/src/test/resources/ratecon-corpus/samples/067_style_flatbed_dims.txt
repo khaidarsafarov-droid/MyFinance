@@ -1,0 +1,8 @@
+LOAD CONFIRMATION 93724500
+Equipment: Flatbed 48'   Tarps: Yes (6 ft)   Chains/straps: 10/4
+Commodity: Steel coils  Dims: 48' x 8' x 5'   Weight: 34500 lbs
+ORIGIN: Midway Retail DC - 7000 Distribution Pkwy, Memphis, TN 38118
+DESTINATION: Granite State Lumber - 31 Sawmill Rd, Concord, NH 03301
+Pick up 12/08/2026   Deliver 12/11/2026
+Total pay $1,435.00   (Rate includes tarp fee)
+Oversize permits: carrier responsibility; fines not reimbursed $500.

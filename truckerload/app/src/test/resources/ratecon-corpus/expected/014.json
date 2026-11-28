@@ -1,0 +1,90 @@
+{
+ "id": "014",
+ "broker": "Total Quality Logistics (TQL)",
+ "loadId": "21593266",
+ "tripId": null,
+ "reference_numbers": {
+  "PO": "21593266",
+  "terms": "28DAYS",
+  "quickpay": "1 Day 5% / 7 Day 3%"
+ },
+ "pickup": {
+  "type": "pickup",
+  "seq": 1,
+  "facility": null,
+  "address": null,
+  "city": "Blacksburg",
+  "state": "SC",
+  "zip": null,
+  "date": "2022-08-09",
+  "time_start": "09:00",
+  "time_end": "16:00",
+  "appt_type": "FCFS",
+  "ref": null
+ },
+ "stops": [
+  {
+   "type": "pickup",
+   "seq": 1,
+   "facility": null,
+   "address": null,
+   "city": "Blacksburg",
+   "state": "SC",
+   "zip": null,
+   "date": "2022-08-09",
+   "time_start": "09:00",
+   "time_end": "16:00",
+   "appt_type": "FCFS",
+   "ref": null
+  },
+  {
+   "type": "delivery",
+   "seq": 2,
+   "facility": null,
+   "address": null,
+   "city": "Dallas",
+   "state": "TX",
+   "zip": null,
+   "date": "2022-08-12",
+   "time_start": "00:00",
+   "time_end": null,
+   "appt_type": "FCFS",
+   "ref": null
+  }
+ ],
+ "delivery": {
+  "type": "delivery",
+  "seq": 2,
+  "facility": null,
+  "address": null,
+  "city": "Dallas",
+  "state": "TX",
+  "zip": null,
+  "date": "2022-08-12",
+  "time_start": "00:00",
+  "time_end": null,
+  "appt_type": "FCFS",
+  "ref": null
+ },
+ "rate": {
+  "total": 2000.0,
+  "linehaul": 2000.0,
+  "fuel": null,
+  "accessorials_included": [],
+  "currency": "USD"
+ },
+ "not_rate": {
+  "penalties": [],
+  "detention": null,
+  "tonu": null,
+  "lumper_reimbursement": null,
+  "layover": null
+ },
+ "miles": null,
+ "rate_per_mile": null,
+ "equipment": "FTL Van 53 ft",
+ "weight_lbs": 25000,
+ "commodity": "Dried floral products",
+ "pieces": 28,
+ "note": "TQL gives CITY, STATE ONLY (no street, no facility, no zip) until dispatch; delivery 'FCFS 00:00 Note:TBD'"
+}

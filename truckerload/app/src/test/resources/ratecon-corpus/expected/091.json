@@ -1,0 +1,85 @@
+{
+ "id": "091",
+ "broker": "synthetic (page breaks)",
+ "loadId": "91575280",
+ "tripId": null,
+ "reference_numbers": {},
+ "pickup": {
+  "type": "pickup",
+  "seq": 1,
+  "facility": "Pinecrest Furniture",
+  "address": "640 Timber Trl",
+  "city": "High Point",
+  "state": "NC",
+  "zip": "27260",
+  "date": "2026-12-06",
+  "time_start": "10:00",
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "stops": [
+  {
+   "type": "pickup",
+   "seq": 1,
+   "facility": "Pinecrest Furniture",
+   "address": "640 Timber Trl",
+   "city": "High Point",
+   "state": "NC",
+   "zip": "27260",
+   "date": "2026-12-06",
+   "time_start": "10:00",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  },
+  {
+   "type": "delivery",
+   "seq": 2,
+   "facility": "Coastal Seafood Cold Storage",
+   "address": "15 Wharf St",
+   "city": "Gloucester",
+   "state": "MA",
+   "zip": "01930",
+   "date": "2026-12-07",
+   "time_start": "13:00",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  }
+ ],
+ "delivery": {
+  "type": "delivery",
+  "seq": 2,
+  "facility": "Coastal Seafood Cold Storage",
+  "address": "15 Wharf St",
+  "city": "Gloucester",
+  "state": "MA",
+  "zip": "01930",
+  "date": "2026-12-07",
+  "time_start": "13:00",
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "rate": {
+  "total": 2875,
+  "linehaul": null,
+  "fuel": null,
+  "accessorials_included": [],
+  "currency": "USD"
+ },
+ "not_rate": {
+  "penalties": [],
+  "detention": null,
+  "tonu": null,
+  "lumper_reimbursement": null,
+  "layover": null
+ },
+ "miles": null,
+ "rate_per_mile": null,
+ "equipment": null,
+ "weight_lbs": null,
+ "commodity": null,
+ "pieces": null
+}

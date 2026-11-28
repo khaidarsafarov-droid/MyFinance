@@ -1,0 +1,5 @@
+LOAD 65336132
+ORIGIN Joliet, IL  DEST Springdale, AR
+Loaded miles: 681   Deadhead miles: 42   Total miles: 723
+Rate: $1,485.00
+PU 12/17/2026  DEL 12/20/2026

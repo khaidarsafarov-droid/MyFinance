@@ -1,0 +1,108 @@
+{
+ "id": "028",
+ "broker": "Amazon Relay (variant)",
+ "loadId": null,
+ "tripId": "T-78815882",
+ "reference_numbers": {},
+ "pickup": {
+  "type": "pickup",
+  "seq": 1,
+  "facility": null,
+  "address": "9100 Harbor Blvd",
+  "city": "Savannah",
+  "state": "GA",
+  "zip": "31408-1408",
+  "date": "2026-12-18",
+  "time_start": "18:00",
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "stops": [
+  {
+   "type": "pickup",
+   "seq": 1,
+   "facility": null,
+   "address": "9100 Harbor Blvd",
+   "city": "Savannah",
+   "state": "GA",
+   "zip": "31408-1408",
+   "date": "2026-12-18",
+   "time_start": "18:00",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  },
+  {
+   "type": "stop",
+   "seq": 2,
+   "facility": null,
+   "address": "5000 Tech Pkwy",
+   "city": "Minneapolis",
+   "state": "MN",
+   "zip": "55413-5413",
+   "date": "2026-12-19",
+   "time_start": "20:00",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  },
+  {
+   "type": "delivery",
+   "seq": 3,
+   "facility": null,
+   "address": "210 Vintner Way",
+   "city": "Stockton",
+   "state": "CA",
+   "zip": "95206-5206",
+   "date": "2026-12-19",
+   "time_start": "08:00",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  }
+ ],
+ "delivery": {
+  "type": "delivery",
+  "seq": 3,
+  "facility": null,
+  "address": "210 Vintner Way",
+  "city": "Stockton",
+  "state": "CA",
+  "zip": "95206-5206",
+  "date": "2026-12-19",
+  "time_start": "08:00",
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "rate": {
+  "total": 1310,
+  "linehaul": null,
+  "fuel": null,
+  "accessorials_included": [],
+  "currency": "USD"
+ },
+ "not_rate": {
+  "penalties": [
+   {
+    "text": "Missed check call: $50 fine each",
+    "amount": 50.0
+   },
+   {
+    "text": "Late PU: $1000",
+    "amount": 1000.0
+   }
+  ],
+  "detention": "Detention: $40/hr after 2 hrs free, max $240",
+  "tonu": null,
+  "lumper_reimbursement": null,
+  "layover": null
+ },
+ "miles": 657,
+ "rate_per_mile": 1.99,
+ "equipment": null,
+ "weight_lbs": null,
+ "commodity": null,
+ "pieces": null
+}

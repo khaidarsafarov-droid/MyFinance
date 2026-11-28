@@ -1,0 +1,86 @@
+{
+ "id": "070",
+ "broker": "synthetic (hazmat)",
+ "loadId": "39704458",
+ "tripId": null,
+ "reference_numbers": {},
+ "pickup": {
+  "type": "pickup",
+  "seq": 1,
+  "facility": "Sierra Wine Warehouse",
+  "address": null,
+  "city": "Stockton",
+  "state": "CA",
+  "zip": null,
+  "date": "2026-12-03",
+  "time_start": null,
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "stops": [
+  {
+   "type": "pickup",
+   "seq": 1,
+   "facility": "Sierra Wine Warehouse",
+   "address": null,
+   "city": "Stockton",
+   "state": "CA",
+   "zip": null,
+   "date": "2026-12-03",
+   "time_start": null,
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  },
+  {
+   "type": "delivery",
+   "seq": 2,
+   "facility": "Granite State Lumber",
+   "address": null,
+   "city": "Concord",
+   "state": "NH",
+   "zip": null,
+   "date": "2026-12-05",
+   "time_start": null,
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  }
+ ],
+ "delivery": {
+  "type": "delivery",
+  "seq": 2,
+  "facility": "Granite State Lumber",
+  "address": null,
+  "city": "Concord",
+  "state": "NH",
+  "zip": null,
+  "date": "2026-12-05",
+  "time_start": null,
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "rate": {
+  "total": 975,
+  "linehaul": 900,
+  "fuel": null,
+  "accessorials_included": [],
+  "currency": "USD"
+ },
+ "not_rate": {
+  "penalties": [],
+  "detention": null,
+  "tonu": null,
+  "lumper_reimbursement": null,
+  "layover": null
+ },
+ "miles": null,
+ "rate_per_mile": null,
+ "equipment": "Container 40' HC",
+ "weight_lbs": 42500,
+ "commodity": null,
+ "pieces": null,
+ "stops_note": "only first and last stop appear in text"
+}

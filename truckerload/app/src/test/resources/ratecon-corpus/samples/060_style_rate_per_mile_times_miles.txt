@@ -1,0 +1,21 @@
+RATE CONFIRMATION
+No. LD-13013079
+3 December 2026
+
+Pickup (shipper) (Peach State Packers)
+880 Orchard Rd, Macon, GA 31201
+3 December 2026 07:00
+
+Stop (Northstar Electronics)
+5000 Tech Pkwy, Minneapolis, MN 55413
+4 December 2026 06:00 to 08:00
+
+Delivery (consignee) (Great Lakes Cheese)
+101 Dairy Ln, Green Bay, WI 54303
+6 December 2026 10:30
+
+| Charge | Qty | Unit | Rate (USD) | Amount (USD) |
+| Line haul, flat rate | 1 | flat | 3100.00 | 3100.00 |
+| Fuel surcharge | 272 | mile | 0.44 | 119.68 |
+Subtotal 3,219.68
+Total USD 3,219.68

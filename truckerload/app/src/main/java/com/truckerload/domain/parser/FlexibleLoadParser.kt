@@ -95,14 +95,19 @@ internal object FlexibleLoadParser {
             else -> Unit
         }
 
-        val rate = firstMoney(text)
-        val miles = firstMiles(text)?.let { rawMiles ->
+        val generic = RateConTextExtractor.extract(text)
+        val rate = firstMoney(text, generic.rate)
+        val miles = (firstMiles(text) ?: generic.miles)?.let { rawMiles ->
             ParseUtils.sanitizeLoadedMiles(rawMiles, Money.fromDollars(rate ?: 0.0))
         }
         val labeledPickup = firstLabeled(text, pickupPatterns)
         val labeledDelivery = firstLabeled(text, deliveryPatterns)
-        val (pointA, pointB) = resolvePoints(text, labeledPickup, labeledDelivery)
-        val tripId = ParseUtils.firstMatch(text, tripIdPatterns)?.uppercase(Locale.US).orEmpty()
+        // An explicit "Pu-address:" style label still wins; otherwise the layout-aware extractor, then the
+        // old "first city lines" guess.
+        val (guessA, guessB) = resolvePoints(text, null, null)
+        val pointA = labeledPickup?.takeIf { isPlace(it) } ?: generic.pickup ?: guessA
+        val pointB = labeledDelivery?.takeIf { isPlace(it) } ?: generic.delivery ?: guessB
+        val tripId = resolveTripId(text, generic.loadId)
         val date = ParseUtils.normalizeDate(text).takeIf { it.length >= 10 }.orEmpty()
 
         return LoadDraftFields(
@@ -148,22 +153,36 @@ internal object FlexibleLoadParser {
         RegexOption.IGNORE_CASE,
     )
 
+    private const val MIN_SPECIFIC_RATE = 50.0
+
     /** Specific labels win. A bare dollar or a generic "Pay:" on a miles/fee line is skipped. */
-    private fun firstMoney(text: String): Double? {
+    private fun firstMoney(text: String, generic: Double?): Double? {
         val looseFrom = ratePatterns.size - 2
-        for ((index, pattern) in ratePatterns.withIndex()) {
-            val amount = pattern.findAll(text).firstNotNullOfOrNull { match ->
-                val value = ParseUtils.parseMoney(match.groupValues[1]).takeIf { it > 0.0 }
-                    ?: return@firstNotNullOfOrNull null
-                if (index >= looseFrom && notRateLine.containsMatchIn(lineAt(text, match.range.first))) {
-                    return@firstNotNullOfOrNull null
-                }
-                value
-            }
-            if (amount != null) return amount
+        return ratePatterns.indices.firstNotNullOfOrNull { index ->
+            // The layout-aware total slots in right after the explicit "Total Rate" label.
+            if (index == 1 && generic != null) generic else moneyFor(text, index, looseFrom, generic != null)
         }
-        return null
     }
+
+    private fun moneyFor(text: String, index: Int, looseFrom: Int, hasGeneric: Boolean): Double? =
+        ratePatterns[index].findAll(text).firstNotNullOfOrNull { match ->
+            val value = ParseUtils.parseMoney(match.groupValues[1]).takeIf { it > 0.0 }
+            val skipTiny = index < looseFrom && hasGeneric && (value ?: 0.0) < MIN_SPECIFIC_RATE
+            val skipLine = index >= looseFrom && notRateLine.containsMatchIn(lineAt(text, match.range.first))
+            value.takeUnless { skipTiny || skipLine }
+        }
+
+    /** An id needs a digit ("LOAD", "CARRIER" are label words); the layout-aware id is the fallback. */
+    private fun resolveTripId(text: String, genericId: String?): String =
+        (
+            ParseUtils.firstMatch(text, tripIdPatterns)?.takeIf { id -> id.any { it.isDigit() } }
+                ?: genericId
+                ?: ParseUtils.firstMatch(text, tripIdPatterns)
+            )?.uppercase(Locale.US).orEmpty()
+
+    /** Rejects a "pickup" that is really a date, a time or a column-spaced fragment. */
+    private fun isPlace(value: String?): Boolean = !value.isNullOrBlank() &&
+        !Regex("""\d{1,2}:\d{2}|\d{1,2}/\d{1,2}/\d{2,4}|\s{3,}|\*|^\d{1,2}$""").containsMatchIn(value)
 
     private fun lineAt(text: String, index: Int): String {
         if (index !in text.indices) return ""

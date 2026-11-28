@@ -1,0 +1,12 @@
+LOAD #: 30843996
+PICKUP: Gulf Coast Tire, 1750 Rubber Rd, Houston, TX 77029
+APPT: 12/23/2026 7:30 AM
+PHONE: (555) 015-2445
+COMMODITY: Paper rolls, 34500 lbs
+DELIVERY: Coastal Seafood Cold Storage, 15 Wharf St, Gloucester, MA 01930
+APPT: 12/25/2026 8:00 AM
+PHONE: (555) 015-2445
+RATE: $1,170.00
+NOTES: Late PU: $1000
+
+Please confirm receipt and check in once loaded.

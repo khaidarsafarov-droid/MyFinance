@@ -1,0 +1,87 @@
+{
+ "id": "063",
+ "broker": "synthetic (revised rate con)",
+ "loadId": "50030740",
+ "tripId": null,
+ "reference_numbers": {},
+ "pickup": {
+  "type": "pickup",
+  "seq": 1,
+  "facility": "Great Lakes Cheese",
+  "address": null,
+  "city": "Green Bay",
+  "state": "WI",
+  "zip": null,
+  "date": "2026-12-02",
+  "time_start": "09:00",
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "stops": [
+  {
+   "type": "pickup",
+   "seq": 1,
+   "facility": "Great Lakes Cheese",
+   "address": null,
+   "city": "Green Bay",
+   "state": "WI",
+   "zip": null,
+   "date": "2026-12-02",
+   "time_start": "09:00",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  },
+  {
+   "type": "delivery",
+   "seq": 2,
+   "facility": "Redwood Packaging",
+   "address": null,
+   "city": "Savannah",
+   "state": "GA",
+   "zip": null,
+   "date": "2026-12-03",
+   "time_start": "13:00",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  }
+ ],
+ "delivery": {
+  "type": "delivery",
+  "seq": 2,
+  "facility": "Redwood Packaging",
+  "address": null,
+  "city": "Savannah",
+  "state": "GA",
+  "zip": null,
+  "date": "2026-12-03",
+  "time_start": "13:00",
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "rate": {
+  "total": 1495,
+  "linehaul": null,
+  "fuel": null,
+  "accessorials_included": [],
+  "currency": "USD"
+ },
+ "not_rate": {
+  "penalties": [],
+  "detention": null,
+  "tonu": null,
+  "lumper_reimbursement": null,
+  "layover": null
+ },
+ "miles": 1259,
+ "rate_per_mile": 1.19,
+ "equipment": null,
+ "weight_lbs": null,
+ "commodity": null,
+ "pieces": null,
+ "stops_note": "only first and last stop appear in text",
+ "pitfall": "Two dollar amounts: previous (void) vs new"
+}

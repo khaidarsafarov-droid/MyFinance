@@ -1,0 +1,2 @@
+Age	Origin	DH-O	Destination	DH-D	Pickup	Eq	Length	Weight	Miles	Pay	Rate/mi
+33m	Columbus, OH	59	Omaha, NE	16	12/02/26	V	53	42500	1483	$3,360	$2.27

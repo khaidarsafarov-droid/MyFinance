@@ -1,0 +1,86 @@
+{
+ "id": "062",
+ "broker": "synthetic (quick-pay deduction lines)",
+ "loadId": "22209405",
+ "tripId": null,
+ "reference_numbers": {},
+ "pickup": {
+  "type": "pickup",
+  "seq": 1,
+  "facility": null,
+  "address": null,
+  "city": "Kingsport",
+  "state": "TN",
+  "zip": null,
+  "date": "2026-12-05",
+  "time_start": "07:00",
+  "time_end": "09:00",
+  "appt_type": "Appt",
+  "ref": null
+ },
+ "stops": [
+  {
+   "type": "pickup",
+   "seq": 1,
+   "facility": null,
+   "address": null,
+   "city": "Kingsport",
+   "state": "TN",
+   "zip": null,
+   "date": "2026-12-05",
+   "time_start": "07:00",
+   "time_end": "09:00",
+   "appt_type": "Appt",
+   "ref": null
+  },
+  {
+   "type": "delivery",
+   "seq": 2,
+   "facility": null,
+   "address": null,
+   "city": "Omaha",
+   "state": "NE",
+   "zip": null,
+   "date": "2026-12-07",
+   "time_start": "08:00",
+   "time_end": null,
+   "appt_type": "Appt",
+   "ref": null
+  }
+ ],
+ "delivery": {
+  "type": "delivery",
+  "seq": 2,
+  "facility": null,
+  "address": null,
+  "city": "Omaha",
+  "state": "NE",
+  "zip": null,
+  "date": "2026-12-07",
+  "time_start": "08:00",
+  "time_end": null,
+  "appt_type": "Appt",
+  "ref": null
+ },
+ "rate": {
+  "total": 2835,
+  "linehaul": null,
+  "fuel": null,
+  "accessorials_included": [],
+  "currency": "USD"
+ },
+ "not_rate": {
+  "penalties": [],
+  "detention": null,
+  "tonu": null,
+  "lumper_reimbursement": null,
+  "layover": null
+ },
+ "miles": null,
+ "rate_per_mile": null,
+ "equipment": null,
+ "weight_lbs": null,
+ "commodity": null,
+ "pieces": null,
+ "pitfall": "quick-pay net amounts are NOT the rate; use Total"
+}

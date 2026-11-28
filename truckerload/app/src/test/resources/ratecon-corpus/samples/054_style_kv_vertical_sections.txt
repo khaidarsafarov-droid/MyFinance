@@ -1,0 +1,40 @@
+RATE CONFIRMATION
+
+Load / reference number: 31921592        Date issued: 11/25/2026
+
+BROKER
+Company: Example Freight Brokerage LLC   MC number: 000000
+Contact: Jane Rep   Phone: (555) 012-2378   Email: rep30@example.com
+
+CARRIER
+Company: Example Carrier LLC   MC number: 000000   USDOT: 0000000
+Driver: Test Driver   Driver phone: (555) 012-2378
+
+PICKUP
+Facility: Delta Auto Parts
+Address: 4100 Assembly Dr, Dearborn, MI 48120
+Date: 12/20/2026   Time or appointment: Appt 08:00
+Pickup number: 8579550
+
+DELIVERY
+Facility: Ozark Poultry
+Address: 420 Hatchery Rd, Springdale, AR 72764
+Date: 12/20/2026   Time or appointment: FCFS 15:00
+Delivery number: 103574
+
+FREIGHT
+Commodity: Plastic resin   Weight: 45500 lbs
+Pieces / pallets: 26   Equipment: Power Only
+
+RATE
+Linehaul: $2,650.00
+Fuel surcharge: $120.00
+Other (Lumper): $75.00
+Total carrier pay: $2,845.00
+
+ACCESSORIALS
+Broker Order Not Used (BONU): $150
+Late delivery: rate reduced $100
+Detention: $40/hr after 2 hrs free, max $240
+ACCEPTED BY CARRIER
+Name: ______  Signature: ______  Date: ______

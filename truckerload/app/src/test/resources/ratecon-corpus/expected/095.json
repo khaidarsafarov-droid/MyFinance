@@ -1,0 +1,85 @@
+{
+ "id": "095",
+ "broker": "synthetic (Stop N of M, local TZ)",
+ "loadId": "43195689",
+ "tripId": null,
+ "reference_numbers": {},
+ "pickup": {
+  "type": "pickup",
+  "seq": 1,
+  "facility": "Granite State Lumber",
+  "address": "31 Sawmill Rd",
+  "city": "Concord",
+  "state": "NH",
+  "zip": "03301",
+  "date": "2026-12-15",
+  "time_start": "18:30",
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "stops": [
+  {
+   "type": "pickup",
+   "seq": 1,
+   "facility": "Granite State Lumber",
+   "address": "31 Sawmill Rd",
+   "city": "Concord",
+   "state": "NH",
+   "zip": "03301",
+   "date": "2026-12-15",
+   "time_start": "18:30",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  },
+  {
+   "type": "delivery",
+   "seq": 2,
+   "facility": "Empire Textiles",
+   "address": "19 Loom St",
+   "city": "Paterson",
+   "state": "NJ",
+   "zip": "07501",
+   "date": "2026-12-15",
+   "time_start": "09:30",
+   "time_end": "11:00",
+   "appt_type": null,
+   "ref": null
+  }
+ ],
+ "delivery": {
+  "type": "delivery",
+  "seq": 2,
+  "facility": "Empire Textiles",
+  "address": "19 Loom St",
+  "city": "Paterson",
+  "state": "NJ",
+  "zip": "07501",
+  "date": "2026-12-15",
+  "time_start": "09:30",
+  "time_end": "11:00",
+  "appt_type": null,
+  "ref": null
+ },
+ "rate": {
+  "total": 2250,
+  "linehaul": null,
+  "fuel": null,
+  "accessorials_included": [],
+  "currency": "USD"
+ },
+ "not_rate": {
+  "penalties": [],
+  "detention": null,
+  "tonu": null,
+  "lumper_reimbursement": null,
+  "layover": null
+ },
+ "miles": null,
+ "rate_per_mile": null,
+ "equipment": null,
+ "weight_lbs": null,
+ "commodity": null,
+ "pieces": null
+}

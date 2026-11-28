@@ -1,0 +1,125 @@
+{
+ "id": "001",
+ "broker": "Amazon Relay",
+ "loadId": null,
+ "tripId": "T-114R1S5MH",
+ "reference_numbers": {
+  "loads": [
+   "115DZR7G2",
+   "11215K1PW"
+  ],
+  "duration": "0d 11h",
+  "rate_per_mile_stated": 3.63
+ },
+ "pickup": {
+  "type": "pickup",
+  "seq": 1,
+  "facility": "CMH4",
+  "address": "1550 W Main St",
+  "city": "West Jefferson",
+  "state": "OH",
+  "zip": "43162-9747",
+  "date": "2026-11-27",
+  "time_start": "10:45",
+  "time_end": null,
+  "appt_type": "Loaded - Preloaded",
+  "ref": "115DZR7G2"
+ },
+ "stops": [
+  {
+   "type": "pickup",
+   "seq": 1,
+   "facility": "CMH4",
+   "address": "1550 W Main St",
+   "city": "West Jefferson",
+   "state": "OH",
+   "zip": "43162-9747",
+   "date": "2026-11-27",
+   "time_start": "10:45",
+   "time_end": null,
+   "appt_type": "Loaded - Preloaded",
+   "ref": "115DZR7G2"
+  },
+  {
+   "type": "delivery",
+   "seq": 2,
+   "facility": "WWS1",
+   "address": "776 Saegers Station Rd",
+   "city": "Montgomery",
+   "state": "PA",
+   "zip": "17752",
+   "date": "2026-11-27",
+   "time_start": "19:51",
+   "time_end": null,
+   "appt_type": "Loaded - Preloaded",
+   "ref": "115DZR7G2"
+  },
+  {
+   "type": "empty_drop",
+   "seq": 3,
+   "facility": "QYY4",
+   "address": "251 W Woodhill",
+   "city": "Frailey Township",
+   "state": "PA",
+   "zip": "17981-1639",
+   "date": "2026-11-27",
+   "time_start": "22:09",
+   "time_end": null,
+   "appt_type": "Empty - Drop",
+   "ref": "11215K1PW"
+  }
+ ],
+ "delivery": {
+  "type": "empty_drop",
+  "seq": 3,
+  "facility": "QYY4",
+  "address": "251 W Woodhill",
+  "city": "Frailey Township",
+  "state": "PA",
+  "zip": "17981-1639",
+  "date": "2026-11-27",
+  "time_start": "22:09",
+  "time_end": null,
+  "appt_type": "Empty - Drop",
+  "ref": "11215K1PW"
+ },
+ "rate": {
+  "total": 1771.47,
+  "linehaul": null,
+  "fuel": null,
+  "accessorials_included": [],
+  "currency": "USD"
+ },
+ "not_rate": {
+  "penalties": [
+   {
+    "text": "Late PU",
+    "amount": 1000
+   },
+   {
+    "text": "Late DEL",
+    "amount": 700
+   },
+   {
+    "text": "No Update",
+    "amount": 200
+   },
+   {
+    "text": "No PU, DEL trailer photos",
+    "amount": 200
+   }
+  ],
+  "detention": null,
+  "tonu": null,
+  "lumper_reimbursement": null,
+  "layover": null
+ },
+ "miles": 487.37,
+ "rate_per_mile": 3.63,
+ "equipment": null,
+ "weight_lbs": null,
+ "commodity": null,
+ "pieces": null,
+ "tz": "EST",
+ "parse_hint": "User wants: first point = pickup/start, last = drop-off/end, middle = stops. Here last point is 'Empty - Drop'."
+}

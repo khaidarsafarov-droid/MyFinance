@@ -1,0 +1,31 @@
+RATE CONFIRMATION
+
+Load / reference number: 78423283        Date issued: 11/24/2026
+
+PICKUP
+Facility: Redwood Packaging
+Address: 9100 Harbor Blvd, Savannah, GA 31408
+Date: 12/19/2026   Time or appointment: 9:00 AM
+Pickup number: 7110925
+
+DELIVERY
+Facility: Midway Retail DC
+Address: 7000 Distribution Pkwy, Memphis, TN 38118
+Date: 12/19/2026   Time or appointment: 8:30 PM
+Delivery number: 4556124
+
+FREIGHT
+Commodity: Retail merchandise   Weight: 34500 lbs
+Pieces / pallets: 26   Equipment: Reefer 53'
+
+RATE
+Linehaul: $3,100.00
+Fuel surcharge: $120.00
+Other (describe): $75.00
+Total carrier pay: $3,295.00
+
+ACCESSORIALS
+Detention: $50 per hour after 2 hours free, with in/out times on the BOL
+Layover: $250 per day
+Lumper: paid by broker with receipt
+TONU (truck ordered, not used): $150

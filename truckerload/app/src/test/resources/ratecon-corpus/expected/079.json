@@ -1,0 +1,91 @@
+{
+ "id": "079",
+ "broker": "Generic Word template (Loadlinkers text layout)",
+ "loadId": "78423283",
+ "tripId": null,
+ "reference_numbers": {},
+ "pickup": {
+  "type": "pickup",
+  "seq": 1,
+  "facility": "Redwood Packaging",
+  "address": "9100 Harbor Blvd",
+  "city": "Savannah",
+  "state": "GA",
+  "zip": "31408",
+  "date": "2026-12-19",
+  "time_start": "09:00",
+  "time_end": "13:00",
+  "appt_type": "Appt",
+  "ref": "7110925"
+ },
+ "stops": [
+  {
+   "type": "pickup",
+   "seq": 1,
+   "facility": "Redwood Packaging",
+   "address": "9100 Harbor Blvd",
+   "city": "Savannah",
+   "state": "GA",
+   "zip": "31408",
+   "date": "2026-12-19",
+   "time_start": "09:00",
+   "time_end": "13:00",
+   "appt_type": "Appt",
+   "ref": "7110925"
+  },
+  {
+   "type": "delivery",
+   "seq": 2,
+   "facility": "Midway Retail DC",
+   "address": "7000 Distribution Pkwy",
+   "city": "Memphis",
+   "state": "TN",
+   "zip": "38118",
+   "date": "2026-12-19",
+   "time_start": "20:30",
+   "time_end": "22:00",
+   "appt_type": "FCFS",
+   "ref": "4556124"
+  }
+ ],
+ "delivery": {
+  "type": "delivery",
+  "seq": 2,
+  "facility": "Midway Retail DC",
+  "address": "7000 Distribution Pkwy",
+  "city": "Memphis",
+  "state": "TN",
+  "zip": "38118",
+  "date": "2026-12-19",
+  "time_start": "20:30",
+  "time_end": "22:00",
+  "appt_type": "FCFS",
+  "ref": "4556124"
+ },
+ "rate": {
+  "total": 3295,
+  "linehaul": 3100,
+  "fuel": 120,
+  "accessorials_included": [
+   {
+    "name": "Other",
+    "amount": 75
+   }
+  ],
+  "currency": "USD"
+ },
+ "not_rate": {
+  "penalties": [],
+  "detention": "Detention: $50 per hour after 2 hours free, with in/out times on the BOL",
+  "tonu": "TONU: $150",
+  "lumper_reimbursement": "Lumper: paid by broker with receipt",
+  "layover": "Layover: $250 per day"
+ },
+ "miles": null,
+ "rate_per_mile": null,
+ "equipment": "Reefer 53'",
+ "weight_lbs": 34500,
+ "commodity": "Retail merchandise",
+ "pieces": 26,
+ "stops_note": "only first and last stop appear in text"
+}

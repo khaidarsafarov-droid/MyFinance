@@ -1,0 +1,40 @@
+                                                                                TQL RATE CONFIRMATION FOR PO# 21157848
+                                                                                                 FIND YOUR NEXT LOAD BY VISITING
+                                                                                                  CARRIERDASHBOARD.TQL.COM
+TO ENSURE PROMPT PAYMENT, SUBMIT THIS RATE CONFIRMATION, COMPLETE BOL(S)/POD,
+RECEIPTS AND OTHER APPLICABLE PAPERWORK TO user@example.com FOR OTHER
+OPTIONS, SEE NEXT PAGE.
+        TQL CONTACT INFO
+Name                                         Phone                                  Email                                  Fax
+Alex Rep                                (555) 010-0001 x51042                    user@example.com                        5139473798
+                                                                                                                                       Office Staffed 24/7
+        CARRIER CONTACT
+MC#/DOT#                      Name                                              Phone                      Terms                 Fax
+000000 / 0000000              EXAMPLE CARRIER Transport Llc (pa)                          (555) 010-0002               28DAYS                (555) 010-0003
+Address
+1 EXAMPLE ST Anytown, NJ 00000
+Dispatcher                                              Driver                                        Truck #                    Trailer #
+dispatcher                                                   driver                                        1                          10
+        LOAD INFORMATION
+Rate                      Type                                                      Unit                   Quantity              Total
+$1,300.00                 Line Haul                                                 Flat                   1                     $1,300.00
+Rates that are based on weight or count will be calculated from the quantities loaded.                                    Total: $1,300.00 USD
+                                                                                                                                      Load
+Mode             Trailer Type       Trailer Size       Linear Feet       Temperature        Pallet/Case Count       Hazmat            Requirements
+                                                                                                                    Non-
+FTL              Van                48 ft or 53 ft                                          17 pallets/850 cases
+                                                                                                                    Hazardous
+Special Temp Instructions                                                                                           LxWxH
+Pick-up Location                                                             Date                                  Time
+Buffalo, NY                                                                  6/27/2022                             Appt 17:00 Note:7847297
+Commodities:
+Quantity      Unit                Commodity                             Notes
+1             Truckload           Flour and milled products
+Delivery Location                                                            Date                                  Time
+                                                                                                                   Appt 07:00 Note:will request
+Brewster, NY                                                                 6/28/2022
+                                                                                                                   0700 appt
+      CARRIER RESPONSIBLE FOR
+ Unloading None w/ valid unloading receipt                 Pallet Exchange          None                  Estimated Weight        42500
+               DRIVERS MUST MAKE ON TIME PICKUP AND DELIVERY. CARRIER WILL BE FULLY RESPONSIBLE FOR LATE
+    Note to    FEES. DRIVER MUST DO A CASE COUNT AND OVERAGES OR SHORTAGES MAY RESULT IN RATE DEDUCTION.

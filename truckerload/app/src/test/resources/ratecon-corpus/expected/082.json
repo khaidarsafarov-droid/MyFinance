@@ -1,0 +1,88 @@
+{
+ "id": "082",
+ "broker": "EDI X12 204 load tender (reconstructed)",
+ "loadId": "18717995",
+ "tripId": null,
+ "reference_numbers": {
+  "BOL": "1433377"
+ },
+ "pickup": {
+  "type": "pickup",
+  "seq": 1,
+  "facility": "Rocky Mtn Distribution",
+  "address": "3300 Front Range Rd",
+  "city": "Denver",
+  "state": "CO",
+  "zip": "80216",
+  "date": "2026-12-07",
+  "time_start": "07:30",
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "stops": [
+  {
+   "type": "pickup",
+   "seq": 1,
+   "facility": "Rocky Mtn Distribution",
+   "address": "3300 Front Range Rd",
+   "city": "Denver",
+   "state": "CO",
+   "zip": "80216",
+   "date": "2026-12-07",
+   "time_start": "07:30",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  },
+  {
+   "type": "delivery",
+   "seq": 2,
+   "facility": "Bluegrass Beverage Co",
+   "address": "300 Distillery Ln",
+   "city": "Louisville",
+   "state": "KY",
+   "zip": "40214",
+   "date": "2026-12-08",
+   "time_start": "06:00",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  }
+ ],
+ "delivery": {
+  "type": "delivery",
+  "seq": 2,
+  "facility": "Bluegrass Beverage Co",
+  "address": "300 Distillery Ln",
+  "city": "Louisville",
+  "state": "KY",
+  "zip": "40214",
+  "date": "2026-12-08",
+  "time_start": "06:00",
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "rate": {
+  "total": 1410,
+  "linehaul": null,
+  "fuel": null,
+  "accessorials_included": [],
+  "currency": "USD"
+ },
+ "not_rate": {
+  "penalties": [],
+  "detention": null,
+  "tonu": null,
+  "lumper_reimbursement": null,
+  "layover": null
+ },
+ "miles": null,
+ "rate_per_mile": null,
+ "equipment": null,
+ "weight_lbs": 12000,
+ "commodity": null,
+ "pieces": 22,
+ "pitfall": "L3 total charge is in CENTS (implied 2 decimals)"
+}

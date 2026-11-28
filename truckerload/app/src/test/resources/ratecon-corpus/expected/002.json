@@ -1,0 +1,88 @@
+{
+ "id": "002",
+ "broker": "Coyote Logistics",
+ "loadId": "11427050",
+ "tripId": null,
+ "reference_numbers": {
+  "cargo_value": 100000,
+  "fsc_units_miles": 34.0
+ },
+ "pickup": {
+  "type": "pickup",
+  "seq": 1,
+  "facility": "REPUBLIC PLASTICS TEXAS HQ",
+  "address": "355 SCHUMANN ROAD",
+  "city": "Mc Queeney",
+  "state": "TX",
+  "zip": "78123",
+  "date": "2017-10-27",
+  "time_start": "15:00",
+  "time_end": null,
+  "appt_type": "Appt",
+  "ref": "1228101-00056662"
+ },
+ "stops": [
+  {
+   "type": "pickup",
+   "seq": 1,
+   "facility": "REPUBLIC PLASTICS TEXAS HQ",
+   "address": "355 SCHUMANN ROAD",
+   "city": "Mc Queeney",
+   "state": "TX",
+   "zip": "78123",
+   "date": "2017-10-27",
+   "time_start": "15:00",
+   "time_end": null,
+   "appt_type": "Appt",
+   "ref": "1228101-00056662"
+  },
+  {
+   "type": "delivery",
+   "seq": 2,
+   "facility": "H.E. Butt Grocery Co.",
+   "address": "4700 N Pan AM Expressway",
+   "city": "San Antonio",
+   "state": "TX",
+   "zip": "78218",
+   "date": "2017-10-27",
+   "time_start": "18:00",
+   "time_end": null,
+   "appt_type": "Appt",
+   "ref": "62X741791"
+  }
+ ],
+ "delivery": {
+  "type": "delivery",
+  "seq": 2,
+  "facility": "H.E. Butt Grocery Co.",
+  "address": "4700 N Pan AM Expressway",
+  "city": "San Antonio",
+  "state": "TX",
+  "zip": "78218",
+  "date": "2017-10-27",
+  "time_start": "18:00",
+  "time_end": null,
+  "appt_type": "Appt",
+  "ref": "62X741791"
+ },
+ "rate": {
+  "total": 325.0,
+  "linehaul": 315.82,
+  "fuel": 9.18,
+  "accessorials_included": [],
+  "currency": "USD"
+ },
+ "not_rate": {
+  "penalties": [],
+  "detention": null,
+  "tonu": null,
+  "lumper_reimbursement": null,
+  "layover": null
+ },
+ "miles": null,
+ "rate_per_mile": null,
+ "equipment": "Van, 53'x102x110",
+ "weight_lbs": 9488,
+ "commodity": "Styrofoam plates and bowls",
+ "pieces": 1796
+}

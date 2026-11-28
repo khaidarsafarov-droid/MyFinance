@@ -1,0 +1,5 @@
+Load 39704458  HAZMAT: YES  UN1993  Class 3  Placards required
+Pickup: Sierra Wine Warehouse Stockton, CA 12/03/2026   Delivery: Granite State Lumber Concord, NH 12/05/2026
+Weight 42500 lbs   Equipment Container 40' HC
+Pay: Linehaul $900.00 + Hazmat $75.00 = $975.00
+Carrier must hold hazmat endorsement; fines are carrier's.

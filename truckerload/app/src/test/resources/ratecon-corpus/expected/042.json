@@ -1,0 +1,86 @@
+{
+ "id": "042",
+ "broker": "Dispatcher driver message (EK template)",
+ "loadId": "30843996",
+ "tripId": null,
+ "reference_numbers": {},
+ "pickup": {
+  "type": "pickup",
+  "seq": 1,
+  "facility": "Gulf Coast Tire",
+  "address": "1750 Rubber Rd",
+  "city": "Houston",
+  "state": "TX",
+  "zip": "77029",
+  "date": "2026-12-23",
+  "time_start": "07:30",
+  "time_end": null,
+  "appt_type": "FCFS",
+  "ref": null
+ },
+ "stops": [
+  {
+   "type": "pickup",
+   "seq": 1,
+   "facility": "Gulf Coast Tire",
+   "address": "1750 Rubber Rd",
+   "city": "Houston",
+   "state": "TX",
+   "zip": "77029",
+   "date": "2026-12-23",
+   "time_start": "07:30",
+   "time_end": null,
+   "appt_type": "FCFS",
+   "ref": null
+  },
+  {
+   "type": "delivery",
+   "seq": 2,
+   "facility": "Coastal Seafood Cold Storage",
+   "address": "15 Wharf St",
+   "city": "Gloucester",
+   "state": "MA",
+   "zip": "01930",
+   "date": "2026-12-25",
+   "time_start": "08:00",
+   "time_end": null,
+   "appt_type": "Appt",
+   "ref": null
+  }
+ ],
+ "delivery": {
+  "type": "delivery",
+  "seq": 2,
+  "facility": "Coastal Seafood Cold Storage",
+  "address": "15 Wharf St",
+  "city": "Gloucester",
+  "state": "MA",
+  "zip": "01930",
+  "date": "2026-12-25",
+  "time_start": "08:00",
+  "time_end": null,
+  "appt_type": "Appt",
+  "ref": null
+ },
+ "rate": {
+  "total": 1170,
+  "linehaul": null,
+  "fuel": null,
+  "accessorials_included": [],
+  "currency": "USD"
+ },
+ "not_rate": {
+  "penalties": [],
+  "detention": null,
+  "tonu": null,
+  "lumper_reimbursement": null,
+  "layover": null
+ },
+ "miles": null,
+ "rate_per_mile": null,
+ "equipment": null,
+ "weight_lbs": 34500,
+ "commodity": "Paper rolls",
+ "pieces": null,
+ "stops_note": "only first and last stop appear in text"
+}

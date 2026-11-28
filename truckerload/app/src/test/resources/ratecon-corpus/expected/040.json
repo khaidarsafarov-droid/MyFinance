@@ -1,0 +1,86 @@
+{
+ "id": "040",
+ "broker": "Trucker Path-style (synthetic)",
+ "loadId": null,
+ "tripId": null,
+ "reference_numbers": {},
+ "pickup": {
+  "type": "pickup",
+  "seq": 1,
+  "facility": null,
+  "address": null,
+  "city": "Minneapolis",
+  "state": "MN",
+  "zip": null,
+  "date": "2026-12-18",
+  "time_start": "13:00",
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "stops": [
+  {
+   "type": "pickup",
+   "seq": 1,
+   "facility": null,
+   "address": null,
+   "city": "Minneapolis",
+   "state": "MN",
+   "zip": null,
+   "date": "2026-12-18",
+   "time_start": "13:00",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  },
+  {
+   "type": "delivery",
+   "seq": 2,
+   "facility": null,
+   "address": null,
+   "city": "Gloucester",
+   "state": "MA",
+   "zip": null,
+   "date": "2026-12-20",
+   "time_start": "06:30",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  }
+ ],
+ "delivery": {
+  "type": "delivery",
+  "seq": 2,
+  "facility": null,
+  "address": null,
+  "city": "Gloucester",
+  "state": "MA",
+  "zip": null,
+  "date": "2026-12-20",
+  "time_start": "06:30",
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "rate": {
+  "total": 1570,
+  "linehaul": null,
+  "fuel": null,
+  "accessorials_included": [],
+  "currency": "USD"
+ },
+ "not_rate": {
+  "penalties": [],
+  "detention": null,
+  "tonu": null,
+  "lumper_reimbursement": null,
+  "layover": null
+ },
+ "miles": 432,
+ "rate_per_mile": 3.63,
+ "equipment": "53 ft Van",
+ "weight_lbs": 22000,
+ "commodity": null,
+ "pieces": null,
+ "stops_note": "only first and last stop appear in text"
+}

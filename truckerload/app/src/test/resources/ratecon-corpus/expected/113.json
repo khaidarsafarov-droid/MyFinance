@@ -1,0 +1,20 @@
+{
+ "id": "113",
+ "broker": "synthetic dispatcher chat (es)",
+ "loadId": null,
+ "tripId": null,
+ "pickup": {
+  "type": "pickup",
+  "city": "El Paso"
+ },
+ "delivery": {
+  "type": "delivery",
+  "city": "Albuquerque"
+ },
+ "rate": {
+  "total": 780,
+  "currency": "USD"
+ },
+ "miles": 265,
+ "note": "hand-checked; penalties/fines and deadhead miles are not rate/miles; PO#/BOL are not load ids"
+}

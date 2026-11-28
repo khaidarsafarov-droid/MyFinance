@@ -1,0 +1,17 @@
+CARRIER RATE CONFIRMATION  PAGE 1 of 2
+CREATED 12/03/26
+LZ17944390
+
+PAYMENT
+Carrier Pay Breakdown
+LNH | Line Haul | Flat $1,650.00
+ACC | Lumper | Flat $225.00
+Total Carrier Pay $1,875.00
+
+ORDER INFORMATION
+Order # Total Weight (lbs.) Equipment Temp
+17944390 44000.00 53 ft Van N/A- N/A
+
+Type | Date/Time | Name and Address | Commodity | Weight | Reference #
+PU | 12/03/26 07:00-11:00 | GULF COAST TIRE 1750 RUBBER RD Houston, TX 77029 | AUTO PARTS | 44000 | 3923192
+DEL | 12/04/26 08:00-10:00 | SUMMIT PAPER MILL 77 MILL RD Kingsport, TN 37660 | AUTO PARTS | 44000 | 298938

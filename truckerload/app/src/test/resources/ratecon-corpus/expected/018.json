@@ -1,0 +1,31 @@
+{
+ "id": "018",
+ "broker": "AMB Loads (template)",
+ "loadId": null,
+ "tripId": null,
+ "reference_numbers": {},
+ "pickup": null,
+ "stops": [],
+ "delivery": null,
+ "rate": {
+  "total": null,
+  "linehaul": null,
+  "fuel": null,
+  "accessorials_included": [],
+  "currency": "USD"
+ },
+ "not_rate": {
+  "penalties": [],
+  "detention": null,
+  "tonu": null,
+  "lumper_reimbursement": null,
+  "layover": null
+ },
+ "miles": null,
+ "rate_per_mile": null,
+ "equipment": null,
+ "weight_lbs": null,
+ "commodity": null,
+ "pieces": null,
+ "note": "blank"
+}

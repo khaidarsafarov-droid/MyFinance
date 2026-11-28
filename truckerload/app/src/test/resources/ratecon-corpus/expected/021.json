@@ -1,0 +1,91 @@
+{
+ "id": "021",
+ "broker": "Meridian Freight Systems (sample)",
+ "loadId": "MFS-448120",
+ "tripId": null,
+ "reference_numbers": {},
+ "pickup": {
+  "type": "pickup",
+  "seq": 1,
+  "facility": null,
+  "address": "2200 W Lake St",
+  "city": "Chicago",
+  "state": "IL",
+  "zip": null,
+  "date": null,
+  "time_start": "08:00",
+  "time_end": null,
+  "appt_type": "Appt",
+  "ref": "55120"
+ },
+ "stops": [
+  {
+   "type": "pickup",
+   "seq": 1,
+   "facility": null,
+   "address": "2200 W Lake St",
+   "city": "Chicago",
+   "state": "IL",
+   "zip": null,
+   "date": null,
+   "time_start": "08:00",
+   "time_end": null,
+   "appt_type": "Appt",
+   "ref": "55120"
+  },
+  {
+   "type": "delivery",
+   "seq": 2,
+   "facility": null,
+   "address": "900 Commerce St",
+   "city": "Dallas",
+   "state": "TX",
+   "zip": null,
+   "date": null,
+   "time_start": "14:00",
+   "time_end": null,
+   "appt_type": "Appt",
+   "ref": "9981"
+  }
+ ],
+ "delivery": {
+  "type": "delivery",
+  "seq": 2,
+  "facility": null,
+  "address": "900 Commerce St",
+  "city": "Dallas",
+  "state": "TX",
+  "zip": null,
+  "date": null,
+  "time_start": "14:00",
+  "time_end": null,
+  "appt_type": "Appt",
+  "ref": "9981"
+ },
+ "rate": {
+  "total": 3120.0,
+  "linehaul": 2880.0,
+  "fuel": 240.0,
+  "accessorials_included": [],
+  "currency": "USD"
+ },
+ "not_rate": {
+  "penalties": [
+   {
+    "text": "Late delivery without notice: $100",
+    "amount": 100
+   }
+  ],
+  "detention": null,
+  "tonu": "$150 if cancelled after dispatch",
+  "lumper_reimbursement": null,
+  "layover": null
+ },
+ "miles": 967,
+ "rate_per_mile": 3.23,
+ "equipment": "53' dry van",
+ "weight_lbs": 38000,
+ "commodity": "Paper goods",
+ "pieces": null,
+ "note": "year absent: infer from context; dates 'Nov 3' / 'Nov 4'"
+}

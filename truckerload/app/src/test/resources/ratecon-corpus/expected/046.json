@@ -1,0 +1,85 @@
+{
+ "id": "046",
+ "broker": "WhatsApp dispatcher plain",
+ "loadId": "60356406",
+ "tripId": null,
+ "reference_numbers": {},
+ "pickup": {
+  "type": "pickup",
+  "seq": 1,
+  "facility": null,
+  "address": "4100 Assembly Dr",
+  "city": "Dearborn",
+  "state": "MI",
+  "zip": null,
+  "date": "2026-12-12",
+  "time_start": "07:30",
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "stops": [
+  {
+   "type": "pickup",
+   "seq": 1,
+   "facility": null,
+   "address": "4100 Assembly Dr",
+   "city": "Dearborn",
+   "state": "MI",
+   "zip": null,
+   "date": "2026-12-12",
+   "time_start": "07:30",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  },
+  {
+   "type": "delivery",
+   "seq": 2,
+   "facility": null,
+   "address": "210 Vintner Way",
+   "city": "Stockton",
+   "state": "CA",
+   "zip": null,
+   "date": "2026-12-13",
+   "time_start": "14:00",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  }
+ ],
+ "delivery": {
+  "type": "delivery",
+  "seq": 2,
+  "facility": null,
+  "address": "210 Vintner Way",
+  "city": "Stockton",
+  "state": "CA",
+  "zip": null,
+  "date": "2026-12-13",
+  "time_start": "14:00",
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "rate": {
+  "total": 1050,
+  "linehaul": null,
+  "fuel": null,
+  "accessorials_included": [],
+  "currency": "USD"
+ },
+ "not_rate": {
+  "penalties": [],
+  "detention": null,
+  "tonu": null,
+  "lumper_reimbursement": null,
+  "layover": null
+ },
+ "miles": 648,
+ "rate_per_mile": 1.62,
+ "equipment": null,
+ "weight_lbs": null,
+ "commodity": null,
+ "pieces": null
+}

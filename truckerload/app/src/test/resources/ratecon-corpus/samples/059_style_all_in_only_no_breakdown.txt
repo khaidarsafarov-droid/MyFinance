@@ -1,0 +1,9 @@
+LOAD 36412481
+Stop | Type | Where | When
+1 | P | Empire Textiles - Paterson, NJ | 12/06/2026 07:00
+2 | S | Desert Sun Solar - Phoenix, AZ | 12/07/2026 09:00
+3 | S | Bluegrass Beverage Co - Louisville, KY | 12/08/2026 09:00
+4 | D | Heartland Grain Terminal - Omaha, NE | 12/08/2026 08:30 - 16:00
+All-in: $1,800
+Distance: 186 miles
+Wt 42500 | Dry Van 53ft

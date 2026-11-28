@@ -1,0 +1,7 @@
+DRAYAGE ORDER 45061955
+Container: MSCU7455067  Size: 40' HC  Chassis: DCLI
+Pick up: Lakeview Distribution - 450 Commerce Dr, Joliet, IL 60436, last free day 12/15/2026
+Deliver to: Delta Auto Parts - 4100 Assembly Dr, Dearborn, MI 48120  Appt 12/18/2026 09:00
+Return empty: Lakeview Distribution
+Rate: Drayage $2,055.00 + Chassis split $45.00 + Fuel $0.00 = Total $2,100.00 (incl. chassis)
+Prepull $100 NOT included unless approved.

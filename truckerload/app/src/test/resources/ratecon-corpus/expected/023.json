@@ -1,0 +1,85 @@
+{
+ "id": "023",
+ "broker": "Blue Ridge Logistics (fixture)",
+ "loadId": "99177",
+ "tripId": null,
+ "reference_numbers": {},
+ "pickup": {
+  "type": "pickup",
+  "seq": 1,
+  "facility": null,
+  "address": null,
+  "city": "Houston",
+  "state": "TX",
+  "zip": "77001",
+  "date": "2026-11-02",
+  "time_start": null,
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "stops": [
+  {
+   "type": "pickup",
+   "seq": 1,
+   "facility": null,
+   "address": null,
+   "city": "Houston",
+   "state": "TX",
+   "zip": "77001",
+   "date": "2026-11-02",
+   "time_start": null,
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  },
+  {
+   "type": "delivery",
+   "seq": 2,
+   "facility": null,
+   "address": null,
+   "city": "Memphis",
+   "state": "TN",
+   "zip": null,
+   "date": "2026-11-04",
+   "time_start": null,
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  }
+ ],
+ "delivery": {
+  "type": "delivery",
+  "seq": 2,
+  "facility": null,
+  "address": null,
+  "city": "Memphis",
+  "state": "TN",
+  "zip": null,
+  "date": "2026-11-04",
+  "time_start": null,
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "rate": {
+  "total": 1450.0,
+  "linehaul": null,
+  "fuel": null,
+  "accessorials_included": [],
+  "currency": "USD"
+ },
+ "not_rate": {
+  "penalties": [],
+  "detention": null,
+  "tonu": null,
+  "lumper_reimbursement": null,
+  "layover": "$250 per day if held overnight"
+ },
+ "miles": 640,
+ "rate_per_mile": 2.27,
+ "equipment": null,
+ "weight_lbs": 38000,
+ "commodity": "Steel coils",
+ "pieces": null
+}

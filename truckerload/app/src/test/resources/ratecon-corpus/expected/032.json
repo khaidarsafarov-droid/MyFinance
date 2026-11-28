@@ -1,0 +1,99 @@
+{
+ "id": "032",
+ "broker": "Amazon Relay (variant)",
+ "loadId": null,
+ "tripId": "T-23890462",
+ "reference_numbers": {},
+ "pickup": {
+  "type": "pickup",
+  "seq": 1,
+  "facility": null,
+  "address": null,
+  "city": "Phoenix",
+  "state": "AZ",
+  "zip": null,
+  "date": "2026-12-23",
+  "time_start": "07:30",
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "stops": [
+  {
+   "type": "pickup",
+   "seq": 1,
+   "facility": null,
+   "address": null,
+   "city": "Phoenix",
+   "state": "AZ",
+   "zip": null,
+   "date": "2026-12-23",
+   "time_start": "07:30",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  },
+  {
+   "type": "stop",
+   "seq": 2,
+   "facility": null,
+   "address": null,
+   "city": "Baton Rouge",
+   "state": "LA",
+   "zip": null,
+   "date": "2026-12-24",
+   "time_start": "06:00",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  },
+  {
+   "type": "delivery",
+   "seq": 3,
+   "facility": null,
+   "address": null,
+   "city": "Kingsport",
+   "state": "TN",
+   "zip": null,
+   "date": "2026-12-26",
+   "time_start": "08:00",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  }
+ ],
+ "delivery": {
+  "type": "delivery",
+  "seq": 3,
+  "facility": null,
+  "address": null,
+  "city": "Kingsport",
+  "state": "TN",
+  "zip": null,
+  "date": "2026-12-26",
+  "time_start": "08:00",
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "rate": {
+  "total": 1150,
+  "linehaul": 1150,
+  "fuel": null,
+  "accessorials_included": [],
+  "currency": "USD"
+ },
+ "not_rate": {
+  "penalties": [],
+  "detention": null,
+  "tonu": null,
+  "lumper_reimbursement": null,
+  "layover": null
+ },
+ "miles": 1633,
+ "rate_per_mile": 0.7,
+ "equipment": null,
+ "weight_lbs": null,
+ "commodity": null,
+ "pieces": null
+}

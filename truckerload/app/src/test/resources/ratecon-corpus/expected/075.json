@@ -1,0 +1,85 @@
+{
+ "id": "075",
+ "broker": "Landstar (vocabulary only)",
+ "loadId": "64414159",
+ "tripId": null,
+ "reference_numbers": {},
+ "pickup": {
+  "type": "pickup",
+  "seq": 1,
+  "facility": "Great Lakes Cheese",
+  "address": "101 Dairy Ln",
+  "city": "Green Bay",
+  "state": "WI",
+  "zip": "54303",
+  "date": "2026-12-09",
+  "time_start": "15:00",
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "stops": [
+  {
+   "type": "pickup",
+   "seq": 1,
+   "facility": "Great Lakes Cheese",
+   "address": "101 Dairy Ln",
+   "city": "Green Bay",
+   "state": "WI",
+   "zip": "54303",
+   "date": "2026-12-09",
+   "time_start": "15:00",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  },
+  {
+   "type": "delivery",
+   "seq": 2,
+   "facility": "Redwood Packaging",
+   "address": "9100 Harbor Blvd",
+   "city": "Savannah",
+   "state": "GA",
+   "zip": "31408",
+   "date": "2026-12-09",
+   "time_start": "15:30",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  }
+ ],
+ "delivery": {
+  "type": "delivery",
+  "seq": 2,
+  "facility": "Redwood Packaging",
+  "address": "9100 Harbor Blvd",
+  "city": "Savannah",
+  "state": "GA",
+  "zip": "31408",
+  "date": "2026-12-09",
+  "time_start": "15:30",
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "rate": {
+  "total": 3360,
+  "linehaul": 3100,
+  "fuel": 260,
+  "accessorials_included": [],
+  "currency": "USD"
+ },
+ "not_rate": {
+  "penalties": [],
+  "detention": "Detention: after 2 hours, $50/hr if approved",
+  "tonu": "TONU: $150",
+  "lumper_reimbursement": null,
+  "layover": null
+ },
+ "miles": null,
+ "rate_per_mile": null,
+ "equipment": null,
+ "weight_lbs": null,
+ "commodity": null,
+ "pieces": null
+}

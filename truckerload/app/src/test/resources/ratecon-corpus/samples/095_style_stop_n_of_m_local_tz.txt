@@ -1,0 +1,8 @@
+LOAD 43195689 - 2 STOPS
+Stop 1 of 2 - PICKUP
+Granite State Lumber | 31 Sawmill Rd, Concord, NH 03301
+Tue 12/15 18:30 EST (local)
+Stop 2 of 2 - DELIVERY
+Empire Textiles | 19 Loom St, Paterson, NJ 07501
+Tue 12/15 09:30 EST (local)
+Carrier pay $2,250.00

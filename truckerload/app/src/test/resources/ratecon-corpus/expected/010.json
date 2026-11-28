@@ -1,0 +1,93 @@
+{
+ "id": "010",
+ "broker": "Epes Logistics Services",
+ "loadId": "1273916",
+ "tripId": null,
+ "reference_numbers": {
+  "BOL": "715725",
+  "delivery#": "27027514"
+ },
+ "pickup": {
+  "type": "pickup",
+  "seq": 1,
+  "facility": "RUDYS TORTILLAS",
+  "address": "2115 E BELTLINE ROAD",
+  "city": "CARROLLTON",
+  "state": "TX",
+  "zip": "75006",
+  "date": "2018-03-27",
+  "time_start": "14:00",
+  "time_end": null,
+  "appt_type": "Appt",
+  "ref": "715725"
+ },
+ "stops": [
+  {
+   "type": "pickup",
+   "seq": 1,
+   "facility": "RUDYS TORTILLAS",
+   "address": "2115 E BELTLINE ROAD",
+   "city": "CARROLLTON",
+   "state": "TX",
+   "zip": "75006",
+   "date": "2018-03-27",
+   "time_start": "14:00",
+   "time_end": null,
+   "appt_type": "Appt",
+   "ref": "715725"
+  },
+  {
+   "type": "delivery",
+   "seq": 2,
+   "facility": "HEB",
+   "address": "4710 N. PAN AM EXPRESSWAY",
+   "city": "SAN ANTONIO",
+   "state": "TX",
+   "zip": "78218",
+   "date": "2018-03-28",
+   "time_start": "19:00",
+   "time_end": null,
+   "appt_type": "Appt",
+   "ref": "715725"
+  }
+ ],
+ "delivery": {
+  "type": "delivery",
+  "seq": 2,
+  "facility": "HEB",
+  "address": "4710 N. PAN AM EXPRESSWAY",
+  "city": "SAN ANTONIO",
+  "state": "TX",
+  "zip": "78218",
+  "date": "2018-03-28",
+  "time_start": "19:00",
+  "time_end": null,
+  "appt_type": "Appt",
+  "ref": "715725"
+ },
+ "rate": {
+  "total": 745.0,
+  "linehaul": 650.0,
+  "fuel": null,
+  "accessorials_included": [
+   {
+    "name": "Lumper",
+    "amount": 95.0
+   }
+  ],
+  "currency": "USD"
+ },
+ "not_rate": {
+  "penalties": [],
+  "detention": null,
+  "tonu": null,
+  "lumper_reimbursement": null,
+  "layover": null
+ },
+ "miles": 277.0,
+ "rate_per_mile": 2.69,
+ "equipment": "Van (DAT)",
+ "weight_lbs": 6160,
+ "commodity": "FREIGHT ALL KINDS",
+ "pieces": 28
+}

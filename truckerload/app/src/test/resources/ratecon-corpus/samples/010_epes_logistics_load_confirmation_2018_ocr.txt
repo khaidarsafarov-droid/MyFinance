@@ -1,0 +1,48 @@
+EPES LOGISTICS SERVICES, INC. *** Load Confirmation *** Oe
+Greensboro AMMONIA os
+n
+Sretisbero/ NE Se LOGISTICS SERVICES, INC.
+Email Carrier PPWK to: ——_ sees
+user@example.com Page 1
+Carrier: Example Carrier LLC Contact: Contact, Test
+San Antonio TX 78217 Phone: (555) 010-0001
+Date: 03/29/2018 Fax: (555) 010-0002
+NN <
+Order ELS Load #:1273916 Pieces: 28 Commodity: FREIGHT ALL KINDS
+Miles: 277.0 Weight: 6160.0
+Temp: Trailer: Van (DAT)
+BOL: 715725 Reference:
+eee
+Shipper Name: RUDYS TORTILLAS Date: 03/27/2018 1400
+Address: 2115 £ BELTLINE ROAD 03/27/2018 1400
+EMAIL FOR PU APPTS Contact: SHIPPING
+CARROLLTON TX 75006 Phone: (555) 010-0003
+Drvr Ld/Unld: No driver loading or unload
+715725 | divy# 27027514
+eee
+Consignee Name: HEB Date: 03/28/2018 1900
+Address: 4710 N. PAN AM EXPRESSWAY 03/28/2018 1900
+(555) 010-0004 (555) 010-0005 Contact:
+SAN ANTONIO TX 78218 Phone:
+Drvr Ld/Unld: No driver loading or unload
+715725 | divy# 27027514
+eeemt te eee se cee BNNs
+Payment Carrier Freight Pay: $650.00
+Payment Lumper $95.00
+09
+Total Carrier Pay: $745.00
+TT
+Instructions 1273916
+Any shipment comments provided herein reflect the Shipper's specific instructions/requirements and
+are intended to assist the Carrier in planning for this shipment. All Carriers are independent contractors
+and therefore are solely responsible for using this information to manage their equipment, drivers and
+dispatch in compliance with FMCSA and any other pertinent rules and regulations.
+RUDYS TORTILLAS - TEDA:ALL TRAILERS MUST BE 53', SWING DOOR, DRY VANS, 102 WIDE ONLY
+IF THERE ARE ANY ISSUES, DETENTION, LUMPERS, OR OS&D'S AFTER 1700PM, PLEASE CALL EPES
+LOGISITICS ASAP AT 1-(555) 010-0006 XO OR EMAIL user@example.com
+IN ORDER TO RECEIVE DETENTION ON ANY LOAD, EPES LOGISTICS MUST BE NOTIFIED PRIOR TO YOUR
+DRIVER BEING ON SITE FOR 45 MINUTES TO LOAD/UNLOAD.
+HEB - HEBSATX:Lumper Svc required. For Comcheck call: (555) 010-0007 Mobile# (555) 010-0008
+HEB - HEBSATX:Driver must agree to use MacroPoint
+HEB - HEBSATX:Driver must text location (555) 010-0009 at 0900 EST daily while ENR to San Antonio
+NN

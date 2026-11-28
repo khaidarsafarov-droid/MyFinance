@@ -1,0 +1,90 @@
+{
+ "id": "051",
+ "broker": "SMS shorthand (synthetic)",
+ "loadId": null,
+ "tripId": null,
+ "reference_numbers": {},
+ "pickup": {
+  "type": "pickup",
+  "seq": 1,
+  "facility": null,
+  "address": null,
+  "city": "SAV",
+  "state": "GA",
+  "zip": null,
+  "date": "2026-12-18",
+  "time_start": null,
+  "time_end": null,
+  "appt_type": null,
+  "ref": null,
+  "city_abbrev": true
+ },
+ "stops": [
+  {
+   "type": "pickup",
+   "seq": 1,
+   "facility": null,
+   "address": null,
+   "city": "SAV",
+   "state": "GA",
+   "zip": null,
+   "date": "2026-12-18",
+   "time_start": null,
+   "time_end": null,
+   "appt_type": null,
+   "ref": null,
+   "city_abbrev": true
+  },
+  {
+   "type": "delivery",
+   "seq": 2,
+   "facility": null,
+   "address": null,
+   "city": "KIN",
+   "state": "TN",
+   "zip": null,
+   "date": "2026-12-18",
+   "time_start": null,
+   "time_end": null,
+   "appt_type": null,
+   "ref": null,
+   "city_abbrev": true
+  }
+ ],
+ "delivery": {
+  "type": "delivery",
+  "seq": 2,
+  "facility": null,
+  "address": null,
+  "city": "KIN",
+  "state": "TN",
+  "zip": null,
+  "date": "2026-12-18",
+  "time_start": null,
+  "time_end": null,
+  "appt_type": null,
+  "ref": null,
+  "city_abbrev": true
+ },
+ "rate": {
+  "total": 2250,
+  "linehaul": null,
+  "fuel": null,
+  "accessorials_included": [],
+  "currency": "USD"
+ },
+ "not_rate": {
+  "penalties": [],
+  "detention": null,
+  "tonu": null,
+  "lumper_reimbursement": null,
+  "layover": null
+ },
+ "miles": 1506,
+ "rate_per_mile": 1.49,
+ "equipment": null,
+ "weight_lbs": null,
+ "commodity": null,
+ "pieces": null,
+ "stops_note": "only first and last stop appear in text"
+}

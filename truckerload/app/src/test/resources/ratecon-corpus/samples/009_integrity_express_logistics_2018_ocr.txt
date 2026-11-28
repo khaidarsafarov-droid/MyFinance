@@ -1,0 +1,38 @@
+oo . . .
+x. Rate Confirmation IEL PO#: 534377
+42: Integrity Express Logistics
+INTEGRITY PO Be x 42275 - Cincinnati, OH 45242 _
+EXPRESS LOGISTICS. Phone: (555) 010-0001 Ext: 4616 - Fax: (555) 010-0002 - Email: user@example.com
+8/14/2018 10:08 am
+Load Information
+IEL PO#: 534377 Trailer: Van Size: 53 ft Temp: dry
+Pick Up: 08/14/18 Delivery: 08/15/18 Weight: 44900
+Miles:
+Carrier: EXAMPLE CARRIER LLC Phone: (555) 010-0003 Fax:
+Driver: Test Driver Driver Cell: 210826-1410
+Dispatcher: dispatcher Dispatcher Cell: (555) 010-0004
+Estimated Rate (To Truck): $950.00 Unloading: $0.00 Total: $950.00
+Rate Description Quantity Total
+$950.00 Flat 1.00 $950.00
+(Rates based upon weight or count will be calculated from the quantities loaded.)
+Carrier is responsible for NO unloading charges
+Carrier IS NOT responsible for pallet exchange
+Pick Ups
+Shed:CSC SUGAR Address: 8700 OLD HIGHWAY 48 BROWNSVILLE, TX 78521
+Phone: Date: 08/14/18 Time: 8-3 P/U # BRV-DFW-181564
+Commodity: DRY Goods.
+a — $3
+Deliveri
+Shed:WINDSOR PLACE Adress: 1901 WINDSOR PLACE FORT WORTH, TX 76110
+Phone: Date; 08/15/18 Time: 8-12 Delivery PO: BRV-DFW-181564
+a
+Special Instructions:
+When emailing paperwork to be processed for payment, it MUST be emailed to user@example.com or it will not be processed.
+This Rate Confirmation is an agreement between Integrity Express Logistics LLC and the carrier indicated in the above Carrier Information
+field, and is NOT a dispatch. If load is changed or canceled by Integrity Express Logistics LLC, NO “truck order not used" will be paid
+unless the driver has been dispatched by the broker at Integrity Express Logistics LLC. Carriers are required to call Integrity Express
+Logistics for dispatch which includes pick up numbers, name, address and directions to the shipper.
+41. GENERAL CARRIER REQUIREMENTS:
+i. CARRIER is responsible for any damage to product or damage to the products container and shortages of freight. CARRIER is
+responsible for any charges, or claims BROKER is charged pertaining to this shipment.
+ii, Driver is responsible for load and count. Must report product quantities stated on BOL's PRIOR to leaving the shipper. If Driver is not

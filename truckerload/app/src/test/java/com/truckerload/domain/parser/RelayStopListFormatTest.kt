@@ -104,7 +104,7 @@ Fri, Nov 27, 10:09 PM EST
         assertEquals("West Jefferson, OH", draft.pointA)
         assertEquals("Frailey Township, PA", draft.pointB)
         assertEquals(487.37, draft.parsedMiles(), 0.001)
-        assertTrue(LoadCompletenessChecker.of(draft).missingRequired.contains(LoadField.RATE))
+        assertTrue("draft=$draft", LoadCompletenessChecker.of(draft).missingRequired.contains(LoadField.RATE))
     }
 
     @Test

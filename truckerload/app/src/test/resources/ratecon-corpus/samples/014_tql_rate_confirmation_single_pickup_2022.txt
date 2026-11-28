@@ -1,0 +1,38 @@
+                                                                                TQL RATE CONFIRMATION FOR PO# 21593266
+                                                                                                  FIND YOUR NEXT LOAD BY VISITING
+                                                                                                  CARRIERDASHBOARD.TQL.COM
+TO ENSURE PROMPT PAYMENT, SUBMIT THIS RATE CONFIRMATION, COMPLETE BOL(S)/POD,
+RECEIPTS AND OTHER APPLICABLE PAPERWORK TO user@example.com FOR OTHER
+OPTIONS, SEE NEXT PAGE.
+        TQL CONTACT INFO
+Name                                         Phone                                  Email                                  Fax
+Jane Rep                                (555) 010-0001 x57080                    user@example.com                      5135535139
+                                                                                                                                        Office Staffed 24/7
+        CARRIER CONTACT
+MC#/DOT#                      Name                                              Phone                         Terms               Fax
+000000 / 0000000              EXAMPLE CARRIER Transport Llc (pa)                          (555) 010-0002                  28DAYS              (555) 010-0003
+Address
+1 EXAMPLE ST Anytown, NJ 00000
+Dispatcher                                                Driver                                       Truck #                    Trailer #
+dispatcher                                                     driver                                       1338                       90387
+        LOAD INFORMATION
+Rate                      Type                                                      Unit                      Quantity            Total
+$2,000.00                 Line Haul                                                 Flat                      1                   $2,000.00
+Rates that are based on weight or count will be calculated from the quantities loaded.                                    Total: $2,000.00 USD
+                                                                                                                                     Load
+Mode             Trailer Type       Trailer Size       Linear Feet       Temperature        Pallet/Case Count         Hazmat         Requirements
+                                                                                                                      Non-
+FTL              Van                53 ft                                                   0 pallets/0 cases
+                                                                                                                      Hazardous
+Special Temp Instructions                                                                                             LxWxH
+Pick-up Location                                                             Date                                  Time
+Blacksburg, SC                                                               8/9/2022                              FCFS 09:00 to 16:00
+Commodities:
+Quantity      Unit                Commodity                             Notes
+28            Pallets             Dried floral products                 FALL-2022-012 3 of 5
+1             Truckload           Dried floral products                 DEDICATED TRUCK MAY BE FILLED TO 28
+                                                                        PLTS
+Delivery Location                                                            Date                                  Time
+Dallas, TX                                                                   8/12/2022                             FCFS 00:00 Note:TBD
+      CARRIER RESPONSIBLE FOR
+ Unloading None w/ valid unloading receipt                   Pallet Exchange        None                   Estimated Weight        25000
