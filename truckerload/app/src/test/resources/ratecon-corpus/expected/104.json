@@ -1,0 +1,20 @@
+{
+ "id": "104",
+ "broker": "synthetic dispatcher chat (en)",
+ "loadId": "114H9K2M8",
+ "tripId": null,
+ "pickup": {
+  "type": "pickup",
+  "city": "Kent"
+ },
+ "delivery": {
+  "type": "delivery",
+  "city": "Spokane"
+ },
+ "rate": {
+  "total": 1385.4,
+  "currency": "USD"
+ },
+ "miles": 492,
+ "note": "hand-checked; penalties/fines and deadhead miles are not rate/miles; PO#/BOL are not load ids"
+}

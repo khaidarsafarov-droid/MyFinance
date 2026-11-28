@@ -1,0 +1,54 @@
+{
+ "id": "007",
+ "broker": "Logistic Dynamics Inc",
+ "loadId": "521488",
+ "tripId": null,
+ "reference_numbers": {
+  "insurance_value": 100000
+ },
+ "pickup": null,
+ "stops": [],
+ "delivery": null,
+ "rate": {
+  "total": 550.0,
+  "linehaul": 550.0,
+  "fuel": null,
+  "accessorials_included": [],
+  "currency": "USD"
+ },
+ "not_rate": {
+  "penalties": [
+   {
+    "text": "$50 fine per 2 hours no update",
+    "amount": 50
+   },
+   {
+    "text": "late delivery rate reduced $400",
+    "amount": 400
+   },
+   {
+    "text": "no working number deduct $200",
+    "amount": 200
+   },
+   {
+    "text": "Broker Order Not Used $150",
+    "amount": 150
+   },
+   {
+    "text": "labor fee $50/hr after 2 hours",
+    "amount": 50
+   }
+  ],
+  "detention": "$40 per hour after two hours free - $240 total maximum",
+  "tonu": "$150 Broker Order Not Used",
+  "lumper_reimbursement": null,
+  "layover": null
+ },
+ "miles": null,
+ "rate_per_mile": null,
+ "equipment": "Van / 53'",
+ "weight_lbs": 7524,
+ "commodity": "FAK",
+ "pieces": null,
+ "note": "stops not extractable (image)"
+}

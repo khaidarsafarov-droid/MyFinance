@@ -1,0 +1,2 @@
+Block ID,Trip ID,Trip Stage,Status,Facility Sequence,Est. Pay,Loaded Mi,Total Mi
+BLK-1257A,T-88347732,Single,Completed,DFW8->DEN7,2295.00,241.9,295.0

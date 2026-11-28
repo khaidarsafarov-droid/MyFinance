@@ -1,0 +1,42 @@
+RATE CONFIRMATION
+
+Load / reference number: ____________        Date issued: ____________
+
+BROKER
+Company: ____________________   MC number: ____________
+Contact: ____________________   Phone: ____________   Email: ____________
+
+CARRIER
+Company: ____________________   MC number: ____________   USDOT: ____________
+Dispatcher: _________________   Phone: ____________   Email: ____________
+Driver: _____________________   Driver phone: ____________
+Truck number: ________   Trailer number: ________
+
+PICKUP
+Facility: ____________________
+Address: _____________________
+Date: ____________   Time or appointment: ____________
+Pickup number: ____________   Contact: ____________
+
+DELIVERY
+Facility: ____________________
+Address: _____________________
+Date: ____________   Time or appointment: ____________
+Delivery number: ____________   Contact: ____________
+
+FREIGHT
+Commodity: ____________________   Weight: ________ lbs
+Pieces / pallets: ________   Equipment: ____________   Temperature: ________
+Special instructions: ______________________________________
+
+RATE
+Linehaul: $________
+Fuel surcharge: $________
+Other (describe): $________
+Total carrier pay: $________
+
+ACCESSORIALS
+Detention: $____ per hour after ____ hours free, with in/out times on the BOL
+Layover: $________ per day
+Lumper: paid by ____________ with receipt
+TONU (truck ordered, not used): $________

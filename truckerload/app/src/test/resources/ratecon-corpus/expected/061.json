@@ -1,0 +1,86 @@
+{
+ "id": "061",
+ "broker": "synthetic (written-out amount)",
+ "loadId": "98204869",
+ "tripId": null,
+ "reference_numbers": {},
+ "pickup": {
+  "type": "pickup",
+  "seq": 1,
+  "facility": "Desert Sun Solar",
+  "address": null,
+  "city": "Phoenix",
+  "state": "AZ",
+  "zip": null,
+  "date": "2026-12-16",
+  "time_start": null,
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "stops": [
+  {
+   "type": "pickup",
+   "seq": 1,
+   "facility": "Desert Sun Solar",
+   "address": null,
+   "city": "Phoenix",
+   "state": "AZ",
+   "zip": null,
+   "date": "2026-12-16",
+   "time_start": null,
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  },
+  {
+   "type": "delivery",
+   "seq": 2,
+   "facility": "Great Lakes Cheese",
+   "address": null,
+   "city": "Green Bay",
+   "state": "WI",
+   "zip": null,
+   "date": "2026-12-17",
+   "time_start": null,
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  }
+ ],
+ "delivery": {
+  "type": "delivery",
+  "seq": 2,
+  "facility": "Great Lakes Cheese",
+  "address": null,
+  "city": "Green Bay",
+  "state": "WI",
+  "zip": null,
+  "date": "2026-12-17",
+  "time_start": null,
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "rate": {
+  "total": 2650,
+  "linehaul": null,
+  "fuel": null,
+  "accessorials_included": [],
+  "currency": "USD"
+ },
+ "not_rate": {
+  "penalties": [],
+  "detention": null,
+  "tonu": null,
+  "lumper_reimbursement": null,
+  "layover": null
+ },
+ "miles": 608,
+ "rate_per_mile": 4.36,
+ "equipment": null,
+ "weight_lbs": null,
+ "commodity": null,
+ "pieces": null,
+ "stops_note": "only first and last stop appear in text"
+}

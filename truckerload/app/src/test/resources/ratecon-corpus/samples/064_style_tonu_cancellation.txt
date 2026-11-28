@@ -1,0 +1,5 @@
+LOAD CANCELLED - TRUCK ORDER NOT USED
+Load #42487456  originally Gary, IN -> Denver, CO
+Original linehaul (NOT payable): $3,285.00
+TONU payable to carrier: $150.00
+Total carrier pay: $150.00

@@ -1,0 +1,20 @@
+{
+ "id": "115",
+ "broker": "synthetic dispatcher chat (uz)",
+ "loadId": "719402",
+ "tripId": null,
+ "pickup": {
+  "type": "pickup",
+  "city": "Salt Lake City"
+ },
+ "delivery": {
+  "type": "delivery",
+  "city": "Las Vegas"
+ },
+ "rate": {
+  "total": 1100,
+  "currency": "USD"
+ },
+ "miles": 420,
+ "note": "hand-checked; penalties/fines and deadhead miles are not rate/miles; PO#/BOL are not load ids"
+}

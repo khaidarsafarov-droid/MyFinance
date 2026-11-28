@@ -22,9 +22,62 @@ data class LoadDraftFields(
 
     fun parsedMiles(): Double = DecimalInput.parse(miles)?.coerceAtLeast(0.0) ?: 0.0
 
+    /** Keeps this draft's values and takes [other]'s only where this one is blank. */
+    fun fillBlanksFrom(other: LoadDraftFields): LoadDraftFields = LoadDraftFields(
+        tripId = tripId.ifBlank { other.tripId },
+        date = date.ifBlank { other.date },
+        rate = rate.ifBlank { other.rate },
+        miles = miles.ifBlank { other.miles },
+        pointA = pointA.ifBlank { other.pointA },
+        pointB = pointB.ifBlank { other.pointB },
+    )
+
+    /** Blanks values that are clearly not what the field means (a time as a city, $2 as a rate). */
+    fun dropImplausible(): LoadDraftFields = copy(
+        tripId = tripId.takeIf { it.isBlank() || (it.any(Char::isDigit) && !generatedId.matches(it)) }.orEmpty(),
+        rate = rate.takeIf { (parsedRate() ?: 0.0) >= MIN_PLAUSIBLE_RATE }.orEmpty(),
+        pointA = pointA.takeUnless { looksLikeNotAPlace(it) }.orEmpty(),
+        pointB = pointB.takeUnless { looksLikeNotAPlace(it) }.orEmpty(),
+    )
+
+    /** A usable rate plus both ends of the trip: nothing left to ask the user for. */
+    fun isComplete(): Boolean = parsedRate() != null && pointA.isNotBlank() && pointB.isNotBlank()
+
+    /** Both ends look like "City, ST" (optionally with a ZIP): a facility or label name is not a place. */
+    fun hasValidPlaces(): Boolean = listOf(pointA, pointB).all { isPlaceName(it) }
+
     fun isEmpty(): Boolean = listOf(tripId, date, rate, miles, pointA, pointB).all { it.isBlank() }
 
     companion object {
+        private const val MIN_PLAUSIBLE_RATE = 50.0
+        private val cityState = Regex("""[A-Za-z][A-Za-z.'\- ]*,?\s+[A-Z]{2}\b(?:\s+\d{5}(?:-\d{4})?)?\s*$""")
+        private val generatedId = Regex("""M-\d{8}-[A-F0-9]{6}""")
+        private val timeLike = Regex("""\d{1,2}:\d{2}|^\d+\s|\s{3,}|\*|@""")
+
+        private val plainPlace = Regex("""[A-Z][A-Za-z.'\-]+(?: [A-Z][A-Za-z.'\-]+){0,2}""")
+        private val facilityWord = Regex(
+            "billing|facility|plant|distribution|warehouse|reduced|center|\\binc\\b|llc|logistics|broker|sees",
+            RegexOption.IGNORE_CASE,
+        )
+
+        private fun isPlaceName(value: String): Boolean {
+            val v = value.trim()
+            val shaped = cityState.containsMatchIn(v) || plainPlace.matches(v)
+            return shaped && !facilityWord.containsMatchIn(v)
+        }
+
+        private fun looksLikeNotAPlace(value: String): Boolean =
+            value.isNotBlank() && timeLike.containsMatchIn(value.trim())
+
+        internal fun fromExtracted(fields: RateConTextExtractor.Fields): LoadDraftFields = LoadDraftFields(
+            tripId = fields.loadId.orEmpty(),
+            date = fields.date?.toString().orEmpty(),
+            rate = formatAmount(fields.rate ?: 0.0),
+            miles = formatAmount(fields.miles ?: 0.0),
+            pointA = fields.pickup.orEmpty(),
+            pointB = fields.delivery.orEmpty(),
+        )
+
         fun formatAmount(value: Double): String {
             if (value <= 0.0) return ""
             val rounded = Math.round(value * 100.0) / 100.0

@@ -1,0 +1,87 @@
+{
+ "id": "069",
+ "broker": "synthetic (drayage)",
+ "loadId": "45061955",
+ "tripId": null,
+ "reference_numbers": {},
+ "pickup": {
+  "type": "pickup",
+  "seq": 1,
+  "facility": "Lakeview Distribution",
+  "address": "450 Commerce Dr",
+  "city": "Joliet",
+  "state": "IL",
+  "zip": "60436",
+  "date": "2026-12-15",
+  "time_start": "15:00",
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "stops": [
+  {
+   "type": "pickup",
+   "seq": 1,
+   "facility": "Lakeview Distribution",
+   "address": "450 Commerce Dr",
+   "city": "Joliet",
+   "state": "IL",
+   "zip": "60436",
+   "date": "2026-12-15",
+   "time_start": "15:00",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  },
+  {
+   "type": "delivery",
+   "seq": 2,
+   "facility": "Delta Auto Parts",
+   "address": "4100 Assembly Dr",
+   "city": "Dearborn",
+   "state": "MI",
+   "zip": "48120",
+   "date": "2026-12-18",
+   "time_start": "09:00",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  }
+ ],
+ "delivery": {
+  "type": "delivery",
+  "seq": 2,
+  "facility": "Delta Auto Parts",
+  "address": "4100 Assembly Dr",
+  "city": "Dearborn",
+  "state": "MI",
+  "zip": "48120",
+  "date": "2026-12-18",
+  "time_start": "09:00",
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "rate": {
+  "total": 2100,
+  "linehaul": null,
+  "fuel": null,
+  "accessorials_included": [],
+  "currency": "USD"
+ },
+ "not_rate": {
+  "penalties": [],
+  "detention": null,
+  "tonu": null,
+  "lumper_reimbursement": null,
+  "layover": null
+ },
+ "miles": null,
+ "rate_per_mile": null,
+ "equipment": "Container 40' HC",
+ "weight_lbs": null,
+ "commodity": null,
+ "pieces": null,
+ "stops_note": "only first and last stop appear in text",
+ "pitfall": "Return-empty stop is a repeat of pickup facility; not a 3rd stop; total may differ from components"
+}

@@ -1,0 +1,32 @@
+                                             Carrier Rate Confirmation
+                  This document confirms the agreed rate and terms for the shipment described below.
+   Assured Freight Lines Inc., d/b/a Assured Freight | MC-1766629-B | DOT 4475015 | 1705 Colonial Blvd., Suite A-1, Fort Myers, FL 33907 |
+                                                               assuredfreight.io
+LOAD INFORMATION
+Load Number                                                             Date Issued
+Assured Rep                                                             Rep Phone / Email
+CARRIER INFORMATION
+Carrier Name                                                            MC Number
+DOT Number                                                              Carrier Contact
+Phone                                                                   Email
+Driver Name                                                             Driver Cell
+Tractor Number                                                          Trailer Number
+EQUIPMENT & COMMODITY
+Equipment Type                                                          Trailer Length
+Commodity                                                               Declared Value
+Weight (lbs)                                                            Pieces / Pallets
+Temperature                                                             Continuous / Cycle
+Seal Required                                                           Hazmat / UN#
+PICKUP
+Shipper Name                                                            Pickup Number
+Address                                                                 City / State / ZIP
+Date                                                                    Appointment Time
+Contact / Phone                                                         Special Instructions
+DELIVERY
+Consignee Name                                                          PO / Delivery
+                                                                        Number
+Address                                                                 City / State / ZIP
+Date                                                                    Appointment Time
+Contact / Phone                                                         Special Instructions
+                                         Assured Freight — Carrier Rate Confirmation | Page 1 of 3
+ ADDITIONAL STOPS

@@ -1,0 +1,112 @@
+{
+ "id": "065",
+ "broker": "synthetic (team service)",
+ "loadId": "95423208",
+ "tripId": null,
+ "reference_numbers": {},
+ "pickup": {
+  "type": "pickup",
+  "seq": 1,
+  "facility": "Ironbridge Steel",
+  "address": "5 Foundry St",
+  "city": "Gary",
+  "state": "IN",
+  "zip": "46402",
+  "date": "2026-12-01",
+  "time_start": "09:00",
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "stops": [
+  {
+   "type": "pickup",
+   "seq": 1,
+   "facility": "Ironbridge Steel",
+   "address": "5 Foundry St",
+   "city": "Gary",
+   "state": "IN",
+   "zip": "46402",
+   "date": "2026-12-01",
+   "time_start": "09:00",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  },
+  {
+   "type": "stop",
+   "seq": 2,
+   "facility": "Desert Sun Solar",
+   "address": "2200 Solar Blvd",
+   "city": "Phoenix",
+   "state": "AZ",
+   "zip": "85043",
+   "date": "2026-12-02",
+   "time_start": "08:00",
+   "time_end": "12:00",
+   "appt_type": null,
+   "ref": null
+  },
+  {
+   "type": "delivery",
+   "seq": 3,
+   "facility": "Coastal Seafood Cold Storage",
+   "address": "15 Wharf St",
+   "city": "Gloucester",
+   "state": "MA",
+   "zip": "01930",
+   "date": "2026-12-04",
+   "time_start": "20:00",
+   "time_end": "23:00",
+   "appt_type": null,
+   "ref": null
+  }
+ ],
+ "delivery": {
+  "type": "delivery",
+  "seq": 3,
+  "facility": "Coastal Seafood Cold Storage",
+  "address": "15 Wharf St",
+  "city": "Gloucester",
+  "state": "MA",
+  "zip": "01930",
+  "date": "2026-12-04",
+  "time_start": "20:00",
+  "time_end": "23:00",
+  "appt_type": null,
+  "ref": null
+ },
+ "rate": {
+  "total": 2835,
+  "linehaul": null,
+  "fuel": null,
+  "accessorials_included": [],
+  "currency": "USD"
+ },
+ "not_rate": {
+  "penalties": [
+   {
+    "text": "Late delivery: rate reduced $400",
+    "amount": 400.0
+   },
+   {
+    "text": "Failure to update every 2 hours: $50 fine each",
+    "amount": 50.0
+   },
+   {
+    "text": "Broker Order Not Used: $150",
+    "amount": 150.0
+   }
+  ],
+  "detention": "Detention: $40 per hour after two hours free - $240 total maximum",
+  "tonu": null,
+  "lumper_reimbursement": null,
+  "layover": null
+ },
+ "miles": null,
+ "rate_per_mile": null,
+ "equipment": "Flatbed 48'",
+ "weight_lbs": null,
+ "commodity": null,
+ "pieces": null
+}

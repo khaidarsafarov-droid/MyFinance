@@ -1,0 +1,88 @@
+{
+ "id": "064",
+ "broker": "synthetic (TONU / cancelled rate con)",
+ "loadId": "42487456",
+ "tripId": null,
+ "reference_numbers": {},
+ "pickup": {
+  "type": "pickup",
+  "seq": 1,
+  "facility": null,
+  "address": null,
+  "city": "Gary",
+  "state": "IN",
+  "zip": null,
+  "date": null,
+  "time_start": null,
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "stops": [
+  {
+   "type": "pickup",
+   "seq": 1,
+   "facility": null,
+   "address": null,
+   "city": "Gary",
+   "state": "IN",
+   "zip": null,
+   "date": null,
+   "time_start": null,
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  },
+  {
+   "type": "delivery",
+   "seq": 2,
+   "facility": null,
+   "address": null,
+   "city": "Denver",
+   "state": "CO",
+   "zip": null,
+   "date": null,
+   "time_start": null,
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  }
+ ],
+ "delivery": {
+  "type": "delivery",
+  "seq": 2,
+  "facility": null,
+  "address": null,
+  "city": "Denver",
+  "state": "CO",
+  "zip": null,
+  "date": null,
+  "time_start": null,
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "rate": {
+  "total": 150.0,
+  "linehaul": null,
+  "fuel": null,
+  "accessorials_included": [],
+  "currency": "USD",
+  "note": "TONU only"
+ },
+ "not_rate": {
+  "penalties": [],
+  "detention": null,
+  "tonu": null,
+  "lumper_reimbursement": null,
+  "layover": null
+ },
+ "miles": null,
+ "rate_per_mile": null,
+ "equipment": null,
+ "weight_lbs": null,
+ "commodity": null,
+ "pieces": null,
+ "stops_note": "only first and last stop appear in text",
+ "pitfall": "rate=150 (TONU) though original linehaul printed"
+}

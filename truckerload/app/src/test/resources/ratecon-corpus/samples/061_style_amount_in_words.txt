@@ -1,0 +1,7 @@
+LOAD CONFIRMATION
+Order: 98204869
+From: Desert Sun Solar (Phoenix, AZ)
+To: Great Lakes Cheese (Green Bay, WI)
+Ship: 12/16/2026  Deliver: 12/17/2026
+Carrier compensation: $2,650.00 (***AMOUNT IN WORDS*** DOLLARS)
+Miles 608

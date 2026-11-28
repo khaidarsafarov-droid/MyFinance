@@ -1,0 +1,92 @@
+{
+ "id": "003",
+ "broker": "Echo Global Logistics",
+ "loadId": "34405981",
+ "tripId": null,
+ "reference_numbers": {
+  "trailer": "22950"
+ },
+ "pickup": {
+  "type": "pickup",
+  "seq": 1,
+  "facility": "Source Logistics",
+  "address": "8900 San Mateo Dr",
+  "city": "LAREDO",
+  "state": "TX",
+  "zip": "78045",
+  "date": "2019-01-08",
+  "time_start": "15:00",
+  "time_end": "16:30",
+  "appt_type": "window",
+  "ref": "san465941//7001255065"
+ },
+ "stops": [
+  {
+   "type": "pickup",
+   "seq": 1,
+   "facility": "Source Logistics",
+   "address": "8900 San Mateo Dr",
+   "city": "LAREDO",
+   "state": "TX",
+   "zip": "78045",
+   "date": "2019-01-08",
+   "time_start": "15:00",
+   "time_end": "16:30",
+   "appt_type": "window",
+   "ref": "san465941//7001255065"
+  },
+  {
+   "type": "delivery",
+   "seq": 2,
+   "facility": "Silver Creek Materials",
+   "address": "2251 Silver Creek Rd",
+   "city": "FORT WORTH",
+   "state": "TX",
+   "zip": "76108",
+   "date": "2019-01-09",
+   "time_start": "13:30",
+   "time_end": "13:30",
+   "appt_type": "window",
+   "ref": "7001255065"
+  }
+ ],
+ "delivery": {
+  "type": "delivery",
+  "seq": 2,
+  "facility": "Silver Creek Materials",
+  "address": "2251 Silver Creek Rd",
+  "city": "FORT WORTH",
+  "state": "TX",
+  "zip": "76108",
+  "date": "2019-01-09",
+  "time_start": "13:30",
+  "time_end": "13:30",
+  "appt_type": "window",
+  "ref": "7001255065"
+ },
+ "rate": {
+  "total": 1150.0,
+  "linehaul": 900.0,
+  "fuel": null,
+  "accessorials_included": [
+   {
+    "name": "Layover",
+    "amount": 250.0
+   }
+  ],
+  "currency": "USD"
+ },
+ "not_rate": {
+  "penalties": [],
+  "detention": null,
+  "tonu": null,
+  "lumper_reimbursement": null,
+  "layover": null
+ },
+ "miles": 430.3,
+ "rate_per_mile": 2.67,
+ "equipment": "Van 53'",
+ "weight_lbs": 43500,
+ "commodity": "food and beverage items",
+ "pieces": 18
+}

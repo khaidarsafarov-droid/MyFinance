@@ -1,0 +1,38 @@
+                                                                                TQL RATE CONFIRMATION FOR PO# 18507867
+                                                                                                   FIND YOUR NEXT LOAD BY VISITING
+                                                                                                   CARRIERDASHBOARD.TQL.COM
+TO ENSURE PROMPT PAYMENT, SUBMIT THIS RATE CONFIRMATION, COMPLETE BOL(S)/POD,
+RECEIPTS AND OTHER APPLICABLE PAPERWORK TO user@example.com FOR OTHER
+OPTIONS, SEE NEXT PAGE.
+        TQL CONTACT INFO
+Name                                            Phone                               Email                                Fax
+Sam Rep                                     (555) 010-0001 x51951                 user@example.com                      5139657927
+                                                                                                                                     Office Staffed 24/7
+        CARRIER CONTACT
+MC#/DOT#                      Name                                              Phone                       Terms              Fax
+000000 / 0000000              Example Carrier Inc (fl)                 (555) 010-0002                28DAYS             (555) 010-0003
+Address
+FACTOR (PO BOX 000000) DALLAS, TX 00000
+Dispatcher                                              Driver                                        Truck #                  Trailer #
+Dispatcher                                                    Driver                                        21                       2033393
+       LOAD INFORMATION
+Rate                      Type                                                      Unit                    Quantity           Total
+$3,000.00                 Line Haul                                                 Flat                    1                  $3,000.00
+Rates that are based on weight or count will be calculated from the quantities loaded.                                  Total: $3,000.00 USD
+Mode               Trailer Type         Trailer Size       Temperature        Pallet/Case Count       Hazmat             Load Requirements
+FTL                Van                  53 ft                                 56 pallets/0 cases      Non-Hazardous
+Special Temp Instructions                                                                             LxWxH
+Pick-up Location                                                             Date                                Time
+Villa Rica, GA                                                               10/12/2021                          Appt 17:30 to 20:00
+Delivery Location                                                            Date                                Time
+The Colony, TX                                                               10/14/2021                          Appt 09:00
+Fort Worth, TX                                                               10/14/2021                          Appt 20:00
+Houston, TX                                                                  10/15/2021                          Appt 06:00 Note:Door 39
+      CARRIER RESPONSIBLE FOR
+ Unloading None w/ valid unloading receipt                 Pallet Exchange          None                   Estimated Weight     36026
+               Driver must accept cell phone or ELD tracking and consistently track (1 ping per15 mins) from time of dispatch to completed
+               delivery. Failure to accept or consistently track will result in no detention or layover.
+               DETENTION: Must arrive on time and have in/out times on BOL's. $25/hr after 3 hrs of waiting time. Cap at $150 layover
+ Note to       (email user@example.com)
+ Carrier       Lumperreceipt & detention must be sent in w/ BOL's within 3 days of delivery. Failure to comply may result in no
+               reimbursement of lumpers.

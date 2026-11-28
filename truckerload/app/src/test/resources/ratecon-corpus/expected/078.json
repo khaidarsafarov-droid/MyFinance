@@ -1,0 +1,87 @@
+{
+ "id": "078",
+ "broker": "Convoy legacy (vocabulary only)",
+ "loadId": "36878648",
+ "tripId": null,
+ "reference_numbers": {},
+ "pickup": {
+  "type": "pickup",
+  "seq": 1,
+  "facility": "Keystone Plastics",
+  "address": "915 Polymer Ct",
+  "city": "Allentown",
+  "state": "PA",
+  "zip": "18106",
+  "date": "2026-12-26",
+  "time_start": "20:30",
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "stops": [
+  {
+   "type": "pickup",
+   "seq": 1,
+   "facility": "Keystone Plastics",
+   "address": "915 Polymer Ct",
+   "city": "Allentown",
+   "state": "PA",
+   "zip": "18106",
+   "date": "2026-12-26",
+   "time_start": "20:30",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  },
+  {
+   "type": "delivery",
+   "seq": 2,
+   "facility": "Prairie Foods DC",
+   "address": "1200 Industrial Pkwy",
+   "city": "Columbus",
+   "state": "OH",
+   "zip": "43207",
+   "date": "2026-12-27",
+   "time_start": "15:30",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  }
+ ],
+ "delivery": {
+  "type": "delivery",
+  "seq": 2,
+  "facility": "Prairie Foods DC",
+  "address": "1200 Industrial Pkwy",
+  "city": "Columbus",
+  "state": "OH",
+  "zip": "43207",
+  "date": "2026-12-27",
+  "time_start": "15:30",
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "rate": {
+  "total": 1770,
+  "linehaul": null,
+  "fuel": null,
+  "accessorials_included": [],
+  "currency": "USD"
+ },
+ "not_rate": {
+  "penalties": [],
+  "detention": null,
+  "tonu": null,
+  "lumper_reimbursement": null,
+  "layover": null
+ },
+ "miles": 473,
+ "rate_per_mile": 3.74,
+ "equipment": null,
+ "weight_lbs": null,
+ "commodity": null,
+ "pieces": null,
+ "stops_note": "only first and last stop appear in text",
+ "pitfall": "QuickPay fee is a deduction, not the rate"
+}

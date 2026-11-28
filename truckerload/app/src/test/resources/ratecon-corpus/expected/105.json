@@ -1,0 +1,20 @@
+{
+ "id": "105",
+ "broker": "synthetic dispatcher chat (en)",
+ "loadId": null,
+ "tripId": null,
+ "pickup": {
+  "type": "pickup",
+  "city": "Joliet"
+ },
+ "delivery": {
+  "type": "delivery",
+  "city": "Louisville"
+ },
+ "rate": {
+  "total": 1150,
+  "currency": "USD"
+ },
+ "miles": null,
+ "note": "hand-checked; penalties/fines and deadhead miles are not rate/miles; PO#/BOL are not load ids"
+}

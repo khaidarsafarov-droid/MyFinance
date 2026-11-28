@@ -1,0 +1,85 @@
+{
+ "id": "050",
+ "broker": "Dispatcher en español (synthetic)",
+ "loadId": "94153374",
+ "tripId": null,
+ "reference_numbers": {},
+ "pickup": {
+  "type": "pickup",
+  "seq": 1,
+  "facility": null,
+  "address": "31 Sawmill Rd",
+  "city": "Concord",
+  "state": "NH",
+  "zip": null,
+  "date": "2026-12-13",
+  "time_start": "10:30",
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "stops": [
+  {
+   "type": "pickup",
+   "seq": 1,
+   "facility": null,
+   "address": "31 Sawmill Rd",
+   "city": "Concord",
+   "state": "NH",
+   "zip": null,
+   "date": "2026-12-13",
+   "time_start": "10:30",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  },
+  {
+   "type": "delivery",
+   "seq": 2,
+   "facility": null,
+   "address": "12 Elevator Rd",
+   "city": "Omaha",
+   "state": "NE",
+   "zip": null,
+   "date": "2026-12-14",
+   "time_start": "18:00",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  }
+ ],
+ "delivery": {
+  "type": "delivery",
+  "seq": 2,
+  "facility": null,
+  "address": "12 Elevator Rd",
+  "city": "Omaha",
+  "state": "NE",
+  "zip": null,
+  "date": "2026-12-14",
+  "time_start": "18:00",
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "rate": {
+  "total": 1125,
+  "linehaul": null,
+  "fuel": null,
+  "accessorials_included": [],
+  "currency": "USD"
+ },
+ "not_rate": {
+  "penalties": [],
+  "detention": null,
+  "tonu": null,
+  "lumper_reimbursement": null,
+  "layover": null
+ },
+ "miles": 697,
+ "rate_per_mile": 1.61,
+ "equipment": null,
+ "weight_lbs": 44000,
+ "commodity": null,
+ "pieces": null
+}

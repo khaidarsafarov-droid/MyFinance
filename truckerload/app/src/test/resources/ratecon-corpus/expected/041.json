@@ -1,0 +1,99 @@
+{
+ "id": "041",
+ "broker": "Direct Freight-style (synthetic)",
+ "loadId": "19997885",
+ "tripId": null,
+ "reference_numbers": {},
+ "pickup": {
+  "type": "pickup",
+  "seq": 1,
+  "facility": null,
+  "address": null,
+  "city": "Houston",
+  "state": "TX",
+  "zip": null,
+  "date": "2026-12-26",
+  "time_start": "07:00",
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "stops": [
+  {
+   "type": "pickup",
+   "seq": 1,
+   "facility": null,
+   "address": null,
+   "city": "Houston",
+   "state": "TX",
+   "zip": null,
+   "date": "2026-12-26",
+   "time_start": "07:00",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  },
+  {
+   "type": "stop",
+   "seq": 2,
+   "facility": null,
+   "address": null,
+   "city": "Dearborn",
+   "state": "MI",
+   "zip": null,
+   "date": "2026-12-27",
+   "time_start": "06:00",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  },
+  {
+   "type": "delivery",
+   "seq": 3,
+   "facility": null,
+   "address": null,
+   "city": "Laredo",
+   "state": "TX",
+   "zip": null,
+   "date": "2026-12-29",
+   "time_start": "20:00",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  }
+ ],
+ "delivery": {
+  "type": "delivery",
+  "seq": 3,
+  "facility": null,
+  "address": null,
+  "city": "Laredo",
+  "state": "TX",
+  "zip": null,
+  "date": "2026-12-29",
+  "time_start": "20:00",
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "rate": {
+  "total": 1800,
+  "linehaul": null,
+  "fuel": null,
+  "accessorials_included": [],
+  "currency": "USD"
+ },
+ "not_rate": {
+  "penalties": [],
+  "detention": null,
+  "tonu": null,
+  "lumper_reimbursement": null,
+  "layover": null
+ },
+ "miles": 897,
+ "rate_per_mile": 2.01,
+ "equipment": "Dry Van 53ft",
+ "weight_lbs": 44000,
+ "commodity": null,
+ "pieces": null
+}

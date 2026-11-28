@@ -1,0 +1,21 @@
+Carrier Rate Confirmation
+Load Confirmation Number: 11824293
+Equipment: Reefer 53'   Weight: 41000 lbs
+
+Pickup 1: Heartland Grain Terminal
+  12 Elevator Rd, Omaha, NE 68107
+  Appointment: 12/07/2026 6:00 AM
+  Reference: 3317999
+Drop-off 2: Ironbridge Steel
+  5 Foundry St, Gary, IN 46402
+  Appointment: 12/07/2026 3:00 PM
+  Reference: 1581268
+
+Payment Details
+Linehaul $3,100.00
+Fuel Surcharge $0.00
+Total Carrier Pay $3,100.00
+QuickPay available (see portal)
+Missed check call: $50 fine each
+Late PU: $1000
+Late delivery: rate reduced $100

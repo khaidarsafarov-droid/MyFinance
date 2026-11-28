@@ -1,0 +1,86 @@
+{
+ "id": "088",
+ "broker": "synthetic (NBSP/en dash)",
+ "loadId": "32114650",
+ "tripId": null,
+ "reference_numbers": {},
+ "pickup": {
+  "type": "pickup",
+  "seq": 1,
+  "facility": "Sierra Wine Warehouse",
+  "address": "210 Vintner Way",
+  "city": "Stockton",
+  "state": "CA",
+  "zip": "95206",
+  "date": "2026-12-12",
+  "time_start": "18:00",
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "stops": [
+  {
+   "type": "pickup",
+   "seq": 1,
+   "facility": "Sierra Wine Warehouse",
+   "address": "210 Vintner Way",
+   "city": "Stockton",
+   "state": "CA",
+   "zip": "95206",
+   "date": "2026-12-12",
+   "time_start": "18:00",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  },
+  {
+   "type": "delivery",
+   "seq": 2,
+   "facility": "Lakeview Distribution",
+   "address": "450 Commerce Dr",
+   "city": "Joliet",
+   "state": "IL",
+   "zip": "60436",
+   "date": "2026-12-13",
+   "time_start": "07:00",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  }
+ ],
+ "delivery": {
+  "type": "delivery",
+  "seq": 2,
+  "facility": "Lakeview Distribution",
+  "address": "450 Commerce Dr",
+  "city": "Joliet",
+  "state": "IL",
+  "zip": "60436",
+  "date": "2026-12-13",
+  "time_start": "07:00",
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "rate": {
+  "total": 1985,
+  "linehaul": null,
+  "fuel": null,
+  "accessorials_included": [],
+  "currency": "USD"
+ },
+ "not_rate": {
+  "penalties": [],
+  "detention": null,
+  "tonu": null,
+  "lumper_reimbursement": null,
+  "layover": null
+ },
+ "miles": 1497,
+ "rate_per_mile": 1.33,
+ "equipment": null,
+ "weight_lbs": 22000,
+ "commodity": null,
+ "pieces": null,
+ "stops_note": "only first and last stop appear in text"
+}

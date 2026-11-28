@@ -1,0 +1,128 @@
+{
+ "id": "005",
+ "broker": "C.H. Robinson",
+ "loadId": "405515639",
+ "tripId": null,
+ "reference_numbers": {},
+ "pickup": {
+  "type": "pickup",
+  "seq": 1,
+  "facility": "BEX Logistics-OH Consolidation",
+  "address": "3685 Alum Creek Dr STE 2040",
+  "city": "Columbus",
+  "state": "OH",
+  "zip": "43207",
+  "date": "2022-08-02",
+  "time_start": "08:00",
+  "time_end": "18:00",
+  "appt_type": "Open Pick Up",
+  "ref": "405515639"
+ },
+ "stops": [
+  {
+   "type": "pickup",
+   "seq": 1,
+   "facility": "BEX Logistics-OH Consolidation",
+   "address": "3685 Alum Creek Dr STE 2040",
+   "city": "Columbus",
+   "state": "OH",
+   "zip": "43207",
+   "date": "2022-08-02",
+   "time_start": "08:00",
+   "time_end": "18:00",
+   "appt_type": "Open Pick Up",
+   "ref": "405515639"
+  },
+  {
+   "type": "stop",
+   "seq": 2,
+   "facility": "Freight, Land, Sky",
+   "address": "1000 Sycamore St.",
+   "city": "HARRISBURG",
+   "state": "PA",
+   "zip": "17104",
+   "date": "2022-08-03",
+   "time_start": "12:00",
+   "time_end": null,
+   "appt_type": "Appt",
+   "ref": "2896990"
+  },
+  {
+   "type": "stop",
+   "seq": 3,
+   "facility": "Concordance - Edison",
+   "address": "60 Distribution Blvd",
+   "city": "Edison",
+   "state": "NJ",
+   "zip": "08817",
+   "date": "2022-08-03",
+   "time_start": "11:00",
+   "time_end": null,
+   "appt_type": "Appt",
+   "ref": "2896990"
+  },
+  {
+   "type": "delivery",
+   "seq": 4,
+   "facility": "Supervalu",
+   "address": "500 S Muddy Creek Road",
+   "city": "Denver",
+   "state": "PA",
+   "zip": "17517-9774",
+   "date": "2022-08-04",
+   "time_start": "07:00",
+   "time_end": null,
+   "appt_type": "Appt",
+   "ref": "692304"
+  }
+ ],
+ "delivery": {
+  "type": "delivery",
+  "seq": 4,
+  "facility": "Supervalu",
+  "address": "500 S Muddy Creek Road",
+  "city": "Denver",
+  "state": "PA",
+  "zip": "17517-9774",
+  "date": "2022-08-04",
+  "time_start": "07:00",
+  "time_end": null,
+  "appt_type": "Appt",
+  "ref": "692304"
+ },
+ "rate": {
+  "total": 2481.0,
+  "linehaul": 1800.0,
+  "fuel": null,
+  "accessorials_included": [
+   {
+    "name": "lumper fee",
+    "amount": 231.0
+   },
+   {
+    "name": "dock miles",
+    "amount": 450.0
+   }
+  ],
+  "currency": "USD"
+ },
+ "not_rate": {
+  "penalties": [
+   {
+    "text": "fines up to $250 per occurrence",
+    "amount": 250
+   }
+  ],
+  "detention": null,
+  "tonu": null,
+  "lumper_reimbursement": null,
+  "layover": null
+ },
+ "miles": null,
+ "rate_per_mile": null,
+ "equipment": "Van - Min L=53",
+ "weight_lbs": null,
+ "commodity": null,
+ "pieces": null,
+ "note": "Stop order on page is Receiver #1 Harrisburg 08/03, #2 Denver PA 08/04, #3 Edison 08/03 as extracted; verify sequence by receiver number (extraction order differs from receiver number)"
+}

@@ -1,0 +1,5 @@
+RATE CONFIRMATION 91979459 (CAD)
+PICK UP: Magna Parts, 25 Industrial Rd, Windsor, ON N8W 1A1  12/09/2026 08:00
+DELIVER: Midway Retail DC, 7000 Distribution Pkwy, Memphis, TN 38118  12/10/2026 10:00
+Rate: CAD $1485.00 all-in   Miles 721
+Border: Ambassador Bridge; ACE/PARS required.

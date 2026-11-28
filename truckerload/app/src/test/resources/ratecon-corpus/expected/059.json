@@ -1,0 +1,113 @@
+{
+ "id": "059",
+ "broker": "synthetic (all-in only)",
+ "loadId": "36412481",
+ "tripId": null,
+ "reference_numbers": {},
+ "pickup": {
+  "type": "pickup",
+  "seq": 1,
+  "facility": "Empire Textiles",
+  "address": null,
+  "city": "Paterson",
+  "state": "NJ",
+  "zip": null,
+  "date": "2026-12-06",
+  "time_start": "07:00",
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "stops": [
+  {
+   "type": "pickup",
+   "seq": 1,
+   "facility": "Empire Textiles",
+   "address": null,
+   "city": "Paterson",
+   "state": "NJ",
+   "zip": null,
+   "date": "2026-12-06",
+   "time_start": "07:00",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  },
+  {
+   "type": "stop",
+   "seq": 2,
+   "facility": "Desert Sun Solar",
+   "address": null,
+   "city": "Phoenix",
+   "state": "AZ",
+   "zip": null,
+   "date": "2026-12-07",
+   "time_start": "09:00",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  },
+  {
+   "type": "stop",
+   "seq": 3,
+   "facility": "Bluegrass Beverage Co",
+   "address": null,
+   "city": "Louisville",
+   "state": "KY",
+   "zip": null,
+   "date": "2026-12-08",
+   "time_start": "09:00",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  },
+  {
+   "type": "delivery",
+   "seq": 4,
+   "facility": "Heartland Grain Terminal",
+   "address": null,
+   "city": "Omaha",
+   "state": "NE",
+   "zip": null,
+   "date": "2026-12-08",
+   "time_start": "08:30",
+   "time_end": "16:00",
+   "appt_type": null,
+   "ref": null
+  }
+ ],
+ "delivery": {
+  "type": "delivery",
+  "seq": 4,
+  "facility": "Heartland Grain Terminal",
+  "address": null,
+  "city": "Omaha",
+  "state": "NE",
+  "zip": null,
+  "date": "2026-12-08",
+  "time_start": "08:30",
+  "time_end": "16:00",
+  "appt_type": null,
+  "ref": null
+ },
+ "rate": {
+  "total": 1800,
+  "linehaul": null,
+  "fuel": null,
+  "accessorials_included": [],
+  "currency": "USD"
+ },
+ "not_rate": {
+  "penalties": [],
+  "detention": null,
+  "tonu": null,
+  "lumper_reimbursement": null,
+  "layover": null
+ },
+ "miles": 186,
+ "rate_per_mile": 9.68,
+ "equipment": "Dry Van 53ft",
+ "weight_lbs": 42500,
+ "commodity": null,
+ "pieces": null
+}

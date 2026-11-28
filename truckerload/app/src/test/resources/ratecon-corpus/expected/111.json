@@ -1,0 +1,20 @@
+{
+ "id": "111",
+ "broker": "synthetic dispatcher chat (es)",
+ "loadId": "309184",
+ "tripId": null,
+ "pickup": {
+  "type": "pickup",
+  "city": "Ontario"
+ },
+ "delivery": {
+  "type": "delivery",
+  "city": "Tucson"
+ },
+ "rate": {
+  "total": 1600,
+  "currency": "USD"
+ },
+ "miles": 485,
+ "note": "hand-checked; penalties/fines and deadhead miles are not rate/miles; PO#/BOL are not load ids"
+}

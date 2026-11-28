@@ -1,0 +1,2 @@
+load_id,origin,destination,pickup_dt,delivery_dt,linehaul,fsc,total,miles
+44494128,"Lake Charles, LA","Dearborn, MI",2026-12-12T09:30:00,2026-12-13T06:00:00,"3,100.00","0.00","3,325.00",1585

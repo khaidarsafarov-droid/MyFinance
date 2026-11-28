@@ -1,0 +1,87 @@
+{
+ "id": "094",
+ "broker": "synthetic (Subtotal / Total / Balance)",
+ "loadId": "29186174",
+ "tripId": null,
+ "reference_numbers": {},
+ "pickup": {
+  "type": "pickup",
+  "seq": 1,
+  "facility": null,
+  "address": null,
+  "city": "Minneapolis",
+  "state": "MN",
+  "zip": null,
+  "date": "2026-12-16",
+  "time_start": null,
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "stops": [
+  {
+   "type": "pickup",
+   "seq": 1,
+   "facility": null,
+   "address": null,
+   "city": "Minneapolis",
+   "state": "MN",
+   "zip": null,
+   "date": "2026-12-16",
+   "time_start": null,
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  },
+  {
+   "type": "delivery",
+   "seq": 2,
+   "facility": null,
+   "address": null,
+   "city": "Kingsport",
+   "state": "TN",
+   "zip": null,
+   "date": "2026-12-16",
+   "time_start": null,
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  }
+ ],
+ "delivery": {
+  "type": "delivery",
+  "seq": 2,
+  "facility": null,
+  "address": null,
+  "city": "Kingsport",
+  "state": "TN",
+  "zip": null,
+  "date": "2026-12-16",
+  "time_start": null,
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "rate": {
+  "total": 3100,
+  "linehaul": 3100,
+  "fuel": null,
+  "accessorials_included": [],
+  "currency": "USD"
+ },
+ "not_rate": {
+  "penalties": [],
+  "detention": null,
+  "tonu": null,
+  "lumper_reimbursement": null,
+  "layover": null
+ },
+ "miles": null,
+ "rate_per_mile": null,
+ "equipment": null,
+ "weight_lbs": null,
+ "commodity": null,
+ "pieces": null,
+ "stops_note": "only first and last stop appear in text",
+ "pitfall": "Balance due != rate"
+}

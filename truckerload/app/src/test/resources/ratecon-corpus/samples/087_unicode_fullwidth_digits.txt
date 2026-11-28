@@ -1,0 +1,7 @@
+RATE CONFIRMATION
+Load #： ５６１４４１３８
+Pick Up： Bluegrass Beverage Co， ３００ Distillery Ln， Louisville， KY ４０２１４  Date： １２/１８/２０２６ １４：３０ - ２２：００
+Delivery： Northstar Electronics， ５０００ Tech Pkwy， Minneapolis， MN ５５４１３  Date： １２/１９/２０２６ １４：３０ - １６：００
+Total Rate： ＄３，２８５．００
+Miles： ３５０
+Weight： １２０００ lbs

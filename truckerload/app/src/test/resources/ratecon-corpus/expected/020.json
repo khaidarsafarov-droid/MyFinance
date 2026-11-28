@@ -1,0 +1,85 @@
+{
+ "id": "020",
+ "broker": "Summit Freight Brokerage LLC (sample)",
+ "loadId": "LD-2026-58214",
+ "tripId": null,
+ "reference_numbers": {},
+ "pickup": {
+  "type": "pickup",
+  "seq": 1,
+  "facility": "Riverbend Foods DC",
+  "address": "500 Riverbend Dr",
+  "city": "Memphis",
+  "state": "TN",
+  "zip": "38118",
+  "date": "2026-10-23",
+  "time_start": "08:00",
+  "time_end": "12:00",
+  "appt_type": "FCFS",
+  "ref": "77412"
+ },
+ "stops": [
+  {
+   "type": "pickup",
+   "seq": 1,
+   "facility": "Riverbend Foods DC",
+   "address": "500 Riverbend Dr",
+   "city": "Memphis",
+   "state": "TN",
+   "zip": "38118",
+   "date": "2026-10-23",
+   "time_start": "08:00",
+   "time_end": "12:00",
+   "appt_type": "FCFS",
+   "ref": "77412"
+  },
+  {
+   "type": "delivery",
+   "seq": 2,
+   "facility": "Lakeside Grocers Warehouse",
+   "address": "2100 Lakeside Ave",
+   "city": "Columbus",
+   "state": "OH",
+   "zip": "43215",
+   "date": "2026-10-24",
+   "time_start": "06:00",
+   "time_end": null,
+   "appt_type": "Appt",
+   "ref": "C-9081"
+  }
+ ],
+ "delivery": {
+  "type": "delivery",
+  "seq": 2,
+  "facility": "Lakeside Grocers Warehouse",
+  "address": "2100 Lakeside Ave",
+  "city": "Columbus",
+  "state": "OH",
+  "zip": "43215",
+  "date": "2026-10-24",
+  "time_start": "06:00",
+  "time_end": null,
+  "appt_type": "Appt",
+  "ref": "C-9081"
+ },
+ "rate": {
+  "total": 1907.04,
+  "linehaul": 1650.0,
+  "fuel": 257.04,
+  "accessorials_included": [],
+  "currency": "USD"
+ },
+ "not_rate": {
+  "penalties": [],
+  "detention": "$50/hr after 2 free hours",
+  "tonu": "$150",
+  "lumper_reimbursement": null,
+  "layover": "$250/day"
+ },
+ "miles": 612,
+ "rate_per_mile": 3.12,
+ "equipment": "Dry van 53 ft",
+ "weight_lbs": 38500,
+ "commodity": "Packaged dry food",
+ "pieces": 22
+}

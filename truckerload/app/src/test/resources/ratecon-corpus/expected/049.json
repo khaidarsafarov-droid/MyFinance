@@ -1,0 +1,85 @@
+{
+ "id": "049",
+ "broker": "Український диспетчер (synthetic)",
+ "loadId": "55437576",
+ "tripId": null,
+ "reference_numbers": {},
+ "pickup": {
+  "type": "pickup",
+  "seq": 1,
+  "facility": null,
+  "address": "450 Commerce Dr",
+  "city": "Joliet",
+  "state": "IL",
+  "zip": null,
+  "date": "2026-12-12",
+  "time_start": "09:00",
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "stops": [
+  {
+   "type": "pickup",
+   "seq": 1,
+   "facility": null,
+   "address": "450 Commerce Dr",
+   "city": "Joliet",
+   "state": "IL",
+   "zip": null,
+   "date": "2026-12-12",
+   "time_start": "09:00",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  },
+  {
+   "type": "delivery",
+   "seq": 2,
+   "facility": null,
+   "address": "2500 Market Way",
+   "city": "Laredo",
+   "state": "TX",
+   "zip": null,
+   "date": "2026-12-13",
+   "time_start": "08:30",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  }
+ ],
+ "delivery": {
+  "type": "delivery",
+  "seq": 2,
+  "facility": null,
+  "address": "2500 Market Way",
+  "city": "Laredo",
+  "state": "TX",
+  "zip": null,
+  "date": "2026-12-13",
+  "time_start": "08:30",
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "rate": {
+  "total": 3410,
+  "linehaul": null,
+  "fuel": null,
+  "accessorials_included": [],
+  "currency": "USD"
+ },
+ "not_rate": {
+  "penalties": [],
+  "detention": null,
+  "tonu": null,
+  "lumper_reimbursement": null,
+  "layover": null
+ },
+ "miles": 1006,
+ "rate_per_mile": 3.39,
+ "equipment": null,
+ "weight_lbs": 42500,
+ "commodity": null,
+ "pieces": null
+}

@@ -1,0 +1,87 @@
+{
+ "id": "101",
+ "broker": "synthetic (dates without year)",
+ "loadId": "95359035",
+ "tripId": null,
+ "reference_numbers": {},
+ "pickup": {
+  "type": "pickup",
+  "seq": 1,
+  "facility": null,
+  "address": "450 Commerce Dr",
+  "city": "Joliet",
+  "state": "IL",
+  "zip": null,
+  "date": "2026-12-15",
+  "time_start": "09:00",
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "stops": [
+  {
+   "type": "pickup",
+   "seq": 1,
+   "facility": null,
+   "address": "450 Commerce Dr",
+   "city": "Joliet",
+   "state": "IL",
+   "zip": null,
+   "date": "2026-12-15",
+   "time_start": "09:00",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  },
+  {
+   "type": "delivery",
+   "seq": 2,
+   "facility": null,
+   "address": "7000 Distribution Pkwy",
+   "city": "Memphis",
+   "state": "TN",
+   "zip": null,
+   "date": "2026-12-17",
+   "time_start": "10:00",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  }
+ ],
+ "delivery": {
+  "type": "delivery",
+  "seq": 2,
+  "facility": null,
+  "address": "7000 Distribution Pkwy",
+  "city": "Memphis",
+  "state": "TN",
+  "zip": null,
+  "date": "2026-12-17",
+  "time_start": "10:00",
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "rate": {
+  "total": 3135,
+  "linehaul": null,
+  "fuel": null,
+  "accessorials_included": [],
+  "currency": "USD"
+ },
+ "not_rate": {
+  "penalties": [],
+  "detention": null,
+  "tonu": null,
+  "lumper_reimbursement": null,
+  "layover": null
+ },
+ "miles": null,
+ "rate_per_mile": null,
+ "equipment": null,
+ "weight_lbs": null,
+ "commodity": null,
+ "pieces": null,
+ "stops_note": "only first and last stop appear in text",
+ "note": "year absent in text; expected dates assume 2026"
+}

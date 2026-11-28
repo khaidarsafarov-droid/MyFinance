@@ -1,0 +1,98 @@
+{
+ "id": "012",
+ "broker": "Drake Trans Inc",
+ "loadId": "117042",
+ "tripId": null,
+ "reference_numbers": {
+  "fsc_miles": 357,
+  "fsc_per_mile": 0.27
+ },
+ "pickup": {
+  "type": "pickup",
+  "seq": 1,
+  "facility": "LOLITA INTEPLAST",
+  "address": "12343 FM 1593",
+  "city": "LOLITA",
+  "state": "TX",
+  "zip": "77971",
+  "date": "2018-04-24",
+  "time_start": "08:00",
+  "time_end": "15:00",
+  "appt_type": "window",
+  "ref": "HT4A237"
+ },
+ "stops": [
+  {
+   "type": "pickup",
+   "seq": 1,
+   "facility": "LOLITA INTEPLAST",
+   "address": "12343 FM 1593",
+   "city": "LOLITA",
+   "state": "TX",
+   "zip": "77971",
+   "date": "2018-04-24",
+   "time_start": "08:00",
+   "time_end": "15:00",
+   "appt_type": "window",
+   "ref": "HT4A237"
+  },
+  {
+   "type": "delivery",
+   "seq": 2,
+   "facility": "PERFORMANCE POP",
+   "address": "7900 AMBASSADOR",
+   "city": "DALLAS",
+   "state": "TX",
+   "zip": "75247",
+   "date": "2018-04-25",
+   "time_start": "08:00",
+   "time_end": "16:00",
+   "appt_type": "window",
+   "ref": "1V2M138"
+  }
+ ],
+ "delivery": {
+  "type": "delivery",
+  "seq": 2,
+  "facility": "PERFORMANCE POP",
+  "address": "7900 AMBASSADOR",
+  "city": "DALLAS",
+  "state": "TX",
+  "zip": "75247",
+  "date": "2018-04-25",
+  "time_start": "08:00",
+  "time_end": "16:00",
+  "appt_type": "window",
+  "ref": "1V2M138"
+ },
+ "rate": {
+  "total": 775.0,
+  "linehaul": 775.0,
+  "fuel": null,
+  "accessorials_included": [],
+  "currency": "USD"
+ },
+ "not_rate": {
+  "penalties": [
+   {
+    "text": "late delivery or no pickup w/o call $100",
+    "amount": 100
+   },
+   {
+    "text": "service fee if billing not sent in 15 days $25",
+    "amount": 25
+   }
+  ],
+  "detention": null,
+  "tonu": null,
+  "lumper_reimbursement": null,
+  "layover": null
+ },
+ "miles": null,
+ "rate_per_mile": null,
+ "equipment": null,
+ "weight_lbs": 35000,
+ "commodity": null,
+ "pieces": null,
+ "note": "FUEL SUR-CHARGE 357 x .27 = 96.39 is NOT added to 775 (Flat Rate covers it); 'Rate includes all fuel surcharges'"
+}

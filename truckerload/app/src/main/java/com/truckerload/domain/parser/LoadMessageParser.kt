@@ -14,12 +14,20 @@ import java.util.Locale
 internal object LoadMessageParser {
 
     private val tripIdPatterns = listOf(
-        Regex("""Trip\s*ID\s*[:\|]?\s*(T-[A-Z0-9]+)""", RegexOption.IGNORE_CASE),
-        Regex("""Trip\s*ID\s*[:\|]?\s*([A-Z0-9\-]+)""", RegexOption.IGNORE_CASE),
+        Regex("""Trip\s*(?:ID|#|Number|No\.?)\s*[:\|]?\s*(T-[A-Z0-9]+)""", RegexOption.IGNORE_CASE),
+        Regex("""Trip\s*(?:ID|#|Number|No\.?)\s*[:\|]?\s*([A-Z0-9\-]+)""", RegexOption.IGNORE_CASE),
         Regex("""\b(T-[A-Z0-9]{6,})\b""", RegexOption.IGNORE_CASE),
     )
     private val totalRatePattern = Regex("""Total\s*Rate\s*[:\s]*\$?\s*([\d.,]+)""", RegexOption.IGNORE_CASE)
     private val totalMilesPattern = Regex("""Total\s*Loaded\s*Miles\s*[:\s]*([\d.,]+)""", RegexOption.IGNORE_CASE)
+    /** `Rate: $1771.47`, `Payout - $900`, `Total Pay: 1,200.00` on its own line (never "Per mile"). */
+    private val labeledRatePattern = Regex(
+        """(?im)^\s*(?:Total\s*)?(?:Rate|Payout|Pay|Gross(?:\s*Pay)?|Total)\s*[:\-]\s*\$?\s*([\d][\d.,]*)""",
+    )
+    private val labeledMilesPattern = Regex(
+        """(?im)^\s*(?:Total\s*(?:Loaded\s*)?Miles|Trip\s*Distance|Distance|Miles|Trip)""" +
+            """\s*[:\-]\s*([\d][\d.,]*)""",
+    )
     private val inlineRatePattern = Regex("""Rate\s+([\d.,]+)""", RegexOption.IGNORE_CASE)
     private val inlineMilesPattern = Regex("""([\d.,]+)\s*mi\b""", RegexOption.IGNORE_CASE)
 
@@ -58,6 +66,21 @@ internal object LoadMessageParser {
         referenceMillis: Long = System.currentTimeMillis(),
     ): Load? = parseAll(rawMessage, referenceMillis).firstOrNull()
 
+    /**
+     * Best-effort draft for the add-load form and the bot: same as [parseOne] but a missing
+     * rate or route does not reject the text. Needs a Trip ID.
+     */
+    fun parseDraft(
+        rawMessage: String,
+        referenceMillis: Long = System.currentTimeMillis(),
+    ): Load? {
+        val normalized = TelegramStyledTextNormalizer.normalize(rawMessage.replace("\r\n", "\n").trim())
+        val block = splitBlocksWithStarts(normalized).firstOrNull()?.second.takeIf {
+            MessageClassifier.isLoadLike(normalized)
+        }
+        return block?.let { parseBlock(it, rawMessage, referenceMillis, allowPartial = true) }
+    }
+
     private val tripBlockSplitPattern = Regex(
         """(?m)(?=^Trip\s*ID)""",
         RegexOption.IGNORE_CASE,
@@ -78,14 +101,15 @@ internal object LoadMessageParser {
     private fun parseRate(raw: String): Money =
         runCatching { Money.parse(raw) }.getOrElse { Money.fromDollars(ParseUtils.parseMoney(raw)) }
 
-    private fun parseBlock(block: String, rawMessage: String, referenceMillis: Long): Load? {
-        val tripId = ParseUtils.firstMatch(block, tripIdPatterns)?.uppercase(Locale.US).orEmpty()
-        if (tripId.isBlank()) return null
-
-        val totalRate = totalRatePattern.find(block)?.groupValues?.get(1)?.let(::parseRate)
+    private fun findRate(block: String): Money =
+        totalRatePattern.find(block)?.groupValues?.get(1)?.let(::parseRate)
+            ?: labeledRatePattern.find(block)?.groupValues?.get(1)?.let(::parseRate)
             ?: inlineRatePattern.find(block)?.groupValues?.get(1)?.let(::parseRate)
             ?: Money.ZERO
-        val rawMiles = totalMilesPattern.find(block)?.groupValues?.get(1)?.let { ParseUtils.parseMiles(it) }
+
+    private fun findMiles(block: String): Double =
+        totalMilesPattern.find(block)?.groupValues?.get(1)?.let { ParseUtils.parseMiles(it) }
+            ?: labeledMilesPattern.find(block)?.groupValues?.get(1)?.let { ParseUtils.parseMiles(it) }
             // FIX: fallback uses largest "X mi" — first match is often a leg, not Total Loaded Miles
             ?: inlineMilesPattern.findAll(block)
                 .mapNotNull { match ->
@@ -93,6 +117,22 @@ internal object LoadMessageParser {
                 }
                 .maxOrNull()
             ?: 0.0
+
+    private fun isIncomplete(rate: Money, pointA: String, pointB: String): Boolean =
+        !rate.isPositive() || (pointA.isBlank() && pointB.isBlank())
+
+    @Suppress("ReturnCount")
+    private fun parseBlock(
+        block: String,
+        rawMessage: String,
+        referenceMillis: Long,
+        allowPartial: Boolean = false,
+    ): Load? {
+        val tripId = ParseUtils.firstMatch(block, tripIdPatterns)?.uppercase(Locale.US).orEmpty()
+        if (tripId.isBlank()) return null
+
+        val totalRate = findRate(block)
+        val rawMiles = findMiles(block)
         val totalMiles = ParseUtils.sanitizeLoadedMiles(rawMiles, totalRate)
 
         val stops = parseAllStops(block, tripId)
@@ -109,7 +149,7 @@ internal object LoadMessageParser {
         val pointB = delStops.lastOrNull()?.let { formatRoutePoint(it) }.orEmpty()
 
         val now = referenceMillis.takeIf { it > 0L } ?: System.currentTimeMillis()
-        if (!totalRate.isPositive() || (pointA.isBlank() && pointB.isBlank())) return null
+        if (!allowPartial && isIncomplete(totalRate, pointA, pointB)) return null
 
         val draft = Load(
             id = tripId,
@@ -138,6 +178,9 @@ internal object LoadMessageParser {
     private fun parseAllStops(block: String, tripId: String): List<Stop> {
         val relayLegs = parseRelayLegStops(block, tripId)
         if (relayLegs.isNotEmpty()) return relayLegs
+
+        val numbered = NumberedStopListParser.parse(block, tripId)
+        if (numbered.isNotEmpty()) return numbered
 
         val labelStops = parseLabelPairStops(block, tripId)
         if (labelStops.isNotEmpty()) return labelStops

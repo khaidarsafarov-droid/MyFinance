@@ -1,0 +1,116 @@
+{
+ "id": "004",
+ "broker": "C.H. Robinson",
+ "loadId": "123456789",
+ "tripId": null,
+ "reference_numbers": {
+  "fuel_included": 285.9
+ },
+ "pickup": {
+  "type": "pickup",
+  "seq": 1,
+  "facility": "Anyco Trucking",
+  "address": "100 Main Street",
+  "city": "Jacksonville",
+  "state": "FL",
+  "zip": "32034",
+  "date": "2021-07-12",
+  "time_start": "04:00",
+  "time_end": null,
+  "appt_type": "Appt",
+  "ref": null
+ },
+ "stops": [
+  {
+   "type": "pickup",
+   "seq": 1,
+   "facility": "Anyco Trucking",
+   "address": "100 Main Street",
+   "city": "Jacksonville",
+   "state": "FL",
+   "zip": "32034",
+   "date": "2021-07-12",
+   "time_start": "04:00",
+   "time_end": null,
+   "appt_type": "Appt",
+   "ref": null
+  },
+  {
+   "type": "stop",
+   "seq": 2,
+   "facility": "Anyco Clothes #176",
+   "address": "1234 Main Drive",
+   "city": "Houston",
+   "state": "TX",
+   "zip": "78705",
+   "date": "2021-07-13",
+   "time_start": "06:00",
+   "time_end": "22:00",
+   "appt_type": "window",
+   "ref": null
+  },
+  {
+   "type": "stop",
+   "seq": 3,
+   "facility": "Anyco Clothes #425",
+   "address": null,
+   "city": null,
+   "state": null,
+   "zip": null,
+   "date": "2021-07-14",
+   "time_start": "08:00",
+   "time_end": "22:00",
+   "appt_type": "window",
+   "ref": null
+  },
+  {
+   "type": "delivery",
+   "seq": 4,
+   "facility": "Anyco Clothes #255",
+   "address": "123 S. 2nd BLVD, STE 100",
+   "city": "Denver",
+   "state": "CO",
+   "zip": "80014",
+   "date": "2021-07-15",
+   "time_start": "11:00",
+   "time_end": "22:00",
+   "appt_type": "window",
+   "ref": null
+  }
+ ],
+ "delivery": {
+  "type": "delivery",
+  "seq": 4,
+  "facility": "Anyco Clothes #255",
+  "address": "123 S. 2nd BLVD, STE 100",
+  "city": "Denver",
+  "state": "CO",
+  "zip": "80014",
+  "date": "2021-07-15",
+  "time_start": "11:00",
+  "time_end": "22:00",
+  "appt_type": "window",
+  "ref": null
+ },
+ "rate": {
+  "total": 4500.0,
+  "linehaul": 4500.0,
+  "fuel": null,
+  "accessorials_included": [],
+  "currency": "USD"
+ },
+ "not_rate": {
+  "penalties": [],
+  "detention": null,
+  "tonu": null,
+  "lumper_reimbursement": null,
+  "layover": null
+ },
+ "miles": null,
+ "rate_per_mile": null,
+ "equipment": "Van - Min L=53",
+ "weight_lbs": 7000,
+ "commodity": "Textiles",
+ "pieces": null,
+ "note": "Stop 3 details only partly shown in this excerpt; fuel $285.90 is included in 4,500"
+}

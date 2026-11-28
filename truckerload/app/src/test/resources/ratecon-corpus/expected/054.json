@@ -1,0 +1,99 @@
+{
+ "id": "054",
+ "broker": "synthetic (generic broker sections)",
+ "loadId": "31921592",
+ "tripId": null,
+ "reference_numbers": {},
+ "pickup": {
+  "type": "pickup",
+  "seq": 1,
+  "facility": "Delta Auto Parts",
+  "address": "4100 Assembly Dr",
+  "city": "Dearborn",
+  "state": "MI",
+  "zip": "48120",
+  "date": "2026-12-20",
+  "time_start": "08:00",
+  "time_end": null,
+  "appt_type": "Appt",
+  "ref": "8579550"
+ },
+ "stops": [
+  {
+   "type": "pickup",
+   "seq": 1,
+   "facility": "Delta Auto Parts",
+   "address": "4100 Assembly Dr",
+   "city": "Dearborn",
+   "state": "MI",
+   "zip": "48120",
+   "date": "2026-12-20",
+   "time_start": "08:00",
+   "time_end": null,
+   "appt_type": "Appt",
+   "ref": "8579550"
+  },
+  {
+   "type": "delivery",
+   "seq": 2,
+   "facility": "Ozark Poultry",
+   "address": "420 Hatchery Rd",
+   "city": "Springdale",
+   "state": "AR",
+   "zip": "72764",
+   "date": "2026-12-20",
+   "time_start": "15:00",
+   "time_end": null,
+   "appt_type": "FCFS",
+   "ref": "103574"
+  }
+ ],
+ "delivery": {
+  "type": "delivery",
+  "seq": 2,
+  "facility": "Ozark Poultry",
+  "address": "420 Hatchery Rd",
+  "city": "Springdale",
+  "state": "AR",
+  "zip": "72764",
+  "date": "2026-12-20",
+  "time_start": "15:00",
+  "time_end": null,
+  "appt_type": "FCFS",
+  "ref": "103574"
+ },
+ "rate": {
+  "total": 2845,
+  "linehaul": 2650,
+  "fuel": 120,
+  "accessorials_included": [
+   {
+    "name": "Lumper",
+    "amount": 75
+   }
+  ],
+  "currency": "USD"
+ },
+ "not_rate": {
+  "penalties": [
+   {
+    "text": "Broker Order Not Used (BONU): $150",
+    "amount": 150.0
+   },
+   {
+    "text": "Late delivery: rate reduced $100",
+    "amount": 100.0
+   }
+  ],
+  "detention": "Detention: $40/hr after 2 hrs free, max $240",
+  "tonu": null,
+  "lumper_reimbursement": null,
+  "layover": null
+ },
+ "miles": null,
+ "rate_per_mile": null,
+ "equipment": "Power Only",
+ "weight_lbs": 45500,
+ "commodity": "Plastic resin",
+ "pieces": 26
+}

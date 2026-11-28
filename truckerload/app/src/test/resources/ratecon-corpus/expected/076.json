@@ -1,0 +1,90 @@
+{
+ "id": "076",
+ "broker": "Uber Freight (vocabulary only)",
+ "loadId": "92534875",
+ "tripId": null,
+ "reference_numbers": {},
+ "pickup": {
+  "type": "pickup",
+  "seq": 1,
+  "facility": "Gulf Coast Tire",
+  "address": "1750 Rubber Rd",
+  "city": "Houston",
+  "state": "TX",
+  "zip": "77029",
+  "date": "2026-12-04",
+  "time_start": "13:00",
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "stops": [
+  {
+   "type": "pickup",
+   "seq": 1,
+   "facility": "Gulf Coast Tire",
+   "address": "1750 Rubber Rd",
+   "city": "Houston",
+   "state": "TX",
+   "zip": "77029",
+   "date": "2026-12-04",
+   "time_start": "13:00",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  },
+  {
+   "type": "delivery",
+   "seq": 2,
+   "facility": "Empire Textiles",
+   "address": "19 Loom St",
+   "city": "Paterson",
+   "state": "NJ",
+   "zip": "07501",
+   "date": "2026-12-05",
+   "time_start": "06:00",
+   "time_end": "10:00",
+   "appt_type": null,
+   "ref": null
+  }
+ ],
+ "delivery": {
+  "type": "delivery",
+  "seq": 2,
+  "facility": "Empire Textiles",
+  "address": "19 Loom St",
+  "city": "Paterson",
+  "state": "NJ",
+  "zip": "07501",
+  "date": "2026-12-05",
+  "time_start": "06:00",
+  "time_end": "10:00",
+  "appt_type": null,
+  "ref": null
+ },
+ "rate": {
+  "total": 1860,
+  "linehaul": 1450,
+  "fuel": 185,
+  "accessorials_included": [
+   {
+    "name": "Pallet exchange",
+    "amount": 225
+   }
+  ],
+  "currency": "USD"
+ },
+ "not_rate": {
+  "penalties": [],
+  "detention": null,
+  "tonu": null,
+  "lumper_reimbursement": null,
+  "layover": null
+ },
+ "miles": null,
+ "rate_per_mile": null,
+ "equipment": "Power Only",
+ "weight_lbs": null,
+ "commodity": null,
+ "pieces": null
+}

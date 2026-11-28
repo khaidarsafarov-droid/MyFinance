@@ -1,0 +1,112 @@
+{
+ "id": "027",
+ "broker": "Amazon Relay (variant)",
+ "loadId": null,
+ "tripId": "T-96364691",
+ "reference_numbers": {},
+ "pickup": {
+  "type": "pickup",
+  "seq": 1,
+  "facility": null,
+  "address": "60 Levee Rd",
+  "city": "Lake Charles",
+  "state": "LA",
+  "zip": "70601-0601",
+  "date": "2026-12-24",
+  "time_start": "15:30",
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "stops": [
+  {
+   "type": "pickup",
+   "seq": 1,
+   "facility": null,
+   "address": "60 Levee Rd",
+   "city": "Lake Charles",
+   "state": "LA",
+   "zip": "70601-0601",
+   "date": "2026-12-24",
+   "time_start": "15:30",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  },
+  {
+   "type": "stop",
+   "seq": 2,
+   "facility": null,
+   "address": "7000 Distribution Pkwy",
+   "city": "Memphis",
+   "state": "TN",
+   "zip": "38118-8118",
+   "date": "2026-12-24",
+   "time_start": "13:00",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  },
+  {
+   "type": "delivery",
+   "seq": 3,
+   "facility": null,
+   "address": "1800 Warehouse Ave",
+   "city": "Tacoma",
+   "state": "WA",
+   "zip": "98421-8421",
+   "date": "2026-12-24",
+   "time_start": "10:30",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  }
+ ],
+ "delivery": {
+  "type": "delivery",
+  "seq": 3,
+  "facility": null,
+  "address": "1800 Warehouse Ave",
+  "city": "Tacoma",
+  "state": "WA",
+  "zip": "98421-8421",
+  "date": "2026-12-24",
+  "time_start": "10:30",
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "rate": {
+  "total": 1610,
+  "linehaul": null,
+  "fuel": null,
+  "accessorials_included": [],
+  "currency": "USD"
+ },
+ "not_rate": {
+  "penalties": [
+   {
+    "text": "Broker Order Not Used (BONU): $150",
+    "amount": 150.0
+   },
+   {
+    "text": "Late PU: $1000",
+    "amount": 1000.0
+   },
+   {
+    "text": "Missed check call: $50 fine each",
+    "amount": 50.0
+   }
+  ],
+  "detention": null,
+  "tonu": null,
+  "lumper_reimbursement": null,
+  "layover": null
+ },
+ "miles": 516,
+ "rate_per_mile": 3.12,
+ "equipment": null,
+ "weight_lbs": null,
+ "commodity": null,
+ "pieces": null
+}

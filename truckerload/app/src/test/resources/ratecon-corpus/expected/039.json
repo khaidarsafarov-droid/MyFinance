@@ -1,0 +1,86 @@
+{
+ "id": "039",
+ "broker": "Broker email reply (synthetic)",
+ "loadId": null,
+ "tripId": null,
+ "reference_numbers": {},
+ "pickup": {
+  "type": "pickup",
+  "seq": 1,
+  "facility": null,
+  "address": null,
+  "city": "Springdale",
+  "state": "AR",
+  "zip": null,
+  "date": "2026-12-16",
+  "time_start": "18:00",
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "stops": [
+  {
+   "type": "pickup",
+   "seq": 1,
+   "facility": null,
+   "address": null,
+   "city": "Springdale",
+   "state": "AR",
+   "zip": null,
+   "date": "2026-12-16",
+   "time_start": "18:00",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  },
+  {
+   "type": "delivery",
+   "seq": 2,
+   "facility": null,
+   "address": null,
+   "city": "High Point",
+   "state": "NC",
+   "zip": null,
+   "date": "2026-12-18",
+   "time_start": "20:30",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  }
+ ],
+ "delivery": {
+  "type": "delivery",
+  "seq": 2,
+  "facility": null,
+  "address": null,
+  "city": "High Point",
+  "state": "NC",
+  "zip": null,
+  "date": "2026-12-18",
+  "time_start": "20:30",
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "rate": {
+  "total": 2650,
+  "linehaul": null,
+  "fuel": null,
+  "accessorials_included": [],
+  "currency": "USD"
+ },
+ "not_rate": {
+  "penalties": [],
+  "detention": null,
+  "tonu": null,
+  "lumper_reimbursement": null,
+  "layover": null
+ },
+ "miles": 1479,
+ "rate_per_mile": 1.79,
+ "equipment": "Container 40' HC",
+ "weight_lbs": 34500,
+ "commodity": null,
+ "pieces": null,
+ "stops_note": "only first and last stop appear in text"
+}

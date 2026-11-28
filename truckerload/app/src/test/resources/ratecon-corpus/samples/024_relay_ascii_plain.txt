@@ -1,0 +1,32 @@
+Trip ID : T-29157152
+
+1#: 111277473E
+Loaded - Preloaded
+Sun, Dec 13, 1:00 PM EST
+ATL9
+101 Dairy Ln
+Green Bay, WI 54303-4303
+—————————————
+2#: 112997987D
+Loaded - Live
+Mon, Dec 14, 9:00 AM EST
+ATL7
+420 Hatchery Rd
+Springdale, AR 72764-2764
+—————————————
+3#: 116359528D
+Empty - Drop
+Tue, Dec 15, 9:00 AM EST
+ORD6
+9100 Harbor Blvd
+Savannah, GA 31408-1408
+—————————————
+Rate: $3,435.00
+ Per mile: $4.00/mi
+
+Trip: 859.00mi
+Duration: 1d 7h
+
+Late DEL: $700
+Late PU: $1000
+Late delivery: rate reduced $100

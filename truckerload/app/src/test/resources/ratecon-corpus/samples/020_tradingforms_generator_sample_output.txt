@@ -1,0 +1,35 @@
+RATE CONFIRMATION
+No. LD-2026-58214
+27 Nov 2026
+
+Broker
+Summit Freight Brokerage LLC 1450 Commerce Way, Suite 300 Nashville, TN 37203 MC 000000, (615) 000 0000, dispatch@example.com
+
+Carrier
+Blue Ridge Transport Inc 88 Depot Rd Knoxville, TN 37920 MC 000000, USDOT 0000000, (865) 000 0000
+
+Pickup (shipper)
+Riverbend Foods DC 500 Riverbend Dr, Memphis, TN 38118 Shipping 08:00 to 16:00, PU# 77412
+
+Delivery (consignee)
+Lakeside Grocers Warehouse 2100 Lakeside Ave, Columbus, OH 43215 Receiving 05:00 to 13:00, Appt# C-9081
+
+Load no.  LD-2026-58214
+Equipment  Dry van 53 ft
+Pickup date and time  23 Oct 2026, 08:00 to 12:00 FCFS
+Delivery date and time  24 Oct 2026, 06:00 appointment
+Commodity  Packaged dry food, non hazmat, floor loaded
+Weight  38,500 lb
+Pieces or pallets  22 pallets
+Loaded miles  612
+
+| Charge | Qty | Unit | Rate (USD) | Amount (USD) |
+| Line haul, flat rate | 1 | flat | 1,650.00 | 1,650.00 |
+| Fuel surcharge | 612 | mile | 0.42 | 257.04 |
+| Lumper (reimbursed with receipt) | 1 | flat | 0.00 | 0.00 |
+
+Subtotal 1,907.04
+Total USD 1,907.04
+
+Terms
+Detention: $50 per hour after 2 free hours at each stop, with in and out times on the BOL. TONU: $150 if the load is cancelled after dispatch. Layover: $250 per day.

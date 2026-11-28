@@ -1,0 +1,9 @@
+LANDSTAR-STYLE CARRIER RATE CONFIRMATION (CRC) - synthetic
+Load/Shipment: 64414159   BCO: Example Trucking
+Rate: $3,360.00 Linehaul incl. fuel
+Origin - Great Lakes Cheese, 101 Dairy Ln, Green Bay, WI 54303,  -  12/09/2026 15:00
+Destination - Redwood Packaging, 9100 Harbor Blvd, Savannah, GA 31408,  -  12/09/2026 15:30
+Out-of-route miles paid at $1.50/mi if approved
+Detention: after 2 hours, $50/hr if approved
+TONU: $150
+Total CRC amount: $3,360.00

@@ -1,0 +1,32 @@
+{
+ "loadNumber": "69875652",
+ "carrierPay": 2100,
+ "currency": "USD",
+ "miles": 1146,
+ "stops": [
+  {
+   "type": "PICKUP",
+   "name": "Atlas Chemical Plant",
+   "city": "Baton Rouge",
+   "state": "LA",
+   "zip": "70805",
+   "apptStart": "2026-12-12T18:00:00-05:00"
+  },
+  {
+   "type": "STOP",
+   "name": "Bluegrass Beverage Co",
+   "city": "Louisville",
+   "state": "KY",
+   "zip": "40214",
+   "apptStart": "2026-12-13T13:00:00-05:00"
+  },
+  {
+   "type": "DELIVERY",
+   "name": "Coastal Seafood Cold Storage",
+   "city": "Gloucester",
+   "state": "MA",
+   "zip": "01930",
+   "apptStart": "2026-12-14T15:00:00-05:00"
+  }
+ ]
+}

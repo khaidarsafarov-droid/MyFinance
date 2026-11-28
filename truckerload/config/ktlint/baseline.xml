@@ -1437,11 +1437,12 @@
         <error line="16" column="126" source="standard:argument-list-wrapping" />
         <error line="16" column="141" source="standard:max-line-length" />
         <error line="16" column="149" source="standard:argument-list-wrapping" />
-        <error line="174" column="52" source="standard:function-signature" />
-        <error line="205" column="9" source="standard:function-signature" />
-        <error line="206" column="9" source="standard:function-signature" />
-        <error line="207" column="9" source="standard:function-signature" />
-        <error line="207" column="34" source="standard:function-signature" />
+        <error line="176" column="74" source="standard:function-signature" />
+        <error line="194" column="52" source="standard:function-signature" />
+        <error line="225" column="9" source="standard:function-signature" />
+        <error line="226" column="9" source="standard:function-signature" />
+        <error line="227" column="9" source="standard:function-signature" />
+        <error line="227" column="34" source="standard:function-signature" />
     </file>
     <file name="src/main/java/com/truckerload/domain/parser/IncompleteLoadFill.kt">
         <error line="26" column="1" source="standard:blank-line-between-when-conditions" />
@@ -1523,29 +1524,40 @@
     </file>
     <file name="src/main/java/com/truckerload/domain/parser/LoadMessageParser.kt">
         <error line="3" column="1" source="standard:import-ordering" />
-        <error line="28" column="32" source="standard:trailing-comma-on-call-site" />
-        <error line="32" column="32" source="standard:trailing-comma-on-call-site" />
-        <error line="38" column="32" source="standard:trailing-comma-on-call-site" />
-        <error line="42" column="9" source="standard:function-signature" />
-        <error line="43" column="9" source="standard:function-signature" />
-        <error line="43" column="60" source="standard:function-signature" />
-        <error line="57" column="9" source="standard:function-signature" />
-        <error line="58" column="9" source="standard:function-signature" />
-        <error line="58" column="60" source="standard:function-signature" />
-        <error line="59" column="16" source="standard:function-signature" />
-        <error line="78" column="48" source="standard:function-signature" />
-        <error line="130" column="36" source="standard:trailing-comma-on-call-site" />
-        <error line="176" column="22" source="standard:trailing-comma-on-call-site" />
-        <error line="192" column="22" source="standard:trailing-comma-on-call-site" />
-        <error line="236" column="57" source="standard:function-signature" />
-        <error line="243" column="13" source="standard:class-signature" />
-        <error line="244" column="13" source="standard:class-signature" />
-        <error line="245" column="13" source="standard:class-signature" />
-        <error line="246" column="13" source="standard:class-signature" />
-        <error line="246" column="31" source="standard:class-signature" />
-        <error line="275" column="1" source="standard:blank-line-between-when-conditions" />
-        <error line="333" column="18" source="standard:trailing-comma-on-call-site" />
-        <error line="349" column="18" source="standard:trailing-comma-on-call-site" />
+        <error line="23" column="5" source="standard:spacing-between-declarations-with-comments" />
+        <error line="36" column="32" source="standard:trailing-comma-on-call-site" />
+        <error line="40" column="32" source="standard:trailing-comma-on-call-site" />
+        <error line="46" column="32" source="standard:trailing-comma-on-call-site" />
+        <error line="50" column="9" source="standard:function-signature" />
+        <error line="51" column="9" source="standard:function-signature" />
+        <error line="51" column="60" source="standard:function-signature" />
+        <error line="65" column="9" source="standard:function-signature" />
+        <error line="66" column="9" source="standard:function-signature" />
+        <error line="66" column="60" source="standard:function-signature" />
+        <error line="67" column="16" source="standard:function-signature" />
+        <error line="74" column="9" source="standard:function-signature" />
+        <error line="75" column="9" source="standard:function-signature" />
+        <error line="75" column="60" source="standard:function-signature" />
+        <error line="101" column="48" source="standard:function-signature" />
+        <error line="104" column="49" source="standard:function-signature" />
+        <error line="110" column="51" source="standard:function-signature" />
+        <error line="126" column="9" source="standard:function-signature" />
+        <error line="127" column="9" source="standard:function-signature" />
+        <error line="128" column="9" source="standard:function-signature" />
+        <error line="129" column="9" source="standard:function-signature" />
+        <error line="129" column="39" source="standard:function-signature" />
+        <error line="170" column="36" source="standard:trailing-comma-on-call-site" />
+        <error line="219" column="22" source="standard:trailing-comma-on-call-site" />
+        <error line="235" column="22" source="standard:trailing-comma-on-call-site" />
+        <error line="279" column="57" source="standard:function-signature" />
+        <error line="286" column="13" source="standard:class-signature" />
+        <error line="287" column="13" source="standard:class-signature" />
+        <error line="288" column="13" source="standard:class-signature" />
+        <error line="289" column="13" source="standard:class-signature" />
+        <error line="289" column="31" source="standard:class-signature" />
+        <error line="318" column="1" source="standard:blank-line-between-when-conditions" />
+        <error line="376" column="18" source="standard:trailing-comma-on-call-site" />
+        <error line="392" column="18" source="standard:trailing-comma-on-call-site" />
     </file>
     <file name="src/main/java/com/truckerload/domain/parser/LoadParsingEngine.kt">
         <error line="30" column="9" source="standard:function-signature" />
@@ -1609,7 +1621,7 @@
         <error line="39" column="60" source="standard:function-signature" />
         <error line="40" column="23" source="standard:function-signature" />
         <error line="55" column="61" source="standard:function-signature" />
-        <error line="86" column="26" source="standard:function-signature" />
+        <error line="114" column="26" source="standard:function-signature" />
     </file>
     <file name="src/main/java/com/truckerload/domain/parser/MessageType.kt">
         <error line="7" column="12" source="standard:trailing-comma-on-declaration-site" />
@@ -7537,5 +7549,50 @@
         <error line="98" column="9" source="standard:function-signature" />
         <error line="99" column="9" source="standard:function-signature" />
         <error line="99" column="19" source="standard:function-signature" />
+    </file>
+    <file name="src/main/java/com/truckerload/domain/parser/ChatLoadParser.kt">
+        <error line="61" column="34" source="standard:argument-list-wrapping" />
+        <error line="61" column="51" source="standard:argument-list-wrapping" />
+        <error line="69" column="55" source="standard:function-signature" />
+    </file>
+    <file name="src/main/java/com/truckerload/domain/parser/LoadDraftFields.kt">
+        <error line="69" column="65" source="standard:function-signature" />
+    </file>
+    <file name="src/main/java/com/truckerload/domain/parser/RateConTextExtractor.kt">
+        <error line="46" column="141" source="standard:max-line-length" />
+        <error line="47" column="141" source="standard:max-line-length" />
+        <error line="72" column="18" source="standard:function-literal" />
+        <error line="72" column="84" source="standard:argument-list-wrapping" />
+        <error line="72" column="90" source="standard:argument-list-wrapping" />
+        <error line="72" column="115" source="standard:argument-list-wrapping" />
+        <error line="72" column="138" source="standard:argument-list-wrapping" />
+        <error line="72" column="139" source="standard:argument-list-wrapping" />
+        <error line="72" column="141" source="standard:max-line-length" />
+        <error line="72" column="142" source="standard:function-literal" />
+        <error line="84" column="28" source="standard:property-wrapping" />
+        <error line="84" column="35" source="standard:argument-list-wrapping" />
+        <error line="84" column="120" source="standard:argument-list-wrapping" />
+        <error line="84" column="140" source="standard:max-line-length" />
+        <error line="84" column="143" source="standard:argument-list-wrapping" />
+        <error line="115" column="24" source="standard:function-literal" />
+        <error line="115" column="25" source="standard:wrapping" />
+        <error line="115" column="29" source="standard:function-literal" />
+        <error line="115" column="50" source="standard:argument-list-wrapping" />
+        <error line="115" column="103" source="standard:function-literal" />
+        <error line="115" column="104" source="standard:wrapping" />
+        <error line="115" column="119" source="standard:function-literal" />
+        <error line="115" column="138" source="standard:function-literal" />
+        <error line="115" column="139" source="standard:wrapping" />
+        <error line="115" column="141" source="standard:max-line-length" />
+        <error line="115" column="147" source="standard:function-literal" />
+        <error line="115" column="148" source="standard:argument-list-wrapping" />
+        <error line="150" column="26" source="standard:property-wrapping" />
+        <error line="150" column="33" source="standard:argument-list-wrapping" />
+        <error line="150" column="128" source="standard:argument-list-wrapping" />
+        <error line="150" column="140" source="standard:max-line-length" />
+        <error line="150" column="151" source="standard:argument-list-wrapping" />
+    </file>
+    <file name="src/test/java/com/truckerload/domain/parser/CorpusCheck.kt">
+        <error line="22" column="37" source="standard:function-signature" />
     </file>
 </baseline>

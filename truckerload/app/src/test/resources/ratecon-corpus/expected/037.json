@@ -1,0 +1,86 @@
+{
+ "id": "037",
+ "broker": "Truckstop-style (synthetic)",
+ "loadId": null,
+ "tripId": null,
+ "reference_numbers": {},
+ "pickup": {
+  "type": "pickup",
+  "seq": 1,
+  "facility": null,
+  "address": null,
+  "city": "Springdale",
+  "state": "AR",
+  "zip": "72764",
+  "date": "2026-12-24",
+  "time_start": null,
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "stops": [
+  {
+   "type": "pickup",
+   "seq": 1,
+   "facility": null,
+   "address": null,
+   "city": "Springdale",
+   "state": "AR",
+   "zip": "72764",
+   "date": "2026-12-24",
+   "time_start": null,
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  },
+  {
+   "type": "delivery",
+   "seq": 2,
+   "facility": null,
+   "address": null,
+   "city": "Macon",
+   "state": "GA",
+   "zip": "31201",
+   "date": "2026-12-24",
+   "time_start": null,
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  }
+ ],
+ "delivery": {
+  "type": "delivery",
+  "seq": 2,
+  "facility": null,
+  "address": null,
+  "city": "Macon",
+  "state": "GA",
+  "zip": "31201",
+  "date": "2026-12-24",
+  "time_start": null,
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "rate": {
+  "total": 3185,
+  "linehaul": null,
+  "fuel": null,
+  "accessorials_included": [],
+  "currency": "USD"
+ },
+ "not_rate": {
+  "penalties": [],
+  "detention": null,
+  "tonu": null,
+  "lumper_reimbursement": null,
+  "layover": null
+ },
+ "miles": 552,
+ "rate_per_mile": 5.77,
+ "equipment": "Reefer 53'",
+ "weight_lbs": null,
+ "commodity": null,
+ "pieces": null,
+ "stops_note": "only first and last stop appear in text"
+}

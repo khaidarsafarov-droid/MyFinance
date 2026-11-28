@@ -1,0 +1,31 @@
+🗺𝗧𝗿𝗶𝗽 𝗜𝗗 : T-75857443
+
+📍1#: 118666221H
+Loaded - Preloaded
+Mon, Dec 14, 8:00 PM EST
+ATL9
+19 Loom St
+Paterson, NJ 07501-7501
+—————————————
+📍2#: 115749257K
+Loaded - Live
+Wed, Dec 16, 7:00 AM EST
+CMH1
+15 Wharf St
+Gloucester, MA 01930-1930
+—————————————
+📍3#: 117240880K
+Empty - Drop
+Wed, Dec 16, 8:00 PM EST
+DFW5
+60 Levee Rd
+Lake Charles, LA 70601-0601
+—————————————
+💰 𝗥𝗮𝘁𝗲: $1,800.00
+
+🚛 𝗧𝗿𝗶𝗽: 320.00mi
+ 🕒 Duration: 0d 7h
+
+❌Broker Order Not Used (BONU): $150
+❌TONU: $150
+❌Detention: $40/hr after 2 hrs free, max $240

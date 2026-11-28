@@ -1,0 +1,86 @@
+{
+ "id": "045",
+ "broker": "Telegram emoji load card",
+ "loadId": null,
+ "tripId": null,
+ "reference_numbers": {},
+ "pickup": {
+  "type": "pickup",
+  "seq": 1,
+  "facility": null,
+  "address": null,
+  "city": "Allentown",
+  "state": "PA",
+  "zip": null,
+  "date": "2026-12-08",
+  "time_start": "10:00",
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "stops": [
+  {
+   "type": "pickup",
+   "seq": 1,
+   "facility": null,
+   "address": null,
+   "city": "Allentown",
+   "state": "PA",
+   "zip": null,
+   "date": "2026-12-08",
+   "time_start": "10:00",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  },
+  {
+   "type": "delivery",
+   "seq": 2,
+   "facility": null,
+   "address": null,
+   "city": "Denver",
+   "state": "CO",
+   "zip": null,
+   "date": "2026-12-11",
+   "time_start": "20:00",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  }
+ ],
+ "delivery": {
+  "type": "delivery",
+  "seq": 2,
+  "facility": null,
+  "address": null,
+  "city": "Denver",
+  "state": "CO",
+  "zip": null,
+  "date": "2026-12-11",
+  "time_start": "20:00",
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "rate": {
+  "total": 1710,
+  "linehaul": null,
+  "fuel": null,
+  "accessorials_included": [],
+  "currency": "USD"
+ },
+ "not_rate": {
+  "penalties": [],
+  "detention": null,
+  "tonu": null,
+  "lumper_reimbursement": null,
+  "layover": null
+ },
+ "miles": 873,
+ "rate_per_mile": 1.96,
+ "equipment": null,
+ "weight_lbs": 12000,
+ "commodity": null,
+ "pieces": null,
+ "stops_note": "only first and last stop appear in text"
+}

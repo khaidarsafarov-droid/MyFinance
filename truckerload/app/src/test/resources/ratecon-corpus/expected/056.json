@@ -1,0 +1,86 @@
+{
+ "id": "056",
+ "broker": "synthetic (Origin/Destination inline)",
+ "loadId": "79667",
+ "tripId": null,
+ "reference_numbers": {},
+ "pickup": {
+  "type": "pickup",
+  "seq": 1,
+  "facility": null,
+  "address": null,
+  "city": "Houston",
+  "state": "TX",
+  "zip": null,
+  "date": "2026-12-26",
+  "time_start": null,
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "stops": [
+  {
+   "type": "pickup",
+   "seq": 1,
+   "facility": null,
+   "address": null,
+   "city": "Houston",
+   "state": "TX",
+   "zip": null,
+   "date": "2026-12-26",
+   "time_start": null,
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  },
+  {
+   "type": "delivery",
+   "seq": 2,
+   "facility": null,
+   "address": null,
+   "city": "Dearborn",
+   "state": "MI",
+   "zip": null,
+   "date": "2026-12-29",
+   "time_start": null,
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  }
+ ],
+ "delivery": {
+  "type": "delivery",
+  "seq": 2,
+  "facility": null,
+  "address": null,
+  "city": "Dearborn",
+  "state": "MI",
+  "zip": null,
+  "date": "2026-12-29",
+  "time_start": null,
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "rate": {
+  "total": 1760,
+  "linehaul": null,
+  "fuel": null,
+  "accessorials_included": [],
+  "currency": "USD"
+ },
+ "not_rate": {
+  "penalties": [],
+  "detention": null,
+  "tonu": null,
+  "lumper_reimbursement": null,
+  "layover": "Layover: $250 per day"
+ },
+ "miles": 218,
+ "rate_per_mile": 8.07,
+ "equipment": null,
+ "weight_lbs": 42500,
+ "commodity": "Retail merchandise",
+ "pieces": null,
+ "stops_note": "only first and last stop appear in text"
+}

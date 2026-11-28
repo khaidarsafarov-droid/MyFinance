@@ -1,0 +1,5 @@
+LOAD #19997885  Stops: 3
+PU Houston, TX 12/26/26 0700
+STOP Dearborn, MI 12/27/26 0600
+DEL Laredo, TX 12/29/26 2000
+Dry Van 53ft 897 mi 44000 lbs  PAY $1,800.00

@@ -1,0 +1,100 @@
+                                                                                                                              Page 1 of 4
+  C.H. Robinson Contract Addendum and Carrier Load Confirmation - #405515639
+    This load confirmation is confidential information of CH Robinson and may not be disclosed to third
+                           parties without CH Robinson’s prior written approval.
+                                   Edward Familia at EXAMPLE CARRIER TRANSPORT LLC - T6049799
+  C.H. Robinson requires automated shipment check-in and in-transit updates from
+  one of the approved shipment status technologies. Additional information about
+             these technologies can be found at www.chrobinson.com.
+    If you require assistance during your check-in process, please use one of our
+                         mobile apps, or call (555) 010-0001.
+   C.H. Robinson's Customer has designated this shipment as a "critical" shipment and requires that Carrier provide
+regular communication and tracking updates to Shipper through C.H. Robinson until this shipment is delivered. Carrier
+agrees to notify C.H. Robinson immediately in the event of any delay related to the shipment's pick up and/or delivery.
+   Carrier must provide a vehicle that has satellite, cell-phone and/or other technology capable of frequent two-way
+                                                      communication.
+                                                    C.H. Robinson Communication
+This load was booked with Jane Rep, (555) 010-0002 , user@example.com
+Thank you for your business.
+Please contact me for any additional need or questions.
+                                           Customer-Specified Equipment Requirements
+Driver Name:             Test Driver                                                  Trailer #:         10
+Tractor #:               1
+Equipment:               Van - Min L=53
+                                                        Customer Requirements
+Driver's must check in and sign in when they arrive to shipper. Detention issues need to be reported real time. Times must be
+signed at dated by shipper/consignee. Failure to report times will result in no detention to be paid.
+All real or potential delays must be reported real time. Failure to notify of delays, resulting in missed delivery - will result in fines up
+to $250 per occurrence
+SHIPPER#1:                      BEX Logistics-OH Consolidation                         Pick Up Date:          08/02/22
+Address:                        3685 Alum Creek Dr                                     *Open Pick Up*
+                                STE 2040                                               Pick Up Time:          08:00-18:00
+                                Columbus, OH 43207                                     Pickup#:               405515639
+Phone:                          (555) 010-0003                                         Appointment#:
+Please ask for and confirm receipt of:
+Commodity                                    Est Wgt         Units         Count    Pallets    Temp         Ref #
+Medical Supplies 100                         5,115           Case(s)       465      11                      2896990
+SPASOAP VANILLA HONEY BODYWASH               12,320          Case(s)       1,260    8                       5820260609560-002
+20FLOZ
+GLASSWARE - 70                               12,868          Carton(s)     1,424    17                      692304
+Shipper Instructions
+RECEIVER #1:                    Freight, Land, Sky                                     Delivery Date:       08/03/22
+Address:                        1000 Sycamore St.                                      *Scheduled Delivery*
+                                HARRISBURG, PA 17104                                   Delivery Time:       12:00 Appt.
+                                                                                       Delivery#:
+Phone:                          (555) 010-0004                                         Appointment#:
+Please confirm delivery of:
+Commodity                                    Est Wgt         Units         Count    Pallets    Temp         Ref #
+SPASOAP VANILLA HONEY BODYWASH               12,320          Case(s)       1,260    8                       5820260609560-002
+20FLOZ
+Receiver Instructions
+                                                                                                                        Page 2 of 4
+  C.H. Robinson Contract Addendum and Carrier Load Confirmation - #405515639
+Receiver Instructions
+RECEIVER #2:                  Supervalu                                          Delivery Date:       08/04/22
+Address:                      500 S Muddy Creek Road                             *Scheduled Delivery*
+                              Denver, PA 17517-9774                              Delivery Time:       07:00 Appt.
+                                                                                 Delivery#:           692304
+Phone:                        (555) 010-0005                                     Appointment#:        848930210
+                                                                                 Work Required: Count
+Please confirm delivery of:
+Commodity                                 Est Wgt       Units         Count   Pallets   Temp        Ref #
+GLASSWARE - 70                            12,868        Carton(s)     1,424   17                    692304
+Receiver Instructions
+C.H. Robinson's Customer has indicated that Carrier may be required to handle and/or count the shipment at this stop.
+EXTRA PACKING SLIP DELIVERY APPT
+C5409970 - Anchor Hocking, Oneida (EveryWare Global)
+STARKEN - Supervalu - PO 692304 - eta is outside of due date time tolerence. Please update due date to 08/01
+(your load 405396733 )
+RECEIVER #3:                  Concordance - Edison                               Delivery Date:       08/03/22
+Address:                      60 Distribution Blvd                               *Scheduled Delivery*
+                              Edison, NJ 08817                                   Delivery Time:       11:00 Appt.
+                                                                                 Delivery#:           2896990
+Phone:                        (555) 010-0006                                     Appointment#:        G75961
+Please confirm delivery of:
+Commodity                                 Est Wgt       Units         Count   Pallets   Temp        Ref #
+Medical Supplies 100                      5,115         Case(s)       465     11                    2896990
+Receiver Instructions
+FOR DELIVERY APPOINTMENT CONTACT ANGELA RIVERA (555) 010-0007
+ user@example.com CC.JOHN PATEL
+C2278648 - AMD Medicom Inc (AMD)
+                                                                                                               Page 3 of 4
+  C.H. Robinson Contract Addendum and Carrier Load Confirmation - #405515639
+                                                       Rate Details
+Service for Load #405515639                                           Amount                    Rate           Extended
+Line Haul - FLAT RATE                                                      1               $1,800.00           $1,800.00
+lumper fee - FLAT RATE                                                     1                 $231.00             $231.00
+x dock miles - FLAT RATE                                                   1                 $450.00             $450.00
+                                                                                                        ______________
+Total:                                                                                                        $2,481.00
+                                               SUBMIT FREIGHT BILL TO:
+                                                      CHRW Billing
+                                                     P.O. Box 3470
+                                                   Chicago, IL 60654
+                                               user@example.com
+                To insure prompt payment, all billing must be accompanied by an invoice with the
+                                 Carrier Name and C.H. Robinson Load Number
+                                               Fuel Surcharge Information
+Please note that C.H. Robinson has included a $358.38 fuel surcharge within the listed transportation rate on this
+confirmation. The fuel surcharge is an estimate based off of a weekly national average fuel price from the U.S. Department
+of Energy.

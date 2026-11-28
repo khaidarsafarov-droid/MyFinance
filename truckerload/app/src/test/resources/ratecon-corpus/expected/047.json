@@ -1,0 +1,99 @@
+{
+ "id": "047",
+ "broker": "Русский диспетчер (synthetic)",
+ "loadId": "35978246",
+ "tripId": null,
+ "reference_numbers": {},
+ "pickup": {
+  "type": "pickup",
+  "seq": 1,
+  "facility": null,
+  "address": "880 Orchard Rd",
+  "city": "Macon",
+  "state": "GA",
+  "zip": null,
+  "date": "2026-12-05",
+  "time_start": "14:00",
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "stops": [
+  {
+   "type": "pickup",
+   "seq": 1,
+   "facility": null,
+   "address": "880 Orchard Rd",
+   "city": "Macon",
+   "state": "GA",
+   "zip": null,
+   "date": "2026-12-05",
+   "time_start": "14:00",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  },
+  {
+   "type": "stop",
+   "seq": 2,
+   "facility": null,
+   "address": "2200 Solar Blvd",
+   "city": "Phoenix",
+   "state": "AZ",
+   "zip": null,
+   "date": "2026-12-06",
+   "time_start": "13:00",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  },
+  {
+   "type": "delivery",
+   "seq": 3,
+   "facility": null,
+   "address": "31 Sawmill Rd",
+   "city": "Concord",
+   "state": "NH",
+   "zip": null,
+   "date": "2026-12-07",
+   "time_start": "15:30",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  }
+ ],
+ "delivery": {
+  "type": "delivery",
+  "seq": 3,
+  "facility": null,
+  "address": "31 Sawmill Rd",
+  "city": "Concord",
+  "state": "NH",
+  "zip": null,
+  "date": "2026-12-07",
+  "time_start": "15:30",
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "rate": {
+  "total": 1710,
+  "linehaul": null,
+  "fuel": null,
+  "accessorials_included": [],
+  "currency": "USD"
+ },
+ "not_rate": {
+  "penalties": [],
+  "detention": null,
+  "tonu": null,
+  "lumper_reimbursement": null,
+  "layover": null
+ },
+ "miles": 915,
+ "rate_per_mile": 1.87,
+ "equipment": "Flatbed 48'",
+ "weight_lbs": 12000,
+ "commodity": "Plastic resin",
+ "pieces": null
+}

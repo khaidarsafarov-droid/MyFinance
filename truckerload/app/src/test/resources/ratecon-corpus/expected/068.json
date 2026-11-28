@@ -1,0 +1,86 @@
+{
+ "id": "068",
+ "broker": "synthetic (power only / drop & hook)",
+ "loadId": "14853709",
+ "tripId": null,
+ "reference_numbers": {},
+ "pickup": {
+  "type": "pickup",
+  "seq": 1,
+  "facility": "Midway Retail DC",
+  "address": "7000 Distribution Pkwy",
+  "city": "Memphis",
+  "state": "TN",
+  "zip": "38118",
+  "date": "2026-12-25",
+  "time_start": "15:00",
+  "time_end": "23:00",
+  "appt_type": null,
+  "ref": null
+ },
+ "stops": [
+  {
+   "type": "pickup",
+   "seq": 1,
+   "facility": "Midway Retail DC",
+   "address": "7000 Distribution Pkwy",
+   "city": "Memphis",
+   "state": "TN",
+   "zip": "38118",
+   "date": "2026-12-25",
+   "time_start": "15:00",
+   "time_end": "23:00",
+   "appt_type": null,
+   "ref": null
+  },
+  {
+   "type": "delivery",
+   "seq": 2,
+   "facility": "Desert Sun Solar",
+   "address": "2200 Solar Blvd",
+   "city": "Phoenix",
+   "state": "AZ",
+   "zip": "85043",
+   "date": "2026-12-26",
+   "time_start": "18:00",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  }
+ ],
+ "delivery": {
+  "type": "delivery",
+  "seq": 2,
+  "facility": "Desert Sun Solar",
+  "address": "2200 Solar Blvd",
+  "city": "Phoenix",
+  "state": "AZ",
+  "zip": "85043",
+  "date": "2026-12-26",
+  "time_start": "18:00",
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "rate": {
+  "total": 1345,
+  "linehaul": null,
+  "fuel": null,
+  "accessorials_included": [],
+  "currency": "USD"
+ },
+ "not_rate": {
+  "penalties": [],
+  "detention": null,
+  "tonu": null,
+  "lumper_reimbursement": null,
+  "layover": null
+ },
+ "miles": 1492,
+ "rate_per_mile": 0.9,
+ "equipment": "Power Only",
+ "weight_lbs": null,
+ "commodity": null,
+ "pieces": null,
+ "stops_note": "only first and last stop appear in text"
+}

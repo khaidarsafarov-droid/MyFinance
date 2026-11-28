@@ -1,0 +1,85 @@
+{
+ "id": "100",
+ "broker": "synthetic (stop-off charges)",
+ "loadId": "13724162",
+ "tripId": null,
+ "reference_numbers": {},
+ "pickup": {
+  "type": "pickup",
+  "seq": 1,
+  "facility": null,
+  "address": null,
+  "city": "Louisville",
+  "state": "KY",
+  "zip": null,
+  "date": "2026-12-16",
+  "time_start": "20:00",
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "stops": [
+  {
+   "type": "pickup",
+   "seq": 1,
+   "facility": null,
+   "address": null,
+   "city": "Louisville",
+   "state": "KY",
+   "zip": null,
+   "date": "2026-12-16",
+   "time_start": "20:00",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  },
+  {
+   "type": "delivery",
+   "seq": 2,
+   "facility": null,
+   "address": null,
+   "city": "Joliet",
+   "state": "IL",
+   "zip": null,
+   "date": "2026-12-17",
+   "time_start": "07:00",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  }
+ ],
+ "delivery": {
+  "type": "delivery",
+  "seq": 2,
+  "facility": null,
+  "address": null,
+  "city": "Joliet",
+  "state": "IL",
+  "zip": null,
+  "date": "2026-12-17",
+  "time_start": "07:00",
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "rate": {
+  "total": 1760.0,
+  "linehaul": 1450,
+  "fuel": 310,
+  "accessorials_included": [],
+  "currency": "USD"
+ },
+ "not_rate": {
+  "penalties": [],
+  "detention": null,
+  "tonu": null,
+  "lumper_reimbursement": null,
+  "layover": null
+ },
+ "miles": null,
+ "rate_per_mile": null,
+ "equipment": null,
+ "weight_lbs": null,
+ "commodity": null,
+ "pieces": null
+}

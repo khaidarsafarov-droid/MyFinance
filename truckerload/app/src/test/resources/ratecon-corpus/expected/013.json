@@ -1,0 +1,91 @@
+{
+ "id": "013",
+ "broker": "American Diamond Logistics",
+ "loadId": "410266",
+ "tripId": null,
+ "reference_numbers": {},
+ "pickup": {
+  "type": "pickup",
+  "seq": 1,
+  "facility": null,
+  "address": null,
+  "city": "La Porte",
+  "state": "TX",
+  "zip": "77571",
+  "date": "2018-05-14",
+  "time_start": null,
+  "time_end": "14:00",
+  "appt_type": "before",
+  "ref": null
+ },
+ "stops": [
+  {
+   "type": "pickup",
+   "seq": 1,
+   "facility": null,
+   "address": null,
+   "city": "La Porte",
+   "state": "TX",
+   "zip": "77571",
+   "date": "2018-05-14",
+   "time_start": null,
+   "time_end": "14:00",
+   "appt_type": "before",
+   "ref": null
+  },
+  {
+   "type": "delivery",
+   "seq": 2,
+   "facility": null,
+   "address": null,
+   "city": "Carrollton",
+   "state": "TX",
+   "zip": "75006",
+   "date": "2018-05-14",
+   "time_start": null,
+   "time_end": "16:00",
+   "appt_type": "FCFS before",
+   "ref": null
+  }
+ ],
+ "delivery": {
+  "type": "delivery",
+  "seq": 2,
+  "facility": null,
+  "address": null,
+  "city": "Carrollton",
+  "state": "TX",
+  "zip": "75006",
+  "date": "2018-05-14",
+  "time_start": null,
+  "time_end": "16:00",
+  "appt_type": "FCFS before",
+  "ref": null
+ },
+ "rate": {
+  "total": 650.0,
+  "linehaul": 650.0,
+  "fuel": null,
+  "accessorials_included": [],
+  "currency": "USD"
+ },
+ "not_rate": {
+  "penalties": [
+   {
+    "text": "late POD fee $50",
+    "amount": 50
+   }
+  ],
+  "detention": null,
+  "tonu": null,
+  "lumper_reimbursement": null,
+  "layover": null
+ },
+ "miles": null,
+ "rate_per_mile": null,
+ "equipment": "Dry Van - 53'",
+ "weight_lbs": 0,
+ "commodity": null,
+ "pieces": null,
+ "note": "'Before - 2:00 PM' = deadline, not start; value-above-label layout"
+}

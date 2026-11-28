@@ -1,0 +1,75 @@
+                                                                                                                       Page 1 of 4
+  C.H. Robinson Contract Addendum and Carrier Load Confirmation - #123456789
+    This load confirmation is confidential information of CH Robinson and may not be disclosed to third
+                           parties without CH Robinson’s prior written approval.
+                              Test Person at Example Carrier LLC - T5326162
+  C.H. Robinson requires automated shipment check-in and in-transit updates from
+  one of the approved shipment status technologies. Additional information about
+             these technologies can be found at www.chrobinson.com.
+    If you require assistance during your check-in process, please use one of our
+                         mobile apps, or call (555) 010-0001.
+                                                  C.H. Robinson Communication
+This load was booked with .
+Thank you for your business.
+Please contact me for any additional need or questions.
+Thank you so much!!!
+                                         Customer-Specified Equipment Requirements
+Driver Name:            Schmidt                                                       Trailer #:        123456
+Tractor #:              123456
+Equipment:              Van - Min L=53
+Carrier or its agent certifies and verifies that any equipment furnished will be in compliance with the in-use requirements of
+California’s Tractor-Trailer Green House Gas regulations found in California Code of Regulations Sub article 1, Section 95300 to
+95312 and California’s Regulation to Reduce Emissions of Diesel Particulate Matter, Oxides of Nitrogen and Other Criteria Pollutants,
+from In-Use Heavy-Duty Diesel-Fueled Vehicles in Section 2025 and comply with the record keeping requirements of section
+2025(s)(4).
+SHIPPER#1:                     Anyco Trucking                                     Pick Up Date:          7/12/21
+Address:                       100 Main Street                                    *Scheduled to Pick*
+                               Jacksonville FL 32034                              Pick Up Time:          04:00 Appt.
+                                                                                  Pickup#:
+Phone:                         (555) 010-0002                                     Appointment#:
+Please ask for and confirm receipt of:
+Commodity                                  Est Wgt        Units        Count    Pallets   Temp         Ref #
+Textiles                                   7,000          Loose(s)
+Textiles                                   7,000          Loose(s)
+Textiles                                   7,000          Loose(s)
+Textiles                                   7,000          Loose(s)
+Textiles                                   7,000          Loose(s)
+Textiles                                   7,000          Loose(s)
+Shipper Instructions
+RECEIVER #1:                   Anyco Clothes #176                                 Delivery Date:       7/13/21
+Address:                       1234 Main Drive                                    *Scheduled Delivery*
+                               Houston, TX 78705                                  Delivery Time:       06:00-22:00
+                                                                                  Delivery#:
+Phone:                         (555) 010-0003                                     Appointment#:
+Please confirm delivery of:
+Commodity                                  Est Wgt        Units        Count    Pallets   Temp         Ref #
+Textiles                                   7,000          Loose(s)
+Receiver Instructions
+RECEIVER #2:                   Anyco Clothes #425                                 Delivery Date:       7/14/21
+Address:                       4613 E Lancaster Ave                               *Scheduled Delivery*
+                                                                                                                 Page 2 of 4
+  C.H. Robinson Contract Addendum and Carrier Load Confirmation - #123456789
+Address:                      1234 E 1st Ave                                  *Scheduled Delivery*
+                              Dallas, TX 76103                                Delivery Time:       08:00-22:00
+                                                                              Delivery#:
+Phone:                        (555) 010-0004                                  Appointment#:
+Please confirm delivery of:
+Commodity                                Est Wgt         Units      Count   Pallets   Temp      Ref #
+Textiles                                 7,000           Loose(s)
+Receiver Instructions
+RECEIVER #3:                  Anyco Clothes #255                              Delivery Date:       7/15/21
+Address:                      123 S. 2nd BLVD, STE 100                        *Scheduled Delivery*
+                              Denver, CO 80014                                Delivery Time:       11:00-22:00
+                                                                              Delivery#:
+Phone:                        (555) 010-0005                                  Appointment#:
+Please confirm delivery of:
+Commodity                                Est Wgt     Units          Count   Pallets   Temp      Ref #
+Textiles                                 7,000       Loose(s)
+Receiver Instructions
+RECEIVER #4:
+RECEIVER #5:
+RECEIVER #6:
+                                                                                                               Page 3 of 4
+  C.H. Robinson Contract Addendum and Carrier Load Confirmation - #123456789
+                                                       Rate Details
+Service for Load #123456789                                           Amount                    Rate           Extended

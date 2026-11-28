@@ -1,0 +1,8 @@
+*** REVISED RATE CONFIRMATION - supersedes version 1 ***
+Load #50030740
+Previous rate: $1,395.00 (voided)
+NEW RATE: $1,495.00
+Change reason: added stop / mileage update
+PU: Great Lakes Cheese Green Bay, WI 12/02/2026 09:00
+DEL: Redwood Packaging Savannah, GA 12/03/2026 13:00
+Miles 1259

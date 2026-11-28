@@ -1,0 +1,112 @@
+{
+ "id": "024",
+ "broker": "Amazon Relay (variant)",
+ "loadId": null,
+ "tripId": "T-29157152",
+ "reference_numbers": {},
+ "pickup": {
+  "type": "pickup",
+  "seq": 1,
+  "facility": null,
+  "address": "101 Dairy Ln",
+  "city": "Green Bay",
+  "state": "WI",
+  "zip": "54303-4303",
+  "date": "2026-12-13",
+  "time_start": "13:00",
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "stops": [
+  {
+   "type": "pickup",
+   "seq": 1,
+   "facility": null,
+   "address": "101 Dairy Ln",
+   "city": "Green Bay",
+   "state": "WI",
+   "zip": "54303-4303",
+   "date": "2026-12-13",
+   "time_start": "13:00",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  },
+  {
+   "type": "stop",
+   "seq": 2,
+   "facility": null,
+   "address": "420 Hatchery Rd",
+   "city": "Springdale",
+   "state": "AR",
+   "zip": "72764-2764",
+   "date": "2026-12-14",
+   "time_start": "09:00",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  },
+  {
+   "type": "delivery",
+   "seq": 3,
+   "facility": null,
+   "address": "9100 Harbor Blvd",
+   "city": "Savannah",
+   "state": "GA",
+   "zip": "31408-1408",
+   "date": "2026-12-15",
+   "time_start": "09:00",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  }
+ ],
+ "delivery": {
+  "type": "delivery",
+  "seq": 3,
+  "facility": null,
+  "address": "9100 Harbor Blvd",
+  "city": "Savannah",
+  "state": "GA",
+  "zip": "31408-1408",
+  "date": "2026-12-15",
+  "time_start": "09:00",
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "rate": {
+  "total": 3435,
+  "linehaul": null,
+  "fuel": null,
+  "accessorials_included": [],
+  "currency": "USD"
+ },
+ "not_rate": {
+  "penalties": [
+   {
+    "text": "Late DEL: $700",
+    "amount": 700.0
+   },
+   {
+    "text": "Late PU: $1000",
+    "amount": 1000.0
+   },
+   {
+    "text": "Late delivery: rate reduced $100",
+    "amount": 100.0
+   }
+  ],
+  "detention": null,
+  "tonu": null,
+  "lumper_reimbursement": null,
+  "layover": null
+ },
+ "miles": 859,
+ "rate_per_mile": 4.0,
+ "equipment": null,
+ "weight_lbs": null,
+ "commodity": null,
+ "pieces": null
+}

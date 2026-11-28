@@ -1,0 +1,85 @@
+{
+ "id": "097",
+ "broker": "synthetic (one line per stop)",
+ "loadId": null,
+ "tripId": null,
+ "reference_numbers": {},
+ "pickup": {
+  "type": "pickup",
+  "seq": 1,
+  "facility": "Peach State Packers",
+  "address": null,
+  "city": "Macon",
+  "state": "GA",
+  "zip": null,
+  "date": "2026-12-12",
+  "time_start": "20:30",
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "stops": [
+  {
+   "type": "pickup",
+   "seq": 1,
+   "facility": "Peach State Packers",
+   "address": null,
+   "city": "Macon",
+   "state": "GA",
+   "zip": null,
+   "date": "2026-12-12",
+   "time_start": "20:30",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  },
+  {
+   "type": "delivery",
+   "seq": 2,
+   "facility": "Prairie Foods DC",
+   "address": null,
+   "city": "Columbus",
+   "state": "OH",
+   "zip": null,
+   "date": "2026-12-14",
+   "time_start": "14:00",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  }
+ ],
+ "delivery": {
+  "type": "delivery",
+  "seq": 2,
+  "facility": "Prairie Foods DC",
+  "address": null,
+  "city": "Columbus",
+  "state": "OH",
+  "zip": null,
+  "date": "2026-12-14",
+  "time_start": "14:00",
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "rate": {
+  "total": 1760,
+  "linehaul": null,
+  "fuel": null,
+  "accessorials_included": [],
+  "currency": "USD"
+ },
+ "not_rate": {
+  "penalties": [],
+  "detention": null,
+  "tonu": null,
+  "lumper_reimbursement": null,
+  "layover": null
+ },
+ "miles": 287,
+ "rate_per_mile": 6.13,
+ "equipment": null,
+ "weight_lbs": null,
+ "commodity": null,
+ "pieces": null
+}

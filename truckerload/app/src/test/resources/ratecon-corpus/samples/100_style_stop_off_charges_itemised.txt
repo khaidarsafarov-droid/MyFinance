@@ -1,0 +1,7 @@
+RATE CONFIRMATION 13724162
+Linehaul $1,450.00
+Fuel $310.00
+TOTAL $1,760.00
+1 Louisville, KY 12/16/2026 20:00
+2 Joliet, IL 12/17/2026 07:00
+Additional extra stops not on this confirmation will not be paid.

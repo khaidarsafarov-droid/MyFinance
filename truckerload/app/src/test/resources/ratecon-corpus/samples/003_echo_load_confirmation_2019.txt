@@ -1,0 +1,72 @@
+                                                                                                 PHONE (555) 010-0001
+                                                  600 W. Chicago Ave #725
+                                                      Chicago IL 60610                              Please call when
+                                                                                                 unloaded for a release
+                                                                                                        number
+                                               LOAD CONFIRMATION
+        Please call the Echo Shipment Info line at (555) 010-0002 and ask for Load Number 34405981
+                                                     ORDER 34405981
+CARRIER             EXAMPLE CARRIER LLC                             ***ORDER NUMBER(S) MUST APPEAR ON ALL BILLING***
+Echo Rep            Jane Rep                          MODE: TL
+Rep Phone           (555) 010-0003
+Rep Email           user@example.com                  TRAILER TYPE: Van 53'
+                                                             TRAILER #: 22950
+Distance            430.30 Miles                             Equipment Notes:
+Note:
+Pursuant to our verbal agreement of 1/10/2019 between Echo Global Logistics, hereafter referred to as BROKER, and
+ EXAMPLE CARRIER LLC, hereafter referred to as CARRIER. Both parties agree that Broker’s load number 34405981,moving
+on 01/08/2019 from LAREDO, TX to FORT WORTH, TX (number of stops shown below) will move at the following rate:
+Service for Load # 34405981           Amount          Rate              Extended                   PAY SUMMARY
+Layover                                1.00         $250.00             $250.00         Layover                $250.00
+Line Haul                              1.00         $900.00             $900.00         Line Haul              $900.00
+                                                     Total              $1,150.00       Total:                 $1,150.00
+ALL TRAVEL DIRECTIONS PROVIDED BY ECHO GLOBAL LOGISTICS ARE FOR INFORMATIONAL PURPOSES
+ONLY. IT IS THE CARRIER’S SOLE RESPONSIBILITY TO LAWFULLY AND SAFELY OPERATE ALL VEHICLES
+AND THEIR CONTENTS OVER ANY ROAD, HIGHWAY, BRIDGE AND/OR ROUTE IN STRICT COMPLIANCE WITH
+ALL APPLICABLE LAWS, RULES AND REGULATIONS.
+CARRIER MUST ADVISE IF ANY DELIVERY SCHEDULES, SPECIFICATIONS, INSTRUCTIONS OR
+REQUIREMENTS CANNOT BE LEGALLY ACCOMPLISHED OR IF THE AVOIDANCE OF ANY FINES, PENALTIES
+OR DEDUCTIONS WOULD REQUIRE OR RESULT IN THE VIOLATION OF ANY LAWS OR REGULATIONS.
+    COMPENSATION MAY BE WITHHELD IF THIS SHIPMENT IS DOUBLE-BROKERED, MOVED BY RAIL,
+    CONSOLIDATED WITH ANY OTHER FREIGHT OR IF THE AGREED SERVICES ARE NOT FULFILLED.
+Carrier must be CARB compliant when traveling to, from or through California and Carrier agrees to and indemnify Echo
+and all other parties from any loss or damage resulting from Carrier’s failure to comply.
+TRAILER SEALS: SEAL MUST BE APPLIED, WITH THE SEAL NUMBER NOTED ON THE BILL OF LADING, PRIOR
+TO DEPARTURE FROM THE SHIPPER. SEALS MUST NOT BE BROKEN WITHOUT PRIOR WRITTEN APPROVAL
+FROM ECHO GLOBAL LOGISTICS MANAGEMENT. FAILURE TO DELIVER AT THE DESIGNATED CONSIGNEE
+WITH THE PROPER SEAL INTACT WILL RESULT IN A CLAIM.
+This confirmation governs the rate for the movement of the above-referenced freight as of the date specified and hereby amends,
+and is incorporated by reference and becomes part of that certain Agreement by and between BROKER and CARRIER. By means of
+either its signature on the Confirmation or its provision of service: i) CARRIER shall perform its services in accordance with all
+applicable laws, rules, and regulations (including, if applicable, the requirement to record hours of service via electronic logging
+device); and ii) CARRIER shall be conclusively presumed to have agreed to the rates and conitions set forth herein. CARRIER shall be
+conclusively presumed to have agreed to the rates and conditions set forth herein. CARRIER further represents and warrants that said
+mutually agreed upon rates are reasonable and compensatory, that the freight would not have been tendered to CARRIER at higher
+rates, and that no shipments handled under such rates will subsequently be subject to a later claim of undercharges.
+CARRIER hereby confirms current and valid insurance coverage without exclusions in conflict with load 34405981, in amounts no less
+than the following: one million dollars ($1,000,000) auto liability coverage, one million dollars ($1,000,000) general liability coverage,
+$100,000.00 cargo coverage. If carrier's insurance policy contains a schedule of covered vehicles, carrier will only transport this
+shipment using a vehicle that is listed as a scheduled vehicle on their insurance policy.
+                                                                                                  Pickup
+Source Logistics                                                                                             PKU# san465941//7001255065
+8900 San Mateo Dr                                                                                            Earliest: 01/08/2019 15:00
+LAREDO TX 78045                                                                                              Latest: 01/08/2019 16:30
+                                                                                                             Weight: 43500
+Pieces: 18                                                                                                   Pallets: 18
+Item: food and beverage items
+                                                                                        Pickup INSTRUCTIONS
+CUTOFF IS AT 1630
+                                                                                                    Drop
+Silver Creek Materials                                                                                       DELV# 7001255065
+2251 Silver Creek Rd                                                                                         Earliest: 01/09/2019 13:30
+FORT WORTH TX 76108                                                                                          Latest: 01/09/2019 13:30
+                                                                                                             Weight: 43500
+Pieces: 18                                                                                                   Pallets: 18
+Item: food and beverage items
+                                                                                         Drop INSTRUCTIONS
+            DRIVERS ARE RESPONSIBLE FOR AN ACCURATE COUNT OF CRATES, PALLETS/SKIDS & PIECES
+PAYMENT REQUIREMENTS:
+• SIGNED BOL / SIGNED DELIVERY RECEIPT / SIGNED RATE CONFIRMATION SHEET.
+• LOAD / UNLOAD / LUMPER RECEIPTS MUST ACCOMPANY INVOICING OR THEY WILL NOT BE PAID.
+• MUST REFERENCE LOAD # ON ALL CORRESPONDENCES.
+• ALL ACCESSORIAL CHARGES MUST BE PRE-APPROVED & BILLED WITH RECEIPT & POD.

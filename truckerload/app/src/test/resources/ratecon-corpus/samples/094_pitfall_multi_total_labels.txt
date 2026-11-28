@@ -1,0 +1,8 @@
+Service for Load # 29186174   Amount  Rate  Extended
+Line Haul  1.00  $3,100.00  $3,100.00
+Total  $3,100.00
+PAY SUMMARY
+Line Haul  $3,100.00
+Total:  $3,100.00
+Advance paid: $200.00   Balance due: $2,900.00
+Pickup Minneapolis, MN 12/16/2026 | Drop Kingsport, TN 12/16/2026

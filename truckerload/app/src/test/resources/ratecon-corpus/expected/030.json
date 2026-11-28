@@ -1,0 +1,94 @@
+{
+ "id": "030",
+ "broker": "Amazon Relay (variant)",
+ "loadId": null,
+ "tripId": "T-64471322",
+ "reference_numbers": {},
+ "pickup": {
+  "type": "pickup",
+  "seq": 1,
+  "facility": null,
+  "address": "450 Commerce Dr",
+  "city": "Joliet",
+  "state": "IL",
+  "zip": "60436-0436",
+  "date": "2026-12-15",
+  "time_start": "06:30",
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "stops": [
+  {
+   "type": "pickup",
+   "seq": 1,
+   "facility": null,
+   "address": "450 Commerce Dr",
+   "city": "Joliet",
+   "state": "IL",
+   "zip": "60436-0436",
+   "date": "2026-12-15",
+   "time_start": "06:30",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  },
+  {
+   "type": "delivery",
+   "seq": 2,
+   "facility": null,
+   "address": "1800 Warehouse Ave",
+   "city": "Tacoma",
+   "state": "WA",
+   "zip": "98421-8421",
+   "date": "2026-12-16",
+   "time_start": "18:30",
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  }
+ ],
+ "delivery": {
+  "type": "delivery",
+  "seq": 2,
+  "facility": null,
+  "address": "1800 Warehouse Ave",
+  "city": "Tacoma",
+  "state": "WA",
+  "zip": "98421-8421",
+  "date": "2026-12-16",
+  "time_start": "18:30",
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "rate": {
+  "total": 1985,
+  "linehaul": null,
+  "fuel": null,
+  "accessorials_included": [],
+  "currency": "USD"
+ },
+ "not_rate": {
+  "penalties": [
+   {
+    "text": "Late PU: $1000",
+    "amount": 1000.0
+   },
+   {
+    "text": "Broker Order Not Used (BONU): $150",
+    "amount": 150.0
+   }
+  ],
+  "detention": "Detention: $40/hr after 2 hrs free, max $240",
+  "tonu": null,
+  "lumper_reimbursement": null,
+  "layover": null
+ },
+ "miles": 1463,
+ "rate_per_mile": 1.36,
+ "equipment": null,
+ "weight_lbs": null,
+ "commodity": null,
+ "pieces": null
+}

@@ -1,0 +1,31 @@
+{
+ "id": "034",
+ "broker": "Amazon Relay payment file (variant)",
+ "loadId": null,
+ "tripId": "T-29899858",
+ "reference_numbers": {},
+ "pickup": null,
+ "stops": [],
+ "delivery": null,
+ "rate": {
+  "total": 1335,
+  "linehaul": 1150,
+  "fuel": 185,
+  "accessorials_included": [],
+  "currency": "USD"
+ },
+ "not_rate": {
+  "penalties": [],
+  "detention": null,
+  "tonu": null,
+  "lumper_reimbursement": null,
+  "layover": null
+ },
+ "miles": null,
+ "rate_per_mile": null,
+ "equipment": null,
+ "weight_lbs": null,
+ "commodity": null,
+ "pieces": null,
+ "pitfall": "Rate = SUM of TOUR row + LOAD rows sharing Trip ID, not a single row"
+}

@@ -1,0 +1,30 @@
+{
+ "id": "033",
+ "broker": "Amazon Relay export (variant)",
+ "loadId": null,
+ "tripId": "T-88347732",
+ "reference_numbers": {},
+ "pickup": null,
+ "stops": [],
+ "delivery": null,
+ "rate": {
+  "total": 2295,
+  "linehaul": null,
+  "fuel": null,
+  "accessorials_included": [],
+  "currency": "USD"
+ },
+ "not_rate": {
+  "penalties": [],
+  "detention": null,
+  "tonu": null,
+  "lumper_reimbursement": null,
+  "layover": null
+ },
+ "miles": 295,
+ "rate_per_mile": 7.78,
+ "equipment": null,
+ "weight_lbs": null,
+ "commodity": null,
+ "pieces": null
+}

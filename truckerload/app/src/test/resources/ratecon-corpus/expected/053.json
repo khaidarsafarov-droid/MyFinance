@@ -1,0 +1,104 @@
+{
+ "id": "053",
+ "broker": "synthetic (Coyote-like numbered stops)",
+ "loadId": "26509623",
+ "tripId": null,
+ "reference_numbers": {},
+ "pickup": {
+  "type": "pickup",
+  "seq": 1,
+  "facility": "Pinecrest Furniture",
+  "address": "640 Timber Trl",
+  "city": "High Point",
+  "state": "NC",
+  "zip": "27260",
+  "date": "2026-12-17",
+  "time_start": "08:30",
+  "time_end": "16:00",
+  "appt_type": "Appt",
+  "ref": "8503250"
+ },
+ "stops": [
+  {
+   "type": "pickup",
+   "seq": 1,
+   "facility": "Pinecrest Furniture",
+   "address": "640 Timber Trl",
+   "city": "High Point",
+   "state": "NC",
+   "zip": "27260",
+   "date": "2026-12-17",
+   "time_start": "08:30",
+   "time_end": "16:00",
+   "appt_type": "Appt",
+   "ref": "8503250"
+  },
+  {
+   "type": "stop",
+   "seq": 2,
+   "facility": "Peach State Packers",
+   "address": "880 Orchard Rd",
+   "city": "Macon",
+   "state": "GA",
+   "zip": "31201",
+   "date": "2026-12-18",
+   "time_start": "14:00",
+   "time_end": "16:00",
+   "appt_type": "Appt",
+   "ref": "4607650"
+  },
+  {
+   "type": "delivery",
+   "seq": 3,
+   "facility": "Sierra Wine Warehouse",
+   "address": "210 Vintner Way",
+   "city": "Stockton",
+   "state": "CA",
+   "zip": "95206",
+   "date": "2026-12-19",
+   "time_start": "14:00",
+   "time_end": "22:00",
+   "appt_type": "Appt",
+   "ref": "5452476"
+  }
+ ],
+ "delivery": {
+  "type": "delivery",
+  "seq": 3,
+  "facility": "Sierra Wine Warehouse",
+  "address": "210 Vintner Way",
+  "city": "Stockton",
+  "state": "CA",
+  "zip": "95206",
+  "date": "2026-12-19",
+  "time_start": "14:00",
+  "time_end": "22:00",
+  "appt_type": "Appt",
+  "ref": "5452476"
+ },
+ "rate": {
+  "total": 1210,
+  "linehaul": 900,
+  "fuel": 310,
+  "accessorials_included": [],
+  "currency": "USD"
+ },
+ "not_rate": {
+  "penalties": [
+   {
+    "text": "Late delivery: rate reduced $100",
+    "amount": 100.0
+   }
+  ],
+  "detention": null,
+  "tonu": null,
+  "lumper_reimbursement": "Lumper must be approved; reimbursed with receipt up to $300",
+  "layover": "Layover: $250/day"
+ },
+ "miles": null,
+ "rate_per_mile": null,
+ "equipment": "Flatbed 48'",
+ "weight_lbs": 12000,
+ "commodity": "Retail merchandise",
+ "pieces": 24
+}

@@ -1,0 +1,89 @@
+{
+ "id": "008",
+ "broker": "XPO Logistics",
+ "loadId": "6790347",
+ "tripId": null,
+ "reference_numbers": {
+  "order": "6790347",
+  "lz": "LZ6790347 AT550.00"
+ },
+ "pickup": {
+  "type": "pickup",
+  "seq": 1,
+  "facility": "BAYPORT BUILDING MATERIALS",
+  "address": "5300 ST HWY 146 SOUTH",
+  "city": "Seabrook",
+  "state": "TX",
+  "zip": "77586",
+  "date": "2018-09-24",
+  "time_start": "07:30",
+  "time_end": "15:30",
+  "appt_type": "window",
+  "ref": "2564903"
+ },
+ "stops": [
+  {
+   "type": "pickup",
+   "seq": 1,
+   "facility": "BAYPORT BUILDING MATERIALS",
+   "address": "5300 ST HWY 146 SOUTH",
+   "city": "Seabrook",
+   "state": "TX",
+   "zip": "77586",
+   "date": "2018-09-24",
+   "time_start": "07:30",
+   "time_end": "15:30",
+   "appt_type": "window",
+   "ref": "2564903"
+  },
+  {
+   "type": "delivery",
+   "seq": 2,
+   "facility": "DAL TILE SUNNYVALE # 101",
+   "address": "199 PLANTERS RD",
+   "city": "Sunnyvale",
+   "state": "TX",
+   "zip": "75182",
+   "date": "2018-09-24",
+   "time_start": "21:06",
+   "time_end": "21:06",
+   "appt_type": "appt",
+   "ref": null
+  }
+ ],
+ "delivery": {
+  "type": "delivery",
+  "seq": 2,
+  "facility": "DAL TILE SUNNYVALE # 101",
+  "address": "199 PLANTERS RD",
+  "city": "Sunnyvale",
+  "state": "TX",
+  "zip": "75182",
+  "date": "2018-09-24",
+  "time_start": "21:06",
+  "time_end": "21:06",
+  "appt_type": "appt",
+  "ref": null
+ },
+ "rate": {
+  "total": 550.0,
+  "linehaul": 550.0,
+  "fuel": null,
+  "accessorials_included": [],
+  "currency": "USD"
+ },
+ "not_rate": {
+  "penalties": [],
+  "detention": null,
+  "tonu": null,
+  "lumper_reimbursement": null,
+  "layover": null
+ },
+ "miles": null,
+ "rate_per_mile": null,
+ "equipment": "Van - 53 Feet",
+ "weight_lbs": 41688,
+ "commodity": "BUILDING MATERIALS",
+ "pieces": null,
+ "note": "Header 'LZ6790347 AT550.00' encodes load+rate"
+}

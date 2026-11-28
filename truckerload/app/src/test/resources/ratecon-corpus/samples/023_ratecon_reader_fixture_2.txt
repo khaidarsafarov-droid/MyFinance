@@ -1,0 +1,13 @@
+BROKER RATE CONFIRMATION
+Load No. 99177
+Broker Name: Blue Ridge Logistics
+MC Number: 765432
+Pickup Location: Houston TX 77001
+Delivery Location: Memphis, TN
+Pick Up: 2026-11-02
+Delivery: 2026-11-04
+Rate: 1450.00
+Miles: 640
+Weight: 38000
+Freight: Steel coils
+Layover note: Layover pays $250 per day if carrier is held overnight.

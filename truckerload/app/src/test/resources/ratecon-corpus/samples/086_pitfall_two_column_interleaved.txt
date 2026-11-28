@@ -1,0 +1,19 @@
+RATE CONFIRMATION
+Pickup
+Delivery
+Facility
+Facility
+Cascade Appliances DC
+Midway Retail DC
+Date
+Date
+12/17/2026 07:30
+12/17/2026 18:00
+City/State
+City/State
+Tacoma, WA
+Memphis, TN
+Total Rate
+$1,960.00
+Load #
+78031338

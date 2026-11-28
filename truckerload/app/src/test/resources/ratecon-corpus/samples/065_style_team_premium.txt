@@ -1,0 +1,11 @@
+RATE CONFIRMATION  Load #: 95423208
+Equipment: Flatbed 48'   Team Service: [X] Yes [ ] No   Pallet Exchange? [ ] Yes [X] No
+Rate(s): $2,835.00 = $2,835.00 x 1 (FLAT RATE)
+$2,835.00 (TOTAL IN U.S. DOLLARS)
+Pick Up: Ironbridge Steel | 5 Foundry St, Gary, IN 46402 | 12/01/2026 09:00
+Stop: Desert Sun Solar | 2200 Solar Blvd, Phoenix, AZ 85043 | 12/02/2026 08:00 - 12:00
+Delivery: Coastal Seafood Cold Storage | 15 Wharf St, Gloucester, MA 01930 | 12/04/2026 20:00 - 23:00
+Late delivery: rate reduced $400
+Failure to update every 2 hours: $50 fine each
+Broker Order Not Used: $150
+Detention: $40 per hour after two hours free - $240 total maximum

@@ -1,0 +1,12 @@
+Order Confirmation 38639214
+Movement #: M41293683
+Equipment Type: 53' Swing Door Dry Van
+Tracking: FourKites required
+Carrier Rate: $3,060.00
+1 | Pickup | Great Lakes Cheese | 101 Dairy Ln, Green Bay, WI 54303 | 12/02/2026 09:00
+2 | Stop | Rocky Mtn Distribution | 3300 Front Range Rd, Denver, CO 80216 | 12/03/2026 06:00
+3 | Stop | Desert Sun Solar | 2200 Solar Blvd, Phoenix, AZ 85043 | 12/03/2026 09:00
+4 | Delivery | Empire Textiles | 19 Loom St, Paterson, NJ 07501 | 12/03/2026 13:30
+Detention: $40/hour after two hours, capped at $200 per stop
+POD and accessorial documents within 48 hours
+Weight: 42500 lbs

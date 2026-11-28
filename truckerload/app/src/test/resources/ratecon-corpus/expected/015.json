@@ -1,0 +1,91 @@
+{
+ "id": "015",
+ "broker": "Total Quality Logistics (TQL)",
+ "loadId": "21157848",
+ "tripId": null,
+ "reference_numbers": {},
+ "pickup": {
+  "type": "pickup",
+  "seq": 1,
+  "facility": null,
+  "address": null,
+  "city": "Buffalo",
+  "state": "NY",
+  "zip": null,
+  "date": "2022-06-27",
+  "time_start": "17:00",
+  "time_end": null,
+  "appt_type": "Appt",
+  "ref": "7847297"
+ },
+ "stops": [
+  {
+   "type": "pickup",
+   "seq": 1,
+   "facility": null,
+   "address": null,
+   "city": "Buffalo",
+   "state": "NY",
+   "zip": null,
+   "date": "2022-06-27",
+   "time_start": "17:00",
+   "time_end": null,
+   "appt_type": "Appt",
+   "ref": "7847297"
+  },
+  {
+   "type": "delivery",
+   "seq": 2,
+   "facility": null,
+   "address": null,
+   "city": "Brewster",
+   "state": "NY",
+   "zip": null,
+   "date": "2022-06-28",
+   "time_start": "07:00",
+   "time_end": null,
+   "appt_type": "Appt",
+   "ref": null
+  }
+ ],
+ "delivery": {
+  "type": "delivery",
+  "seq": 2,
+  "facility": null,
+  "address": null,
+  "city": "Brewster",
+  "state": "NY",
+  "zip": null,
+  "date": "2022-06-28",
+  "time_start": "07:00",
+  "time_end": null,
+  "appt_type": "Appt",
+  "ref": null
+ },
+ "rate": {
+  "total": 1300.0,
+  "linehaul": 1300.0,
+  "fuel": null,
+  "accessorials_included": [],
+  "currency": "USD"
+ },
+ "not_rate": {
+  "penalties": [
+   {
+    "text": "carrier fully responsible for late fees",
+    "amount": null
+   }
+  ],
+  "detention": null,
+  "tonu": null,
+  "lumper_reimbursement": null,
+  "layover": null
+ },
+ "miles": null,
+ "rate_per_mile": null,
+ "equipment": "FTL Van 48 ft or 53 ft",
+ "weight_lbs": 42500,
+ "commodity": "Flour and milled products",
+ "pieces": 17,
+ "note": "Appt note 'will request 0700 appt' wraps to next line; pickup Note:7847297 is a pickup number"
+}

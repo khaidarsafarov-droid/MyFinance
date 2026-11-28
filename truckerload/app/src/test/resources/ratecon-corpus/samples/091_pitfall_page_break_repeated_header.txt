@@ -1,0 +1,15 @@
+Rate Confirmation   Load 91575280
+Stop 1: Pick Up
+  Facility Pinecrest Furniture
+  Address 640 Timber Trl, High Point, NC 27260
+  Appointment Sun 12/06 at 10:00
+[Load Number - 91575280]   Page 1 of 2
+[Carrier Legal Name - Example Carrier LLC]
+[Carrier USDOT - 0000000]
+Rate Confirmation   Load 91575280
+Stop 2: Delivery
+  Facility Coastal Seafood Cold Storage
+  Address 15 Wharf St, Gloucester, MA 01930
+  Appointment Mon 12/07 at 13:00
+Total USD $2,875.00
+[Load Number - 91575280]   Page 2 of 2

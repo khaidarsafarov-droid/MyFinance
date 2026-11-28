@@ -1,0 +1,11 @@
+BROKER RATE CONFIRMATION
+Load No. 79667
+Pickup Location: Houston TX 77029
+Delivery Location: Dearborn, MI
+Pick Up: 2026-12-26
+Delivery: 2026-12-29
+Rate: 1760.00
+Miles: 218
+Weight: 42500
+Freight: Retail merchandise
+Layover note: Layover pays $250 per day if carrier is held overnight.

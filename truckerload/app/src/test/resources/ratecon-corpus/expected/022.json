@@ -1,0 +1,85 @@
+{
+ "id": "022",
+ "broker": "Lone Star Freight LLC (fixture)",
+ "loadId": "RC-88412",
+ "tripId": null,
+ "reference_numbers": {},
+ "pickup": {
+  "type": "pickup",
+  "seq": 1,
+  "facility": null,
+  "address": null,
+  "city": "Dallas",
+  "state": "TX",
+  "zip": null,
+  "date": "2026-10-28",
+  "time_start": null,
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "stops": [
+  {
+   "type": "pickup",
+   "seq": 1,
+   "facility": null,
+   "address": null,
+   "city": "Dallas",
+   "state": "TX",
+   "zip": null,
+   "date": "2026-10-28",
+   "time_start": null,
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  },
+  {
+   "type": "delivery",
+   "seq": 2,
+   "facility": null,
+   "address": null,
+   "city": "Atlanta",
+   "state": "GA",
+   "zip": null,
+   "date": "2026-10-30",
+   "time_start": null,
+   "time_end": null,
+   "appt_type": null,
+   "ref": null
+  }
+ ],
+ "delivery": {
+  "type": "delivery",
+  "seq": 2,
+  "facility": null,
+  "address": null,
+  "city": "Atlanta",
+  "state": "GA",
+  "zip": null,
+  "date": "2026-10-30",
+  "time_start": null,
+  "time_end": null,
+  "appt_type": null,
+  "ref": null
+ },
+ "rate": {
+  "total": 1850.0,
+  "linehaul": 1650.0,
+  "fuel": 200.0,
+  "accessorials_included": [],
+  "currency": "USD"
+ },
+ "not_rate": {
+  "penalties": [],
+  "detention": "$75 per hour after 2 hours free time",
+  "tonu": null,
+  "lumper_reimbursement": null,
+  "layover": null
+ },
+ "miles": 820,
+ "rate_per_mile": 2.26,
+ "equipment": null,
+ "weight_lbs": 42000,
+ "commodity": "Paper rolls",
+ "pieces": null
+}

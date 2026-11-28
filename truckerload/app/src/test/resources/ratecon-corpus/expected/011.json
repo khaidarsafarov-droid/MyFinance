@@ -1,0 +1,93 @@
+{
+ "id": "011",
+ "broker": "Kirsch Transportation Services",
+ "loadId": "0335374",
+ "tripId": null,
+ "reference_numbers": {
+  "BOL": "21950483"
+ },
+ "pickup": {
+  "type": "pickup",
+  "seq": 1,
+  "facility": "JORDACHE ENTERPRISES",
+  "address": "200 HELEN ST",
+  "city": "SOUTH PLAINFIELD",
+  "state": "NJ",
+  "zip": "07080",
+  "date": "2022-07-27",
+  "time_start": "11:00",
+  "time_end": null,
+  "appt_type": "Appt",
+  "ref": "35313376"
+ },
+ "stops": [
+  {
+   "type": "pickup",
+   "seq": 1,
+   "facility": "JORDACHE ENTERPRISES",
+   "address": "200 HELEN ST",
+   "city": "SOUTH PLAINFIELD",
+   "state": "NJ",
+   "zip": "07080",
+   "date": "2022-07-27",
+   "time_start": "11:00",
+   "time_end": null,
+   "appt_type": "Appt",
+   "ref": "35313376"
+  },
+  {
+   "type": "delivery",
+   "seq": 2,
+   "facility": "Walmart DC - Shelby, NC #6070",
+   "address": "220 WAL-MART DRIVE",
+   "city": "SHELBY",
+   "state": "NC",
+   "zip": "28150",
+   "date": "2022-07-30",
+   "time_start": "06:30",
+   "time_end": null,
+   "appt_type": "Appt",
+   "ref": "35313376"
+  }
+ ],
+ "delivery": {
+  "type": "delivery",
+  "seq": 2,
+  "facility": "Walmart DC - Shelby, NC #6070",
+  "address": "220 WAL-MART DRIVE",
+  "city": "SHELBY",
+  "state": "NC",
+  "zip": "28150",
+  "date": "2022-07-30",
+  "time_start": "06:30",
+  "time_end": null,
+  "appt_type": "Appt",
+  "ref": "35313376"
+ },
+ "rate": {
+  "total": 1300.0,
+  "linehaul": 1300.0,
+  "fuel": null,
+  "accessorials_included": [],
+  "currency": "USD"
+ },
+ "not_rate": {
+  "penalties": [
+   {
+    "text": "appointment changed without broker: minimum $250 deduction",
+    "amount": 250
+   }
+  ],
+  "detention": "$40 per hour for eligible time, $300 MAX DETENTION",
+  "tonu": null,
+  "lumper_reimbursement": null,
+  "layover": null
+ },
+ "miles": 648.0,
+ "rate_per_mile": 2.01,
+ "equipment": "53ft Van",
+ "weight_lbs": 12011,
+ "commodity": "Retail",
+ "pieces": null,
+ "note": "Last stop is labelled 'SO 2' (OCR/ template quirk) not 'DEL'; city/state glued ('SOUTH PLAINFIELNJ')"
+}
